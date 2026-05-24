@@ -1,0 +1,10 @@
+/// SportBuddies shared core library.
+///
+/// Pure Dart only — no Flutter, no Supabase. Consumed by `apps/customer`
+/// (and any future apps) for entities, value objects, repository contracts,
+/// and use cases. See the technical plan §1.3 for the layered architecture.
+library;
+
+export 'core/failures.dart';
+export 'core/result.dart';
+export 'core/value_objects/lat_lng.dart';
