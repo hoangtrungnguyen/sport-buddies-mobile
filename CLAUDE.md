@@ -9,27 +9,29 @@ SportBuddies customer-facing Flutter app. Court booking marketplace for Ho Chi M
 
 ## Build & Test Commands
 
+All Flutter/Dart commands go through `fvm`. Run `fvm install` once after clone to fetch the pinned SDK (3.35.7, see `.fvmrc` / `.fvm/fvm_config.json`).
+
 ```bash
 # Install deps
-flutter pub get
+fvm flutter pub get
 
 # Run tests
-flutter test
+fvm flutter test
 
 # Lint
-flutter analyze
+fvm flutter analyze
 
 # Run dev (local Supabase)
-flutter run --dart-define=SUPABASE_URL=http://localhost:54321 \
-            --dart-define=SUPABASE_ANON_KEY=<local-anon-key> \
-            --dart-define=GOONG_MAP_KEY=<key>
+fvm flutter run --dart-define=SUPABASE_URL=http://localhost:54321 \
+                --dart-define=SUPABASE_ANON_KEY=<local-anon-key> \
+                --dart-define=GOONG_MAP_KEY=<key>
 
 # Build for Firebase Hosting
-flutter build web --web-renderer html --release
+fvm flutter build web --web-renderer html --release
 firebase deploy --only hosting:customer
 ```
 
-**Code gen:** `dart run build_runner build --delete-conflicting-outputs`
+**Code gen:** `fvm dart run build_runner build --delete-conflicting-outputs`
 
 ## Grava DB
 
