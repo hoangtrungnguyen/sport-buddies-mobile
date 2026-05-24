@@ -17,3 +17,9 @@ build/
 # library packages' lockfiles are not — keep both excluded at root and
 # allow per-package overrides via nested .gitignore when needed)
 packages/*/pubspec.lock
+
+# FVM — keep .fvm/fvm_config.json and .fvmrc tracked; ignore the
+# locally-managed SDK symlink + cache.
+.fvm/flutter_sdk
+.fvm/versions/
+.fvm/release
