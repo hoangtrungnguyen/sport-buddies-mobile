@@ -1,0 +1,208 @@
+#!/bin/bash
+# scripts/pr-merge-watcher.sh — async PR merge tracker.
+# Run via cron every 5 min: */5 * * * * cd /path/to/repo && ./scripts/pr-merge-watcher.sh
+
+set -u
+
+REPO_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+cd "$REPO_ROOT" || exit 1
+
+PIDFILE=".grava/pr-merge-watcher.pid"
+mkdir -p .grava
+# grava-24fa: `kill -0 $(cat PIDFILE)` succeeds for ANY live PID, including a
+# recycled-and-reassigned one (browser, daemon, …) on long-uptime hosts where
+# PIDs have wrapped. That false-positive silently disables the watcher
+# indefinitely. Verify the PID's command actually looks like our watcher
+# before treating it as a live previous run. flock would be cleaner but is
+# not present on macOS by default; a `ps`-based check is portable across
+# macOS/Linux/busybox.
+if [ -f "$PIDFILE" ]; then
+  OLD_PID=$(cat "$PIDFILE" 2>/dev/null)
+  if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+    if ps -o command= -p "$OLD_PID" 2>/dev/null | grep -q "pr-merge-watcher"; then
+      # concurrency-matrix #5: log the skip so cron logs surface long-running
+      # iterations rather than silently dropping every overlapping tick.
+      echo "[$(date -u +%FT%TZ)] watcher: previous run (pid $OLD_PID) still active — skipping this tick" >&2
+      exit 0
+    fi
+    # PID is live but belongs to an unrelated process — recycled PID. Log it
+    # so operators can spot pathological wrap scenarios, then fall through
+    # and overwrite the stale PIDFILE.
+    echo "[$(date -u +%FT%TZ)] watcher: PIDFILE pid $OLD_PID is an unrelated process; treating as stale and overwriting" >&2
+  fi
+fi
+echo $$ > "$PIDFILE"
+trap 'rm -f "$PIDFILE"' EXIT
+
+MAX_PR_WAIT_HOURS=72
+NOW=$(date -u +%s)
+
+ISSUES=$(grava list --label pr-created --json 2>/dev/null)
+[ -n "$ISSUES" ] || exit 0
+
+echo "$ISSUES" | jq -r '.[].id' | while read -r ID; do
+  PR_NUMBER=$(grava wisp read "$ID" pr_number 2>/dev/null)
+  PR_URL=$(grava wisp read "$ID" pr_url 2>/dev/null)
+  [ -n "$PR_NUMBER" ] || continue
+
+  STATE=$(gh pr view "$PR_NUMBER" --json state -q '.state' 2>/dev/null)
+
+  case "$STATE" in
+    MERGED)
+      grava wisp write "$ID" pr_merged_at "$NOW"
+      grava signal PR_MERGED --issue "$ID" --actor watcher
+      grava label "$ID" --remove pr-created
+      # grava-63f3: don't emit PIPELINE_COMPLETE if grava close fails for
+      # any reason other than "already closed". Otherwise the pipeline
+      # reports complete while the issue board still says in_progress.
+      if ! grava close "$ID" --actor watcher 2>/dev/null; then
+        CURRENT_STATUS=$(grava show "$ID" --json 2>/dev/null | jq -r '.status // ""')
+        if [ "$CURRENT_STATUS" != "closed" ]; then
+          echo "watcher: failed to close $ID (status=$CURRENT_STATUS) — leaving for next iteration"
+          continue
+        fi
+        # Already closed by hand or by an earlier iteration — proceed.
+      fi
+      grava signal PIPELINE_COMPLETE --issue "$ID" --payload "$ID" --actor watcher
+      grava commit -m "watcher: $ID merged + closed"
+      continue
+      ;;
+    CLOSED)
+      # First-time CLOSED detection — distil rejection reason + record on issue.
+      # Gated by pr_rejection_recorded wisp so re-runs don't double-write.
+      ALREADY_RECORDED=$(grava wisp read "$ID" pr_rejection_recorded 2>/dev/null)
+      if [ -z "$ALREADY_RECORDED" ]; then
+        REVIEWS_JSON=$(gh pr view "$PR_NUMBER" --json reviews,closedBy,author 2>/dev/null)
+        CHANGES_REQUESTED=$(echo "$REVIEWS_JSON" | jq -r '
+          [.reviews[]? | select(.state == "CHANGES_REQUESTED") | .body] | join("\n\n---\n\n")
+        ' | head -c 4096)
+        CLOSED_BY=$(echo "$REVIEWS_JSON" | jq -r '.closedBy.login // "unknown"')
+        AUTHOR=$(echo "$REVIEWS_JSON" | jq -r '.author.login // ""')
+        LAST_COMMENT=$(gh pr view "$PR_NUMBER" --json comments 2>/dev/null \
+          | jq -r '.comments[-1].body // ""' | head -c 1024)
+
+        if [ -n "$CHANGES_REQUESTED" ]; then
+          REASON="reviewer-rejected"
+        elif [ "$CLOSED_BY" = "$AUTHOR" ]; then
+          REASON="author-abandoned"
+        else
+          REASON="unknown"
+        fi
+
+        STAMP=$(date -u +%FT%TZ)
+        NOTES=$(cat <<EOF
+
+## PR Rejection Notes ($STAMP)
+
+PR: $PR_URL
+Closed by: $CLOSED_BY
+Reason category: $REASON
+
+### Reviewer feedback (CHANGES_REQUESTED bodies)
+${CHANGES_REQUESTED:-_none recorded_}
+
+### Closing comment
+${LAST_COMMENT:-_none_}
+EOF
+)
+
+        # grava-97ec: guard the description write — if it fails (DB blip,
+        # network), defer the rest of the recording until next iteration so
+        # the rejection notes aren't silently lost. The pr_rejection_recorded
+        # gate is NOT set yet at this point, so re-runs will retry cleanly.
+        if ! printf '%s\n' "$NOTES" | grava update "$ID" --description-append-from-stdin; then
+          echo "watcher: failed to record rejection notes for $ID — will retry next iteration"
+          continue
+        fi
+        grava comment "$ID" -m "PR closed without merge ($REASON). See description for full notes."
+
+        # Bookkeeping wisps (non-phase): rejection notes blob, close timestamp,
+        # idempotency gate. pr_close_reason is intentionally NOT written here
+        # — `grava signal PR_CLOSED --payload "$REASON"` below records it
+        # atomically alongside pipeline_phase=failed.
+        grava wisp write "$ID" pr_rejection_notes "$NOTES"
+        grava wisp write "$ID" pr_closed_at "$NOW"
+        grava wisp write "$ID" pr_rejection_recorded "1"
+
+        # Atomic: pipeline_phase=failed + pr_close_reason aux wisp in one tx.
+        # Scoped inside the first-time block so re-runs (ALREADY_RECORDED=1)
+        # don't re-emit the signal with a blank payload, which would overwrite
+        # pr_close_reason with "". Phase is already terminal `failed` after the
+        # first emission; subsequent watcher iterations are correctly no-op.
+        grava signal PR_CLOSED --issue "$ID" --payload "$REASON" --actor watcher
+      fi
+
+      grava label "$ID" --add pr-rejected
+      grava label "$ID" --remove pr-created
+      grava commit -m "watcher: $ID PR closed without merge"
+      continue
+      ;;
+  esac
+
+  # State is OPEN. Check stale cap.
+  # grava-6ac8 / re PR #42: empirical re-test (May 2026) found `grava wisp
+  # read` actually exits 1 on a missing wisp (not 0 as PR #42 assumed).
+  # The `[ -n "$SINCE" ] || SINCE="$NOW"` fallback below works correctly
+  # in either case — stdout is empty either way, so `[ -n ]` catches it —
+  # but the original PR #42 rationale ("|| echo never fires") was wrong.
+  # Leaving the fallback in place as harmless defensive style.
+  SINCE=$(grava wisp read "$ID" pr_awaiting_merge_since 2>/dev/null)
+  [ -n "$SINCE" ] || SINCE="$NOW"
+  AGE_HRS=$(( (NOW - SINCE) / 3600 ))
+  if [ "$AGE_HRS" -ge "$MAX_PR_WAIT_HOURS" ]; then
+    grava wisp write "$ID" pr_stale "true"
+    grava label "$ID" --add needs-human
+    grava commit -m "watcher: $ID stale (>${MAX_PR_WAIT_HOURS}h)"
+    continue
+  fi
+
+  # Check for new review comments + CHANGES_REQUESTED
+  COMMENTS_JSON=$(gh api "repos/{owner}/{repo}/pulls/$PR_NUMBER/comments" 2>/dev/null)
+
+  # grava-431b: validate gh's response is a JSON array before piping it to
+  # the comment-diff jq. When gh fails (rate-limited, network blip, auth
+  # expiry, deleted PR) it commonly prints an error string to stdout
+  # instead of valid JSON, or returns malformed/object-shaped output. The
+  # downstream `jq -c '[.[] | ...]'` then errors with
+  # "Cannot index string with string", NEW becomes empty, NEW_COUNT
+  # becomes empty, and `[ "$NEW_COUNT" -gt 0 ]` errors with
+  # "integer expression expected" — corrupting the iteration. Guard
+  # explicitly and skip this iteration's comment check on bad input.
+  if [ -z "$COMMENTS_JSON" ] \
+     || ! echo "$COMMENTS_JSON" | jq -e 'type == "array"' >/dev/null 2>&1; then
+    echo "[$(date -u +%FT%TZ)] watcher: gh api returned non-array for $ID PR_NUMBER=$PR_NUMBER — skipping comment check this tick" >&2
+    continue
+  fi
+
+  # Note re grava-6ac8 / PR #42: that PR added the `[ -n "$X" ] || X=0`
+  # fallback under the (incorrect) belief that `grava wisp read` exits 0
+  # on a missing wisp. Empirical re-test (May 2026): the CLI exits 1 on
+  # missing wisp with empty stdout. The fallback is still correct — `$VAR`
+  # ends up empty either way, the `[ -n ]` guard catches that — but the
+  # original PR #42 rationale was wrong. Leaving the fallbacks in place as
+  # belt-and-suspenders defensive style.
+  LAST_SEEN=$(grava wisp read "$ID" pr_last_seen_comment_id 2>/dev/null)
+  [ -n "$LAST_SEEN" ] || LAST_SEEN=0
+  NEW=$(echo "$COMMENTS_JSON" | jq -c --argjson last "$LAST_SEEN" '
+    [.[] | select(.in_reply_to_id == null) | select(.id > $last)]
+  ')
+  # Belt-and-suspenders: even with the array-shape gate above, defend
+  # against any future jq path that could yield a non-numeric NEW_COUNT
+  # (e.g. an upstream filter regression). An empty or non-numeric value
+  # would otherwise blow up the `[ "$NEW_COUNT" -gt 0 ]` test below.
+  NEW_COUNT=$(echo "$NEW" | jq 'length' 2>/dev/null)
+  case "$NEW_COUNT" in
+    ''|*[!0-9]*) NEW_COUNT=0 ;;
+  esac
+  REVIEW_DECISION=$(gh pr view "$PR_NUMBER" --json reviewDecision -q '.reviewDecision' 2>/dev/null)
+
+  if [ "$NEW_COUNT" -gt 0 ] || [ "$REVIEW_DECISION" = "CHANGES_REQUESTED" ]; then
+    HIGHEST=$(echo "$COMMENTS_JSON" | jq -r '[.[].id] | max // 0')
+    grava wisp write "$ID" pr_new_comments "$NEW"
+    grava wisp write "$ID" pr_last_seen_comment_id "$HIGHEST"
+    grava commit -m "watcher: $ID new PR comments ($NEW_COUNT)"
+    [ -x scripts/hooks/notify-pr-comments.sh ] && scripts/hooks/notify-pr-comments.sh "$ID" "$PR_URL"
+  fi
+done
+
+exit 0
