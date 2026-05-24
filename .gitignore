@@ -1,1 +1,19 @@
+# Grava worktrees
 .worktree/
+
+# Dart / Flutter
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+
+# IDE
+.idea/
+.DS_Store
+
+# Per-package pubspec.lock (app pubspec.lock IS checked in upstream;
+# library packages' lockfiles are not — keep both excluded at root and
+# allow per-package overrides via nested .gitignore when needed)
+packages/*/pubspec.lock

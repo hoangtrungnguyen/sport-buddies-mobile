@@ -1,0 +1,12 @@
+name: spb_core
+description: SportBuddies shared core — pure Dart entities, value objects, repository interfaces, and use cases. No Flutter SDK dependency.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+
+dev_dependencies:
+  test: ^1.24.0
