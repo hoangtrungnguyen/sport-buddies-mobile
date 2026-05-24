@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "sportbuddies-placeholder"
+  },
+  "targets": {
+    "sportbuddies-placeholder": {
+      "hosting": {
+        "customer": [
+          "TODO-actual-firebase-site-id"
+        ]
+      }
+    }
+  }
+}
