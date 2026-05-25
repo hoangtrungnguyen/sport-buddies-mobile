@@ -14,6 +14,33 @@ void main() {
       expect(sl, isA<GetIt>());
     });
 
+    test(
+        'configureDependencies registers SharedPreferences before sl.init() runs',
+        () async {
+      // Call the real configureDependencies function under test.
+      // sl.init() (generated code) tries to access Supabase.instance.client,
+      // which throws StateError in tests because Supabase is not initialised.
+      // SharedPreferences is registered *before* sl.init(), so we catch the
+      // expected downstream error and assert the prefs singleton was wired up.
+      SharedPreferences.setMockInitialValues({'key': 'value'});
+      final prefs = await SharedPreferences.getInstance();
+
+      // configureDependencies may throw once sl.init() reaches Supabase —
+      // that is acceptable; we only care that the SharedPreferences step ran.
+      try {
+        await configureDependencies(prefs);
+      } catch (_) {
+        // Expected: Supabase.instance throws StateError in test environments.
+      }
+
+      expect(sl.isRegistered<SharedPreferences>(), isTrue,
+          reason:
+              'configureDependencies must register SharedPreferences via '
+              'sl.registerSingleton before delegating to sl.init()');
+      expect(sl<SharedPreferences>(), same(prefs),
+          reason: 'resolved instance must be the same object passed in');
+    });
+
     test('SharedPreferences is registered when passed to configureDependencies',
         () async {
       // configureDependencies calls sl.init() which tries to resolve
