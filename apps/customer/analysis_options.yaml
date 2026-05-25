@@ -1,0 +1,10 @@
+# Static analysis configuration for the `customer` app.
+# Inherits the Flutter team's recommended lint set, which already extends
+# `package:lints/recommended.yaml`.
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.config.dart"
