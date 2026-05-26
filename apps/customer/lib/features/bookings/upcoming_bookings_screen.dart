@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'booking_filter_bar.dart';
 import 'booking_tile.dart';
 import 'bookings_cubit.dart';
 import 'bookings_state.dart';
@@ -43,14 +44,7 @@ class UpcomingBookingsScreen extends StatelessWidget {
             BookingsLoading() => const Center(
                 child: CircularProgressIndicator(),
               ),
-            BookingsLoaded(:final bookings) when bookings.isEmpty =>
-              const _EmptyState(),
-            BookingsLoaded(:final bookings) => ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: bookings.length,
-                itemBuilder: (context, index) =>
-                    BookingTile(booking: bookings[index]),
-              ),
+            BookingsLoaded() => _LoadedBody(state: state),
             BookingsError(:final message) => _ErrorState(
                 message: message,
                 onRetry: () =>
@@ -59,6 +53,37 @@ class UpcomingBookingsScreen extends StatelessWidget {
           };
         },
       ),
+    );
+  }
+}
+
+/// Renders the filter bar + the list (or empty state) for [BookingsLoaded].
+class _LoadedBody extends StatelessWidget {
+  const _LoadedBody({required this.state});
+
+  final BookingsLoaded state;
+
+  @override
+  Widget build(BuildContext context) {
+    final filtered = state.filteredBookings;
+    return Column(
+      children: [
+        BookingFilterBar(
+          selectedStatus: state.selectedStatus,
+          onFilterChanged: (status) =>
+              context.read<BookingsCubit>().filterByStatus(status),
+        ),
+        Expanded(
+          child: filtered.isEmpty
+              ? const _EmptyState()
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) =>
+                      BookingTile(booking: filtered[index]),
+                ),
+        ),
+      ],
     );
   }
 }

@@ -70,4 +70,18 @@ class BookingsCubit extends Cubit<BookingsState> {
       emit(BookingsError(e.toString()));
     }
   }
+
+  /// Updates the status filter applied to the loaded bookings.
+  ///
+  /// [status] — the booking status string to filter by (e.g. `'pending'`,
+  /// `'confirmed'`, `'completed'`, `'cancelled'`). Pass `null` to clear the
+  /// filter and show all bookings (the "All" chip).
+  ///
+  /// Does nothing if the current state is not [BookingsLoaded].
+  void filterByStatus(String? status) {
+    final current = state;
+    if (current is BookingsLoaded) {
+      emit(current.copyWithFilter(status));
+    }
+  }
 }
