@@ -27,7 +27,7 @@ git worktree add --detach "$TMP_PROBE" HEAD >/dev/null 2>&1 || exit 0
 (
   cd "$TMP_PROBE" || exit 0
   git merge --no-commit --no-ff origin/main >/dev/null 2>&1 || { echo "merge failed in probe"; exit 3; }
-  go build ./... 2>&1 || exit 3
+  fvm flutter analyze --no-pub 2>&1 || exit 3
 )
 PROBE_RC=$?
 git worktree remove "$TMP_PROBE" --force >/dev/null 2>&1 || true
