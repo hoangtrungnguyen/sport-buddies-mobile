@@ -1,12 +1,13 @@
-// Tests for the GoRouter configuration (updated for grava-144f.1.2 forgot-password).
+// Tests for the GoRouter configuration (updated for grava-654b.1.1 bookings).
 //
-// The router exposes six routes:
-//   /                  → HomePage
-//   /login             → LoginScreen (CAPP-010)
-//   /signup            → SignUpScreen (CAPP-010)
-//   /forgot-password   → ForgotPasswordScreen (grava-144f.1.2)
-//   /profile           → ProfileScreen (later story)
-//   /map               → MapScreen (later story)
+// The router exposes seven routes:
+//   /                    → HomePage
+//   /login               → LoginScreen (CAPP-010)
+//   /signup              → SignUpScreen (CAPP-010)
+//   /forgot-password     → ForgotPasswordScreen (grava-144f.1.2)
+//   /profile             → ProfileScreen (later story)
+//   /map                 → MapScreen (later story)
+//   /bookings/upcoming   → UpcomingBookingsPage (grava-654b.1.1)
 import 'package:customer/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +21,7 @@ void main() {
     });
 
     test(
-        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", and "/map"',
+        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", "/map", and "/bookings/upcoming"',
         () {
       final router = buildRouter();
       final routes = router.configuration.routes;
@@ -35,6 +36,7 @@ void main() {
           '/forgot-password',
           '/profile',
           '/map',
+          '/bookings/upcoming',
         ]),
       );
     });
