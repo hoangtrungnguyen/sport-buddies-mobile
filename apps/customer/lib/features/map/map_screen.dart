@@ -1,6 +1,11 @@
-// Map screen — CAPP-030 / grava-c9ca.1.1
+// Map screen — CAPP-030 / grava-c9ca.1.2
 //
-// Renders a flutter_map widget centred on Ho Chi Minh City.
+// Renders a flutter_map widget.  The map centre is resolved reactively:
+//
+//   1. While [LocationCubit] is fetching (permission dialog / GPS fix) the
+//      map shows the HCMC default so the user sees something immediately.
+//   2. Once the cubit settles on [LocationLoaded] the map pans to either the
+//      real GPS coordinate or the HCMC fallback (when permission was denied).
 //
 // Tile source strategy:
 //   • When [Env.vietmapApiKey] is non-empty (prod / staging), the tile URL
@@ -13,7 +18,11 @@
 //   --dart-define=VIETMAP_API_KEY=<key>
 
 import 'package:customer/core/env/env.dart';
+import 'package:customer/features/map/location_cubit.dart';
+import 'package:customer/features/map/location_service.dart';
+import 'package:customer/features/map/location_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -36,13 +45,38 @@ String _tileUrlTemplate() {
   return _vietmapTileUrl.replaceAll('{key}', key);
 }
 
-/// Map screen — shows a zoomable map of Ho Chi Minh City.
+/// Map screen — shows a zoomable map of Ho Chi Minh City, centred on the
+/// user's GPS position when location permission is granted.
 ///
-/// This is a placeholder screen (no BLoC / cubit yet) that will grow as
-/// sibling tasks (grava-c9ca.1.2, grava-c9ca.1.3) add location and court
-/// marker support.
+/// Wraps itself in a [BlocProvider] so callers don't need to inject the
+/// [LocationCubit] manually.
+///
+/// [cubit] is an optional override used only in tests — pass a
+/// pre-configured [LocationCubit] to avoid making real GPS calls.
 class MapScreen extends StatelessWidget {
-  const MapScreen({super.key});
+  const MapScreen({super.key, this.cubit});
+
+  /// Optional cubit override for widget tests.
+  ///
+  /// When null, [MapScreen] creates a real [LocationCubit] backed by
+  /// [GeolocatorLocationService] and immediately starts fetching.
+  final LocationCubit? cubit;
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveCubit = cubit ??
+        (LocationCubit(const GeolocatorLocationService())..requestAndFetch());
+
+    return BlocProvider<LocationCubit>.value(
+      value: effectiveCubit,
+      child: const _MapView(),
+    );
+  }
+}
+
+/// Inner stateless widget that reads [LocationCubit] from context.
+class _MapView extends StatelessWidget {
+  const _MapView();
 
   @override
   Widget build(BuildContext context) {
@@ -50,17 +84,27 @@ class MapScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Bản đồ sân gần bạn'),
       ),
-      body: FlutterMap(
-        options: const MapOptions(
-          initialCenter: _hcmcLatLng,
-          initialZoom: _defaultZoom,
-        ),
-        children: [
-          TileLayer(
-            urlTemplate: _tileUrlTemplate(),
-            userAgentPackageName: 'vn.sportbuddies.customer',
-          ),
-        ],
+      body: BlocBuilder<LocationCubit, LocationState>(
+        builder: (context, state) {
+          // While loading (or initial before first emission) show HCMC.
+          final center = switch (state) {
+            LocationLoaded(:final center) => center,
+            _ => _hcmcLatLng,
+          };
+
+          return FlutterMap(
+            options: MapOptions(
+              initialCenter: center,
+              initialZoom: _defaultZoom,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: _tileUrlTemplate(),
+                userAgentPackageName: 'vn.sportbuddies.customer',
+              ),
+            ],
+          );
+        },
       ),
     );
   }
