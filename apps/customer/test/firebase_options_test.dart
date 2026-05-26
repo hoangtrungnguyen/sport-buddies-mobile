@@ -9,6 +9,7 @@
 // intentionally non-functional and will be regenerated via
 // `flutterfire configure` once the Firebase project exists.
 
+import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:customer/firebase_options.dart';
 
