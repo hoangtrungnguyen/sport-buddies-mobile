@@ -6,6 +6,7 @@
 //   /login              → LoginScreen (CAPP-010)
 //   /signup             → SignUpScreen (CAPP-010)
 //   /bookings/upcoming  → UpcomingBookingsPage (grava-654b.1.1)
+//   /bookings/history   → BookingHistoryPage (grava-654b.2.1)
 //
 // DI wiring: registered as Singleton in RegisterModule (injection_module.dart)
 // so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
@@ -14,6 +15,7 @@ import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/bookings/booking_history_screen.dart';
 import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
@@ -99,6 +101,11 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/bookings/upcoming',
         builder: (context, state) => const UpcomingBookingsPage(),
+      ),
+      // grava-654b.2.1: Booking history screen
+      GoRoute(
+        path: '/bookings/history',
+        builder: (context, state) => const BookingHistoryPage(),
       ),
     ],
   );
