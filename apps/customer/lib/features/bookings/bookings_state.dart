@@ -1,13 +1,11 @@
 // Bookings feature — Cubit states.
 //
-// Three states:
-//   BookingsLoading — initial / fetching.
-//   BookingsLoaded  — list of upcoming bookings ready.
-//   BookingsError   — fetch failed.
-//
-// BookingsLoaded carries an optional [selectedStatus] which is used to
-// compute [filteredBookings] — the subset of bookings to display. When
-// [selectedStatus] is null the filter represents "All".
+// States:
+//   BookingsLoading     — initial / fetching.
+//   BookingsLoaded      — list of upcoming bookings ready. Carries optional
+//                         [selectedStatus] filter (null = "All").
+//   BookingsError       — fetch or cancel failed.
+//   BookingsCancelling  — a cancel request is in-flight for a specific booking.
 
 import 'package:flutter/foundation.dart';
 
@@ -80,4 +78,21 @@ class BookingsError extends BookingsState {
 
   @override
   int get hashCode => message.hashCode;
+}
+
+/// Emitted while a cancel request is in-flight for [bookingId].
+class BookingsCancelling extends BookingsState {
+  const BookingsCancelling(this.bookingId);
+
+  final String bookingId;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookingsCancelling &&
+          runtimeType == other.runtimeType &&
+          bookingId == other.bookingId;
+
+  @override
+  int get hashCode => bookingId.hashCode;
 }
