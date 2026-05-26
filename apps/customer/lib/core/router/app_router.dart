@@ -12,6 +12,7 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +53,11 @@ GoRouter buildRouter() {
           create: (_) => ProfileCubit(Supabase.instance.client),
           child: const ProfileScreen(),
         ),
+      ),
+      // grava-c9ca.1.1: Map screen — CAPP-030
+      GoRoute(
+        path: '/map',
+        builder: (context, state) => const MapScreen(),
       ),
     ],
   );
