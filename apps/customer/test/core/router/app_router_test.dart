@@ -1,3 +1,11 @@
+// Tests for the GoRouter configuration (updated for CAPP-010 real screens).
+//
+// The router exposes five routes:
+//   /         → HomePage
+//   /login    → LoginScreen (CAPP-010)
+//   /signup   → SignUpScreen (CAPP-010)
+//   /profile  → ProfileScreen (later story)
+//   /map      → MapScreen (later story)
 import 'package:customer/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,14 +18,15 @@ void main() {
       expect(router, isA<GoRouter>());
     });
 
-    test('GoRouter contains routes for "/", "/login", "/signup", "/profile", and "/map"', () {
+    test(
+        'GoRouter contains routes for "/", "/login", "/signup", "/profile", and "/map"',
+        () {
       final router = buildRouter();
       final routes = router.configuration.routes;
-      final paths = routes
-          .whereType<GoRoute>()
-          .map((r) => r.path)
-          .toList();
-      expect(paths, containsAll(['/', '/login', '/signup', '/profile', '/map']));
+      final paths =
+          routes.whereType<GoRoute>().map((r) => r.path).toList();
+      expect(
+          paths, containsAll(['/', '/login', '/signup', '/profile', '/map']));
     });
 
     testWidgets('/ resolves to a widget that contains the bootstrap text',
@@ -28,14 +37,24 @@ void main() {
       expect(find.text('SportBuddies — bootstrap OK'), findsOneWidget);
     });
 
-    testWidgets('/login resolves to a widget that contains the login stub text',
+    testWidgets('/login resolves to a widget that shows "Sign in"',
         (WidgetTester tester) async {
       final router = buildRouter();
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
-      // Navigate to /login.
       router.go('/login');
       await tester.pumpAndSettle();
-      expect(find.text('Login (CAPP-010 stub)'), findsOneWidget);
+      // "Sign in" appears in both the AppBar title and the submit button.
+      expect(find.text('Sign in'), findsWidgets);
+    });
+
+    testWidgets('/signup resolves to a widget that shows "Create account"',
+        (WidgetTester tester) async {
+      final router = buildRouter();
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      router.go('/signup');
+      await tester.pumpAndSettle();
+      // "Create account" appears in both the AppBar title and the submit button.
+      expect(find.text('Create account'), findsWidgets);
     });
   });
 
@@ -46,16 +65,6 @@ void main() {
         const MaterialApp(home: HomePage()),
       );
       expect(find.text('SportBuddies — bootstrap OK'), findsOneWidget);
-    });
-  });
-
-  group('LoginPage widget', () {
-    testWidgets('renders "Login (CAPP-010 stub)"',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: LoginPage()),
-      );
-      expect(find.text('Login (CAPP-010 stub)'), findsOneWidget);
     });
   });
 }
