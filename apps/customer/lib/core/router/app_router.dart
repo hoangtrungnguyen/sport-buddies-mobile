@@ -12,9 +12,12 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/profile/profile_cubit.dart';
+import 'package:customer/features/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Builds and returns the application [GoRouter].
 GoRouter buildRouter() {
@@ -41,6 +44,13 @@ GoRouter buildRouter() {
         builder: (context, state) => BlocProvider(
           create: (_) => AuthBloc(),
           child: const SignUpScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => BlocProvider(
+          create: (_) => ProfileCubit(Supabase.instance.client),
+          child: const ProfileScreen(),
         ),
       ),
     ],
