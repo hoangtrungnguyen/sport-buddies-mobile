@@ -54,3 +54,8 @@ final class AuthFailureState extends AuthState {
 final class PasswordResetSent extends AuthState {
   const PasswordResetSent();
 }
+
+/// Verification email was (re)sent successfully.
+final class VerificationEmailSent extends AuthState {
+  const VerificationEmailSent();
+}

@@ -53,6 +53,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignUpSubmitted>(_onSignUpSubmitted);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
     on<ForgotPasswordRequested>(_onForgotPasswordRequested);
+    on<ResendVerificationRequested>(_onResendVerificationRequested);
   }
 
   final SupabaseClient? _client;
@@ -163,6 +164,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await client.auth.resetPasswordForEmail(event.email);
       }
       emit(const PasswordResetSent());
+    } on AuthException catch (e) {
+      emit(AuthFailureState(e.message));
+    } catch (e) {
+      emit(AuthFailureState(e.toString()));
+    }
+  }
+
+  Future<void> _onResendVerificationRequested(
+    ResendVerificationRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final emailError = validateEmail(event.email);
+    if (emailError != null) {
+      emit(AuthValidationError(emailError));
+      return;
+    }
+
+    emit(const AuthLoading());
+    try {
+      final client = _client;
+      if (client != null) {
+        await client.auth.resend(
+          type: OtpType.signup,
+          email: event.email,
+        );
+      }
+      emit(const VerificationEmailSent());
     } on AuthException catch (e) {
       emit(AuthFailureState(e.message));
     } catch (e) {
