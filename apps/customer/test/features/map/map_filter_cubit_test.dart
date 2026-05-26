@@ -1,95 +1,135 @@
-// Cubit tests for MapFilterCubit — grava-c9ca.3.1
+// MapFilterCubit tests — grava-c9ca.4.2
 //
-// AC verified:
-//   - MapFilterCubit initialises with all sports selected (empty filter = show all)
-//   - filterBySports([]) resets to show-all
-//   - filterBySports(['football']) shows only football
-//   - Multi-select: filterBySports(['football', 'basketball']) keeps both
-//   - Calling filterBySports with the same list emits a new state with equal set
+// Tests the map filter cubit including sport and distance filtering.
 
-import 'package:bloc_test/bloc_test.dart';
-import 'package:customer/features/map/map_filter_cubit.dart';;
-import 'package:customer/features/map/map_filter_state.dart';;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:customer/features/map/map_filter_cubit.dart';
+import 'package:customer/features/map/map_filter_state.dart';
 
 void main() {
   group('MapFilterCubit', () {
-    late MapFilterCubit cubit;
-
-    setUp(() {
-      cubit = MapFilterCubit();
+    test('initial state has empty filters', () {
+      final cubit = MapFilterCubit();
+      expect(cubit.state.selectedSports, isEmpty);
+      expect(cubit.state.maxDistanceKm, isNull);
     });
 
-    tearDown(() => cubit.close());
+    test('filterBySports updates selected sports', () {
+      final cubit = MapFilterCubit();
+      cubit.filterBySports(['football', 'basketball']);
 
-    test('initial state has empty selectedSports (show all)', () {
+      expect(cubit.state.selectedSports, {'football', 'basketball'});
+    });
+
+    test('filterBySports with empty list resets filter', () {
+      final cubit = MapFilterCubit();
+      cubit.filterBySports(['football']);
+      expect(cubit.state.selectedSports, {'football'});
+
+      cubit.filterBySports([]);
       expect(cubit.state.selectedSports, isEmpty);
     });
 
-    blocTest<MapFilterCubit, MapFilterState>(
-      'filterBySports with single sport emits state with that sport',
-      build: () => MapFilterCubit(),
-      act: (c) => c.filterBySports(['football']),
-      expect: () => [
-        isA<MapFilterState>().having(
-          (s) => s.selectedSports,
-          'selectedSports',
-          {'football'},
-        ),
-      ],
-    );
+    test('filterByDistance updates max distance', () {
+      final cubit = MapFilterCubit();
+      cubit.filterByDistance(5.0);
 
-    blocTest<MapFilterCubit, MapFilterState>(
-      'filterBySports with multiple sports emits state with all sports',
-      build: () => MapFilterCubit(),
-      act: (c) => c.filterBySports(['football', 'basketball']),
-      expect: () => [
-        isA<MapFilterState>().having(
-          (s) => s.selectedSports,
-          'selectedSports',
-          {'football', 'basketball'},
-        ),
-      ],
-    );
+      expect(cubit.state.maxDistanceKm, 5.0);
+    });
 
-    blocTest<MapFilterCubit, MapFilterState>(
-      'filterBySports with empty list resets to show-all',
-      build: () => MapFilterCubit(),
-      act: (c) {
-        c.filterBySports(['tennis']);
-        c.filterBySports([]);
-      },
-      expect: () => [
-        isA<MapFilterState>().having(
-          (s) => s.selectedSports,
-          'selectedSports',
-          {'tennis'},
-        ),
-        isA<MapFilterState>().having(
-          (s) => s.selectedSports,
-          'selectedSports',
-          isEmpty,
-        ),
-      ],
-    );
+    test('filterByDistance with null clears distance filter', () {
+      final cubit = MapFilterCubit();
+      cubit.filterByDistance(5.0);
+      expect(cubit.state.maxDistanceKm, 5.0);
 
-    blocTest<MapFilterCubit, MapFilterState>(
-      'filterBySports with all 5 sports emits state with all 5',
-      build: () => MapFilterCubit(),
-      act: (c) => c.filterBySports([
-        'football',
-        'basketball',
-        'tennis',
-        'badminton',
-        'pickleball',
-      ]),
-      expect: () => [
-        isA<MapFilterState>().having(
-          (s) => s.selectedSports,
-          'selectedSports',
-          {'football', 'basketball', 'tennis', 'badminton', 'pickleball'},
-        ),
-      ],
-    );
+      cubit.filterByDistance(null);
+      expect(cubit.state.maxDistanceKm, isNull);
+    });
+
+    test('filterByDistance rounds to 1 decimal place', () {
+      final cubit = MapFilterCubit();
+      cubit.filterByDistance(5.456);
+
+      expect(cubit.state.maxDistanceKm, 5.5);
+    });
+
+    test('clearAll resets both filters', () {
+      final cubit = MapFilterCubit();
+      cubit.filterBySports(['football']);
+      cubit.filterByDistance(5.0);
+
+      cubit.clearAll();
+
+      expect(cubit.state.selectedSports, isEmpty);
+      expect(cubit.state.maxDistanceKm, isNull);
+    });
+  });
+
+  group('MapFilterState', () {
+    test('copyWith creates new instance with updated values', () {
+      const state = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+
+      final updated = state.copyWith(
+        selectedSports: {'basketball'},
+        maxDistanceKm: () => 10.0,
+      );
+
+      expect(updated.selectedSports, {'basketball'});
+      expect(updated.maxDistanceKm, 10.0);
+    });
+
+    test('copyWith preserves unchanged values', () {
+      const state = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+
+      final updated = state.copyWith(maxDistanceKm: () => 10.0);
+
+      expect(updated.selectedSports, {'football'});
+      expect(updated.maxDistanceKm, 10.0);
+    });
+
+    test('equality: identical states are equal', () {
+      const state1 = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+      const state2 = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+
+      expect(state1, equals(state2));
+    });
+
+    test('equality: different sports are not equal', () {
+      const state1 = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+      const state2 = MapFilterState(
+        selectedSports: {'basketball'},
+        maxDistanceKm: 5.0,
+      );
+
+      expect(state1, isNot(equals(state2)));
+    });
+
+    test('equality: different distances are not equal', () {
+      const state1 = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 5.0,
+      );
+      const state2 = MapFilterState(
+        selectedSports: {'football'},
+        maxDistanceKm: 10.0,
+      );
+
+      expect(state1, isNot(equals(state2)));
+    });
   });
 }
