@@ -1,43 +1,23 @@
-// Bootstrap entry-point for the SportBuddies customer Flutter app.
+// Entry point for the SportBuddies customer app.
 //
-// Init order (per tech-plan §9.2):
-//   WidgetsFlutterBinding.ensureInitialized()
-//   → Firebase.initializeApp()
-//   → Supabase.initialize()
-//   → SharedPreferences.getInstance()
-//   → configureDependencies(prefs)
-//   → runApp(CustomerApp())
+// Bootstrap order (per tech-plan §9.2):
+//   WidgetsFlutterBinding.ensureInitialized   [this task — placeholder]
+//   → Firebase.initializeApp                  [grava-35d5.9]
+//   → Supabase.initialize                     [grava-35d5.5]
+//   → SharedPreferences.getInstance           [grava-35d5.4]
+//   → configureDependencies(prefs)            [grava-35d5.7]
+//   → runApp(CustomerApp())                   [this task]
+//
+// Theme and router are wired inside CustomerApp (grava-35d5.8).
 
+import 'package:customer/app.dart';
 import 'package:flutter/material.dart';
-
-import 'l10n/app_localizations.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  // Firebase, Supabase, DI init will be wired in subsequent sub-tasks.
+  // TODO(grava-35d5.9): Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+  // TODO(grava-35d5.5): Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey)
+  // TODO(grava-35d5.4): final prefs = await SharedPreferences.getInstance()
+  // TODO(grava-35d5.7): await configureDependencies(prefs)
   runApp(const CustomerApp());
-}
-
-/// Root widget for the SportBuddies customer app.
-///
-/// Wires:
-///  - [AppLocalizations] for i18n (vi default, en supported)
-///  - [MaterialApp.router] placeholder (router added in grava-35d5.6)
-class CustomerApp extends StatelessWidget {
-  const CustomerApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'SportBuddies',
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: Locale('vi'),
-      home: Scaffold(
-        body: Center(
-          child: Text('SportBuddies — bootstrap OK'),
-        ),
-      ),
-    );
-  }
 }
