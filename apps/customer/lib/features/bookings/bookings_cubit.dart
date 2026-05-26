@@ -1,18 +1,26 @@
 // Bookings feature — Cubit.
 //
-// Fetches upcoming bookings for the current authenticated user from Supabase.
+// Fetches upcoming bookings for the current authenticated user from Supabase
+// and allows cancelling a pending booking.
 //
-// Query:
+// Load query:
 //   supabase.from('bookings')
 //     .select('*, slots(*, courts(*))')
 //     .eq('user_id', userId)
 //     .gte('slots.start_time', now())
 //     .order('slots.start_time')
 //
+// Cancel query (only for status == 'pending'):
+//   supabase.from('bookings')
+//     .update({'status': 'cancelled'})
+//     .eq('id', bookingId)
+//     .eq('status', 'pending')
+//
 // States emitted:
-//   BookingsLoading  — on loadUpcoming() call start
-//   BookingsLoaded   — on success (may be empty list)
-//   BookingsError    — on any exception
+//   BookingsLoading      — on loadUpcoming() call start
+//   BookingsLoaded       — on success (may be empty list)
+//   BookingsError        — on any exception
+//   BookingsCancelling   — while a cancel request is in-flight
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -66,6 +74,46 @@ class BookingsCubit extends Cubit<BookingsState> {
           .toList();
 
       emit(BookingsLoaded(bookings));
+    } catch (e) {
+      emit(BookingsError(e.toString()));
+    }
+  }
+
+  /// Cancels a booking by [bookingId].
+  ///
+  /// Only acts on bookings whose current state in the loaded list has
+  /// status == 'pending'. If the booking is not pending (or not found in the
+  /// current state), this method is a no-op.
+  ///
+  /// On success the upcoming-bookings list is reloaded.
+  /// On failure [BookingsError] is emitted with the exception message.
+  Future<void> cancelBooking(String bookingId) async {
+    // Guard: only cancel pending bookings. Read status from current state.
+    final currentState = state;
+    if (currentState is BookingsLoaded) {
+      final match = currentState.bookings
+          .where((b) => b.id == bookingId)
+          .firstOrNull;
+      if (match == null || match.status != 'pending') return;
+    }
+
+    emit(BookingsCancelling(bookingId));
+
+    try {
+      final client = _client;
+      if (client == null) {
+        // Stub path used in tests — skip real Supabase call and reload.
+        await loadUpcoming();
+        return;
+      }
+
+      await client
+          .from('bookings')
+          .update({'status': 'cancelled'})
+          .eq('id', bookingId)
+          .eq('status', 'pending');
+
+      await loadUpcoming();
     } catch (e) {
       emit(BookingsError(e.toString()));
     }
