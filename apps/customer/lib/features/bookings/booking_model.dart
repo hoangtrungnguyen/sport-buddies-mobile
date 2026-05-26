@@ -11,6 +11,8 @@
 //     "id": "...",
 //     "user_id": "...",
 //     "status": "confirmed",
+//     "session_number": 3,        // nullable — present only for recurring bookings
+//     "total_sessions": 10,       // nullable — present only for recurring bookings
 //     "slots": {
 //       "id": "...",
 //       "start_time": "2026-06-15T10:00:00+07:00",
@@ -98,6 +100,8 @@ class Booking {
     required this.status,
     required this.slot,
     this.bookingType = 'one_off',
+    this.sessionNumber,
+    this.totalSessions,
   });
 
   final String id;
@@ -110,6 +114,14 @@ class Booking {
   /// Booking type: "one_off" for single bookings, "recurring" for repeated bookings.
   final String bookingType;
 
+  /// For recurring bookings: which session this is within the series (1-based).
+  /// Null for one-off bookings.
+  final int? sessionNumber;
+
+  /// For recurring bookings: total number of sessions in the series.
+  /// Null for one-off bookings.
+  final int? totalSessions;
+
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
       id: json['id'] as String,
@@ -117,6 +129,8 @@ class Booking {
       status: json['status'] as String,
       slot: Slot.fromJson(json['slots'] as Map<String, dynamic>),
       bookingType: (json['booking_type'] as String?) ?? 'one_off',
+      sessionNumber: json['session_number'] as int?,
+      totalSessions: json['total_sessions'] as int?,
     );
   }
 
@@ -129,8 +143,11 @@ class Booking {
           userId == other.userId &&
           status == other.status &&
           slot == other.slot &&
-          bookingType == other.bookingType;
+          bookingType == other.bookingType &&
+          sessionNumber == other.sessionNumber &&
+          totalSessions == other.totalSessions;
 
   @override
-  int get hashCode => Object.hash(id, userId, status, slot, bookingType);
+  int get hashCode =>
+      Object.hash(id, userId, status, slot, bookingType, sessionNumber, totalSessions);
 }

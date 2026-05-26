@@ -6,6 +6,7 @@
 //   - Court name
 //   - Date (e.g. "Mon, 15 Jun 2026")
 //   - Time range (e.g. "10:00 – 11:00")
+//   - Series context line for recurring bookings (e.g. "Buổi 3 / 10")
 //   - Status badge (colour-coded chip)
 //   - Type badge (blue accent chip: 'Một lần' | 'Định kỳ')
 //   - Cancel button — only rendered when booking.status == 'pending'
@@ -65,6 +66,17 @@ class BookingTile extends StatelessWidget {
                     '$startStr – $endStr',
                     style: textTheme.bodySmall,
                   ),
+                  if (booking.sessionNumber != null &&
+                      booking.totalSessions != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Buổi ${booking.sessionNumber} / ${booking.totalSessions}',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
