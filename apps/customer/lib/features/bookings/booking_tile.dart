@@ -67,12 +67,32 @@ class _StatusBadge extends StatelessWidget {
 
   final String status;
 
+  /// Returns the background colour for the given booking status.
+  ///
+  /// Mapping:
+  ///   pending   → amber
+  ///   confirmed → green
+  ///   completed → grey
+  ///   cancelled → red
+  ///   (other)   → grey
   Color _badgeColor() {
     return switch (status) {
+      'pending' => Colors.amber,
       'confirmed' => Colors.green,
-      'pending' => Colors.orange,
+      'completed' => Colors.grey,
       'cancelled' => Colors.red,
       _ => Colors.grey,
+    };
+  }
+
+  /// Returns the localised Vietnamese label for the given booking status.
+  String _badgeLabel() {
+    return switch (status) {
+      'pending' => 'Chờ xác nhận',
+      'confirmed' => 'Đã xác nhận',
+      'completed' => 'Hoàn thành',
+      'cancelled' => 'Đã huỷ',
+      _ => status,
     };
   }
 
@@ -80,7 +100,7 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       label: Text(
-        status,
+        _badgeLabel(),
         style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       backgroundColor: _badgeColor(),
