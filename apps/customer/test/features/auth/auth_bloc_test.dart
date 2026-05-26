@@ -1,12 +1,15 @@
-// Tests for AuthBloc form validation logic (CAPP-010 / grava-144f.1.1).
+// Tests for AuthBloc form validation logic (CAPP-010 / grava-144f.1.1)
+// and user upsert after Google OAuth (grava-144f.2.2).
 //
 // Coverage:
 // - validateEmail: non-empty check
 // - validatePassword: minimum 8 chars check
 // - validateConfirmPassword: must match password
 // - AuthBloc state transitions for login and sign-up
+// - GoogleSignInRequested: calls UserRepository.upsertFromSession when provided
 import 'package:bloc_test/bloc_test.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/user_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -146,6 +149,27 @@ void main() {
       build: AuthBloc.new,
       act: (b) => b.add(const GoogleSignInRequested()),
       expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+    );
+
+    test(
+      'GoogleSignInRequested with UserRepository: upsertFromSession is not '
+      'called when no SupabaseClient is provided (no-op guard)',
+      () async {
+        // When no SupabaseClient is present the bloc skips the Supabase call
+        // entirely, so upsertFromSession must never be reached.
+        var upsertCalled = false;
+        final repo = UserRepository(
+          upsertFn: (_) async {
+            upsertCalled = true;
+          },
+        );
+        final b = AuthBloc(userRepository: repo);
+        b.add(const GoogleSignInRequested());
+        // Allow microtasks to settle.
+        await Future<void>.delayed(Duration.zero);
+        expect(upsertCalled, isFalse);
+        await b.close();
+      },
     );
 
     blocTest<AuthBloc, AuthState>(

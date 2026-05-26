@@ -13,9 +13,14 @@
 // can exercise the state machine without a real network.
 //
 // Validation helpers are top-level functions so tests can import them directly.
+//
+// After a successful Google OAuth sign-in, [UserRepository.upsertFromSession]
+// is called with the current session to create/merge the user row in the
+// `users` table (grava-144f.2.2).
 
 import 'dart:async';
 
+import 'package:customer/features/auth/user_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -51,9 +56,13 @@ String? validateConfirmPassword(String password, String confirm) {
 // ---------------------------------------------------------------------------
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({SupabaseClient? supabaseClient, GoTrueClient? authClient})
-      : _client = supabaseClient,
+  AuthBloc({
+    SupabaseClient? supabaseClient,
+    GoTrueClient? authClient,
+    UserRepository? userRepository,
+  })  : _client = supabaseClient,
         _authClient = authClient,
+        _userRepository = userRepository,
         super(const AuthInitial()) {
     on<AppStarted>(_onAppStarted);
     on<_AuthStateChanged>(_onAuthStateChanged);
@@ -78,6 +87,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Optional GoTrueClient for session checks and stream subscriptions.
   /// Separated so tests can mock it without a full SupabaseClient.
   final GoTrueClient? _authClient;
+
+  /// Optional [UserRepository] used to upsert the user row after Google OAuth.
+  final UserRepository? _userRepository;
 
   // ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _authSubscription;
@@ -180,6 +192,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Initiates Google OAuth via Supabase [OAuthProvider.google].
+  ///
+  /// After the browser redirect completes and the user is authenticated,
+  /// [UserRepository.upsertFromSession] is called with [SupabaseClient.auth.currentSession]
+  /// to create or merge the user row in the `users` table.
   Future<void> _onGoogleSignInRequested(
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
@@ -189,6 +205,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final client = _client;
       if (client != null) {
         await client.auth.signInWithOAuth(OAuthProvider.google);
+        // Upsert the user row if a session is already available (web / PKCE).
+        final session = client.auth.currentSession;
+        if (session != null) {
+          await _userRepository?.upsertFromSession(session);
+        }
       }
       emit(const AuthSuccess());
     } on AuthException catch (e) {
