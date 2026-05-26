@@ -4,6 +4,7 @@
 // annotated with @singleton directly — instead we expose them via a
 // @module abstract class with factory-getters.
 
+import 'package:customer/core/router/app_router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,8 +17,8 @@ abstract class RegisterModule {
   @singleton
   SupabaseClient get supabaseClient => Supabase.instance.client;
 
-  /// GoRouter singleton — allows FCM handler (outside widget tree) to navigate.
-  /// TODO(grava-35d5.6): replace stub with real AppRouter once task 6 lands.
+  /// GoRouter singleton wired from the app router skeleton (grava-35d5.6).
+  /// Allows FCM handlers outside the widget tree to call sl<GoRouter>().go(...).
   @singleton
-  GoRouter get goRouter => GoRouter(routes: const []);
+  GoRouter get goRouter => buildRouter();
 }
