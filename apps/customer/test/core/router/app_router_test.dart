@@ -10,15 +10,15 @@ void main() {
       expect(router, isA<GoRouter>());
     });
 
-    test('GoRouter has exactly two routes: "/" and "/login"', () {
+    test('GoRouter contains routes for "/", "/login", and "/profile"', () {
       final router = buildRouter();
-      // GoRouter exposes its configuration; verify it has the two expected paths.
+      // GoRouter exposes its configuration; verify expected paths are present.
       final routes = router.configuration.routes;
       final paths = routes
           .whereType<GoRoute>()
           .map((r) => r.path)
           .toList();
-      expect(paths, containsAll(['/', '/login']));
+      expect(paths, containsAll(['/', '/login', '/profile']));
     });
 
     testWidgets('/ resolves to a widget that contains the bootstrap text',

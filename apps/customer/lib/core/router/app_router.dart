@@ -6,8 +6,12 @@
 // DI wiring: registered as Singleton in RegisterModule (injection_module.dart)
 // so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
 
+import 'package:customer/features/profile/profile_cubit.dart';
+import 'package:customer/features/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Builds and returns the application [GoRouter].
 ///
@@ -29,6 +33,13 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/profile',
+        builder: (context, state) => BlocProvider(
+          create: (_) => ProfileCubit(Supabase.instance.client),
+          child: const ProfileScreen(),
+        ),
       ),
     ],
   );
