@@ -45,3 +45,18 @@ final class ForgotPasswordRequested extends AuthEvent {
   @override
   int get hashCode => email.hashCode;
 }
+
+/// Resend the verification email after sign-up.
+final class ResendVerificationRequested extends AuthEvent {
+  const ResendVerificationRequested({required this.email});
+
+  final String email;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ResendVerificationRequested && other.email == email);
+
+  @override
+  int get hashCode => email.hashCode;
+}
