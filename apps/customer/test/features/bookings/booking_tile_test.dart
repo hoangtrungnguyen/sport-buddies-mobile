@@ -7,6 +7,8 @@
 //   - Status → colour mapping: pending=amber, confirmed=green, completed=grey, cancelled=red
 //   - Badge text is localised Vietnamese.
 //   - BookingTile renders a type badge with correct Vietnamese label.
+//   - Cancel CTA is shown only for pending bookings.
+//   - Cancel CTA is absent from widget tree for confirmed/completed/cancelled.
 
 import 'package:customer/features/bookings/booking_model.dart';
 import 'package:customer/features/bookings/booking_tile.dart';
@@ -31,10 +33,21 @@ void main() {
     );
   }
 
-  Widget buildSubject(Booking booking) {
+  Booking bookingWithStatus(String status) {
+    const court = Court(id: 'c1', name: 'Sân Cầu Lông ABC');
+    final slot = Slot(
+      id: 's1',
+      startTime: DateTime(2026, 6, 15, 10, 0),
+      endTime: DateTime(2026, 6, 15, 11, 0),
+      court: court,
+    );
+    return Booking(id: 'b1', userId: 'u1', status: status, slot: slot);
+  }
+
+  Widget buildSubject(Booking booking, {VoidCallback? onCancel}) {
     return MaterialApp(
       home: Scaffold(
-        body: BookingTile(booking: booking),
+        body: BookingTile(booking: booking, onCancel: onCancel),
       ),
     );
   }
@@ -86,5 +99,41 @@ void main() {
   testWidgets('shows Định kỳ badge for recurring booking', (tester) async {
     await tester.pumpWidget(buildSubject(makeBooking(bookingType: 'recurring')));
     expect(find.text('Định kỳ'), findsOneWidget);
+  });
+
+  // ---------- cancel CTA visibility ----------
+
+  testWidgets('cancel CTA is present for pending booking', (tester) async {
+    await tester.pumpWidget(buildSubject(bookingWithStatus('pending'), onCancel: () {}));
+    expect(find.byKey(const Key('cancel_booking_button')), findsOneWidget);
+  });
+
+  testWidgets('cancel CTA is absent for confirmed booking', (tester) async {
+    await tester.pumpWidget(buildSubject(bookingWithStatus('confirmed'), onCancel: () {}));
+    expect(find.byKey(const Key('cancel_booking_button')), findsNothing);
+  });
+
+  testWidgets('cancel CTA is absent for completed booking', (tester) async {
+    await tester.pumpWidget(buildSubject(bookingWithStatus('completed'), onCancel: () {}));
+    expect(find.byKey(const Key('cancel_booking_button')), findsNothing);
+  });
+
+  testWidgets('cancel CTA is absent for cancelled booking', (tester) async {
+    await tester.pumpWidget(buildSubject(bookingWithStatus('cancelled'), onCancel: () {}));
+    expect(find.byKey(const Key('cancel_booking_button')), findsNothing);
+  });
+
+  testWidgets('cancel CTA is absent when onCancel not provided', (tester) async {
+    await tester.pumpWidget(buildSubject(bookingWithStatus('pending')));
+    expect(find.byKey(const Key('cancel_booking_button')), findsNothing);
+  });
+
+  testWidgets('cancel CTA invokes callback on tap', (tester) async {
+    var tapped = false;
+    await tester.pumpWidget(
+      buildSubject(bookingWithStatus('pending'), onCancel: () => tapped = true),
+    );
+    await tester.tap(find.byKey(const Key('cancel_booking_button')));
+    expect(tapped, isTrue);
   });
 }
