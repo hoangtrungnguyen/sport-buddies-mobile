@@ -15,6 +15,7 @@ import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/booking_history_screen.dart';
 import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
@@ -106,6 +107,13 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/bookings/history',
         builder: (context, state) => const BookingHistoryPage(),
+      ),
+      // grava-654b.4.1: Booking detail screen with join requests
+      GoRoute(
+        path: '/bookings/:id',
+        builder: (context, state) => BookingDetailPage(
+          bookingId: state.pathParameters['id']!,
+        ),
       ),
     ],
   );
