@@ -32,6 +32,7 @@ dependencies:
 
   # Maps & location
   flutter_map: ^7.0.0
+  latlong2: ^0.9.1
   geolocator: ^12.0.0
   vietmap_flutter_plugin: ^0.5.2
 

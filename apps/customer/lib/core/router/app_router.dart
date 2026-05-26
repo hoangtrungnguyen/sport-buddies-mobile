@@ -6,6 +6,7 @@
 // DI wiring: registered as Singleton in RegisterModule (injection_module.dart)
 // so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
 
+import 'package:customer/features/map/map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,6 +30,11 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      // grava-c9ca.1.1: Map screen — CAPP-030
+      GoRoute(
+        path: '/map',
+        builder: (context, state) => const MapScreen(),
       ),
     ],
   );
