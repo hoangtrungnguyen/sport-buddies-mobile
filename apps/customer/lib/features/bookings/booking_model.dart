@@ -97,6 +97,7 @@ class Booking {
     required this.userId,
     required this.status,
     required this.slot,
+    this.bookingType = 'one_off',
   });
 
   final String id;
@@ -106,12 +107,16 @@ class Booking {
   final String status;
   final Slot slot;
 
+  /// Booking type: "one_off" for single bookings, "recurring" for repeated bookings.
+  final String bookingType;
+
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
       id: json['id'] as String,
       userId: json['user_id'] as String,
       status: json['status'] as String,
       slot: Slot.fromJson(json['slots'] as Map<String, dynamic>),
+      bookingType: (json['booking_type'] as String?) ?? 'one_off',
     );
   }
 
@@ -123,8 +128,9 @@ class Booking {
           id == other.id &&
           userId == other.userId &&
           status == other.status &&
-          slot == other.slot;
+          slot == other.slot &&
+          bookingType == other.bookingType;
 
   @override
-  int get hashCode => Object.hash(id, userId, status, slot);
+  int get hashCode => Object.hash(id, userId, status, slot, bookingType);
 }

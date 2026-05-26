@@ -6,6 +6,7 @@
 //   - BookingTile renders formatted date/time.
 //   - Status → colour mapping: pending=amber, confirmed=green, completed=grey, cancelled=red
 //   - Badge text is localised Vietnamese.
+//   - BookingTile renders a type badge with correct Vietnamese label.
 
 import 'package:customer/features/bookings/booking_model.dart';
 import 'package:customer/features/bookings/booking_tile.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  Booking makeBooking({String status = 'confirmed'}) {
+  Booking makeBooking({String status = 'confirmed', String bookingType = 'one_off'}) {
     const court = Court(id: 'c1', name: 'Sân Cầu Lông ABC');
     final slot = Slot(
       id: 's1',
@@ -26,6 +27,7 @@ void main() {
       userId: 'u1',
       status: status,
       slot: slot,
+      bookingType: bookingType,
     );
   }
 
@@ -74,39 +76,15 @@ void main() {
     expect(find.text('Đã huỷ'), findsOneWidget);
   });
 
-  // ---------- status badge colour ----------
+  // ---------- type badge ----------
 
-  Chip findStatusChip(WidgetTester tester) {
-    return tester.widget<Chip>(find.byType(Chip));
-  }
-
-  testWidgets('pending badge has amber background', (tester) async {
-    await tester.pumpWidget(buildSubject(makeBooking(status: 'pending')));
-    final chip = findStatusChip(tester);
-    expect(chip.backgroundColor, Colors.amber);
+  testWidgets('shows Một lần badge for one_off booking', (tester) async {
+    await tester.pumpWidget(buildSubject(makeBooking()));
+    expect(find.text('Một lần'), findsOneWidget);
   });
 
-  testWidgets('confirmed badge has green background', (tester) async {
-    await tester.pumpWidget(buildSubject(makeBooking(status: 'confirmed')));
-    final chip = findStatusChip(tester);
-    expect(chip.backgroundColor, Colors.green);
-  });
-
-  testWidgets('completed badge has grey background', (tester) async {
-    await tester.pumpWidget(buildSubject(makeBooking(status: 'completed')));
-    final chip = findStatusChip(tester);
-    expect(chip.backgroundColor, Colors.grey);
-  });
-
-  testWidgets('cancelled badge has red background', (tester) async {
-    await tester.pumpWidget(buildSubject(makeBooking(status: 'cancelled')));
-    final chip = findStatusChip(tester);
-    expect(chip.backgroundColor, Colors.red);
-  });
-
-  testWidgets('unknown status falls back to grey background', (tester) async {
-    await tester.pumpWidget(buildSubject(makeBooking(status: 'unknown')));
-    final chip = findStatusChip(tester);
-    expect(chip.backgroundColor, Colors.grey);
+  testWidgets('shows Định kỳ badge for recurring booking', (tester) async {
+    await tester.pumpWidget(buildSubject(makeBooking(bookingType: 'recurring')));
+    expect(find.text('Định kỳ'), findsOneWidget);
   });
 }

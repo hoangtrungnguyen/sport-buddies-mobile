@@ -7,6 +7,7 @@
 //   - Date (e.g. "Mon, 15 Jun 2026")
 //   - Time range (e.g. "10:00 – 11:00")
 //   - Status badge (colour-coded chip)
+//   - Type badge (blue accent chip: 'Một lần' | 'Định kỳ')
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -54,7 +55,14 @@ class BookingTile extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            _StatusBadge(status: booking.status),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _StatusBadge(status: booking.status),
+                const SizedBox(height: 6),
+                _TypeBadge(bookingType: booking.bookingType),
+              ],
+            ),
           ],
         ),
       ),
@@ -104,6 +112,32 @@ class _StatusBadge extends StatelessWidget {
         style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       backgroundColor: _badgeColor(),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class _TypeBadge extends StatelessWidget {
+  const _TypeBadge({required this.bookingType});
+
+  final String bookingType;
+
+  String _label() {
+    return switch (bookingType) {
+      'recurring' => 'Định kỳ',
+      _ => 'Một lần',
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      label: Text(
+        _label(),
+        style: const TextStyle(color: Colors.white, fontSize: 12),
+      ),
+      backgroundColor: Colors.blueAccent,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
