@@ -4,6 +4,7 @@
 //   - BookingTile renders the court name.
 //   - BookingTile renders a status badge.
 //   - BookingTile renders formatted date/time.
+//   - BookingTile renders a type badge with correct Vietnamese label.
 
 import 'package:customer/features/bookings/booking_model.dart';
 import 'package:customer/features/bookings/booking_tile.dart';
@@ -26,6 +27,7 @@ void main() {
       userId: 'u1',
       status: 'confirmed',
       slot: slot,
+      bookingType: 'one_off',
     );
   });
 
@@ -57,5 +59,37 @@ void main() {
     await tester.pumpWidget(buildSubject(testBooking));
     // 10:00 start time
     expect(find.textContaining('10:00'), findsOneWidget);
+  });
+
+  testWidgets('shows Một lần badge for one_off booking', (tester) async {
+    final booking = Booking(
+      id: 'b2',
+      userId: 'u1',
+      status: 'confirmed',
+      slot: testBooking.slot,
+      bookingType: 'one_off',
+    );
+    await tester.pumpWidget(buildSubject(booking));
+    expect(find.text('Một lần'), findsOneWidget);
+  });
+
+  testWidgets('shows Định kỳ badge for recurring booking', (tester) async {
+    final booking = Booking(
+      id: 'b3',
+      userId: 'u1',
+      status: 'confirmed',
+      slot: testBooking.slot,
+      bookingType: 'recurring',
+    );
+    await tester.pumpWidget(buildSubject(booking));
+    expect(find.text('Định kỳ'), findsOneWidget);
+  });
+
+  testWidgets('type badge and status badge are both visible', (tester) async {
+    await tester.pumpWidget(buildSubject(testBooking));
+    // Status badge
+    expect(find.text('confirmed'), findsOneWidget);
+    // Type badge
+    expect(find.text('Một lần'), findsOneWidget);
   });
 }
