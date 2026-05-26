@@ -1,15 +1,20 @@
-// AuthBloc — handles sign-up and login for CAPP-010 (grava-144f.1.1).
+// AuthBloc — handles sign-up, login, and session persistence for CAPP-010.
 //
 // State machine:
-//   AuthInitial → (event) → AuthLoading → AuthSuccess | AuthFailureState
-//   AuthInitial → (event with bad input) → AuthValidationError
+//   AuthInitial → (AppStarted, no session)  → AuthUnauthenticated
+//   AuthInitial → (AppStarted, has session)  → AuthAuthenticated
+//   AuthInitial → (onAuthStateChange signedIn)  → AuthAuthenticated
+//   AuthInitial → (onAuthStateChange signedOut) → AuthUnauthenticated
+//   AuthInitial → (LoginSubmitted / SignUpSubmitted) → AuthLoading → AuthSuccess | AuthFailureState
+//   AuthInitial → (bad input) → AuthValidationError
 //
-// Supabase is called via the SupabaseClient injected from the DI container.
-// In test environments the client may not be fully initialised; the bloc
-// gracefully treats any exception as an AuthFailureState so tests can stub
-// at the bloc level without a real network.
+// Supabase is called via the injected SupabaseClient / GoTrueClient.
+// In test environments both may be `null`; the bloc gracefully stubs so tests
+// can exercise the state machine without a real network.
 //
 // Validation helpers are top-level functions so tests can import them directly.
+
+import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -50,18 +55,62 @@ String? validateConfirmPassword(String password, String confirm) {
 // ---------------------------------------------------------------------------
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({SupabaseClient? supabaseClient})
+  AuthBloc({SupabaseClient? supabaseClient, GoTrueClient? authClient})
       : _client = supabaseClient,
+        _authClient = authClient,
         super(const AuthInitial()) {
+    on<AppStarted>(_onAppStarted);
+    on<_AuthStateChanged>(_onAuthStateChanged);
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
+
+    // Subscribe to Supabase auth stream events so AuthBloc stays in sync
+    // with the session state even when the app resumes from background.
+    final authStream = _authClient?.onAuthStateChange;
+    if (authStream != null) {
+      _authSubscription = authStream.listen(
+        (supaAuthState) => add(_AuthStateChanged(supaAuthState.session)),
+      );
+    }
   }
 
-  /// Optional Supabase client.  When `null` (e.g. in tests without Supabase
-  /// initialised), auth calls are stubbed with a successful stub response so
-  /// that the state machine can still be exercised.
+  /// Optional Supabase SupabaseClient for data calls (signIn, signUp, OAuth).
   final SupabaseClient? _client;
+
+  /// Optional GoTrueClient for session checks and stream subscriptions.
+  /// Separated so tests can mock it without a full SupabaseClient.
+  final GoTrueClient? _authClient;
+
+  // ignore: cancel_subscriptions
+  StreamSubscription<dynamic>? _authSubscription;
+
+  @override
+  Future<void> close() {
+    _authSubscription?.cancel();
+    return super.close();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Session-persistence handlers
+  // ---------------------------------------------------------------------------
+
+  void _onAppStarted(AppStarted event, Emitter<AuthState> emit) {
+    final session = _authClient?.currentSession;
+    if (session != null) {
+      emit(const AuthAuthenticated());
+    } else {
+      emit(const AuthUnauthenticated());
+    }
+  }
+
+  void _onAuthStateChanged(_AuthStateChanged event, Emitter<AuthState> emit) {
+    if (event.session != null) {
+      emit(const AuthAuthenticated());
+    } else {
+      emit(const AuthUnauthenticated());
+    }
+  }
 
   Future<void> _onLoginSubmitted(
     LoginSubmitted event,

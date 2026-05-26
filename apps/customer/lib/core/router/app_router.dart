@@ -21,11 +21,37 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Builds and returns the application [GoRouter].
+///
+/// Redirect logic (grava-144f.1.4):
+///   - Unauthenticated users landing on any route other than [/login] or
+///     [/signup] are sent to [/login].
+///   - Authenticated users landing on [/login] or [/signup] are sent to [/].
+///   - All other combinations return `null` (no redirect).
 GoRouter buildRouter() {
+  // Routes that are always accessible without a session.
+  const publicPaths = {'/login', '/signup'};
+
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      // TODO(CAPP-010): wire supabase.auth.currentSession check here.
+      // Guard: Supabase.instance throws if not yet initialised (e.g. tests).
+      // In that case, treat as unauthenticated so public routes remain accessible.
+      Session? session;
+      try {
+        session = Supabase.instance.client.auth.currentSession;
+      } catch (_) {
+        session = null;
+      }
+
+      final isAuthenticated = session != null;
+      final goingTo = state.matchedLocation;
+
+      if (!isAuthenticated && !publicPaths.contains(goingTo)) {
+        return '/login';
+      }
+      if (isAuthenticated && publicPaths.contains(goingTo)) {
+        return '/';
+      }
       return null;
     },
     routes: [

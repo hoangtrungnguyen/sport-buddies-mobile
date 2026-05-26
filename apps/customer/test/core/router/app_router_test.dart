@@ -1,11 +1,20 @@
-// Tests for the GoRouter configuration (updated for CAPP-010 real screens).
+// Tests for the GoRouter configuration (updated for CAPP-010 real screens and
+// session-persistence redirect logic — grava-144f.1.4).
+//
+// Redirect behaviour:
+//   unauthenticated + any protected route → /login
+//   authenticated   + /login or /signup   → /
 //
 // The router exposes five routes:
-//   /         → HomePage
-//   /login    → LoginScreen (CAPP-010)
-//   /signup   → SignUpScreen (CAPP-010)
-//   /profile  → ProfileScreen (later story)
-//   /map      → MapScreen (later story)
+//   /         → HomePage (protected)
+//   /login    → LoginScreen (public)
+//   /signup   → SignUpScreen (public)
+//   /profile  → ProfileScreen (protected, later story)
+//   /map      → MapScreen (protected, later story)
+//
+// Note: in unit tests Supabase is not initialised, so
+// `Supabase.instance.client.auth.currentSession` returns null — all widget
+// tests run in the unauthenticated code-path unless Supabase is mocked.
 import 'package:customer/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,12 +38,16 @@ void main() {
           paths, containsAll(['/', '/login', '/signup', '/profile', '/map']));
     });
 
-    testWidgets('/ resolves to a widget that contains the bootstrap text',
+    // Without a Supabase session (tests run unauthenticated), the redirect
+    // sends the user to /login. This exercises the auth guard (grava-144f.1.4).
+    testWidgets(
+        'unauthenticated: / redirects to /login (shows "Sign in")',
         (WidgetTester tester) async {
       final router = buildRouter();
       await tester.pumpWidget(MaterialApp.router(routerConfig: router));
       await tester.pumpAndSettle();
-      expect(find.text('SportBuddies — bootstrap OK'), findsOneWidget);
+      // The redirect lands on /login which contains "Sign in".
+      expect(find.text('Sign in'), findsWidgets);
     });
 
     testWidgets('/login resolves to a widget that shows "Sign in"',

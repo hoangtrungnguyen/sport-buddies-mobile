@@ -30,3 +30,17 @@ final class SignUpSubmitted extends AuthEvent {
 final class GoogleSignInRequested extends AuthEvent {
   const GoogleSignInRequested();
 }
+
+/// Fired once on app start to check the persisted session.
+final class AppStarted extends AuthEvent {
+  const AppStarted();
+}
+
+/// Internal event emitted by the bloc's [onAuthStateChange] subscription.
+///
+/// Carries the Supabase session (null = signed out).
+final class _AuthStateChanged extends AuthEvent {
+  const _AuthStateChanged(this.session);
+
+  final Object? session; // supabase_flutter.Session | null
+}
