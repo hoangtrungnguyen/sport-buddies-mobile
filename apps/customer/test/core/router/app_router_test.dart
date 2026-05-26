@@ -1,17 +1,18 @@
-// Tests for the GoRouter configuration (grava-144f.1.2 forgot-password +
-// grava-144f.1.4 session-persistence redirect logic).
+// Tests for the GoRouter configuration (grava-144f.1.2/1.4 auth redirect +
+// grava-654b.1.1 bookings).
 //
 // Redirect behaviour:
 //   unauthenticated + any protected route → /login
 //   authenticated   + /login or /signup   → /
 //
-// The router exposes six routes:
-//   /                → HomePage (protected)
-//   /login           → LoginScreen (public)
-//   /signup          → SignUpScreen (public)
-//   /forgot-password → ForgotPasswordScreen (public)
-//   /profile         → ProfileScreen (protected, later story)
-//   /map             → MapScreen (protected, later story)
+// The router exposes seven routes:
+//   /                    → HomePage (protected)
+//   /login               → LoginScreen (public)
+//   /signup              → SignUpScreen (public)
+//   /forgot-password     → ForgotPasswordScreen (public)
+//   /profile             → ProfileScreen (protected, later story)
+//   /map                 → MapScreen (protected, later story)
+//   /bookings/upcoming   → UpcomingBookingsPage (grava-654b.1.1)
 //
 // Note: in unit tests Supabase is not initialised, so
 // `Supabase.instance.client.auth.currentSession` returns null — all widget
@@ -29,7 +30,7 @@ void main() {
     });
 
     test(
-        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", and "/map"',
+        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", "/map", and "/bookings/upcoming"',
         () {
       final router = buildRouter();
       final routes = router.configuration.routes;
@@ -44,6 +45,7 @@ void main() {
           '/forgot-password',
           '/profile',
           '/map',
+          '/bookings/upcoming',
         ]),
       );
     });
