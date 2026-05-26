@@ -11,27 +11,31 @@ SportBuddies customer-facing Flutter app. Court booking marketplace for Ho Chi M
 
 All Flutter/Dart commands go through `fvm`. Run `fvm install` once after clone to fetch the pinned SDK (3.35.7, see `.fvmrc` / `.fvm/fvm_config.json`).
 
+**Workspace layout:** Flutter packages live under `apps/customer/` and `packages/spb_core/`. There is no top-level `pubspec.yaml` — all `fvm flutter` commands must run from inside the relevant package directory.
+
 ```bash
-# Install deps
-fvm flutter pub get
+# Install deps (run from apps/customer/)
+cd apps/customer && fvm flutter pub get
 
-# Run tests
-fvm flutter test
+# Run tests (run from apps/customer/)
+cd apps/customer && fvm flutter test
 
-# Lint
-fvm flutter analyze
+# Lint (run from apps/customer/)
+cd apps/customer && fvm flutter analyze
 
-# Run dev (local Supabase)
-fvm flutter run --dart-define=SUPABASE_URL=http://localhost:54321 \
+# Run dev (local Supabase — from apps/customer/)
+cd apps/customer && fvm flutter run \
+                --dart-define=SUPABASE_URL=http://localhost:54321 \
                 --dart-define=SUPABASE_ANON_KEY=<local-anon-key> \
                 --dart-define=GOONG_MAP_KEY=<key>
 
-# Build for Firebase Hosting
-fvm flutter build web --web-renderer html --release
+# Build for Firebase Hosting (from apps/customer/)
+# Note: --web-renderer was removed in Flutter 3.22+. Use --wasm for newer renderer.
+cd apps/customer && fvm flutter build web --release
 firebase deploy --only hosting:customer
 ```
 
-**Code gen:** `fvm dart run build_runner build --delete-conflicting-outputs`
+**Code gen:** `cd apps/customer && fvm dart run build_runner build --delete-conflicting-outputs`
 
 ## Grava DB
 
