@@ -1,6 +1,7 @@
-// Map screen — CAPP-030 / grava-c9ca.1.1
+// Map screen — grava-c9ca.3.1 (extends grava-c9ca.1.1)
 //
-// Renders a flutter_map widget centred on Ho Chi Minh City.
+// Renders a flutter_map widget centred on Ho Chi Minh City with a sport
+// filter bar at the top.
 //
 // Tile source strategy:
 //   • When [Env.vietmapApiKey] is non-empty (prod / staging), the tile URL
@@ -13,7 +14,11 @@
 //   --dart-define=VIETMAP_API_KEY=<key>
 
 import 'package:customer/core/env/env.dart';
+import 'package:customer/features/map/map_cubit.dart';
+import 'package:customer/features/map/map_state.dart';
+import 'package:customer/features/map/sport_filter_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -36,13 +41,24 @@ String _tileUrlTemplate() {
   return _vietmapTileUrl.replaceAll('{key}', key);
 }
 
-/// Map screen — shows a zoomable map of Ho Chi Minh City.
+/// Map screen — shows a zoomable map of Ho Chi Minh City with sport filters.
 ///
-/// This is a placeholder screen (no BLoC / cubit yet) that will grow as
-/// sibling tasks (grava-c9ca.1.2, grava-c9ca.1.3) add location and court
-/// marker support.
+/// Wraps itself in a [BlocProvider] for [MapCubit] so callers don't need to
+/// provision the cubit externally.
 class MapScreen extends StatelessWidget {
   const MapScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => MapCubit(),
+      child: const _MapView(),
+    );
+  }
+}
+
+class _MapView extends StatelessWidget {
+  const _MapView();
 
   @override
   Widget build(BuildContext context) {
@@ -50,15 +66,28 @@ class MapScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Bản đồ sân gần bạn'),
       ),
-      body: FlutterMap(
-        options: const MapOptions(
-          initialCenter: _hcmcLatLng,
-          initialZoom: _defaultZoom,
-        ),
+      body: Column(
         children: [
-          TileLayer(
-            urlTemplate: _tileUrlTemplate(),
-            userAgentPackageName: 'vn.sportbuddies.customer',
+          BlocBuilder<MapCubit, MapState>(
+            builder: (context, state) => SportFilterBar(
+              selectedSports: state.selectedSports,
+              onSportsChanged: (sports) =>
+                  context.read<MapCubit>().filterBySports(sports.toList()),
+            ),
+          ),
+          Expanded(
+            child: FlutterMap(
+              options: const MapOptions(
+                initialCenter: _hcmcLatLng,
+                initialZoom: _defaultZoom,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: _tileUrlTemplate(),
+                  userAgentPackageName: 'vn.sportbuddies.customer',
+                ),
+              ],
+            ),
           ),
         ],
       ),
