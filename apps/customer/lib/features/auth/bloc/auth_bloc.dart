@@ -55,6 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(const AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
   }
 
   /// Optional Supabase client.  When `null` (e.g. in tests without Supabase
@@ -126,6 +127,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
       emit(const AuthSuccess());
+    } on AuthException catch (e) {
+      emit(AuthFailureState(e.message));
+    } catch (e) {
+      emit(AuthFailureState(e.toString()));
+    }
+  }
+
+  Future<void> _onForgotPasswordRequested(
+    ForgotPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final emailError = validateEmail(event.email);
+    if (emailError != null) {
+      emit(AuthValidationError(emailError));
+      return;
+    }
+
+    emit(const AuthLoading());
+    try {
+      final client = _client;
+      if (client != null) {
+        await client.auth.resetPasswordForEmail(event.email);
+      }
+      emit(const PasswordResetSent());
     } on AuthException catch (e) {
       emit(AuthFailureState(e.message));
     } catch (e) {

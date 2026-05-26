@@ -1,11 +1,12 @@
-// Tests for the GoRouter configuration (updated for CAPP-010 real screens).
+// Tests for the GoRouter configuration (updated for grava-144f.1.2 forgot-password).
 //
-// The router exposes five routes:
-//   /         → HomePage
-//   /login    → LoginScreen (CAPP-010)
-//   /signup   → SignUpScreen (CAPP-010)
-//   /profile  → ProfileScreen (later story)
-//   /map      → MapScreen (later story)
+// The router exposes six routes:
+//   /                  → HomePage
+//   /login             → LoginScreen (CAPP-010)
+//   /signup            → SignUpScreen (CAPP-010)
+//   /forgot-password   → ForgotPasswordScreen (grava-144f.1.2)
+//   /profile           → ProfileScreen (later story)
+//   /map               → MapScreen (later story)
 import 'package:customer/core/router/app_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,14 +20,23 @@ void main() {
     });
 
     test(
-        'GoRouter contains routes for "/", "/login", "/signup", "/profile", and "/map"',
+        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", and "/map"',
         () {
       final router = buildRouter();
       final routes = router.configuration.routes;
       final paths =
           routes.whereType<GoRoute>().map((r) => r.path).toList();
       expect(
-          paths, containsAll(['/', '/login', '/signup', '/profile', '/map']));
+        paths,
+        containsAll([
+          '/',
+          '/login',
+          '/signup',
+          '/forgot-password',
+          '/profile',
+          '/map',
+        ]),
+      );
     });
 
     testWidgets('/ resolves to a widget that contains the bootstrap text',

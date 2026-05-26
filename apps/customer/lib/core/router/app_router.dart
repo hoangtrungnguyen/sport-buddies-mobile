@@ -10,6 +10,7 @@
 // so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
 
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
@@ -45,6 +46,13 @@ GoRouter buildRouter() {
         builder: (context, state) => BlocProvider(
           create: (_) => AuthBloc(),
           child: const SignUpScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => BlocProvider(
+          create: (_) => AuthBloc(),
+          child: const ForgotPasswordScreen(),
         ),
       ),
       GoRoute(
