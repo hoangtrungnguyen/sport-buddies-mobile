@@ -49,3 +49,8 @@ final class AuthFailureState extends AuthState {
   @override
   int get hashCode => message.hashCode;
 }
+
+/// Password-reset email was sent successfully.
+final class PasswordResetSent extends AuthState {
+  const PasswordResetSent();
+}

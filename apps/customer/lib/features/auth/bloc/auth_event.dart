@@ -30,3 +30,18 @@ final class SignUpSubmitted extends AuthEvent {
 final class GoogleSignInRequested extends AuthEvent {
   const GoogleSignInRequested();
 }
+
+/// Submitted from the forgot-password screen.
+final class ForgotPasswordRequested extends AuthEvent {
+  const ForgotPasswordRequested({required this.email});
+
+  final String email;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ForgotPasswordRequested && other.email == email);
+
+  @override
+  int get hashCode => email.hashCode;
+}

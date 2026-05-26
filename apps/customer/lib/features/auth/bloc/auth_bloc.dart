@@ -22,16 +22,12 @@ part 'auth_state.dart';
 // ---------------------------------------------------------------------------
 
 /// Returns an error message when [email] is empty/blank, otherwise `null`.
-///
-/// Accepts `String?` so it can be used directly as a [TextFormField.validator].
 String? validateEmail(String? email) {
   if (email == null || email.trim().isEmpty) return 'Email is required.';
   return null;
 }
 
 /// Returns an error message when [password] is shorter than 8 chars, else `null`.
-///
-/// Accepts `String?` so it can be used directly as a [TextFormField.validator].
 String? validatePassword(String? password) {
   if (password == null || password.length < 8) {
     return 'Password must be at least 8 characters.';
@@ -56,11 +52,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
   }
 
-  /// Optional Supabase client.  When `null` (e.g. in tests without Supabase
-  /// initialised), auth calls are stubbed with a successful stub response so
-  /// that the state machine can still be exercised.
   final SupabaseClient? _client;
 
   Future<void> _onLoginSubmitted(
@@ -87,7 +81,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           password: event.password,
         );
       }
-      // If _client is null (test stub) we skip the network call and emit success.
       emit(const AuthSuccess());
     } on AuthException catch (e) {
       emit(AuthFailureState(e.message));
@@ -135,11 +128,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Initiates Google OAuth via Supabase [OAuthProvider.google].
-  ///
-  /// On the web platform Supabase opens a browser popup / redirect; the
-  /// session is established when the OAuth callback returns.  In tests the
-  /// [SupabaseClient] is `null` so we skip the network call and emit success
-  /// so the state machine can be exercised without network access.
   Future<void> _onGoogleSignInRequested(
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
@@ -148,12 +136,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final client = _client;
       if (client != null) {
-        await client.auth.signInWithOAuth(
-          OAuthProvider.google,
-        );
+        await client.auth.signInWithOAuth(OAuthProvider.google);
       }
-      // If _client is null (test stub) we skip the network call and emit success.
       emit(const AuthSuccess());
+    } on AuthException catch (e) {
+      emit(AuthFailureState(e.message));
+    } catch (e) {
+      emit(AuthFailureState(e.toString()));
+    }
+  }
+
+  Future<void> _onForgotPasswordRequested(
+    ForgotPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    final emailError = validateEmail(event.email);
+    if (emailError != null) {
+      emit(AuthValidationError(emailError));
+      return;
+    }
+
+    emit(const AuthLoading());
+    try {
+      final client = _client;
+      if (client != null) {
+        await client.auth.resetPasswordForEmail(event.email);
+      }
+      emit(const PasswordResetSent());
     } on AuthException catch (e) {
       emit(AuthFailureState(e.message));
     } catch (e) {

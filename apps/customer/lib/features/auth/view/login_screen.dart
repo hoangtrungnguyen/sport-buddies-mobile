@@ -107,14 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       key: const Key('forgotPasswordLink'),
-                      onPressed: () {
-                        // TODO(CAPP-010): navigate to /forgot-password when route lands.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Forgot password coming soon'),
-                          ),
-                        );
-                      },
+                      onPressed: () => context.push('/forgot-password'),
                       child: const Text('Forgot password?'),
                     ),
                   ),

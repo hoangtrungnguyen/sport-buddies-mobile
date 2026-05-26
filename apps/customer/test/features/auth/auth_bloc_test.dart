@@ -141,12 +141,26 @@ void main() {
       expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
     );
 
-    // Google OAuth tests (grava-144f.2.1)
     blocTest<AuthBloc, AuthState>(
       'emits [AuthLoading, AuthSuccess] on GoogleSignInRequested (no client stub)',
       build: AuthBloc.new,
       act: (b) => b.add(const GoogleSignInRequested()),
       expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'emits AuthValidationError when ForgotPasswordRequested with empty email',
+      build: AuthBloc.new,
+      act: (b) => b.add(const ForgotPasswordRequested(email: '')),
+      expect: () => [isA<AuthValidationError>()],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, PasswordResetSent] for valid forgot-password email',
+      build: AuthBloc.new,
+      act: (b) =>
+          b.add(const ForgotPasswordRequested(email: 'user@example.com')),
+      expect: () => [isA<AuthLoading>(), isA<PasswordResetSent>()],
     );
   });
 }
