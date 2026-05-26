@@ -7,6 +7,8 @@
 //   - Date (e.g. "Mon, 15 Jun 2026")
 //   - Time range (e.g. "10:00 – 11:00")
 //   - Status badge (colour-coded chip)
+//   - Cancel button — only rendered when booking.status == 'pending'
+//     AND an [onCancel] callback is provided (grava-654b.3.3).
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,9 +16,18 @@ import 'package:intl/intl.dart';
 import 'booking_model.dart';
 
 class BookingTile extends StatelessWidget {
-  const BookingTile({super.key, required this.booking});
+  const BookingTile({
+    super.key,
+    required this.booking,
+    this.onCancel,
+  });
 
   final Booking booking;
+
+  /// Called when the user taps the cancel button.
+  ///
+  /// If null, the cancel button is not shown regardless of booking status.
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +37,9 @@ class BookingTile extends StatelessWidget {
     final dateStr = DateFormat('EEE, d MMM yyyy').format(slot.startTime);
     final startStr = DateFormat('HH:mm').format(slot.startTime);
     final endStr = DateFormat('HH:mm').format(slot.endTime);
+
+    final showCancelButton =
+        booking.status == 'pending' && onCancel != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -55,6 +69,15 @@ class BookingTile extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             _StatusBadge(status: booking.status),
+            if (showCancelButton) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                key: const Key('cancel_booking_button'),
+                icon: const Icon(Icons.cancel_outlined),
+                tooltip: 'Cancel booking',
+                onPressed: onCancel,
+              ),
+            ],
           ],
         ),
       ),
