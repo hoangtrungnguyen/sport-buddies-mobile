@@ -59,3 +59,13 @@ final class PasswordResetSent extends AuthState {
 final class VerificationEmailSent extends AuthState {
   const VerificationEmailSent();
 }
+
+/// A valid session is present (emitted on app-start or sign-in stream event).
+final class AuthAuthenticated extends AuthState {
+  const AuthAuthenticated();
+}
+
+/// No session present (emitted on app-start without session or sign-out event).
+final class AuthUnauthenticated extends AuthState {
+  const AuthUnauthenticated();
+}

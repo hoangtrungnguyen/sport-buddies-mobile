@@ -50,9 +50,17 @@ Future<void> main() async {
   }
 
   // Step 4: initialise Supabase (URL and anon key are now guaranteed non-empty).
+  //
+  // Session persistence (grava-144f.1.4):
+  //   supabase_flutter ≥ 2.x uses SharedPreferencesLocalStorage by default
+  //   when no custom `localStorage` is provided, so sessions survive app
+  //   restarts without extra configuration.  We pass FlutterAuthClientOptions
+  //   explicitly to document the intent and keep the option visible for future
+  //   customisation (e.g. switching to a secure-storage backend).
   await Supabase.initialize(
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(),
   );
 
   // Step 5: resolve SharedPreferences before the DI container starts.
