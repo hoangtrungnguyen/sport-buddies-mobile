@@ -1,19 +1,22 @@
-// GoRouter configuration — bootstrap skeleton.
+// GoRouter configuration — CAPP-010 screens wired.
 //
-// Tech-plan §5 — placeholder routes only.
-// Feature routes (booking, profile, map, etc.) land in their own CAPP stories.
+// Routes:
+//   /         → HomePage (map placeholder — replaced by real map screen in
+//               a future CAPP story)
+//   /login    → LoginScreen (CAPP-010)
+//   /signup   → SignUpScreen (CAPP-010)
 //
 // DI wiring: registered as Singleton in RegisterModule (injection_module.dart)
 // so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
 
+import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/login_screen.dart';
+import 'package:customer/features/auth/view/sign_up_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 /// Builds and returns the application [GoRouter].
-///
-/// Exposed as a top-level function (not a class) so [RegisterModule] can call
-/// it with `GoRouter get goRouter => buildRouter()` without creating a
-/// circular dependency on a class that imports the DI container.
 GoRouter buildRouter() {
   return GoRouter(
     initialLocation: '/',
@@ -28,7 +31,17 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginPage(),
+        builder: (context, state) => BlocProvider(
+          create: (_) => AuthBloc(),
+          child: const LoginScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => BlocProvider(
+          create: (_) => AuthBloc(),
+          child: const SignUpScreen(),
+        ),
       ),
     ],
   );
@@ -37,7 +50,7 @@ GoRouter buildRouter() {
 /// Placeholder home screen.
 ///
 /// Shows a simple confirmation that the Flutter bootstrap succeeded.
-/// Replaced by the real [HomeScreen] when CAPP-002 lands.
+/// Replaced by the real map/home screen when the map story lands.
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -46,22 +59,6 @@ class HomePage extends StatelessWidget {
     return const Scaffold(
       body: Center(
         child: Text('SportBuddies — bootstrap OK'),
-      ),
-    );
-  }
-}
-
-/// Placeholder login screen stub.
-///
-/// Replaced by the real [LoginScreen] when CAPP-010 lands.
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Login (CAPP-010 stub)'),
       ),
     );
   }
