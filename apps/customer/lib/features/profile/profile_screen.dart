@@ -1,12 +1,14 @@
 // Profile feature — screen widget.
 //
-// Shows the current user's avatar, full_name, phone, and email.
+// Shows the current user's avatar, full_name (editable), phone, and email.
 // Accessible via the '/profile' route registered in app_router.dart.
 //
-// The screen reads from [ProfileCubit] via BlocBuilder:
-//   - ProfileLoading → CircularProgressIndicator
-//   - ProfileLoaded  → avatar + fields
-//   - ProfileError   → error text
+// The screen reads from [ProfileCubit] via BlocConsumer:
+//   - ProfileLoading     → CircularProgressIndicator
+//   - ProfileLoaded      → avatar + editable full_name field + read-only fields
+//   - ProfileError       → error text
+//   - ProfileSaving      → shows saving indicator in place of Save button
+//   - ProfileUpdateError → error SnackBar; reverts to loaded view
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,13 +39,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: BlocBuilder<ProfileCubit, ProfileState>(
+      body: BlocConsumer<ProfileCubit, ProfileState>(
+        listenWhen: (previous, current) =>
+            current is ProfileUpdateError ||
+            (previous is ProfileSaving && current is ProfileLoaded),
+        listener: (context, state) {
+          if (state is ProfileUpdateError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is ProfileLoaded) {
+            // Previous state was ProfileSaving → save succeeded.
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profile updated successfully.'),
+              ),
+            );
+          }
+        },
+        buildWhen: (previous, current) {
+          // Show the ProfileLoaded UI again after a ProfileUpdateError so the
+          // user can retry — we keep showing the loaded body.
+          return current is! ProfileUpdateError;
+        },
         builder: (context, state) {
           return switch (state) {
             ProfileLoading() => const Center(
                 child: CircularProgressIndicator(),
               ),
-            ProfileLoaded(:final fullName, :final phone, :final email, :final avatarUrl) =>
+            ProfileSaving() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ProfileLoaded(
+              :final fullName,
+              :final phone,
+              :final email,
+              :final avatarUrl
+            ) =>
               _ProfileBody(
                 fullName: fullName,
                 phone: phone,
@@ -53,6 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ProfileError(:final message) => Center(
                 child: Text(message),
               ),
+            // ProfileUpdateError is handled in listener; builder ignores it via
+            // buildWhen — but sealed class exhaustiveness requires a branch.
+            ProfileUpdateError() => const SizedBox.shrink(),
           };
         },
       ),
@@ -60,7 +98,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class _ProfileBody extends StatelessWidget {
+// ---------------------------------------------------------------------------
+// _ProfileBody — editable form with Save button
+// ---------------------------------------------------------------------------
+
+class _ProfileBody extends StatefulWidget {
   const _ProfileBody({
     required this.fullName,
     required this.phone,
@@ -72,6 +114,40 @@ class _ProfileBody extends StatelessWidget {
   final String phone;
   final String email;
   final String? avatarUrl;
+
+  @override
+  State<_ProfileBody> createState() => _ProfileBodyState();
+}
+
+class _ProfileBodyState extends State<_ProfileBody> {
+  late final TextEditingController _nameController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.fullName);
+  }
+
+  @override
+  void didUpdateWidget(_ProfileBody oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fullName != widget.fullName) {
+      // Sync controller when cubit emits a new ProfileLoaded after a save.
+      _nameController.text = widget.fullName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void _onSave(BuildContext context) {
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+    context.read<ProfileCubit>().updateFullName(name);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,29 +162,45 @@ class _ProfileBody extends StatelessWidget {
           CircleAvatar(
             radius: 52,
             backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
+                widget.avatarUrl != null
+                    ? NetworkImage(widget.avatarUrl!)
+                    : null,
+            child: widget.avatarUrl == null
                 ? const Icon(Icons.person, size: 52)
                 : null,
           ),
           const SizedBox(height: 32),
-          _ProfileField(
-            label: 'Full name',
-            value: fullName,
-            textStyle: textTheme.bodyLarge,
+          // Editable full_name field.
+          TextFormField(
+            key: const Key('fullNameField'),
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Full name',
+              border: OutlineInputBorder(),
+            ),
+            style: textTheme.bodyLarge,
           ),
           const SizedBox(height: 16),
           _ProfileField(
             label: 'Phone',
-            value: phone,
+            value: widget.phone,
             textStyle: textTheme.bodyLarge,
           ),
           const SizedBox(height: 16),
           _ProfileField(
             label: 'Email',
-            value: email,
+            value: widget.email,
             readOnly: true,
             textStyle: textTheme.bodyLarge,
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              key: const Key('saveButton'),
+              onPressed: () => _onSave(context),
+              child: const Text('Save'),
+            ),
           ),
         ],
       ),
@@ -116,11 +208,15 @@ class _ProfileBody extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// _ProfileField — simple read-only display field
+// ---------------------------------------------------------------------------
+
 class _ProfileField extends StatelessWidget {
   const _ProfileField({
     required this.label,
     required this.value,
-    this.readOnly = false,
+    this.readOnly = true,
     this.textStyle,
   });
 
