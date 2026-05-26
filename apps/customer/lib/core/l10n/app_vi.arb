@@ -1,0 +1,7 @@
+{
+  "@@locale": "vi",
+  "appTitle": "SportBuddies",
+  "@appTitle": {
+    "description": "The name of the application"
+  }
+}
