@@ -1,23 +1,66 @@
 // Entry point for the SportBuddies customer app.
 //
-// Bootstrap order (per tech-plan §9.2):
-//   WidgetsFlutterBinding.ensureInitialized   [this task — placeholder]
-//   → Firebase.initializeApp                  [grava-35d5.9]
-//   → Supabase.initialize                     [grava-35d5.5]
-//   → SharedPreferences.getInstance           [grava-35d5.4]
-//   → configureDependencies(prefs)            [grava-35d5.7]
-//   → runApp(CustomerApp())                   [this task]
-//
-// Theme and router are wired inside CustomerApp (grava-35d5.8).
+// Bootstrap order (tech-plan §9.2):
+//   1. WidgetsFlutterBinding.ensureInitialized()
+//   2. Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
+//   3. Env.assertConfigured()          ← fail-fast before secrets are used
+//   4. Supabase.initialize(...)
+//   5. SharedPreferences.getInstance()
+//   6. configureDependencies(prefs)
+//   7. runApp(CustomerApp())
+
+import 'dart:io' show exit;
 
 import 'package:customer/app.dart';
+import 'package:customer/core/di/injection.dart';
+import 'package:customer/core/env/env.dart';
+import 'package:customer/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+Future<void> main() async {
+  // Step 1: ensure Flutter bindings are ready before any platform channel call.
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO(grava-35d5.9): Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
-  // TODO(grava-35d5.5): Supabase.initialize(url: Env.supabaseUrl, anonKey: Env.supabaseAnonKey)
-  // TODO(grava-35d5.4): final prefs = await SharedPreferences.getInstance()
-  // TODO(grava-35d5.7): await configureDependencies(prefs)
+
+  // Step 2: initialise Firebase.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Step 3: fail fast if compile-time env vars are missing.
+  // On failure we print a human-readable diagnostic then exit so the operator
+  // does not have to wait for a cryptic downstream error at the first API call.
+  try {
+    Env.assertConfigured();
+  } on StateError catch (e) {
+    // ignore: avoid_print
+    debugPrint(
+      'FATAL: env misconfiguration — ${e.message}\n'
+      'Pass the missing keys via --dart-define=<KEY>=<value> at build/run time.',
+    );
+    if (!kIsWeb) {
+      exit(1);
+    }
+    // On web, `dart:io`'s exit() is not available; re-throw so Flutter's
+    // error boundary renders the message instead of continuing silently.
+    rethrow;
+  }
+
+  // Step 4: initialise Supabase (URL and anon key are now guaranteed non-empty).
+  await Supabase.initialize(
+    url: Env.supabaseUrl,
+    anonKey: Env.supabaseAnonKey,
+  );
+
+  // Step 5: resolve SharedPreferences before the DI container starts.
+  final prefs = await SharedPreferences.getInstance();
+
+  // Step 6: wire the DI graph (registers Supabase client, GoRouter, prefs).
+  await configureDependencies(prefs);
+
+  // Step 7: hand off to the root widget.
   runApp(const CustomerApp());
 }
