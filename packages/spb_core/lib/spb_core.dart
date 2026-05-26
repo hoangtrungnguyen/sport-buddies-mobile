@@ -10,4 +10,6 @@ export 'core/result.dart';
 export 'core/theme/app_colors.dart';
 export 'core/value_objects/lat_lng.dart';
 export 'models/court.dart';
+export 'models/court_availability.dart';
+export 'repositories/court_availability_repository.dart';
 export 'repositories/court_repository.dart';
