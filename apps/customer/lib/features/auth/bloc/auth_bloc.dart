@@ -55,6 +55,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         super(const AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
+    on<GoogleSignInRequested>(_onGoogleSignInRequested);
   }
 
   /// Optional Supabase client.  When `null` (e.g. in tests without Supabase
@@ -125,6 +126,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           password: event.password,
         );
       }
+      emit(const AuthSuccess());
+    } on AuthException catch (e) {
+      emit(AuthFailureState(e.message));
+    } catch (e) {
+      emit(AuthFailureState(e.toString()));
+    }
+  }
+
+  /// Initiates Google OAuth via Supabase [OAuthProvider.google].
+  ///
+  /// On the web platform Supabase opens a browser popup / redirect; the
+  /// session is established when the OAuth callback returns.  In tests the
+  /// [SupabaseClient] is `null` so we skip the network call and emit success
+  /// so the state machine can be exercised without network access.
+  Future<void> _onGoogleSignInRequested(
+    GoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    try {
+      final client = _client;
+      if (client != null) {
+        await client.auth.signInWithOAuth(
+          OAuthProvider.google,
+        );
+      }
+      // If _client is null (test stub) we skip the network call and emit success.
       emit(const AuthSuccess());
     } on AuthException catch (e) {
       emit(AuthFailureState(e.message));

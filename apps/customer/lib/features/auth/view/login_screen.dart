@@ -10,6 +10,7 @@
 // Navigates to '/' on AuthSuccess.
 
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/google_sign_in_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -138,6 +139,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  const GoogleSignInButton(),
+                  const SizedBox(height: 8),
                   TextButton(
                     key: const Key('goToSignUpLink'),
                     onPressed: () => context.go('/signup'),

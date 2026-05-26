@@ -140,5 +140,13 @@ void main() {
       ),
       expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
     );
+
+    // Google OAuth tests (grava-144f.2.1)
+    blocTest<AuthBloc, AuthState>(
+      'emits [AuthLoading, AuthSuccess] on GoogleSignInRequested (no client stub)',
+      build: AuthBloc.new,
+      act: (b) => b.add(const GoogleSignInRequested()),
+      expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
+    );
   });
 }

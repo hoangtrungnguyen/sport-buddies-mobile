@@ -25,3 +25,8 @@ final class SignUpSubmitted extends AuthEvent {
   final String password;
   final String confirmPassword;
 }
+
+/// Initiates Google OAuth sign-in via Supabase.
+final class GoogleSignInRequested extends AuthEvent {
+  const GoogleSignInRequested();
+}
