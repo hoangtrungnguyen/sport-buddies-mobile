@@ -1,28 +1,21 @@
-// Map screen — CAPP-030 / grava-c9ca.1.1, CAPP-031 / grava-c9ca.2.1
+// Map screen — CAPP-030 grava-c9ca.2.1 + CAPP-032 grava-c9ca.3.1
 //
-// Renders a flutter_map widget centred on Ho Chi Minh City with colour-coded
-// court markers:
-//   - Green  (AppColors.primary): court has at least one open future slot.
-//   - Grey   (0xFF9E9E9E):        court is fully booked or has no future slots.
+// Renders a flutter_map widget centred on Ho Chi Minh City with:
+//   - Colour-coded court availability markers (green=open, grey=full)
+//   - Sport-type filter bar at the top
 //
 // Tile source strategy:
-//   • When [Env.vietmapApiKey] is non-empty (prod / staging), the tile URL
-//     template points at the VietMap raster tile service with the key embedded.
-//   • When the key is empty (local dev, unit tests, CI) the widget falls back
-//     to OpenStreetMap tiles — no key required and no network call is made in
-//     widget tests because flutter_map's TileLayer defers fetching.
+//   • When [Env.vietmapApiKey] is non-empty, uses VietMap raster tiles.
+//   • When the key is empty (dev/CI), falls back to OpenStreetMap tiles.
 //
 // The API key is a compile-time constant injected via:
 //   --dart-define=VIETMAP_API_KEY=<key>
-//
-// MapCubit is provided externally (BlocProvider in the router builder, §6.2).
-// When no cubit is present in context (e.g. legacy widget tests that pump
-// MapScreen directly), the map renders without any court markers — graceful
-// degradation via [_MapBody] which checks for a cubit via [BlocProvider.of]
-// with `listen: false` inside a try-catch.
 
 import 'package:customer/core/env/env.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
+import 'package:customer/features/map/map_filter_cubit.dart';
+import 'package:customer/features/map/map_filter_state.dart';
+import 'package:customer/features/map/sport_filter_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -33,48 +26,38 @@ import 'package:spb_core/spb_core.dart';
 const _hcmcLatLng = ll.LatLng(10.7769, 106.7009);
 const _defaultZoom = 13.0;
 
-/// VietMap raster tile URL template (requires a valid API key).
-/// Ref: https://maps.vietmap.vn/docs/map-api/raster-tile/
 const _vietmapTileUrl =
     'https://maps.vietmap.vn/api/maps/raster/v1/{z}/{x}/{y}.png?apikey={key}';
-
-/// OpenStreetMap fallback tile URL (no key required).
 const _osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-/// Returns the tile URL template, choosing VietMap when a key is available.
 String _tileUrlTemplate() {
   const key = Env.vietmapApiKey;
   if (key.isEmpty) return _osmTileUrl;
   return _vietmapTileUrl.replaceAll('{key}', key);
 }
 
-/// Map screen — shows a zoomable map of Ho Chi Minh City.
+/// Map screen — zoomable HCMC map with colour-coded court markers and sport filters.
 ///
 /// Court availability markers are rendered when a [MapCubit] is present in the
 /// widget tree above this screen. Without a cubit the map renders normally with
-/// no markers (graceful degradation for widget tests that don't need them).
+/// no markers (graceful degradation for tests).
 class MapScreen extends StatelessWidget {
   const MapScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bản đồ sân gần bạn'),
+    return BlocProvider(
+      create: (_) => MapFilterCubit(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Bản đồ sân gần bạn'),
+        ),
+        body: const _MapBody(),
       ),
-      body: const _MapBody(),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// _MapBody — renders the map and optionally the court markers.
-// ---------------------------------------------------------------------------
-
-/// Internal body widget that resolves [MapCubit] presence at build time.
-///
-/// Keeping this as a separate [StatefulWidget] lets us call [MapCubit.loadCourts]
-/// once in [initState] without triggering a rebuild storm.
 class _MapBody extends StatefulWidget {
   const _MapBody();
 
@@ -88,8 +71,6 @@ class _MapBodyState extends State<_MapBody> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Resolve the cubit once (idempotent). If absent we get null and render
-    // without markers.
     _cubit ??= _tryReadCubit(context);
     if (_cubit?.state is MapInitial) {
       _cubit!.loadCourts();
@@ -98,10 +79,25 @@ class _MapBodyState extends State<_MapBody> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      children: [
+        BlocBuilder<MapFilterCubit, MapFilterState>(
+          builder: (context, filterState) => SportFilterBar(
+            selectedSports: filterState.selectedSports,
+            onSportsChanged: (sports) =>
+                context.read<MapFilterCubit>().filterBySports(sports.toList()),
+          ),
+        ),
+        Expanded(
+          child: _buildMapArea(context),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapArea(BuildContext context) {
     if (_cubit == null) {
-      // No cubit in context — render plain map (backwards-compat with tests
-      // that pump MapScreen without BlocProvider<MapCubit>).
-      return _buildMap(context, courts: const []);
+      return _buildMap(courts: const []);
     }
 
     return BlocConsumer<MapCubit, MapState>(
@@ -119,7 +115,7 @@ class _MapBodyState extends State<_MapBody> {
 
         return Stack(
           children: [
-            _buildMap(context, courts: courts),
+            _buildMap(courts: courts),
             if (isLoading)
               const Positioned(
                 top: 12,
@@ -133,7 +129,6 @@ class _MapBodyState extends State<_MapBody> {
     );
   }
 
-  /// Attempts to read [MapCubit] from [context]; returns `null` when absent.
   static MapCubit? _tryReadCubit(BuildContext context) {
     try {
       return BlocProvider.of<MapCubit>(context, listen: false);
@@ -142,11 +137,7 @@ class _MapBodyState extends State<_MapBody> {
     }
   }
 
-  /// Renders the base [FlutterMap] with optional court [markers].
-  static Widget _buildMap(
-    BuildContext context, {
-    required List<CourtAvailability> courts,
-  }) {
+  static Widget _buildMap({required List<CourtAvailability> courts}) {
     return FlutterMap(
       options: const MapOptions(
         initialCenter: _hcmcLatLng,
@@ -164,7 +155,6 @@ class _MapBodyState extends State<_MapBody> {
     );
   }
 
-  /// Builds a coloured circular marker for [court].
   static Marker _buildMarker(CourtAvailability court) {
     return Marker(
       point: ll.LatLng(court.lat, court.lng),
