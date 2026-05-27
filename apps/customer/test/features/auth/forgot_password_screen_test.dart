@@ -11,6 +11,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,8 +30,11 @@ void main() {
     mockBloc.close();
   });
 
-  Widget buildScreen() {
+  Widget buildScreen({Locale locale = const Locale('vi')}) {
     return MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<AuthBloc>.value(
         value: mockBloc,
         child: const ForgotPasswordScreen(),
@@ -60,9 +64,9 @@ void main() {
     testWidgets('shows success text when PasswordResetSent', (tester) async {
       when(() => mockBloc.state).thenReturn(const PasswordResetSent());
 
-      await tester.pumpWidget(buildScreen());
+      await tester.pumpWidget(buildScreen(locale: const Locale('en')));
 
-      expect(find.text('Check your email'), findsOneWidget);
+      expect(find.text('Check your inbox'), findsOneWidget);
     });
 
     testWidgets('dispatches ForgotPasswordRequested on valid submit',

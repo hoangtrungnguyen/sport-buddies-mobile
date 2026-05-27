@@ -10,6 +10,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/google_sign_in_button.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,8 +30,11 @@ void main() {
     mockAuthBloc.close();
   });
 
-  Widget buildSubject() {
+  Widget buildSubject({Locale locale = const Locale('vi')}) {
     return MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: BlocProvider<AuthBloc>.value(
           value: mockAuthBloc,
@@ -47,10 +51,12 @@ void main() {
       expect(find.byKey(const Key('googleSignInButton')), findsOneWidget);
     });
 
-    testWidgets('renders "Sign in with Google" text', (tester) async {
-      await tester.pumpWidget(buildSubject());
+    testWidgets('renders Google sign in button text', (tester) async {
+      await tester.pumpWidget(buildSubject(locale: const Locale('vi')));
+      expect(find.text('Tiếp tục với Google'), findsOneWidget);
 
-      expect(find.text('Sign in with Google'), findsOneWidget);
+      await tester.pumpWidget(buildSubject(locale: const Locale('en')));
+      expect(find.text('Continue with Google'), findsOneWidget);
     });
 
     testWidgets('dispatches GoogleSignInRequested on tap', (tester) async {
@@ -87,8 +93,8 @@ void main() {
 
       await tester.pumpWidget(buildSubject());
 
-      final button = tester.widget<ElevatedButton>(
-        find.byType(ElevatedButton),
+      final button = tester.widget<OutlinedButton>(
+        find.byType(OutlinedButton),
       );
       expect(button.onPressed, isNull);
     });

@@ -1,60 +1,59 @@
-/// Compile-time environment configuration.
+/// Environment configuration loaded from .env file via envied.
 ///
-/// All secrets are injected via `--dart-define=KEY=value` at build time. None
-/// of these keys has a runtime fallback default — a missing key is treated as
-/// a configuration error and surfaced via [assertConfigured].
+/// Requirements:
+/// 1. Add envied dependencies to pubspec.yaml
+/// 2. Create .env file in project root with required vars
+/// 3. Run: fvm dart run build_runner build --delete-conflicting-outputs
 ///
-/// Call [Env.assertConfigured] once during app bootstrap (in `main.dart`) so
-/// the app fails fast at start-up rather than at the first feature use.
-///
-/// Example dev invocation:
-/// ```bash
-/// fvm flutter run \
-///   --dart-define=SUPABASE_URL=http://localhost:54321 \
-///   --dart-define=SUPABASE_ANON_KEY=<local-anon-key> \
-///   --dart-define=VIETMAP_API_KEY=<vietmap-key>
+/// Example .env:
 /// ```
-///
-/// The class has only `static const` fields and a `static` method, so it is
-/// never instantiated. The private constructor enforces that.
-class Env {
-  Env._();
+/// SUPABASE_URL=https://xxx.supabase.co
+/// SUPABASE_KEY=eyJxxx...
+/// VIETMAP_API_KEY=xxx...
+/// ```
 
-  /// Supabase project URL (e.g. `http://localhost:54321` for local dev or the
-  /// `https://<project>.supabase.co` URL in cloud environments).
-  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+import 'package:envied/envied.dart';
 
-  /// Supabase anonymous public key — safe to ship in the client bundle, but
-  /// must still be injected per environment.
-  static const String supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY');
+part 'env.g.dart';
 
-  /// VietMap / Goong tile + geocoding API key, used by `flutter_map` and the
-  /// VietMap plugin.
-  static const String vietmapApiKey = String.fromEnvironment('VIETMAP_API_KEY');
+@Envied(path: '.env')
+abstract class Env {
+  Env._(); // Private constructor
 
-  /// The complete list of required keys, in the order they appear in the
-  /// project README and tech-plan §9.1. Iteration order is stable so the
-  /// error message produced by [assertConfigured] is deterministic.
-  static const List<({String key, String value})> _required = [
-    (key: 'SUPABASE_URL', value: supabaseUrl),
-    (key: 'SUPABASE_ANON_KEY', value: supabaseAnonKey),
-    (key: 'VIETMAP_API_KEY', value: vietmapApiKey),
-  ];
+  /// Supabase project URL.
+  @EnviedField(varName: 'SUPABASE_URL')
+  static const String supabaseUrl = _Env.supabaseUrl;
 
-  /// Throws a [StateError] if any required compile-time env var is empty.
-  ///
-  /// All missing keys are reported in a single error so the operator does not
-  /// have to fix-rebuild-fix-rebuild one key at a time.
+  /// Supabase anonymous/public key.
+  @EnviedField(varName: 'SUPABASE_KEY')
+  static const String supabaseAnonKey = _Env.supabaseAnonKey;
+
+  /// VietMap / Goong tile + geocoding API key.
+  @EnviedField(varName: 'VIETMAP_API_KEY', defaultValue: '')
+  static const String vietmapApiKey = _Env.vietmapApiKey;
+
+  /// Google Maps API key for map tiles.
+  /// Leave empty in dev — the provider falls back to the keyless endpoint.
+  @EnviedField(varName: 'GOOGLE_MAP_API_KEY', defaultValue: '')
+  static const String googleMapApiKey = _Env.googleMapApiKey;
+
+  /// Active map tile provider: 'google' (default) or 'vietmap'.
+  /// Controls which [MapTileProvider] strategy [MapTileProvider.fromEnv] picks.
+  @EnviedField(varName: 'MAP_PROVIDER', defaultValue: 'google')
+  static const String mapProvider = _Env.mapProvider;
+
+  /// Throws [StateError] if any required env var is empty.
   static void assertConfigured() {
+    // VIETMAP_API_KEY temporarily relaxed — map tiles will fail until set.
     final missing = <String>[
-      for (final entry in _required)
-        if (entry.value.isEmpty) entry.key,
+      if (supabaseUrl.isEmpty) 'SUPABASE_URL',
+      if (supabaseAnonKey.isEmpty) 'SUPABASE_KEY',
     ];
+
     if (missing.isNotEmpty) {
       throw StateError(
-        'Missing env: ${missing.join(', ')}. '
-        'Pass them via --dart-define=<KEY>=<value> at build/run time.',
+        'Missing env vars: ${missing.join(', ')}. '
+        'Add them to .env file in project root.',
       );
     }
   }

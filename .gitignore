@@ -23,3 +23,8 @@ packages/*/pubspec.lock
 .fvm/flutter_sdk
 .fvm/versions/
 .fvm/release
+
+.env
+zai-run.sh
+claude_code_zai_env.sh
+.mcp.json

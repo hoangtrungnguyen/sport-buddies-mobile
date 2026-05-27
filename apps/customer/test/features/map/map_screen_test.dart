@@ -12,53 +12,76 @@
 //   4. When MapLoaded is emitted, MarkerLayer is present in the widget tree.
 //   5. Tapping a marker shows a bottom sheet with the court name.
 //   6. MapLoading shows a CircularProgressIndicator.
+//   7. Empty state is shown when no courts are in range (grava-c9ca.4.3).
 
-import 'package:customer/features/map/map_cubit.dart';
+import 'package:customer/features/map/cubit/map_cubit.dart';
 import 'package:customer/features/map/map_screen.dart';
-import 'package:customer/features/map/map_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:spb_core/models/court.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:spb_core/spb_core.dart';
 
-import '../../court_repository_test_helpers.dart';
+// ---------------------------------------------------------------------------
+// Mocks
+// ---------------------------------------------------------------------------
+
+class MockCourtAvailabilityRepository extends Mock
+    implements CourtAvailabilityRepository {}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
 
 void main() {
   group('MapScreen', () {
     testWidgets('renders without crashing (empty API key → OSM fallback)',
         (WidgetTester tester) async {
-      final cubit = MapCubit(
-        repository: FakeCourtRepository(rowsProvider: () async => []),
-      );
+      final mockRepo = MockCourtAvailabilityRepository();
+      when(() => mockRepo.fetchCourtsWithAvailability())
+          .thenAnswer((_) async => Success(const []));
+      final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       expect(find.byType(MapScreen), findsOneWidget);
     });
 
     testWidgets('contains a FlutterMap widget', (WidgetTester tester) async {
-      final cubit = MapCubit(
-        repository: FakeCourtRepository(rowsProvider: () async => []),
-      );
+      final mockRepo = MockCourtAvailabilityRepository();
+      when(() => mockRepo.fetchCourtsWithAvailability())
+          .thenAnswer((_) async => Success(const []));
+      final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       expect(find.byType(FlutterMap), findsOneWidget);
     });
 
     testWidgets('has a Scaffold as the root layout',
         (WidgetTester tester) async {
-      final cubit = MapCubit(
-        repository: FakeCourtRepository(rowsProvider: () async => []),
-      );
+      final mockRepo = MockCourtAvailabilityRepository();
+      when(() => mockRepo.fetchCourtsWithAvailability())
+          .thenAnswer((_) async => Success(const []));
+      final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
     });
@@ -70,7 +93,10 @@ void main() {
       cubit.setLoading();
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       await tester.pump();
 
@@ -80,14 +106,23 @@ void main() {
     testWidgets('shows MarkerLayer when courts are loaded',
         (WidgetTester tester) async {
       const courts = [
-        Court(id: '1', name: 'Sân A', lat: 10.7, lng: 106.7),
+        CourtAvailability(
+          courtId: '1',
+          name: 'Sân A',
+          lat: 10.7,
+          lng: 106.7,
+          openSlotCount: 5,
+        ),
       ];
       final cubit = _ManualMapCubit();
       addTearDown(cubit.close);
       cubit.setLoaded(courts);
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       await tester.pump();
 
@@ -97,14 +132,23 @@ void main() {
     testWidgets('tapping a marker shows bottom sheet with court name',
         (WidgetTester tester) async {
       const courts = [
-        Court(id: '1', name: 'Sân Tao Đàn', lat: 10.7769, lng: 106.7009),
+        CourtAvailability(
+          courtId: '1',
+          name: 'Sân Tao Đàn',
+          lat: 10.7769,
+          lng: 106.7009,
+          openSlotCount: 3,
+        ),
       ];
       final cubit = _ManualMapCubit();
       addTearDown(cubit.close);
       cubit.setLoaded(courts);
 
       await tester.pumpWidget(
-        MaterialApp(home: MapScreen(cubit: cubit)),
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
       );
       await tester.pump();
 
@@ -113,17 +157,83 @@ void main() {
 
       expect(find.text('Sân Tao Đàn'), findsAtLeastNWidgets(1));
     });
+
+    // grava-c9ca.4.3: Empty state tests
+    testWidgets('shows empty state when no courts are in range',
+        (WidgetTester tester) async {
+      final cubit = _ManualMapCubit();
+      addTearDown(cubit.close);
+
+      await tester.pumpWidget(
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
+      );
+
+      await tester.pump();
+
+      // After pump, loadCourts() is called and completes with empty list
+      // Verify empty state is shown
+      expect(find.text('Không tìm thấy sân gần bạn'), findsOneWidget);
+      // Verify FlutterMap is NOT shown when empty
+      expect(find.byType(FlutterMap), findsNothing);
+    });
+
+    testWidgets('empty state shows location_off icon',
+        (WidgetTester tester) async {
+      final cubit = _ManualMapCubit();
+      addTearDown(cubit.close);
+      cubit.setLoaded(const []);
+
+      await tester.pumpWidget(
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.location_off), findsOneWidget);
+    });
+
+    testWidgets('empty state shows helpful message about zooming or filtering',
+        (WidgetTester tester) async {
+      final cubit = _ManualMapCubit();
+      addTearDown(cubit.close);
+      cubit.setLoaded(const []);
+
+      await tester.pumpWidget(
+        BlocProvider<MapCubit>(
+          create: (_) => cubit,
+          child: const MaterialApp(home: MapScreen()),
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('Thử phóng to bản đồ hoặc thay đổi bộ lọc'),
+        findsOneWidget,
+      );
+    });
   });
 }
 
 /// Manually controllable MapCubit for widget tests — allows direct state injection.
 class _ManualMapCubit extends MapCubit {
-  _ManualMapCubit()
-      : super(
-          repository: FakeCourtRepository(rowsProvider: () async => []),
-        );
+  _ManualMapCubit() : super(repository: _FakeRepository());
 
   void setLoading() => emit(const MapLoading());
-  void setLoaded(List<Court> courts) => emit(MapLoaded(courts));
+  void setLoaded(List<CourtAvailability> courts) => emit(MapLoaded(courts));
   void setError(String message) => emit(MapError(message));
+}
+
+/// Fake repository that returns empty list (state is controlled manually).
+class _FakeRepository implements CourtAvailabilityRepository {
+  @override
+  Future<Result<List<CourtAvailability>>> fetchCourtsWithAvailability() async {
+    // Return empty list by default - tests should use setLoaded/setLoading/setError
+    // to control the state directly
+    return const Success([]);
+  }
 }

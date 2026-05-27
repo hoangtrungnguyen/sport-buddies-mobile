@@ -6,6 +6,7 @@
 // The cubit is pure business logic with no Flutter SDK dependency; it is
 // provided to the widget tree via BlocProvider in the router builder (§6.2).
 
+import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 
@@ -41,6 +42,14 @@ class MapCubit extends Cubit<MapState> {
         MapError(_failureMessage(failure)),
       ),
     );
+  }
+
+  /// Sets [court] as the selected court (shown in the preview panel).
+  ///
+  /// Pass null to deselect. No-op if the cubit is not in [MapLoaded] state.
+  void selectCourt(CourtAvailability? court) {
+    final s = state;
+    if (s is MapLoaded) emit(s.withSelection(court));
   }
 
   /// Maps domain failures to user-facing messages.

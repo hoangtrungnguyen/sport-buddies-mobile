@@ -1,21 +1,47 @@
-// Map filter state — grava-c9ca.3.1
+// Map filter state — grava-c9ca.3.1, grava-c9ca.4.2
 //
 // Holds the set of currently active sport filters for the map screen.
 // An empty [selectedSports] means "show all" (no filter active).
+//
+// [maxDistanceKm] is the maximum distance from current location in km.
+// When null, no distance filter is applied.
+
+import 'package:flutter/foundation.dart';
 
 /// State for [MapFilterCubit].
 ///
 /// [selectedSports] is a set of sport identifiers (lower-case slugs, e.g.
 /// `'football'`, `'basketball'`).  An empty set means "All" — no filter
 /// is applied and every court marker is visible.
+///
+/// [maxDistanceKm] is the maximum distance from current location in km.
+/// When null, no distance filter is applied. Values are rounded to 1
+/// decimal place for display consistency.
+@immutable
 class MapFilterState {
-  const MapFilterState({this.selectedSports = const {}});
+  const MapFilterState({
+    this.selectedSports = const {},
+    this.maxDistanceKm,
+    this.onlyWithOpenSlots = false,
+  });
 
   final Set<String> selectedSports;
+  final double? maxDistanceKm;
 
-  MapFilterState copyWith({Set<String>? selectedSports}) {
+  /// When true, courts with zero open slots are hidden from the map.
+  final bool onlyWithOpenSlots;
+
+  MapFilterState copyWith({
+    Set<String>? selectedSports,
+    double? Function()? maxDistanceKm,
+    bool? onlyWithOpenSlots,
+  }) {
     return MapFilterState(
       selectedSports: selectedSports ?? this.selectedSports,
+      maxDistanceKm: maxDistanceKm != null
+          ? maxDistanceKm()
+          : this.maxDistanceKm,
+      onlyWithOpenSlots: onlyWithOpenSlots ?? this.onlyWithOpenSlots,
     );
   }
 
@@ -24,10 +50,16 @@ class MapFilterState {
       identical(this, other) ||
       other is MapFilterState &&
           runtimeType == other.runtimeType &&
-          _setsEqual(selectedSports, other.selectedSports);
+          _setsEqual(selectedSports, other.selectedSports) &&
+          maxDistanceKm == other.maxDistanceKm &&
+          onlyWithOpenSlots == other.onlyWithOpenSlots;
 
   @override
-  int get hashCode => Object.hashAll(selectedSports.toList()..sort());
+  int get hashCode => Object.hashAll([
+        ...selectedSports.toList()..sort(),
+        maxDistanceKm,
+        onlyWithOpenSlots,
+      ]);
 
   static bool _setsEqual(Set<String> a, Set<String> b) {
     if (a.length != b.length) return false;

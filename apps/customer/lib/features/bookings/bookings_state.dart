@@ -7,6 +7,7 @@
 //   BookingsError       — fetch or cancel failed.
 //   BookingsCancelling  — a cancel request is in-flight for a specific booking.
 
+import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter/foundation.dart';
 
 import 'booking_model.dart';
@@ -64,10 +65,13 @@ class BookingsLoaded extends BookingsState {
 }
 
 /// Emitted when fetching upcoming bookings fails.
-class BookingsError extends BookingsState {
-  const BookingsError(this.message);
+class BookingsError extends BookingsState with AppExceptionMixin {
+  const BookingsError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>

@@ -18,7 +18,9 @@
 
 import 'package:customer/app.dart';
 import 'package:customer/core/di/injection.dart';
+import 'package:customer/core/l10n/locale_cubit.dart';
 import 'package:customer/core/router/app_router.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,6 +34,9 @@ void main() {
     // Seed SharedPreferences with an empty store so platform-channel calls
     // do not hit real storage.
     SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    sl.registerSingleton<SharedPreferences>(prefs);
+    sl.registerSingleton<LocaleCubit>(LocaleCubit(prefs));
 
     // Register only the singleton that CustomerApp.build() consumes: GoRouter.
     // buildRouter() is a pure-Dart factory — it does not call Supabase or any
@@ -47,6 +52,6 @@ void main() {
     await tester.pumpWidget(const CustomerApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('SportBuddies — bootstrap OK'), findsOneWidget);
+    expect(find.byKey(const Key('loginEmailField')), findsOneWidget);
   });
 }

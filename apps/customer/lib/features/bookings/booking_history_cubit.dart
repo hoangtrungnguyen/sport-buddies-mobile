@@ -64,8 +64,8 @@ class BookingHistoryCubit extends Cubit<BookingsState> {
           .toList();
 
       emit(BookingsLoaded(bookings));
-    } catch (e) {
-      emit(BookingsError(e.toString()));
+    } catch (e, st) {
+      emit(BookingsError(e.toString(), stackTrace: st));
     }
   }
 }

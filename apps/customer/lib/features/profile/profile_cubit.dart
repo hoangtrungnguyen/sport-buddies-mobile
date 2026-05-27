@@ -14,6 +14,8 @@
 // defaults to the real Supabase implementation but can be overridden via the
 // [ProfileCubit.fake] constructor without requiring Supabase mock chains.
 
+import 'dart:typed_data';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -85,9 +87,71 @@ class ProfileCubit extends Cubit<ProfileState> {
         email: user.email ?? '',
         avatarUrl: meta['avatar_url'] as String?,
       ));
-    } catch (e) {
-      emit(ProfileError(e.toString()));
+    } catch (e, st) {
+      emit(ProfileError(e.toString(), stackTrace: st));
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // uploadAvatar
+  // ---------------------------------------------------------------------------
+
+  /// Uploads [bytes] to `avatars/{userId}/avatar.{ext}` in Supabase Storage,
+  /// then updates the auth user metadata with the public URL.
+  Future<void> uploadAvatar(
+    Uint8List bytes,
+    String fileName,
+    String contentType,
+  ) async {
+    final current = state;
+    if (current is! ProfileLoaded) return;
+
+    emit(const ProfileSaving());
+    try {
+      final client = _client;
+      if (client == null) {
+        emit(ProfileLoaded(
+          fullName: current.fullName,
+          phone: current.phone,
+          email: current.email,
+          avatarUrl: current.avatarUrl,
+        ));
+        return;
+      }
+
+      final userId = client.auth.currentSession?.user.id ?? '';
+      final ext = _extFromMime(contentType);
+      final storagePath = '$userId/avatar.$ext';
+
+      await client.storage.from('avatars').uploadBinary(
+            storagePath,
+            bytes,
+            fileOptions: FileOptions(contentType: contentType, upsert: true),
+          );
+
+      final publicUrl =
+          client.storage.from('avatars').getPublicUrl(storagePath);
+
+      await client.auth.updateUser(
+        UserAttributes(data: {'avatar_url': publicUrl}),
+      );
+
+      emit(ProfileLoaded(
+        fullName: current.fullName,
+        phone: current.phone,
+        email: current.email,
+        avatarUrl: publicUrl,
+      ));
+    } catch (e, st) {
+      emit(ProfileUpdateError(e.toString(), stackTrace: st));
+    }
+  }
+
+  static String _extFromMime(String mime) {
+    if (mime.contains('png')) return 'png';
+    if (mime.contains('gif')) return 'gif';
+    if (mime.contains('webp')) return 'webp';
+    return 'jpg';
   }
 
   // ---------------------------------------------------------------------------
@@ -130,8 +194,8 @@ class ProfileCubit extends Cubit<ProfileState> {
         email: current.email,
         avatarUrl: current.avatarUrl,
       ));
-    } catch (e) {
-      emit(ProfileUpdateError(e.toString()));
+    } catch (e, st) {
+      emit(ProfileUpdateError(e.toString(), stackTrace: st));
     }
   }
 }

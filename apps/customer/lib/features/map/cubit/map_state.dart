@@ -23,29 +23,63 @@ final class MapLoading extends MapState {
 
 /// Fetch succeeded; [courts] is the enriched list ready for rendering.
 final class MapLoaded extends MapState {
-  const MapLoaded(this.courts);
+  const MapLoaded(this.courts, {this.selectedCourt});
 
   /// Courts with their slot-availability-derived marker colours.
   final List<CourtAvailability> courts;
+
+  /// The court the user last tapped on the map (null if none selected).
+  final CourtAvailability? selectedCourt;
+
+  /// Returns a copy of this state with [court] as the selected court.
+  MapLoaded withSelection(CourtAvailability? court) =>
+      MapLoaded(courts, selectedCourt: court);
+
+  /// Applies sport, distance, and open-slots filters, returning the
+  /// subset of [courts] that should be rendered as map markers.
+  ///
+  /// [userPos] is the user's current location (spb_core LatLng) used for
+  /// Haversine distance checks. Pass null to skip distance filtering.
+  List<CourtAvailability> applyFilter({
+    required Set<String> sports,
+    required double? maxDistanceKm,
+    required LatLng? userPos,
+    required bool onlyWithOpenSlots,
+  }) {
+    return courts.where((court) {
+      if (onlyWithOpenSlots && court.openSlotCount == 0) return false;
+      if (sports.isNotEmpty && !sports.contains(court.sportType)) return false;
+      if (maxDistanceKm != null && userPos != null) {
+        final courtPos = LatLng(court.lat, court.lng);
+        if (!userPos.isWithinRadius(courtPos, maxDistanceKm)) return false;
+      }
+      return true;
+    }).toList();
+  }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MapLoaded &&
-          _listEquals(other.courts, courts));
+          _listEquals(other.courts, courts) &&
+          other.selectedCourt == selectedCourt);
 
   @override
-  int get hashCode => Object.hashAll(courts);
+  int get hashCode => Object.hashAll([...courts, selectedCourt]);
 
   @override
-  String toString() => 'MapLoaded(${courts.length} courts)';
+  String toString() => 'MapLoaded(${courts.length} courts, '
+      'selected: ${selectedCourt?.courtId})';
 }
 
 /// Fetch failed; [message] is a human-readable reason for display / logging.
-final class MapError extends MapState {
-  const MapError(this.message);
+final class MapError extends MapState with AppExceptionMixin {
+  const MapError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>
