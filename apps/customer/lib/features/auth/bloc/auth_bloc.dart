@@ -164,7 +164,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       emit(const AuthSuccess());
     } on AuthException catch (e) {
-      emit(AuthFailureState(e.message));
+      final msg = e.message;
+      if (msg.contains('Invalid login credentials') ||
+          e.statusCode == '400' ||
+          e.statusCode == '401') {
+        emit(const AuthFailureState('invalid_credentials'));
+      } else if (msg.contains('Email not confirmed')) {
+        emit(const AuthFailureState('email_not_confirmed'));
+      } else {
+        emit(AuthFailureState(msg));
+      }
     } catch (e) {
       emit(AuthFailureState(e.toString()));
     }

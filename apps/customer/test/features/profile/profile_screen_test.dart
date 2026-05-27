@@ -162,5 +162,24 @@ void main() {
 
       expect(find.byType(ProfileScreen), findsOneWidget);
     });
+
+    testWidgets('renders profile stats row when ProfileLoaded', (tester) async {
+      final cubit = _FakeCubit(
+        const ProfileLoaded(
+          fullName: 'Nguyen Van A',
+          phone: '0901234567',
+          email: 'vana@example.com',
+          avatarUrl: null,
+        ),
+      );
+      addTearDown(cubit.close);
+
+      await tester.pumpWidget(_buildSubject(cubit, localeCubit));
+      await tester.pump();
+
+      expect(find.textContaining('12 '), findsOneWidget);
+      expect(find.textContaining('4.8'), findsOneWidget);
+      expect(find.textContaining('3 '), findsOneWidget);
+    });
   });
 }

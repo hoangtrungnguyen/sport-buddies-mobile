@@ -1,7 +1,9 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/auth_app_bar.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -32,7 +34,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.forgotPasswordTitle)),
+      backgroundColor: Colors.white,
+      appBar: AuthAppBar(
+        title: l10n.forgotPasswordTitle,
+        onLeadingPressed: () => context.go('/login'),
+      ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthFailureState) {

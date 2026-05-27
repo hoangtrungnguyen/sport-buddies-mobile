@@ -38,9 +38,13 @@
   "@labelConfirmPassword": {},
   "signUpButton": "Create account",
   "@signUpButton": {},
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {},
   "signUpTerms": "By signing up, you agree to SportBuddies' Terms and Privacy Policy.",
   "@signUpTerms": {},
-  "verifyEmailTitle": "Check your inbox",
+  "verifyEmailAppBarTitle": "Verify email",
+  "@verifyEmailAppBarTitle": {},
+  "verifyEmailTitle": "Please check your email to verify your account",
   "@verifyEmailTitle": {},
   "verifyEmailBody": "We sent a verification link to {email}.\nOpen the email and click the link to activate your account.",
   "@verifyEmailBody": {
@@ -95,6 +99,10 @@
   "@errorPasswordWeak": {},
   "errorPasswordMismatch": "Passwords do not match.",
   "@errorPasswordMismatch": {},
+  "errorInvalidCredentials": "Incorrect email or password",
+  "@errorInvalidCredentials": {},
+  "errorEmailNotConfirmed": "Please check your email to verify your account",
+  "@errorEmailNotConfirmed": {},
 
   "save": "Save",
   "@save": {},
@@ -140,5 +148,16 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "errorAvatarFormat": "Avatar must be in JPEG or PNG format.",
+  "@errorAvatarFormat": {},
+  "errorAvatarSize": "Avatar size must not exceed 2 MB.",
+  "@errorAvatarSize": {},
+
+  "navMap": "Map",
+  "@navMap": {},
+  "navBookings": "Bookings",
+  "@navBookings": {},
+  "navProfile": "Profile",
+  "@navProfile": {}
 }

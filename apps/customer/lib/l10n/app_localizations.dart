@@ -200,16 +200,28 @@ abstract class AppLocalizations {
   /// **'Tạo tài khoản'**
   String get signUpButton;
 
+  /// No description provided for @continueWithGoogle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục với Google'**
+  String get continueWithGoogle;
+
   /// No description provided for @signUpTerms.
   ///
   /// In vi, this message translates to:
   /// **'Bằng việc đăng ký, bạn đồng ý với Điều khoản và Chính sách của SportBuddies.'**
   String get signUpTerms;
 
+  /// No description provided for @verifyEmailAppBarTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác minh email'**
+  String get verifyEmailAppBarTitle;
+
   /// No description provided for @verifyEmailTitle.
   ///
   /// In vi, this message translates to:
-  /// **'Kiểm tra hộp thư của bạn'**
+  /// **'Vui lòng kiểm tra email để xác minh tài khoản'**
   String get verifyEmailTitle;
 
   /// No description provided for @verifyEmailBody.
@@ -326,6 +338,18 @@ abstract class AppLocalizations {
   /// **'Mật khẩu không khớp.'**
   String get errorPasswordMismatch;
 
+  /// No description provided for @errorInvalidCredentials.
+  ///
+  /// In vi, this message translates to:
+  /// **'Email hoặc mật khẩu không đúng'**
+  String get errorInvalidCredentials;
+
+  /// No description provided for @errorEmailNotConfirmed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng kiểm tra email để xác minh tài khoản'**
+  String get errorEmailNotConfirmed;
+
   /// No description provided for @save.
   ///
   /// In vi, this message translates to:
@@ -433,6 +457,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'{count} sân yêu thích'**
   String profileFavouritesCount(int count);
+
+  /// No description provided for @errorAvatarFormat.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ảnh đại diện phải thuộc định dạng JPEG hoặc PNG.'**
+  String get errorAvatarFormat;
+
+  /// No description provided for @errorAvatarSize.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dung lượng ảnh đại diện không được vượt quá 2 MB.'**
+  String get errorAvatarSize;
+
+  /// No description provided for @navMap.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bản đồ'**
+  String get navMap;
+
+  /// No description provided for @navBookings.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch đặt'**
+  String get navBookings;
+
+  /// No description provided for @navProfile.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hồ sơ'**
+  String get navProfile;
 }
 
 class _AppLocalizationsDelegate

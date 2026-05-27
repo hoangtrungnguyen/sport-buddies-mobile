@@ -38,9 +38,13 @@
   "@labelConfirmPassword": {},
   "signUpButton": "Tạo tài khoản",
   "@signUpButton": {},
+  "continueWithGoogle": "Tiếp tục với Google",
+  "@continueWithGoogle": {},
   "signUpTerms": "Bằng việc đăng ký, bạn đồng ý với Điều khoản và Chính sách của SportBuddies.",
   "@signUpTerms": {},
-  "verifyEmailTitle": "Kiểm tra hộp thư của bạn",
+  "verifyEmailAppBarTitle": "Xác minh email",
+  "@verifyEmailAppBarTitle": {},
+  "verifyEmailTitle": "Vui lòng kiểm tra email để xác minh tài khoản",
   "@verifyEmailTitle": {},
   "verifyEmailBody": "Chúng tôi đã gửi liên kết xác minh đến {email}.\nMở email và bấm vào liên kết để kích hoạt tài khoản.",
   "@verifyEmailBody": {
@@ -95,6 +99,10 @@
   "@errorPasswordWeak": {},
   "errorPasswordMismatch": "Mật khẩu không khớp.",
   "@errorPasswordMismatch": {},
+  "errorInvalidCredentials": "Email hoặc mật khẩu không đúng",
+  "@errorInvalidCredentials": {},
+  "errorEmailNotConfirmed": "Vui lòng kiểm tra email để xác minh tài khoản",
+  "@errorEmailNotConfirmed": {},
 
   "save": "Lưu",
   "@save": {},
@@ -140,5 +148,16 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+  "errorAvatarFormat": "Ảnh đại diện phải thuộc định dạng JPEG hoặc PNG.",
+  "@errorAvatarFormat": {},
+  "errorAvatarSize": "Dung lượng ảnh đại diện không được vượt quá 2 MB.",
+  "@errorAvatarSize": {},
+
+  "navMap": "Bản đồ",
+  "@navMap": {},
+  "navBookings": "Lịch đặt",
+  "@navBookings": {},
+  "navProfile": "Hồ sơ",
+  "@navProfile": {}
 }

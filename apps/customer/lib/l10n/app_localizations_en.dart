@@ -62,11 +62,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signUpButton => 'Create account';
 
   @override
+  String get continueWithGoogle => 'Continue with Google';
+
+  @override
   String get signUpTerms =>
       'By signing up, you agree to SportBuddies\' Terms and Privacy Policy.';
 
   @override
-  String get verifyEmailTitle => 'Check your inbox';
+  String get verifyEmailAppBarTitle => 'Verify email';
+
+  @override
+  String get verifyEmailTitle =>
+      'Please check your email to verify your account';
 
   @override
   String verifyEmailBody(String email) {
@@ -133,6 +140,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorPasswordMismatch => 'Passwords do not match.';
 
   @override
+  String get errorInvalidCredentials => 'Incorrect email or password';
+
+  @override
+  String get errorEmailNotConfirmed =>
+      'Please check your email to verify your account';
+
+  @override
   String get save => 'Save';
 
   @override
@@ -189,4 +203,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String profileFavouritesCount(int count) {
     return '$count favourites';
   }
+
+  @override
+  String get errorAvatarFormat => 'Avatar must be in JPEG or PNG format.';
+
+  @override
+  String get errorAvatarSize => 'Avatar size must not exceed 2 MB.';
+
+  @override
+  String get navMap => 'Map';
+
+  @override
+  String get navBookings => 'Bookings';
+
+  @override
+  String get navProfile => 'Profile';
 }

@@ -5,7 +5,7 @@ import 'dart:typed_data';
 Future<(Uint8List, String, String)?> pickAvatarFile() async {
   final completer = Completer<(Uint8List, String, String)?>();
   final input = html.FileUploadInputElement()
-    ..accept = 'image/*'
+    ..accept = 'image/jpeg,image/png'
     ..click();
 
   input.onChange.listen((_) {
@@ -14,6 +14,21 @@ Future<(Uint8List, String, String)?> pickAvatarFile() async {
       completer.complete(null);
       return;
     }
+
+    // Validate type
+    final mime = file.type.toLowerCase();
+    final isValidFormat = mime == 'image/jpeg' || mime == 'image/jpg' || mime == 'image/png';
+    if (!isValidFormat) {
+      completer.completeError('invalid_format');
+      return;
+    }
+
+    // Validate size (max 2 MB = 2 * 1024 * 1024 bytes)
+    if (file.size > 2 * 1024 * 1024) {
+      completer.completeError('file_too_large');
+      return;
+    }
+
     final reader = html.FileReader();
     reader.readAsArrayBuffer(file);
     reader.onLoad.listen((_) {

@@ -1,4 +1,5 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/auth_app_bar.dart';
 import 'package:customer/features/auth/view/resend_rate_limit_notifier.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -78,15 +79,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isVerifying = _pendingVerificationEmail != null;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/login'),
-        ),
+      appBar: AuthAppBar(
+        title: isVerifying ? l10n.verifyEmailAppBarTitle : l10n.signUpTitle,
+        isCloseButton: isVerifying,
+        onLeadingPressed: () => context.go('/login'),
       ),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -174,14 +175,6 @@ class _SignUpForm extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            l10n.signUpTitle,
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
           Text(
             l10n.signUpSubtitle,
             style: Theme.of(context)

@@ -223,12 +223,31 @@ class _ProfileBody extends StatelessWidget {
   }
 
   Future<void> _pickAndUploadAvatar(BuildContext context) async {
-    final result = await pickAvatarFile();
-    if (result == null || !context.mounted) return;
-    final (bytes, fileName, mimeType) = result;
-    context
-        .read<ProfileCubit>()
-        .uploadAvatar(bytes, fileName, mimeType);
+    try {
+      final result = await pickAvatarFile();
+      if (result == null || !context.mounted) return;
+      final (bytes, fileName, mimeType) = result;
+      context
+          .read<ProfileCubit>()
+          .uploadAvatar(bytes, fileName, mimeType);
+    } catch (e) {
+      if (!context.mounted) return;
+      final l10n = AppLocalizations.of(context);
+      final String errorMsg;
+      if (e == 'invalid_format') {
+        errorMsg = l10n.errorAvatarFormat;
+      } else if (e == 'file_too_large') {
+        errorMsg = l10n.errorAvatarSize;
+      } else {
+        errorMsg = e.toString();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _showEditNameSheet(BuildContext context) {
@@ -392,6 +411,62 @@ class _ProfileHeader extends StatelessWidget {
                           ),
                         ],
                       ],
+                    ),
+                    const SizedBox(height: 6),
+                    DefaultTextStyle(
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF374151),
+                      ),
+                      child: Row(
+                        children: [
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: '12 ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text: AppLocalizations.of(context)
+                                      .profileGamesCount(12)
+                                      .replaceFirst('12 ', '')
+                                      .replaceFirst('12', ''),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          const Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '4.8 ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(text: '⭐'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                const TextSpan(
+                                  text: '3 ',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                TextSpan(
+                                  text: AppLocalizations.of(context)
+                                      .profileFavouritesCount(3)
+                                      .replaceFirst('3 ', '')
+                                      .replaceFirst('3', ''),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

@@ -1,5 +1,7 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
+import 'package:customer/features/auth/view/court_lines_painter.dart';
 import 'package:customer/features/auth/view/google_sign_in_button.dart';
+import 'package:customer/features/auth/view/resend_rate_limit_notifier.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
@@ -22,10 +24,19 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController(text: kDebugMode ? '123456&*(QWE' : '');
   bool _obscurePassword = true;
 
+  late final ResendRateLimitNotifier _resendRateLimitNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    _resendRateLimitNotifier = ResendRateLimitNotifier();
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _resendRateLimitNotifier.dispose();
     super.dispose();
   }
 
@@ -40,6 +51,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void _onResendVerification(BuildContext context) {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).errorEmailEmpty)),
+      );
+      return;
+    }
+    _resendRateLimitNotifier.markSent();
+    context.read<AuthBloc>().add(ResendVerificationRequested(email: email));
+  }
+
+  String _formatSeconds(int s) {
+    final m = s ~/ 60;
+    final sec = s % 60;
+    return '${m.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -49,9 +78,21 @@ class _LoginScreenState extends State<LoginScreen> {
         listener: (context, state) {
           if (state is AuthSuccess) {
             context.go('/');
-          } else if (state is AuthFailureState) {
+          } else if (state is VerificationEmailSent) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
+              SnackBar(content: Text(l10n.resendVerification)),
+            );
+          } else if (state is AuthFailureState) {
+            final String displayMessage;
+            if (state.message == 'invalid_credentials') {
+              displayMessage = l10n.errorInvalidCredentials;
+            } else if (state.message == 'email_not_confirmed') {
+              displayMessage = l10n.errorEmailNotConfirmed;
+            } else {
+              displayMessage = state.message;
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(displayMessage)),
             );
           }
         },
@@ -121,13 +162,41 @@ class _LoginScreenState extends State<LoginScreen> {
                             weakMessage: l10n.errorPasswordWeak),
                       ),
                       const SizedBox(height: 4),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          key: const Key('forgotPasswordLink'),
-                          onPressed: () => context.push('/forgot-password'),
-                          child: Text(l10n.forgotPasswordQuestion),
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          ListenableBuilder(
+                            listenable: _resendRateLimitNotifier,
+                            builder: (context, _) {
+                              final onCooldown =
+                                  _resendRateLimitNotifier.isOnCooldown;
+                              final remaining =
+                                  _resendRateLimitNotifier.remainingSeconds;
+                              return TextButton(
+                                key: const Key('resendVerificationLink'),
+                                onPressed: onCooldown
+                                    ? null
+                                    : () => _onResendVerification(context),
+                                child: Text(
+                                  onCooldown
+                                      ? l10n.resendCooldown(
+                                          _formatSeconds(remaining))
+                                      : l10n.resendVerification,
+                                  style: TextStyle(
+                                    color: onCooldown
+                                        ? Colors.grey
+                                        : AppColors.primary,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          TextButton(
+                            key: const Key('forgotPasswordLink'),
+                            onPressed: () => context.push('/forgot-password'),
+                            child: Text(l10n.forgotPasswordQuestion),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       BlocBuilder<AuthBloc, AuthState>(
@@ -208,30 +277,56 @@ class _HeroBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
+      height: 220,
       width: double.infinity,
-      color: const Color(0xFF1B5E20),
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          const Text(
-            'SPORTBUDDIES',
-            style: TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 2.5,
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF16A34A),
+                    Color(0xFF15803D),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            heroTitle,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 34,
-              fontWeight: FontWeight.bold,
-              height: 1.15,
+          const Positioned.fill(
+            child: CustomPaint(
+              painter: CourtLinesPainter(),
+            ),
+          ),
+          Positioned(
+            left: 24,
+            bottom: 24,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'SPORTBUDDIES',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 2.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  heroTitle.replaceAll('\n', ' '),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    height: 1.15,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

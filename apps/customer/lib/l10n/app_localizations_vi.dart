@@ -62,11 +62,18 @@ class AppLocalizationsVi extends AppLocalizations {
   String get signUpButton => 'Tạo tài khoản';
 
   @override
+  String get continueWithGoogle => 'Tiếp tục với Google';
+
+  @override
   String get signUpTerms =>
       'Bằng việc đăng ký, bạn đồng ý với Điều khoản và Chính sách của SportBuddies.';
 
   @override
-  String get verifyEmailTitle => 'Kiểm tra hộp thư của bạn';
+  String get verifyEmailAppBarTitle => 'Xác minh email';
+
+  @override
+  String get verifyEmailTitle =>
+      'Vui lòng kiểm tra email để xác minh tài khoản';
 
   @override
   String verifyEmailBody(String email) {
@@ -133,6 +140,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get errorPasswordMismatch => 'Mật khẩu không khớp.';
 
   @override
+  String get errorInvalidCredentials => 'Email hoặc mật khẩu không đúng';
+
+  @override
+  String get errorEmailNotConfirmed =>
+      'Vui lòng kiểm tra email để xác minh tài khoản';
+
+  @override
   String get save => 'Lưu';
 
   @override
@@ -189,4 +203,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String profileFavouritesCount(int count) {
     return '$count sân yêu thích';
   }
+
+  @override
+  String get errorAvatarFormat =>
+      'Ảnh đại diện phải thuộc định dạng JPEG hoặc PNG.';
+
+  @override
+  String get errorAvatarSize =>
+      'Dung lượng ảnh đại diện không được vượt quá 2 MB.';
+
+  @override
+  String get navMap => 'Bản đồ';
+
+  @override
+  String get navBookings => 'Lịch đặt';
+
+  @override
+  String get navProfile => 'Hồ sơ';
 }
