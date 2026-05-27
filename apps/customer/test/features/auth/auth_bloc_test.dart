@@ -1,15 +1,12 @@
-// Tests for AuthBloc form validation logic (CAPP-010 / grava-144f.1.1)
-// and user upsert after Google OAuth (grava-144f.2.2).
+// Tests for AuthBloc form validation logic (CAPP-010 / grava-144f.1.1).
 //
 // Coverage:
 // - validateEmail: non-empty check
 // - validatePassword: minimum 8 chars check
 // - validateConfirmPassword: must match password
-// - AuthBloc state transitions for login and sign-up
-// - GoogleSignInRequested: calls UserRepository.upsertFromSession when provided
+// - AuthBloc state transitions for login, sign-up, and Google sign-in
 import 'package:bloc_test/bloc_test.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
-import 'package:customer/features/auth/user_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -46,8 +43,8 @@ void main() {
       expect(validatePassword('1234567'), isNotNull);
     });
 
-    test('returns null for password of exactly 8 chars', () {
-      expect(validatePassword('12345678'), isNull);
+    test('returns null for password of exactly 8 chars with letter+digit', () {
+      expect(validatePassword('abc12345'), isNull);
     });
 
     test('returns null for password longer than 8 chars', () {
@@ -123,6 +120,7 @@ void main() {
       build: AuthBloc.new,
       act: (b) => b.add(
         const SignUpSubmitted(
+          fullName: 'Test User',
           email: 'user@example.com',
           password: 'validPass1',
           confirmPassword: 'different',
@@ -136,6 +134,7 @@ void main() {
       build: AuthBloc.new,
       act: (b) => b.add(
         const SignUpSubmitted(
+          fullName: 'Test User',
           email: 'user@example.com',
           password: 'validPass1',
           confirmPassword: 'validPass1',
@@ -149,27 +148,6 @@ void main() {
       build: AuthBloc.new,
       act: (b) => b.add(const GoogleSignInRequested()),
       expect: () => [isA<AuthLoading>(), isA<AuthSuccess>()],
-    );
-
-    test(
-      'GoogleSignInRequested with UserRepository: upsertFromSession is not '
-      'called when no SupabaseClient is provided (no-op guard)',
-      () async {
-        // When no SupabaseClient is present the bloc skips the Supabase call
-        // entirely, so upsertFromSession must never be reached.
-        var upsertCalled = false;
-        final repo = UserRepository(
-          upsertFn: (_) async {
-            upsertCalled = true;
-          },
-        );
-        final b = AuthBloc(userRepository: repo);
-        b.add(const GoogleSignInRequested());
-        // Allow microtasks to settle.
-        await Future<void>.delayed(Duration.zero);
-        expect(upsertCalled, isFalse);
-        await b.close();
-      },
     );
 
     blocTest<AuthBloc, AuthState>(

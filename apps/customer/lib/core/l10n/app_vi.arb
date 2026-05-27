@@ -3,5 +3,142 @@
   "appTitle": "SportBuddies",
   "@appTitle": {
     "description": "The name of the application"
+  },
+
+  "loginHeroTitle": "Đặt sân\ntrong tích tắc.",
+  "@loginHeroTitle": {},
+  "loginTitle": "Đăng nhập",
+  "@loginTitle": {},
+  "loginSubtitle": "Tiếp tục tới SportBuddies để đặt sân và chơi cùng bạn bè.",
+  "@loginSubtitle": {},
+  "labelEmail": "Email",
+  "@labelEmail": {},
+  "labelPassword": "Mật khẩu",
+  "@labelPassword": {},
+  "forgotPasswordQuestion": "Quên mật khẩu?",
+  "@forgotPasswordQuestion": {},
+  "loginButton": "Đăng nhập",
+  "@loginButton": {},
+  "orDivider": "hoặc",
+  "@orDivider": {},
+  "noAccountPrompt": "Chưa có tài khoản?",
+  "@noAccountPrompt": {},
+  "signUpNow": "Đăng ký ngay",
+  "@signUpNow": {},
+
+  "signUpTitle": "Tạo tài khoản",
+  "@signUpTitle": {},
+  "signUpSubtitle": "Đăng ký miễn phí. Bạn sẽ nhận email xác minh sau khi tạo tài khoản.",
+  "@signUpSubtitle": {},
+  "labelFullName": "Họ và tên",
+  "@labelFullName": {},
+  "passwordHint": "Tối thiểu 8 ký tự, có chữ và số.",
+  "@passwordHint": {},
+  "labelConfirmPassword": "Nhập lại mật khẩu",
+  "@labelConfirmPassword": {},
+  "signUpButton": "Tạo tài khoản",
+  "@signUpButton": {},
+  "signUpTerms": "Bằng việc đăng ký, bạn đồng ý với Điều khoản và Chính sách của SportBuddies.",
+  "@signUpTerms": {},
+  "verifyEmailTitle": "Kiểm tra hộp thư của bạn",
+  "@verifyEmailTitle": {},
+  "verifyEmailBody": "Chúng tôi đã gửi liên kết xác minh đến {email}.\nMở email và bấm vào liên kết để kích hoạt tài khoản.",
+  "@verifyEmailBody": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyEmailNotReceived": "Không thấy email?",
+  "@verifyEmailNotReceived": {},
+  "verifyEmailTips": "• Kiểm tra thư mục Spam / Quảng cáo\n• Đợi vài phút rồi thử lại\n• Đảm bảo bạn nhập đúng địa chỉ email",
+  "@verifyEmailTips": {},
+  "resendCooldown": "Có thể gửi lại sau {timer}",
+  "@resendCooldown": {
+    "placeholders": {
+      "timer": {
+        "type": "String"
+      }
+    }
+  },
+  "resendVerification": "Gửi lại email xác minh",
+  "@resendVerification": {},
+  "backToLogin": "Quay lại đăng nhập",
+  "@backToLogin": {},
+
+  "forgotPasswordTitle": "Quên mật khẩu",
+  "@forgotPasswordTitle": {},
+  "forgotPasswordBody": "Nhập địa chỉ email bạn đã dùng để tạo tài khoản. Chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
+  "@forgotPasswordBody": {},
+  "sendResetLink": "Gửi liên kết đặt lại mật khẩu",
+  "@sendResetLink": {},
+  "checkInboxTitle": "Kiểm tra hộp thư",
+  "@checkInboxTitle": {},
+  "checkInboxBody": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến email của bạn.",
+  "@checkInboxBody": {},
+
+  "profileTitle": "Tài khoản",
+  "@profileTitle": {},
+  "language": "Ngôn ngữ",
+  "@language": {},
+  "languageVietnamese": "Tiếng Việt",
+  "@languageVietnamese": {},
+  "languageEnglish": "English",
+  "@languageEnglish": {},
+
+  "errorFullNameEmpty": "Vui lòng nhập họ và tên.",
+  "@errorFullNameEmpty": {},
+  "errorEmailEmpty": "Vui lòng nhập email.",
+  "@errorEmailEmpty": {},
+  "errorPasswordWeak": "Tối thiểu 8 ký tự, có chữ và số.",
+  "@errorPasswordWeak": {},
+  "errorPasswordMismatch": "Mật khẩu không khớp.",
+  "@errorPasswordMismatch": {},
+
+  "save": "Lưu",
+  "@save": {},
+  "nameEditTitle": "Chỉnh sửa tên",
+  "@nameEditTitle": {},
+  "labelPhone": "Số điện thoại",
+  "@labelPhone": {},
+
+  "profilePersonalInfo": "Thông tin cá nhân",
+  "@profilePersonalInfo": {},
+  "profilePersonalInfoSub": "Tên, ảnh đại diện, số điện thoại",
+  "@profilePersonalInfoSub": {},
+  "profileNotificationsLabel": "Thông báo",
+  "@profileNotificationsLabel": {},
+  "profileNotificationsLabelSub": "Push, email, lời mời chơi",
+  "@profileNotificationsLabelSub": {},
+  "profileFavourites": "Sân yêu thích",
+  "@profileFavourites": {},
+  "profilePlayTogether": "Bạn chơi cùng",
+  "@profilePlayTogether": {},
+  "profileReferral": "Mời bạn, nhận miễn phí",
+  "@profileReferral": {},
+  "profileReferralSub": "1 trận miễn phí cho mỗi lời mời",
+  "@profileReferralSub": {},
+  "profileHelpCenter": "Trung tâm trợ giúp",
+  "@profileHelpCenter": {},
+  "profileTerms": "Điều khoản & Chính sách",
+  "@profileTerms": {},
+  "profileActivitySection": "HOẠT ĐỘNG",
+  "@profileActivitySection": {},
+  "profileSupportSection": "HỖ TRỢ",
+  "@profileSupportSection": {},
+  "profileSignOut": "Đăng xuất",
+  "@profileSignOut": {},
+  "profileGamesCount": "{count} trận",
+  "@profileGamesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "profileFavouritesCount": "{count} sân yêu thích",
+  "@profileFavouritesCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
   }
 }

@@ -16,11 +16,13 @@ final class LoginSubmitted extends AuthEvent {
 /// Submitted from the sign-up screen.
 final class SignUpSubmitted extends AuthEvent {
   const SignUpSubmitted({
+    required this.fullName,
     required this.email,
     required this.password,
     required this.confirmPassword,
   });
 
+  final String fullName;
   final String email;
   final String password;
   final String confirmPassword;

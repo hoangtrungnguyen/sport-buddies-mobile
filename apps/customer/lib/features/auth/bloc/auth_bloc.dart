@@ -14,13 +14,20 @@
 //
 // Validation helpers are top-level functions so tests can import them directly.
 //
-// After a successful Google OAuth sign-in, [UserRepository.upsertFromSession]
-// is called with the current session to create/merge the user row in the
-// `users` table (grava-144f.2.2).
+// Google sign-in uses Supabase OAuth (signInWithOAuth + OAuthProvider.google).
+// Redirect target is platform-aware:
+//   - Web    → Uri.base.toString() — the current page URL, so OAuth returns
+//              to the running Flutter dev server (whatever port it picked).
+//   - Native → `io.supabase.spbcustomer://login-callback/` deep link
+//              (registered in iOS Info.plist + Android intent filter).
+//
+// The bloc does NOT mirror the auth user into a `users` table — that row is
+// created by a server-side trigger (or another service) when Supabase Auth
+// emits a sign-up. Client-side upserts have been deliberately removed.
 
 import 'dart:async';
 
-import 'package:customer/features/auth/user_repository.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -31,23 +38,38 @@ part 'auth_state.dart';
 // Pure validation helpers (no Supabase dependency — easy to unit-test)
 // ---------------------------------------------------------------------------
 
-/// Returns an error message when [email] is empty/blank, otherwise `null`.
-String? validateEmail(String? email) {
-  if (email == null || email.trim().isEmpty) return 'Email is required.';
-  return null;
-}
-
-/// Returns an error message when [password] is shorter than 8 chars, else `null`.
-String? validatePassword(String? password) {
-  if (password == null || password.length < 8) {
-    return 'Password must be at least 8 characters.';
+/// Returns an error message when [name] is empty/blank, otherwise `null`.
+String? validateFullName(String? name, {String? emptyMessage}) {
+  if (name == null || name.trim().isEmpty) {
+    return emptyMessage ?? 'Vui lòng nhập họ và tên.';
   }
   return null;
 }
 
+/// Returns an error message when [email] is empty/blank, otherwise `null`.
+String? validateEmail(String? email, {String? emptyMessage}) {
+  if (email == null || email.trim().isEmpty) {
+    return emptyMessage ?? 'Vui lòng nhập email.';
+  }
+  return null;
+}
+
+/// Returns an error message when [password] fails requirements, else `null`.
+/// Requirements: ≥8 chars, ≥1 letter, ≥1 digit.
+String? validatePassword(String? password, {String? weakMessage}) {
+  if (password == null || password.length < 8) {
+    return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
+  }
+  final hasLetter = password.contains(RegExp(r'[a-zA-Z]'));
+  final hasDigit = password.contains(RegExp(r'[0-9]'));
+  if (!hasLetter || !hasDigit) return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
+  return null;
+}
+
 /// Returns an error message when [confirm] does not equal [password], else `null`.
-String? validateConfirmPassword(String password, String confirm) {
-  if (confirm != password) return 'Passwords do not match.';
+String? validateConfirmPassword(String password, String confirm,
+    {String? mismatchMessage}) {
+  if (confirm != password) return mismatchMessage ?? 'Mật khẩu không khớp.';
   return null;
 }
 
@@ -59,10 +81,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({
     SupabaseClient? supabaseClient,
     GoTrueClient? authClient,
-    UserRepository? userRepository,
   })  : _client = supabaseClient,
         _authClient = authClient,
-        _userRepository = userRepository,
         super(const AuthInitial()) {
     on<AppStarted>(_onAppStarted);
     on<_AuthStateChanged>(_onAuthStateChanged);
@@ -87,9 +107,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   /// Optional GoTrueClient for session checks and stream subscriptions.
   /// Separated so tests can mock it without a full SupabaseClient.
   final GoTrueClient? _authClient;
-
-  /// Optional [UserRepository] used to upsert the user row after Google OAuth.
-  final UserRepository? _userRepository;
 
   // ignore: cancel_subscriptions
   StreamSubscription<dynamic>? _authSubscription;
@@ -157,6 +174,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SignUpSubmitted event,
     Emitter<AuthState> emit,
   ) async {
+    final nameError = validateFullName(event.fullName);
+    if (nameError != null) {
+      emit(AuthValidationError(nameError));
+      return;
+    }
     final emailError = validateEmail(event.email);
     if (emailError != null) {
       emit(AuthValidationError(emailError));
@@ -181,6 +203,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await client.auth.signUp(
           email: event.email,
           password: event.password,
+          data: {'full_name': event.fullName.trim()},
         );
       }
       emit(const AuthSuccess());
@@ -191,11 +214,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  /// Native-only deep-link scheme. Must match iOS Info.plist + Android
+  /// AndroidManifest intent filter AND be allowed in Supabase Dashboard
+  /// (Authentication → URL Configuration → Redirect URLs).
+  static const String _nativeOauthRedirect =
+      'io.supabase.spbcustomer://login-callback/';
+
+  /// Returns the redirect target for the current platform.
+  ///
+  /// On web we send Supabase back to the current page (`Uri.base`) — that
+  /// way OAuth lands on whatever port `flutter run -d chrome` chose,
+  /// regardless of Supabase's configured Site URL. On native we use the
+  /// deep-link scheme so the OS routes the callback back into the app.
+  static String _resolveOauthRedirect() =>
+      kIsWeb ? Uri.base.toString() : _nativeOauthRedirect;
+
   /// Initiates Google OAuth via Supabase [OAuthProvider.google].
   ///
-  /// After the browser redirect completes and the user is authenticated,
-  /// [UserRepository.upsertFromSession] is called with [SupabaseClient.auth.currentSession]
-  /// to create or merge the user row in the `users` table.
+  /// On native platforms `signInWithOAuth` returns immediately after opening
+  /// the system browser; the session arrives later on the [onAuthStateChange]
+  /// stream and drives the [AuthAuthenticated] state.
   Future<void> _onGoogleSignInRequested(
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
@@ -204,12 +242,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final client = _client;
       if (client != null) {
-        await client.auth.signInWithOAuth(OAuthProvider.google);
-        // Upsert the user row if a session is already available (web / PKCE).
-        final session = client.auth.currentSession;
-        if (session != null) {
-          await _userRepository?.upsertFromSession(session);
-        }
+        await client.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: _resolveOauthRedirect(),
+        );
       }
       emit(const AuthSuccess());
     } on AuthException catch (e) {
