@@ -1,47 +1,59 @@
-// GoRouter configuration — CAPP-010 screens wired.
+// GoRouter configuration.
 //
-// Routes:
-//   /                   → HomePage (map placeholder — replaced by real map screen in
-//                         a future CAPP story)
-//   /login              → LoginScreen (CAPP-010)
-//   /signup             → SignUpScreen (CAPP-010)
-//   /bookings/upcoming  → UpcomingBookingsPage (grava-654b.1.1)
-//   /bookings/history   → BookingHistoryPage (grava-654b.2.1)
+// Top-level structure:
+//   - StatefulShellRoute.indexedStack with 3 tabs (Map / Bookings / Profile),
+//     each with its own Navigator so per-tab state is preserved across taps.
+//   - Auth screens (/login, /signup, /forgot-password) and booking detail
+//     (/bookings/:id) live outside the shell so they cover the whole screen
+//     (no bottom nav).
 //
-// DI wiring: registered as Singleton in RegisterModule (injection_module.dart)
-// so that FCM handlers outside the widget tree can call `sl<GoRouter>().go(...)`.
+// Auth redirect:
+//   - Unauthenticated → forced to /login (except /signup, /forgot-password).
+//   - Authenticated landing on /login or /signup → forced to /.
+//
+// DI: the router is a Singleton in RegisterModule so callers outside the
+// widget tree (e.g. FCM handlers) can call sl<GoRouter>().go(...).
 
+import 'package:customer/core/router/app_shell.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/booking_history_screen.dart';
 import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
+import 'package:customer/features/courts/court_detail_screen.dart';
+import 'package:customer/features/courts/slot_picker_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:customer/features/recurring/recurring_booking_screen.dart';
+import 'package:customer/features/slots/slot_detail_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Builds and returns the application [GoRouter].
-///
-/// Redirect logic (grava-144f.1.4):
-///   - Unauthenticated users landing on any route other than [/login] or
-///     [/signup] are sent to [/login].
-///   - Authenticated users landing on [/login] or [/signup] are sent to [/].
-///   - All other combinations return `null` (no redirect).
 GoRouter buildRouter() {
-  // Routes that are always accessible without a session.
-  const publicPaths = {'/login', '/signup'};
+  const publicPaths = {'/login', '/signup', '/forgot-password'};
+
+  AuthBloc createAuthBloc() {
+    SupabaseClient? supabaseClient;
+    try {
+      supabaseClient = Supabase.instance.client;
+    } catch (_) {
+      supabaseClient = null;
+    }
+
+    return AuthBloc(
+      supabaseClient: supabaseClient,
+      authClient: supabaseClient?.auth,
+    );
+  }
 
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      // Guard: Supabase.instance throws if not yet initialised (e.g. tests).
-      // In that case, treat as unauthenticated so public routes remain accessible.
       Session? session;
       try {
         session = Supabase.instance.client.auth.currentSession;
@@ -55,83 +67,104 @@ GoRouter buildRouter() {
       if (!isAuthenticated && !publicPaths.contains(goingTo)) {
         return '/login';
       }
-      if (isAuthenticated && publicPaths.contains(goingTo)) {
+      if (isAuthenticated &&
+          (goingTo == '/login' || goingTo == '/signup')) {
         return '/';
       }
       return null;
     },
     routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, state) => const HomePage(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          // Tab 1 — Map / home.
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const MapScreen(),
+              ),
+            ],
+          ),
+          // Tab 2 — Bookings (upcoming default + history sibling).
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/bookings/upcoming',
+                builder: (context, state) => const UpcomingBookingsPage(),
+              ),
+              GoRoute(
+                path: '/bookings/history',
+                builder: (context, state) => const BookingHistoryPage(),
+              ),
+            ],
+          ),
+          // Tab 3 — Profile.
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => BlocProvider(
+                  create: (_) => ProfileCubit(Supabase.instance.client),
+                  child: const ProfileScreen(),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+      // Full-screen routes (no bottom nav).
       GoRoute(
         path: '/login',
         builder: (context, state) => BlocProvider(
-          create: (_) => AuthBloc(),
+          create: (_) => createAuthBloc(),
           child: const LoginScreen(),
         ),
       ),
       GoRoute(
         path: '/signup',
         builder: (context, state) => BlocProvider(
-          create: (_) => AuthBloc(),
+          create: (_) => createAuthBloc(),
           child: const SignUpScreen(),
         ),
       ),
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => BlocProvider(
-          create: (_) => AuthBloc(),
+          create: (_) => createAuthBloc(),
           child: const ForgotPasswordScreen(),
         ),
       ),
-      GoRoute(
-        path: '/profile',
-        builder: (context, state) => BlocProvider(
-          create: (_) => ProfileCubit(Supabase.instance.client),
-          child: const ProfileScreen(),
-        ),
-      ),
-      // grava-c9ca.1.1: Map screen — CAPP-030
-      GoRoute(
-        path: '/map',
-        builder: (context, state) => const MapScreen(),
-      ),
-      // grava-654b.1.1: Upcoming bookings screen
-      GoRoute(
-        path: '/bookings/upcoming',
-        builder: (context, state) => const UpcomingBookingsPage(),
-      ),
-      // grava-654b.2.1: Booking history screen
-      GoRoute(
-        path: '/bookings/history',
-        builder: (context, state) => const BookingHistoryPage(),
-      ),
-      // grava-654b.4.1: Booking detail screen with join requests
       GoRoute(
         path: '/bookings/:id',
         builder: (context, state) => BookingDetailPage(
           bookingId: state.pathParameters['id']!,
         ),
       ),
+      GoRoute(
+        path: '/court/:id',
+        builder: (context, state) =>
+            CourtDetailScreen(courtId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/court/:id/slots',
+        builder: (context, state) =>
+            SlotPickerScreen(courtId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/booking',
+        builder: (context, state) => const BookingScreen(),
+      ),
+      GoRoute(
+        path: '/slot/:id',
+        builder: (context, state) =>
+            SlotDetailScreen(slotId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/booking/recurring',
+        builder: (context, state) => const RecurringBookingScreen(),
+      ),
     ],
   );
-}
-
-/// Placeholder home screen.
-///
-/// Shows a simple confirmation that the Flutter bootstrap succeeded.
-/// Replaced by the real map/home screen when the map story lands.
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('SportBuddies — bootstrap OK'),
-      ),
-    );
-  }
 }

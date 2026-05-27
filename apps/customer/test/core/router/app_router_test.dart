@@ -18,6 +18,7 @@
 // `Supabase.instance.client.auth.currentSession` returns null — all widget
 // tests run in the unauthenticated code-path unless Supabase is mocked.
 import 'package:customer/core/router/app_router.dart';
+import 'package:customer/features/map/map_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -83,13 +84,12 @@ void main() {
     });
   });
 
-  group('HomePage widget', () {
-    testWidgets('renders "SportBuddies — bootstrap OK"',
-        (WidgetTester tester) async {
+  group('MapScreen widget', () {
+    testWidgets('mounts without throwing', (WidgetTester tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: HomePage()),
+        const MaterialApp(home: MapScreen()),
       );
-      expect(find.text('SportBuddies — bootstrap OK'), findsOneWidget);
+      expect(find.byType(MapScreen), findsOneWidget);
     });
   });
 }
