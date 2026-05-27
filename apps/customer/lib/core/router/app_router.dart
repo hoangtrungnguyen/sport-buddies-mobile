@@ -26,6 +26,8 @@ import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/slot_picker_screen.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
+import 'package:customer/core/env/env.dart';
+import 'package:customer/features/map/data/mock_court_availability_repository.dart';
 import 'package:customer/features/map/data/supabase_court_availability_repository.dart';
 import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
@@ -96,9 +98,11 @@ GoRouter buildRouter() {
                   providers: [
                     BlocProvider(
                       create: (_) => MapCubit(
-                        repository: SupabaseCourtAvailabilityRepository(
-                          Supabase.instance.client,
-                        ),
+                        repository: Env.mapProvider == 'general'
+                            ? const MockCourtAvailabilityRepository()
+                            : SupabaseCourtAvailabilityRepository(
+                                Supabase.instance.client,
+                              ),
                       )..loadCourts(),
                     ),
                     BlocProvider(

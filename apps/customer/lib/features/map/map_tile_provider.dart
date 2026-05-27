@@ -1,12 +1,13 @@
 // Map tile provider — strategy pattern.
 //
 // Strategy selection: MapTileProvider.fromEnv() reads MAP_PROVIDER from the
-// compile-time env. Add MAP_PROVIDER=google|vietmap to your .env file.
+// compile-time env. Add MAP_PROVIDER=google|vietmap|general to your .env file.
 //
 // | MAP_PROVIDER  | Strategy                  | Key required          |
 // |---------------|---------------------------|-----------------------|
 // | google (dflt) | GoogleMapsTileProvider    | GOOGLE_MAP_API_KEY    |
 // | vietmap       | VietMapTileProvider       | VIETMAP_API_KEY       |
+// | general       | OpenStreetMapTileProvider | none (flutter_map)    |
 // | (missing key) | OpenStreetMapTileProvider | none (dev fallback)   |
 
 import 'package:customer/core/env/env.dart';
@@ -32,6 +33,8 @@ abstract class MapTileProvider {
         final key = Env.vietmapApiKey;
         if (key.isEmpty) return const OpenStreetMapTileProvider();
         return VietMapTileProvider(apiKey: key);
+      case 'general':
+        return const OpenStreetMapTileProvider();
       case 'google':
       default:
         return GoogleMapsTileProvider(apiKey: Env.googleMapApiKey);

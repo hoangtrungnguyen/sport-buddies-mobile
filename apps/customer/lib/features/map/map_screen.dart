@@ -9,8 +9,10 @@
 //   MapLoaded.courts → applyFilter(filterState, userPos) → rendered markers
 //
 // Map provider strategy (MAP_PROVIDER env var):
-//   • 'google' → google_maps_flutter (native SDK, all platforms).
-//   • 'vietmap' / '' → flutter_map + VietMap or OSM raster tiles.
+//   • 'google'   → google_maps_flutter (native SDK, all platforms).
+//   • 'vietmap'  → flutter_map + VietMap raster tiles.
+//   • 'general'  → flutter_map + OpenStreetMap tiles (no key required).
+//   • ''         → flutter_map + OSM fallback.
 
 import 'package:customer/core/env/env.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
@@ -134,8 +136,7 @@ class _MapBodyState extends State<_MapBody> {
                 bottom: 0,
                 child: _showSlotList
                     ? _SlotListPanel(
-                        onClose: () =>
-                            setState(() => _showSlotList = false),
+                        onClose: () => setState(() => _showSlotList = false),
                       )
                     : _SelectedCourtPanel(cubit: _cubit),
               ),
@@ -154,8 +155,8 @@ class _MapBodyState extends State<_MapBody> {
                       : BlocBuilder<MapCubit, MapState>(
                           builder: (ctx, state) {
                             final total = state is MapLoaded
-                                ? state.courts.fold<int>(
-                                    0, (s, c) => s + c.openSlotCount)
+                                ? state.courts
+                                    .fold<int>(0, (s, c) => s + c.openSlotCount)
                                 : 0;
                             return _ViewToggle(
                               isSlotView: _showSlotList,
@@ -272,8 +273,10 @@ class _MapBodyState extends State<_MapBody> {
 
   /// Routes to the correct map implementation based on [Env.mapProvider].
   ///
-  /// - `'google'` → [ReactiveGoogleMapBody] (google_maps_flutter SDK)
-  /// - anything else → [FlutterMap] with VietMap / OSM raster tiles
+  /// - `'google'`   → [ReactiveGoogleMapBody] (google_maps_flutter SDK)
+  /// - `'vietmap'`  → [FlutterMap] + VietMap raster tiles
+  /// - `'general'`  → [FlutterMap] + OpenStreetMap tiles
+  /// - anything else → [FlutterMap] + OSM fallback
   static Widget _buildMapWidget({
     required BuildContext context,
     required List<CourtAvailability> courts,
@@ -316,9 +319,8 @@ class _MapBodyState extends State<_MapBody> {
           userAgentPackageName: 'vn.sportbuddies.customer',
         ),
         MarkerLayer(
-          markers: courts
-              .map((c) => _buildMarker(c, () => onMarkerTap(c)))
-              .toList(),
+          markers:
+              courts.map((c) => _buildMarker(c, () => onMarkerTap(c))).toList(),
         ),
       ],
     );
@@ -568,8 +570,7 @@ class _SelectedCourtPanel extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.sports_tennis,
-              size: 26, color: Colors.white),
+          child: const Icon(Icons.sports_tennis, size: 26, color: Colors.white),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -590,8 +591,8 @@ class _SelectedCourtPanel extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: court.openSlotCount > 0
                           ? const Color(0xFFDCFCE7)
@@ -634,8 +635,7 @@ class _SelectedCourtPanel extends StatelessWidget {
                 width: double.infinity,
                 height: 40,
                 child: FilledButton(
-                  onPressed: () =>
-                      context.push('/court/${court.courtId}'),
+                  onPressed: () => context.push('/court/${court.courtId}'),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFF16A34A),
                     shape: RoundedRectangleBorder(
@@ -720,10 +720,10 @@ class _SlotListPanel extends StatelessWidget {
           Expanded(
             child: BlocBuilder<SlotListCubit, SlotListState>(
               builder: (context, state) => switch (state) {
-                SlotListInitial() || SlotListLoading() =>
+                SlotListInitial() ||
+                SlotListLoading() =>
                   const Center(child: CircularProgressIndicator()),
-                SlotListLoaded(:final slots) when slots.isEmpty =>
-                  const Center(
+                SlotListLoaded(:final slots) when slots.isEmpty => const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
                       child: Text(
@@ -736,15 +736,13 @@ class _SlotListPanel extends StatelessWidget {
                       ),
                     ),
                   ),
-                SlotListLoaded(:final slots) =>
-                  ListView.separated(
+                SlotListLoaded(:final slots) => ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                     itemCount: slots.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, i) => _SlotCard(slot: slots[i]),
                   ),
-                SlotListError(:final message) =>
-                  Center(
+                SlotListError(:final message) => Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
@@ -784,10 +782,9 @@ class _SlotCard extends StatelessWidget {
   static String _slotTimeLabel(Slot slot) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final slotDay = DateTime(
-        slot.startTime.year, slot.startTime.month, slot.startTime.day);
-    final timeRange =
-        '${_fmtTime(slot.startTime)} – ${_fmtTime(slot.endTime)}';
+    final slotDay =
+        DateTime(slot.startTime.year, slot.startTime.month, slot.startTime.day);
+    final timeRange = '${_fmtTime(slot.startTime)} – ${_fmtTime(slot.endTime)}';
     if (slotDay == today) return 'Hôm nay · $timeRange';
     if (slotDay == today.add(const Duration(days: 1))) {
       return 'Ngày mai · $timeRange';
@@ -863,8 +860,8 @@ class _SlotCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: slot.isFull
                         ? const Color(0xFFF3F4F6)
@@ -886,8 +883,9 @@ class _SlotCard extends StatelessWidget {
                 SizedBox(
                   height: 32,
                   child: FilledButton(
-                    onPressed:
-                        slot.isFull ? null : () => context.push('/slot/${slot.id}'),
+                    onPressed: slot.isFull
+                        ? null
+                        : () => context.push('/slot/${slot.id}'),
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF16A34A),
                       disabledBackgroundColor: const Color(0xFFE5E7EB),
@@ -1008,8 +1006,7 @@ class _FilterSheet extends StatelessWidget {
                       if (isAll) {
                         cubit.filterBySports([]);
                       } else {
-                        final updated =
-                            Set<String>.from(state.selectedSports);
+                        final updated = Set<String>.from(state.selectedSports);
                         if (updated.contains(entry.slug)) {
                           updated.remove(entry.slug);
                         } else {
@@ -1041,8 +1038,7 @@ class _FilterSheet extends StatelessWidget {
                       padding: EdgeInsets.only(
                           right: e.key < _kDistanceOptions.length - 1 ? 8 : 0),
                       child: GestureDetector(
-                        onTap: () => cubit
-                            .filterByDistance(active ? null : km),
+                        onTap: () => cubit.filterByDistance(active ? null : km),
                         child: _FilterPill(
                           label: '${km.toInt()} km',
                           active: active,
@@ -1123,9 +1119,7 @@ class _FilterPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: active ? const Color(0xFF111827) : Colors.white,
         border: Border.all(
-          color: active
-              ? const Color(0xFF111827)
-              : const Color(0xFFE5E7EB),
+          color: active ? const Color(0xFF111827) : const Color(0xFFE5E7EB),
         ),
         borderRadius: BorderRadius.circular(99),
       ),
@@ -1135,8 +1129,7 @@ class _FilterPill extends StatelessWidget {
         style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color:
-              active ? Colors.white : const Color(0xFF374151),
+          color: active ? Colors.white : const Color(0xFF374151),
         ),
       ),
     );
@@ -1166,9 +1159,8 @@ class _CheckboxRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: checked ? const Color(0xFF16A34A) : Colors.white,
               border: Border.all(
-                color: checked
-                    ? const Color(0xFF16A34A)
-                    : const Color(0xFFD1D5DB),
+                color:
+                    checked ? const Color(0xFF16A34A) : const Color(0xFFD1D5DB),
                 width: 2,
               ),
               borderRadius: BorderRadius.circular(6),
@@ -1180,8 +1172,7 @@ class _CheckboxRow extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             label,
-            style: const TextStyle(
-                fontSize: 14, color: Color(0xFF374151)),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF374151)),
           ),
         ],
       ),
