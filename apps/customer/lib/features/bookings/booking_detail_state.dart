@@ -5,6 +5,7 @@
 //   BookingDetailLoaded  — booking details + join requests loaded.
 //   BookingDetailError   — fetch failed.
 
+import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter/foundation.dart';
 
 import 'booking_model.dart';
@@ -106,10 +107,13 @@ class BookingDetailLoaded extends BookingDetailState {
 }
 
 /// Emitted when fetching booking details fails.
-class BookingDetailError extends BookingDetailState {
-  const BookingDetailError(this.message);
+class BookingDetailError extends BookingDetailState with AppExceptionMixin {
+  const BookingDetailError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>

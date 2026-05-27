@@ -177,7 +177,7 @@ class _MapBodyState extends State<_MapBody> {
     setState(() => _showSlotList = show);
     if (show) {
       final slotCubit = _MapBodyState._tryReadSlotCubit(context);
-      if (slotCubit != null && slotCubit.state is OpenSlotListInitial) {
+      if (slotCubit != null && slotCubit.state is SlotListInitial) {
         slotCubit.loadAllGroupSlots();
       }
     }
@@ -348,9 +348,9 @@ class _MapBodyState extends State<_MapBody> {
     }
   }
 
-  static OpenSlotListCubit? _tryReadSlotCubit(BuildContext context) {
+  static SlotListCubit? _tryReadSlotCubit(BuildContext context) {
     try {
-      return BlocProvider.of<OpenSlotListCubit>(context, listen: false);
+      return BlocProvider.of<SlotListCubit>(context, listen: false);
     } catch (_) {
       return null;
     }
@@ -718,11 +718,11 @@ class _SlotListPanel extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: BlocBuilder<OpenSlotListCubit, OpenSlotListState>(
+            child: BlocBuilder<SlotListCubit, SlotListState>(
               builder: (context, state) => switch (state) {
-                OpenSlotListInitial() || OpenSlotListLoading() =>
+                SlotListInitial() || SlotListLoading() =>
                   const Center(child: CircularProgressIndicator()),
-                OpenSlotListLoaded(:final slots) when slots.isEmpty =>
+                SlotListLoaded(:final slots) when slots.isEmpty =>
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
@@ -736,14 +736,14 @@ class _SlotListPanel extends StatelessWidget {
                       ),
                     ),
                   ),
-                OpenSlotListLoaded(:final slots) =>
+                SlotListLoaded(:final slots) =>
                   ListView.separated(
                     padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                     itemCount: slots.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, i) => _SlotCard(slot: slots[i]),
                   ),
-                OpenSlotListError(:final message) =>
+                SlotListError(:final message) =>
                   Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -769,7 +769,7 @@ class _SlotListPanel extends StatelessWidget {
 class _SlotCard extends StatelessWidget {
   const _SlotCard({required this.slot});
 
-  final OpenSlot slot;
+  final Slot slot;
 
   static const _sportColors = {
     'pickleball': Color(0xFF0EA5E9),
@@ -781,7 +781,7 @@ class _SlotCard extends StatelessWidget {
   static String _fmtTime(DateTime dt) =>
       '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
-  static String _slotTimeLabel(OpenSlot slot) {
+  static String _slotTimeLabel(Slot slot) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final slotDay = DateTime(

@@ -74,8 +74,8 @@ class BookingsCubit extends Cubit<BookingsState> {
           .toList();
 
       emit(BookingsLoaded(bookings));
-    } catch (e) {
-      emit(BookingsError(e.toString()));
+    } catch (e, st) {
+      emit(BookingsError(e.toString(), stackTrace: st));
     }
   }
 
@@ -126,8 +126,8 @@ class BookingsCubit extends Cubit<BookingsState> {
           .eq('status', 'pending');
 
       await loadUpcoming();
-    } catch (e) {
-      emit(BookingsError(e.toString()));
+    } catch (e, st) {
+      emit(BookingsError(e.toString(), stackTrace: st));
     }
   }
 }

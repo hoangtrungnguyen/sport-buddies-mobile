@@ -23,7 +23,7 @@ class SlotRow extends StatelessWidget {
     this.onTap,
   });
 
-  final OpenSlot slot;
+  final Slot slot;
   final VoidCallback? onTap;
 
   /// Returns the Vietnamese label for a given sport type.

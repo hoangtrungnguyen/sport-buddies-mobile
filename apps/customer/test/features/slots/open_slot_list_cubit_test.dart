@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:spb_core/spb_core.dart';
 
-class MockOpenSlotRepository extends Mock implements OpenSlotRepository {}
+class MockSlotRepository extends Mock implements SlotRepository {}
 
 // DateTime is not const — use final top-level vars instead.
 final _start1 = DateTime.utc(2026, 6, 1, 19, 0);
@@ -12,7 +12,7 @@ final _end1   = DateTime.utc(2026, 6, 1, 20, 30);
 final _start2 = DateTime.utc(2026, 6, 2, 7, 0);
 final _end2   = DateTime.utc(2026, 6, 2, 8, 30);
 
-OpenSlot get _slot1 => OpenSlot(
+Slot get _slot1 => Slot(
   id: 'slot-1',
   startTime: _start1,
   endTime: _end1,
@@ -24,7 +24,7 @@ OpenSlot get _slot1 => OpenSlot(
   currentPlayers: 3,
 );
 
-OpenSlot get _slot2 => OpenSlot(
+Slot get _slot2 => Slot(
   id: 'slot-2',
   startTime: _start2,
   endTime: _end2,
@@ -37,132 +37,132 @@ OpenSlot get _slot2 => OpenSlot(
 );
 
 void main() {
-  late MockOpenSlotRepository repo;
+  late MockSlotRepository repo;
 
   setUp(() {
-    repo = MockOpenSlotRepository();
+    repo = MockSlotRepository();
   });
 
   group('loadAllGroupSlots', () {
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Loaded] on success',
       build: () {
-        when(() => repo.fetchAllOpenGroupSlots())
+        when(() => repo.fetchAllGroupSlots())
             .thenAnswer((_) async => Success([_slot1, _slot2]));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
-        const OpenSlotListLoading(),
-        OpenSlotListLoaded([_slot1, _slot2]),
+        const SlotListLoading(),
+        SlotListLoaded([_slot1, _slot2]),
       ],
     );
 
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Loaded([])] when no group slots exist',
       build: () {
-        when(() => repo.fetchAllOpenGroupSlots())
+        when(() => repo.fetchAllGroupSlots())
             .thenAnswer((_) async => const Success([]));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
-        const OpenSlotListLoading(),
-        const OpenSlotListLoaded([]),
+        const SlotListLoading(),
+        const SlotListLoaded([]),
       ],
     );
 
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Error] on NetworkFailure',
       build: () {
-        when(() => repo.fetchAllOpenGroupSlots())
+        when(() => repo.fetchAllGroupSlots())
             .thenAnswer((_) async => const Failure(NetworkFailure()));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
-        const OpenSlotListLoading(),
-        const OpenSlotListError('Không có kết nối mạng.'),
+        const SlotListLoading(),
+        const SlotListError('Không có kết nối mạng.'),
       ],
     );
 
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Error] on ServerFailure',
       build: () {
-        when(() => repo.fetchAllOpenGroupSlots())
+        when(() => repo.fetchAllGroupSlots())
             .thenAnswer((_) async => const Failure(ServerFailure(500)));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
-        const OpenSlotListLoading(),
-        const OpenSlotListError('Lỗi máy chủ (500).'),
+        const SlotListLoading(),
+        const SlotListError('Lỗi máy chủ (500).'),
       ],
     );
   });
 
   group('loadForCourt', () {
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Loaded] on success',
       build: () {
-        when(() => repo.fetchOpenSlots('court-1'))
+        when(() => repo.fetchSlots('court-1'))
             .thenAnswer((_) async => Success([_slot1]));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadForCourt('court-1'),
       expect: () => [
-        const OpenSlotListLoading(),
-        OpenSlotListLoaded([_slot1]),
+        const SlotListLoading(),
+        SlotListLoaded([_slot1]),
       ],
     );
 
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'emits [Loading, Error] on failure',
       build: () {
-        when(() => repo.fetchOpenSlots('court-x'))
+        when(() => repo.fetchSlots('court-x'))
             .thenAnswer((_) async => const Failure(NetworkFailure()));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) => cubit.loadForCourt('court-x'),
       expect: () => [
-        const OpenSlotListLoading(),
-        const OpenSlotListError('Không có kết nối mạng.'),
+        const SlotListLoading(),
+        const SlotListError('Không có kết nối mạng.'),
       ],
     );
   });
 
   group('clear', () {
-    blocTest<OpenSlotListCubit, OpenSlotListState>(
+    blocTest<SlotListCubit, SlotListState>(
       'returns to Initial from Loaded',
       build: () {
-        when(() => repo.fetchAllOpenGroupSlots())
+        when(() => repo.fetchAllGroupSlots())
             .thenAnswer((_) async => Success([_slot1]));
-        return OpenSlotListCubit(repo);
+        return SlotListCubit(repo);
       },
       act: (cubit) async {
         await cubit.loadAllGroupSlots();
         cubit.clear();
       },
       expect: () => [
-        const OpenSlotListLoading(),
-        OpenSlotListLoaded([_slot1]),
-        const OpenSlotListInitial(),
+        const SlotListLoading(),
+        SlotListLoaded([_slot1]),
+        const SlotListInitial(),
       ],
     );
   });
 
-  group('OpenSlotListLoaded equality', () {
+  group('SlotListLoaded equality', () {
     test('same slots → equal', () {
       expect(
-        OpenSlotListLoaded([_slot1]),
-        equals(OpenSlotListLoaded([_slot1])),
+        SlotListLoaded([_slot1]),
+        equals(SlotListLoaded([_slot1])),
       );
     });
 
     test('different slots → not equal', () {
       expect(
-        OpenSlotListLoaded([_slot1]),
-        isNot(equals(OpenSlotListLoaded([_slot2]))),
+        SlotListLoaded([_slot1]),
+        isNot(equals(SlotListLoaded([_slot2]))),
       );
     });
   });

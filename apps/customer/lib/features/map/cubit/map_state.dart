@@ -73,10 +73,13 @@ final class MapLoaded extends MapState {
 }
 
 /// Fetch failed; [message] is a human-readable reason for display / logging.
-final class MapError extends MapState {
-  const MapError(this.message);
+final class MapError extends MapState with AppExceptionMixin {
+  const MapError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>

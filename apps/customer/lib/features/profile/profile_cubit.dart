@@ -87,8 +87,8 @@ class ProfileCubit extends Cubit<ProfileState> {
         email: user.email ?? '',
         avatarUrl: meta['avatar_url'] as String?,
       ));
-    } catch (e) {
-      emit(ProfileError(e.toString()));
+    } catch (e, st) {
+      emit(ProfileError(e.toString(), stackTrace: st));
     }
   }
 
@@ -142,8 +142,8 @@ class ProfileCubit extends Cubit<ProfileState> {
         email: current.email,
         avatarUrl: publicUrl,
       ));
-    } catch (e) {
-      emit(ProfileUpdateError(e.toString()));
+    } catch (e, st) {
+      emit(ProfileUpdateError(e.toString(), stackTrace: st));
     }
   }
 
@@ -194,8 +194,8 @@ class ProfileCubit extends Cubit<ProfileState> {
         email: current.email,
         avatarUrl: current.avatarUrl,
       ));
-    } catch (e) {
-      emit(ProfileUpdateError(e.toString()));
+    } catch (e, st) {
+      emit(ProfileUpdateError(e.toString(), stackTrace: st));
     }
   }
 }

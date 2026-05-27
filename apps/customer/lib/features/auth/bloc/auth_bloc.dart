@@ -5,7 +5,7 @@
 //   AuthInitial → (AppStarted, has session)  → AuthAuthenticated
 //   AuthInitial → (onAuthStateChange signedIn)  → AuthAuthenticated
 //   AuthInitial → (onAuthStateChange signedOut) → AuthUnauthenticated
-//   AuthInitial → (LoginSubmitted / SignUpSubmitted) → AuthLoading → AuthSuccess | AuthFailureState
+//   AuthInitial → (LoginSubmitted / SignUpSubmitted) → AuthLoading → AuthSuccess | AuthRejected
 //   AuthInitial → (bad input) → AuthValidationError
 //
 // Supabase is called via the injected SupabaseClient / GoTrueClient.
@@ -27,12 +27,14 @@
 
 import 'dart:async';
 
+import 'package:customer/features/auth/bloc/auth_event.dart';
+import 'package:customer/features/auth/bloc/auth_state.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide AuthState;
 
-part 'auth_event.dart';
-part 'auth_state.dart';
+export 'auth_event.dart';
+export 'auth_state.dart';
 
 // ---------------------------------------------------------------------------
 // Pure validation helpers (no Supabase dependency — easy to unit-test)
@@ -62,7 +64,8 @@ String? validatePassword(String? password, {String? weakMessage}) {
   }
   final hasLetter = password.contains(RegExp(r'[a-zA-Z]'));
   final hasDigit = password.contains(RegExp(r'[0-9]'));
-  if (!hasLetter || !hasDigit) return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
+  if (!hasLetter || !hasDigit)
+    return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
   return null;
 }
 
@@ -85,7 +88,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         _authClient = authClient,
         super(const AuthInitial()) {
     on<AppStarted>(_onAppStarted);
-    on<_AuthStateChanged>(_onAuthStateChanged);
+    on<AuthStateChanged>(_onAuthStateChanged);
     on<LoginSubmitted>(_onLoginSubmitted);
     on<SignUpSubmitted>(_onSignUpSubmitted);
     on<GoogleSignInRequested>(_onGoogleSignInRequested);
@@ -97,7 +100,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     final authStream = _authClient?.onAuthStateChange;
     if (authStream != null) {
       _authSubscription = authStream.listen(
-        (supaAuthState) => add(_AuthStateChanged(supaAuthState.session)),
+        (supaAuthState) =>
+            add(AuthEvent.authStateChanged(supaAuthState.session)),
       );
     }
   }
@@ -130,7 +134,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  void _onAuthStateChanged(_AuthStateChanged event, Emitter<AuthState> emit) {
+  void _onAuthStateChanged(AuthStateChanged event, Emitter<AuthState> emit) {
     if (event.session != null) {
       emit(const AuthAuthenticated());
     } else {
@@ -163,19 +167,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
       emit(const AuthSuccess());
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stackTrace) {
       final msg = e.message;
       if (msg.contains('Invalid login credentials') ||
           e.statusCode == '400' ||
           e.statusCode == '401') {
-        emit(const AuthFailureState('invalid_credentials'));
+        emit(AuthRejected('invalid_credentials', stackTrace: stackTrace));
       } else if (msg.contains('Email not confirmed')) {
-        emit(const AuthFailureState('email_not_confirmed'));
+        emit(AuthRejected('email_not_confirmed', stackTrace: stackTrace));
       } else {
-        emit(AuthFailureState(msg));
+        emit(AuthRejected(msg, stackTrace: stackTrace));
       }
-    } catch (e) {
-      emit(AuthFailureState(e.toString()));
     }
   }
 
@@ -216,10 +218,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
       emit(const AuthSuccess());
-    } on AuthException catch (e) {
-      emit(AuthFailureState(e.message));
-    } catch (e) {
-      emit(AuthFailureState(e.toString()));
+    } on AuthException catch (e, stackTrace) {
+      emit(AuthRejected(e.message, stackTrace: stackTrace));
     }
   }
 
@@ -229,20 +229,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   static const String _nativeOauthRedirect =
       'io.supabase.spbcustomer://login-callback/';
 
-  /// Returns the redirect target for the current platform.
-  ///
-  /// On web we send Supabase back to the current page (`Uri.base`) — that
-  /// way OAuth lands on whatever port `flutter run -d chrome` chose,
-  /// regardless of Supabase's configured Site URL. On native we use the
-  /// deep-link scheme so the OS routes the callback back into the app.
   static String _resolveOauthRedirect() =>
       kIsWeb ? Uri.base.toString() : _nativeOauthRedirect;
 
-  /// Initiates Google OAuth via Supabase [OAuthProvider.google].
-  ///
-  /// On native platforms `signInWithOAuth` returns immediately after opening
-  /// the system browser; the session arrives later on the [onAuthStateChange]
-  /// stream and drives the [AuthAuthenticated] state.
   Future<void> _onGoogleSignInRequested(
     GoogleSignInRequested event,
     Emitter<AuthState> emit,
@@ -257,10 +246,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
       emit(const AuthSuccess());
-    } on AuthException catch (e) {
-      emit(AuthFailureState(e.message));
-    } catch (e) {
-      emit(AuthFailureState(e.toString()));
+    } on AuthException catch (e, stackTrace) {
+      final msg = e.message.toLowerCase();
+      if (msg.contains('access_denied') || msg.contains('cancelled')) {
+        emit(AuthRejected('oauth_cancelled', stackTrace: stackTrace));
+      } else if (msg.contains('provider') &&
+          (msg.contains('disabled') || msg.contains('not enabled'))) {
+        emit(AuthRejected('oauth_provider_disabled', stackTrace: stackTrace));
+      } else {
+        emit(AuthRejected(e.message, stackTrace: stackTrace));
+      }
     }
   }
 
@@ -281,10 +276,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         await client.auth.resetPasswordForEmail(event.email);
       }
       emit(const PasswordResetSent());
-    } on AuthException catch (e) {
-      emit(AuthFailureState(e.message));
-    } catch (e) {
-      emit(AuthFailureState(e.toString()));
+    } on AuthException catch (e, stackTrace) {
+      emit(AuthRejected(e.message, stackTrace: stackTrace));
     }
   }
 
@@ -308,10 +301,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
       }
       emit(const VerificationEmailSent());
-    } on AuthException catch (e) {
-      emit(AuthFailureState(e.message));
-    } catch (e) {
-      emit(AuthFailureState(e.toString()));
+    } on AuthException catch (e, stackTrace) {
+      emit(AuthRejected(e.message, stackTrace: stackTrace));
     }
   }
 }

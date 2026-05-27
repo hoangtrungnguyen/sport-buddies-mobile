@@ -56,8 +56,8 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
       final slotId = booking.slot.id;
 
       await loadJoinRequests(slotId, existingBooking: booking);
-    } catch (e) {
-      emit(BookingDetailError(e.toString()));
+    } catch (e, st) {
+      emit(BookingDetailError(e.toString(), stackTrace: st));
     }
   }
 
@@ -104,8 +104,8 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
         booking: currentBooking,
         joinRequests: requests,
       ));
-    } catch (e) {
-      emit(BookingDetailError(e.toString()));
+    } catch (e, st) {
+      emit(BookingDetailError(e.toString(), stackTrace: st));
     }
   }
 }

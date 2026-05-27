@@ -7,6 +7,7 @@
 //   ProfileSaving       — full_name update in progress.
 //   ProfileUpdateError  — full_name update failed; message carries the reason.
 
+import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter/foundation.dart';
 
 /// Base class for all profile states.
@@ -52,10 +53,13 @@ class ProfileLoaded extends ProfileState {
 }
 
 /// Emitted when fetching user profile data fails.
-class ProfileError extends ProfileState {
-  const ProfileError(this.message);
+class ProfileError extends ProfileState with AppExceptionMixin {
+  const ProfileError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>
@@ -74,10 +78,13 @@ class ProfileSaving extends ProfileState {
 }
 
 /// Emitted when a full_name update fails.
-class ProfileUpdateError extends ProfileState {
-  const ProfileUpdateError(this.message);
+class ProfileUpdateError extends ProfileState with AppExceptionMixin {
+  const ProfileUpdateError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>

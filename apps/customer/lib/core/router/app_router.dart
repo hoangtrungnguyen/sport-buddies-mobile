@@ -30,12 +30,14 @@ import 'package:customer/features/map/data/supabase_court_availability_repositor
 import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
-import 'package:customer/features/slots/data/supabase_open_slot_repository.dart';
+import 'package:customer/features/slots/data/supabase_slot_repository.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
 import 'package:customer/features/recurring/recurring_booking_screen.dart';
 import 'package:customer/features/slots/slot_detail_screen.dart';
+import 'package:customer/core/di/injection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -58,6 +60,7 @@ GoRouter buildRouter() {
   }
 
   return GoRouter(
+    navigatorKey: sl<GlobalKey<NavigatorState>>(),
     initialLocation: '/',
     redirect: (context, state) {
       Session? session;
@@ -103,8 +106,8 @@ GoRouter buildRouter() {
                           LocationCubit(const GeolocatorLocationService())..requestAndFetch(),
                     ),
                     BlocProvider(
-                      create: (_) => OpenSlotListCubit(
-                        SupabaseOpenSlotRepository(
+                      create: (_) => SlotListCubit(
+                        SupabaseSlotRepository(
                           client: Supabase.instance.client,
                         ),
                       ),

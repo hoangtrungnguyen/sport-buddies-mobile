@@ -1,41 +1,44 @@
 part of 'open_slot_list_cubit.dart';
 
-sealed class OpenSlotListState {
-  const OpenSlotListState();
+sealed class SlotListState {
+  const SlotListState();
 }
 
-final class OpenSlotListInitial extends OpenSlotListState {
-  const OpenSlotListInitial();
+final class SlotListInitial extends SlotListState {
+  const SlotListInitial();
 }
 
-final class OpenSlotListLoading extends OpenSlotListState {
-  const OpenSlotListLoading();
+final class SlotListLoading extends SlotListState {
+  const SlotListLoading();
 }
 
-final class OpenSlotListLoaded extends OpenSlotListState {
-  const OpenSlotListLoaded(this.slots);
+final class SlotListLoaded extends SlotListState {
+  const SlotListLoaded(this.slots);
 
-  final List<OpenSlot> slots;
+  final List<Slot> slots;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is OpenSlotListLoaded &&
+      (other is SlotListLoaded &&
           _listEquals(other.slots, slots));
 
   @override
   int get hashCode => Object.hashAll(slots);
 }
 
-final class OpenSlotListError extends OpenSlotListState {
-  const OpenSlotListError(this.message);
+final class SlotListError extends SlotListState with AppExceptionMixin {
+  const SlotListError(this.message, {this.stackTrace});
 
+  @override
   final String message;
+  @override
+  final StackTrace? stackTrace;
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is OpenSlotListError && other.message == message);
+      (other is SlotListError && other.message == message);
 
   @override
   int get hashCode => message.hashCode;

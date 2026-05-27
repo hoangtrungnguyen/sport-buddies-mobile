@@ -1,71 +1,41 @@
-part of 'auth_bloc.dart';
+import 'package:customer/core/mixins/app_exception_mixin.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-/// Base class for all authentication states.
-sealed class AuthState {
-  const AuthState();
-}
+part 'auth_state.freezed.dart';
 
-/// Waiting for user input — no operation in flight.
-final class AuthInitial extends AuthState {
-  const AuthInitial();
-}
+@freezed
+sealed class AuthState with _$AuthState {
+  /// Waiting for user input — no operation in flight.
+  const factory AuthState.initial() = AuthInitial;
 
-/// An async auth operation (signIn / signUp) is in progress.
-final class AuthLoading extends AuthState {
-  const AuthLoading();
-}
+  /// An async auth operation (signIn / signUp) is in progress.
+  const factory AuthState.loading() = AuthLoading;
 
-/// Auth operation completed successfully.
-final class AuthSuccess extends AuthState {
-  const AuthSuccess();
-}
+  /// Auth operation completed successfully.
+  const factory AuthState.success() = AuthSuccess;
 
-/// Form input failed validation before any network call.
-final class AuthValidationError extends AuthState {
-  const AuthValidationError(this.message);
+  /// Form input failed validation before any network call.
+  const factory AuthState.validationError(String message) = AuthValidationError;
 
-  final String message;
+  /// Server rejected the request for a known, recoverable reason.
+  /// [message] is a stable key the UI switches on (e.g. 'invalid_credentials').
+  @With<AppExceptionMixin>()
+  const factory AuthState.rejected(String message, {StackTrace? stackTrace}) =
+      AuthRejected;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is AuthValidationError && other.message == message);
+  /// Auth operation failed with an unexpected error (non-recoverable).
+  const factory AuthState.failure(String message, {StackTrace? stackTrace}) =
+      AuthFailureState;
 
-  @override
-  int get hashCode => message.hashCode;
-}
+  /// Password-reset email was sent successfully.
+  const factory AuthState.passwordResetSent() = PasswordResetSent;
 
-/// Auth operation failed (network or Supabase error).
-final class AuthFailureState extends AuthState {
-  const AuthFailureState(this.message);
+  /// Verification email was (re)sent successfully.
+  const factory AuthState.verificationEmailSent() = VerificationEmailSent;
 
-  final String message;
+  /// A valid session is present.
+  const factory AuthState.authenticated() = AuthAuthenticated;
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is AuthFailureState && other.message == message);
-
-  @override
-  int get hashCode => message.hashCode;
-}
-
-/// Password-reset email was sent successfully.
-final class PasswordResetSent extends AuthState {
-  const PasswordResetSent();
-}
-
-/// Verification email was (re)sent successfully.
-final class VerificationEmailSent extends AuthState {
-  const VerificationEmailSent();
-}
-
-/// A valid session is present (emitted on app-start or sign-in stream event).
-final class AuthAuthenticated extends AuthState {
-  const AuthAuthenticated();
-}
-
-/// No session present (emitted on app-start without session or sign-out event).
-final class AuthUnauthenticated extends AuthState {
-  const AuthUnauthenticated();
+  /// No session present.
+  const factory AuthState.unauthenticated() = AuthUnauthenticated;
 }

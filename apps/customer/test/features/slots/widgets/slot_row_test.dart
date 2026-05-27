@@ -11,10 +11,10 @@ import 'package:customer/features/slots/widgets/slot_row.dart';
 
 void main() {
   group('SlotRow', () {
-    late OpenSlot testSlot;
+    late Slot testSlot;
 
     setUp(() {
-      testSlot = OpenSlot(
+      testSlot = Slot(
         id: 'slot-1',
         startTime: DateTime.utc(2026, 6, 15, 10, 0),
         endTime: DateTime.utc(2026, 6, 15, 11, 0),
@@ -101,7 +101,7 @@ void main() {
     });
 
     testWidgets('shows closed lock icon for closed access policy', (tester) async {
-      final closedSlot = OpenSlot(
+      final closedSlot = Slot(
         id: 'slot-1',
         startTime: DateTime.utc(2026, 6, 15, 10, 0),
         endTime: DateTime.utc(2026, 6, 15, 11, 0),
@@ -125,7 +125,7 @@ void main() {
     });
 
     testWidgets('shows full player count in red when slot is full', (tester) async {
-      final fullSlot = OpenSlot(
+      final fullSlot = Slot(
         id: 'slot-1',
         startTime: DateTime.utc(2026, 6, 15, 10, 0),
         endTime: DateTime.utc(2026, 6, 15, 11, 0),
@@ -178,7 +178,7 @@ void main() {
       };
 
       for (var entry in sports.entries) {
-        final sportSlot = OpenSlot(
+        final sportSlot = Slot(
           id: 'slot-1',
           startTime: DateTime.utc(2026, 6, 15, 10, 0),
           endTime: DateTime.utc(2026, 6, 15, 11, 0),

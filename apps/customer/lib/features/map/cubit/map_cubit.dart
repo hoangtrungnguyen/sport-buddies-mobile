@@ -6,6 +6,7 @@
 // The cubit is pure business logic with no Flutter SDK dependency; it is
 // provided to the widget tree via BlocProvider in the router builder (§6.2).
 
+import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 

@@ -19,4 +19,7 @@ export '../models/slot.dart';
 abstract interface class SlotRepository {
   /// Returns all open slots for [courtId].
   Future<Result<List<Slot>>> fetchSlots(String courtId);
+
+  /// Returns all open group slots across every court (map panel).
+  Future<Result<List<Slot>>> fetchAllGroupSlots();
 }
