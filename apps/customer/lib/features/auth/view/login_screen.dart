@@ -1,6 +1,7 @@
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/google_sign_in_button.dart';
 import 'package:customer/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -15,8 +16,10 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _emailController =
+      TextEditingController(text: kDebugMode ? 'nguyen@snb.com' : '');
+  final _passwordController =
+      TextEditingController(text: kDebugMode ? '123456&*(QWE' : '');
   bool _obscurePassword = true;
 
   @override

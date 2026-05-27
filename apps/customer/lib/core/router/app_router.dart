@@ -30,7 +30,6 @@ import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
 import 'package:customer/features/recurring/recurring_booking_screen.dart';
 import 'package:customer/features/slots/slot_detail_screen.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,7 +61,7 @@ GoRouter buildRouter() {
         session = null;
       }
 
-      final isAuthenticated = kDebugMode || session != null;
+      final isAuthenticated = session != null;
       final goingTo = state.matchedLocation;
 
       if (!isAuthenticated && !publicPaths.contains(goingTo)) {
