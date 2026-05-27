@@ -43,6 +43,9 @@ class BookingHistoryScreen extends StatelessWidget {
             BookingsLoading() => const Center(
                 child: CircularProgressIndicator(),
               ),
+            BookingsCancelling() => const Center(
+                child: CircularProgressIndicator(),
+              ),
             BookingsLoaded(:final bookings) when bookings.isEmpty =>
               const _EmptyState(),
             BookingsLoaded(:final bookings) => ListView.builder(

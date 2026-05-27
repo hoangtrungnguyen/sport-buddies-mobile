@@ -38,7 +38,12 @@ class MapFilterCubit extends Cubit<MapFilterState> {
     emit(state.copyWith(maxDistanceKm: () => rounded));
   }
 
-  /// Clear all active filters (both sports and distance).
+  /// Toggle the "only show courts with open slots" filter.
+  void toggleOnlyOpenSlots() {
+    emit(state.copyWith(onlyWithOpenSlots: !state.onlyWithOpenSlots));
+  }
+
+  /// Clear all active filters (sports, distance, and open-slots flag).
   void clearAll() {
     emit(const MapFilterState());
   }

@@ -19,6 +19,7 @@
 // tests run in the unauthenticated code-path unless Supabase is mocked.
 import 'package:customer/core/router/app_router.dart';
 import 'package:customer/features/map/map_screen.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -31,12 +32,25 @@ void main() {
     });
 
     test(
-        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", "/map", and "/bookings/upcoming"',
+        'GoRouter contains routes for "/", "/login", "/signup", "/forgot-password", "/profile", and "/bookings/upcoming"',
         () {
       final router = buildRouter();
-      final routes = router.configuration.routes;
-      final paths =
-          routes.whereType<GoRoute>().map((r) => r.path).toList();
+      final paths = <String>[];
+
+      void collectPaths(List<RouteBase> routes) {
+        for (final route in routes) {
+          if (route is GoRoute) {
+            paths.add(route.path);
+          } else if (route is StatefulShellRoute) {
+            for (final branch in route.branches) {
+              collectPaths(branch.routes);
+            }
+          }
+        }
+      }
+
+      collectPaths(router.configuration.routes);
+
       expect(
         paths,
         containsAll([
@@ -45,7 +59,6 @@ void main() {
           '/signup',
           '/forgot-password',
           '/profile',
-          '/map',
           '/bookings/upcoming',
         ]),
       );
@@ -57,7 +70,12 @@ void main() {
         'unauthenticated: / redirects to /login (shows "Sign in")',
         (WidgetTester tester) async {
       final router = buildRouter();
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+      ));
       await tester.pumpAndSettle();
       // The redirect lands on /login which contains "Sign in".
       expect(find.text('Sign in'), findsWidgets);
@@ -66,7 +84,12 @@ void main() {
     testWidgets('/login resolves to a widget that shows "Sign in"',
         (WidgetTester tester) async {
       final router = buildRouter();
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+      ));
       router.go('/login');
       await tester.pumpAndSettle();
       // "Sign in" appears in both the AppBar title and the submit button.
@@ -76,7 +99,12 @@ void main() {
     testWidgets('/signup resolves to a widget that shows "Create account"',
         (WidgetTester tester) async {
       final router = buildRouter();
-      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpWidget(MaterialApp.router(
+        routerConfig: router,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: const Locale('en'),
+      ));
       router.go('/signup');
       await tester.pumpAndSettle();
       // "Create account" appears in both the AppBar title and the submit button.

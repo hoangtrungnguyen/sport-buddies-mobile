@@ -22,20 +22,26 @@ class MapFilterState {
   const MapFilterState({
     this.selectedSports = const {},
     this.maxDistanceKm,
+    this.onlyWithOpenSlots = false,
   });
 
   final Set<String> selectedSports;
   final double? maxDistanceKm;
 
+  /// When true, courts with zero open slots are hidden from the map.
+  final bool onlyWithOpenSlots;
+
   MapFilterState copyWith({
     Set<String>? selectedSports,
     double? Function()? maxDistanceKm,
+    bool? onlyWithOpenSlots,
   }) {
     return MapFilterState(
       selectedSports: selectedSports ?? this.selectedSports,
       maxDistanceKm: maxDistanceKm != null
           ? maxDistanceKm()
           : this.maxDistanceKm,
+      onlyWithOpenSlots: onlyWithOpenSlots ?? this.onlyWithOpenSlots,
     );
   }
 
@@ -45,10 +51,15 @@ class MapFilterState {
       other is MapFilterState &&
           runtimeType == other.runtimeType &&
           _setsEqual(selectedSports, other.selectedSports) &&
-          maxDistanceKm == other.maxDistanceKm;
+          maxDistanceKm == other.maxDistanceKm &&
+          onlyWithOpenSlots == other.onlyWithOpenSlots;
 
   @override
-  int get hashCode => Object.hashAll([...selectedSports.toList()..sort(), maxDistanceKm]);
+  int get hashCode => Object.hashAll([
+        ...selectedSports.toList()..sort(),
+        maxDistanceKm,
+        onlyWithOpenSlots,
+      ]);
 
   static bool _setsEqual(Set<String> a, Set<String> b) {
     if (a.length != b.length) return false;

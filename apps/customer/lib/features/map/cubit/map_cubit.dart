@@ -43,6 +43,14 @@ class MapCubit extends Cubit<MapState> {
     );
   }
 
+  /// Sets [court] as the selected court (shown in the preview panel).
+  ///
+  /// Pass null to deselect. No-op if the cubit is not in [MapLoaded] state.
+  void selectCourt(CourtAvailability? court) {
+    final s = state;
+    if (s is MapLoaded) emit(s.withSelection(court));
+  }
+
   /// Maps domain failures to user-facing messages.
   static String _failureMessage(AppFailure failure) {
     return switch (failure) {

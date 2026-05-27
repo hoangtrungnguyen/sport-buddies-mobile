@@ -27,6 +27,7 @@ final class CourtAvailability {
     required this.lat,
     required this.lng,
     required this.openSlotCount,
+    this.sportType = '',
   });
 
   /// Supabase `courts.id` (UUID string).
@@ -44,6 +45,10 @@ final class CourtAvailability {
   /// Number of future open slots for this court.
   final int openSlotCount;
 
+  /// Sport type slug (e.g. `'football'`, `'badminton'`). Empty string if
+  /// the court is multi-sport or the value was not fetched.
+  final String sportType;
+
   /// Map pin colour derived from [openSlotCount].
   ///
   /// - Green ([_markerGreen]) when the court has at least one open slot.
@@ -59,13 +64,16 @@ final class CourtAvailability {
           other.name == name &&
           other.lat == lat &&
           other.lng == lng &&
-          other.openSlotCount == openSlotCount);
+          other.openSlotCount == openSlotCount &&
+          other.sportType == sportType);
 
   @override
-  int get hashCode => Object.hash(courtId, name, lat, lng, openSlotCount);
+  int get hashCode =>
+      Object.hash(courtId, name, lat, lng, openSlotCount, sportType);
 
   @override
   String toString() =>
       'CourtAvailability(courtId: $courtId, name: $name, '
-      'lat: $lat, lng: $lng, openSlotCount: $openSlotCount)';
+      'lat: $lat, lng: $lng, openSlotCount: $openSlotCount, '
+      'sportType: $sportType)';
 }

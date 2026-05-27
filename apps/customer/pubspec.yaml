@@ -37,6 +37,8 @@ dependencies:
   latlong2: ^0.9.1
   geolocator: ^12.0.0
   vietmap_flutter_plugin: ^0.5.2
+  google_maps_flutter: ^2.6.0
+  google_maps_flutter_web: ^0.5.4
 
   # i18n
   intl: ^0.20.2

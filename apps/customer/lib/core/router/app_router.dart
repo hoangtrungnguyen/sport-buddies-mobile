@@ -29,6 +29,8 @@ import 'package:customer/features/map/cubit/map_cubit.dart';
 import 'package:customer/features/map/data/supabase_court_availability_repository.dart';
 import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
+import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
+import 'package:customer/features/slots/data/supabase_open_slot_repository.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
@@ -99,6 +101,13 @@ GoRouter buildRouter() {
                     BlocProvider(
                       create: (_) =>
                           LocationCubit(const GeolocatorLocationService())..requestAndFetch(),
+                    ),
+                    BlocProvider(
+                      create: (_) => OpenSlotListCubit(
+                        SupabaseOpenSlotRepository(
+                          client: Supabase.instance.client,
+                        ),
+                      ),
                     ),
                   ],
                   child: const MapScreen(),

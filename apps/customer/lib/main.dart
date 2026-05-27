@@ -11,16 +11,19 @@
 import 'dart:io' show exit;
 
 import 'package:customer/app.dart';
+import 'package:customer/core/debug/app_bloc_observer.dart';
 import 'package:customer/core/di/injection.dart';
 import 'package:customer/core/env/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
   // Step 1: ensure Flutter bindings are ready before any platform channel call.
   WidgetsFlutterBinding.ensureInitialized();
+  Bloc.observer = const AppBlocObserver();
 
   // Step 2: fail fast if compile-time env vars are missing.
   // On failure we print a human-readable diagnostic then exit so the operator

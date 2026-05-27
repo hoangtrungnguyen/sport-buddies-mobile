@@ -54,7 +54,7 @@ class SupabaseCourtAvailabilityRepository
       final rows = await _client
           .from('courts')
           .select(
-            'id, name, lat, lng, slots!left(id, status, start_time)',
+            'id, name, lat, lng, sport_type, slots!left(id, status, start_time)',
           )
           .eq('status', 'approved');
 
@@ -75,6 +75,7 @@ class SupabaseCourtAvailabilityRepository
           lat: (row['lat'] as num).toDouble(),
           lng: (row['lng'] as num).toDouble(),
           openSlotCount: openSlotCount,
+          sportType: (row['sport_type'] as String?) ?? '',
         );
       }).toList();
 
