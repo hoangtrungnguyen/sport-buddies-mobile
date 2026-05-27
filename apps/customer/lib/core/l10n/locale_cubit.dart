@@ -16,7 +16,7 @@ class LocaleCubit extends Cubit<Locale> {
     if (saved != null) {
       return Locale(saved);
     }
-    final deviceLang = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+    final deviceLang = WidgetsBinding.instance.platformDispatcher.locale.languageCode.toLowerCase();
     if (deviceLang == 'vi' || deviceLang == 'en') {
       return Locale(deviceLang);
     }

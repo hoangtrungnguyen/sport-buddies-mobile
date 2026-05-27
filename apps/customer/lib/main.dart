@@ -1,21 +1,18 @@
 // Entry point for the SportBuddies customer app.
 //
-// Bootstrap order (tech-plan §9.2):
+// Bootstrap order:
 //   1. WidgetsFlutterBinding.ensureInitialized()
-//   2. Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)
-//   3. Env.assertConfigured()          ← fail-fast before secrets are used
-//   4. Supabase.initialize(...)
-//   5. SharedPreferences.getInstance()
-//   6. configureDependencies(prefs)
-//   7. runApp(CustomerApp())
+//   2. Env.assertConfigured()          ← fail-fast before secrets are used
+//   3. Supabase.initialize(...)
+//   4. SharedPreferences.getInstance()
+//   5. configureDependencies(prefs)
+//   6. runApp(CustomerApp())
 
 import 'dart:io' show exit;
 
 import 'package:customer/app.dart';
 import 'package:customer/core/di/injection.dart';
 import 'package:customer/core/env/env.dart';
-import 'package:customer/firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,12 +22,7 @@ Future<void> main() async {
   // Step 1: ensure Flutter bindings are ready before any platform channel call.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Step 2: initialise Firebase.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // Step 3: fail fast if compile-time env vars are missing.
+  // Step 2: fail fast if compile-time env vars are missing.
   // On failure we print a human-readable diagnostic then exit so the operator
   // does not have to wait for a cryptic downstream error at the first API call.
   try {
@@ -49,7 +41,7 @@ Future<void> main() async {
     rethrow;
   }
 
-  // Step 4: initialise Supabase (URL and anon key are now guaranteed non-empty).
+  // Step 3: initialise Supabase (URL and anon key are now guaranteed non-empty).
   //
   // Session persistence (grava-144f.1.4):
   //   supabase_flutter ≥ 2.x uses SharedPreferencesLocalStorage by default
@@ -63,12 +55,12 @@ Future<void> main() async {
     authOptions: const FlutterAuthClientOptions(),
   );
 
-  // Step 5: resolve SharedPreferences before the DI container starts.
+  // Step 4: resolve SharedPreferences before the DI container starts.
   final prefs = await SharedPreferences.getInstance();
 
-  // Step 6: wire the DI graph (registers Supabase client, GoRouter, prefs).
+  // Step 5: wire the DI graph (registers Supabase client, GoRouter, prefs).
   await configureDependencies(prefs);
 
-  // Step 7: hand off to the root widget.
+  // Step 6: hand off to the root widget.
   runApp(const CustomerApp());
 }

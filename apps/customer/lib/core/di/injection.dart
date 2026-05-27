@@ -8,6 +8,7 @@
 // BLoCs are provided to the widget tree via BlocProvider in the router builder.
 // Only this file and the router setup file are allowed to reference `sl`.
 
+import 'package:customer/core/l10n/locale_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,4 +26,6 @@ Future<void> configureDependencies(SharedPreferences prefs) async {
   sl.registerSingleton<SharedPreferences>(prefs);
 
   sl.init();
+
+  sl.registerSingleton<LocaleCubit>(LocaleCubit(prefs));
 }
