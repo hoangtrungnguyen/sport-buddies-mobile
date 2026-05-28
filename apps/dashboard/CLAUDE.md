@@ -1,11 +1,6 @@
-# Flutter Customer Application
-
-App for booking sport slot and connect to buddies in Sai Gon (Ho Chi Minh city)
-
-
 ## Plane Integration
 
-**Workspace:** sportbuddies · **Project:** CAPP (`7f970183-a7bf-4511-add1-f201313b37ea`)
+**Workspace:** sportbuddies · **Project:** OWNER (`84659a28-3596-42e8-b5bd-113d2ec226fe`)
 
 
 ## Conventions
