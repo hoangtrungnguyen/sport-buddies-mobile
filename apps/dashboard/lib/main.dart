@@ -18,12 +18,21 @@ import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/core/env/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+// Held for the lifetime of the app so the semantics tree stays alive.
+// ignore: unused_element
+SemanticsHandle? _semanticsHandle;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Force-enable the semantics tree so automated agents (Puppeteer, Claude Code)
+  // can interact with widgets via [aria-label] selectors without requiring
+  // user to click "Enable accessibility".
+  _semanticsHandle = RendererBinding.instance.ensureSemantics();
 
   final navigatorKey = GlobalKey<NavigatorState>();
   GetIt.instance.registerSingleton<GlobalKey<NavigatorState>>(navigatorKey);

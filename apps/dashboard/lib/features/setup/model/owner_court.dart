@@ -2,37 +2,61 @@ class OwnerCourt {
   const OwnerCourt({
     required this.id,
     required this.name,
-    required this.sportType,
+    required this.sportTypes,
     required this.capacity,
     required this.openHour,
     required this.closeHour,
     required this.pricePerHour,
     required this.isActive,
+    this.address,
   });
 
   final String id;
   final String name;
-  final String sportType;
+
+  /// Matches `courts.sport_types  text[]`
+  final List<String> sportTypes;
+
   final int capacity;
+
+  /// Stored in `courts.operating_hours  jsonb` as {"open":6,"close":22}
   final int openHour;
   final int closeHour;
+
+  /// Matches `courts.price_per_hour  numeric`
   final int pricePerHour;
+
+  /// `courts.status != 'inactive'`
   final bool isActive;
 
-  factory OwnerCourt.fromJson(Map<String, dynamic> json) => OwnerCourt(
-        id: json['id'] as String,
-        name: json['name'] as String,
-        sportType: (json['sport_type'] as String?) ?? '',
-        capacity: (json['capacity'] as num?)?.toInt() ?? 2,
-        openHour: (json['open_hour'] as num?)?.toInt() ?? 6,
-        closeHour: (json['close_hour'] as num?)?.toInt() ?? 22,
-        pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
-        isActive: (json['status'] as String?) != 'inactive',
-      );
+  final String? address;
+
+  /// First sport type for display convenience.
+  String get primarySport =>
+      sportTypes.isNotEmpty ? sportTypes.first : '';
+
+  factory OwnerCourt.fromJson(Map<String, dynamic> json) {
+    final sports = (json['sport_types'] as List?)
+            ?.map((e) => e as String)
+            .toList() ??
+        [];
+    final hours = json['operating_hours'] as Map<String, dynamic>?;
+    return OwnerCourt(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      sportTypes: sports,
+      capacity: (json['capacity'] as num?)?.toInt() ?? 2,
+      openHour: (hours?['open'] as num?)?.toInt() ?? 6,
+      closeHour: (hours?['close'] as num?)?.toInt() ?? 22,
+      pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
+      isActive: (json['status'] as String?) != 'inactive',
+      address: json['address'] as String?,
+    );
+  }
 
   OwnerCourt copyWith({
     String? name,
-    String? sportType,
+    List<String>? sportTypes,
     int? capacity,
     int? openHour,
     int? closeHour,
@@ -42,11 +66,12 @@ class OwnerCourt {
       OwnerCourt(
         id: id,
         name: name ?? this.name,
-        sportType: sportType ?? this.sportType,
+        sportTypes: sportTypes ?? this.sportTypes,
         capacity: capacity ?? this.capacity,
         openHour: openHour ?? this.openHour,
         closeHour: closeHour ?? this.closeHour,
         pricePerHour: pricePerHour ?? this.pricePerHour,
         isActive: isActive ?? this.isActive,
+        address: address,
       );
 }

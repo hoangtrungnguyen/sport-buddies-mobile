@@ -448,21 +448,25 @@ class _FormPanel extends StatelessWidget {
                   // Email
                   _FieldLabel(label: 'Email'),
                   const SizedBox(height: 6),
-                  TextFormField(
-                    controller: emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autofillHints: const [AutofillHints.email],
-                    style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                    decoration: const InputDecoration(
-                      hintText: 'chusân@example.com',
+                  Semantics(
+                    label: 'login-email-field',
+                    textField: true,
+                    child: TextFormField(
+                      controller: emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.email],
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                      decoration: const InputDecoration(
+                        hintText: 'chusân@example.com',
+                      ),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Vui lòng nhập email.';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Vui lòng nhập email.';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
 
@@ -490,32 +494,36 @@ class _FormPanel extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  TextFormField(
-                    controller: passCtrl,
-                    obscureText: obscure,
-                    textInputAction: TextInputAction.done,
-                    autofillHints: const [AutofillHints.password],
-                    style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                    onFieldSubmitted: (_) => onSubmit(),
-                    decoration: InputDecoration(
-                      hintText: 'Nhập mật khẩu',
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
-                          size: 18,
-                          color: AppColors.neutral400,
+                  Semantics(
+                    label: 'login-password-field',
+                    textField: true,
+                    child: TextFormField(
+                      controller: passCtrl,
+                      obscureText: obscure,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: const [AutofillHints.password],
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                      onFieldSubmitted: (_) => onSubmit(),
+                      decoration: InputDecoration(
+                        hintText: 'Nhập mật khẩu',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            size: 18,
+                            color: AppColors.neutral400,
+                          ),
+                          onPressed: onToggleObscure,
                         ),
-                        onPressed: onToggleObscure,
                       ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) {
+                          return 'Vui lòng nhập mật khẩu.';
+                        }
+                        return null;
+                      },
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) {
-                        return 'Vui lòng nhập mật khẩu.';
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 24),
 
@@ -523,18 +531,22 @@ class _FormPanel extends StatelessWidget {
                   BlocBuilder<AuthBloc, AuthState>(
                     builder: (context, state) {
                       final loading = state is AuthLoading;
-                      return ElevatedButton(
-                        onPressed: loading ? null : onSubmit,
-                        child: loading
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('Đăng nhập'),
+                      return Semantics(
+                        label: 'login-submit-btn',
+                        button: true,
+                        child: ElevatedButton(
+                          onPressed: loading ? null : onSubmit,
+                          child: loading
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text('Đăng nhập'),
+                        ),
                       );
                     },
                   ),

@@ -5,13 +5,17 @@ class OwnerCourtRepository {
   const OwnerCourtRepository(this._client);
   final SupabaseClient _client;
 
+  static const _cols =
+      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, status';
+
   Future<List<OwnerCourt>> getCourts() async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) return [];
     final rows = await _client
         .from('courts')
-        .select('id, name, sport_type, capacity, open_hour, close_hour, price_per_hour, status')
+        .select(_cols)
         .eq('owner_id', uid)
+        .neq('status', 'inactive')
         .order('name');
     return (rows as List)
         .map((r) => OwnerCourt.fromJson(r as Map<String, dynamic>))
@@ -20,26 +24,27 @@ class OwnerCourtRepository {
 
   Future<OwnerCourt> createCourt({
     required String name,
-    required String sportType,
+    required List<String> sportTypes,
     required int capacity,
     required int openHour,
     required int closeHour,
     required int pricePerHour,
   }) async {
     final uid = _client.auth.currentUser!.id;
+    final slug = _slugify('$name-${DateTime.now().millisecondsSinceEpoch}');
     final row = await _client
         .from('courts')
         .insert({
           'name': name,
-          'sport_type': sportType,
+          'slug': slug,
+          'sport_types': sportTypes,
           'capacity': capacity,
-          'open_hour': openHour,
-          'close_hour': closeHour,
           'price_per_hour': pricePerHour,
+          'operating_hours': {'open': openHour, 'close': closeHour},
           'owner_id': uid,
           'status': 'approved',
         })
-        .select()
+        .select(_cols)
         .single();
     return OwnerCourt.fromJson(row);
   }
@@ -47,7 +52,7 @@ class OwnerCourtRepository {
   Future<OwnerCourt> updateCourt(
     String id, {
     required String name,
-    required String sportType,
+    required List<String> sportTypes,
     required int capacity,
     required int openHour,
     required int closeHour,
@@ -57,14 +62,13 @@ class OwnerCourtRepository {
         .from('courts')
         .update({
           'name': name,
-          'sport_type': sportType,
+          'sport_types': sportTypes,
           'capacity': capacity,
-          'open_hour': openHour,
-          'close_hour': closeHour,
           'price_per_hour': pricePerHour,
+          'operating_hours': {'open': openHour, 'close': closeHour},
         })
         .eq('id', id)
-        .select()
+        .select(_cols)
         .single();
     return OwnerCourt.fromJson(row);
   }
@@ -81,5 +85,19 @@ class OwnerCourtRepository {
         .from('courts')
         .update({'status': 'approved'})
         .eq('id', id);
+  }
+
+  static String _slugify(String input) {
+    return input
+        .toLowerCase()
+        .replaceAll(RegExp(r'[àáạảãâầấậẩẫăằắặẳẵ]'), 'a')
+        .replaceAll(RegExp(r'[èéẹẻẽêềếệểễ]'), 'e')
+        .replaceAll(RegExp(r'[ìíịỉĩ]'), 'i')
+        .replaceAll(RegExp(r'[òóọỏõôồốộổỗơờớợởỡ]'), 'o')
+        .replaceAll(RegExp(r'[ùúụủũưừứựửữ]'), 'u')
+        .replaceAll(RegExp(r'[ỳýỵỷỹ]'), 'y')
+        .replaceAll(RegExp(r'[đ]'), 'd')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
   }
 }

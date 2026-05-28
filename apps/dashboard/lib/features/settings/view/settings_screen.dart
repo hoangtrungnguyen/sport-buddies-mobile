@@ -518,7 +518,10 @@ class _CourtSection extends StatelessWidget {
           // Add button
           Padding(
             padding: const EdgeInsets.all(16),
-            child: OutlinedButton.icon(
+            child: Semantics(
+              label: 'add-court-btn',
+              button: true,
+              child: OutlinedButton.icon(
               icon: const Icon(Icons.add_rounded, size: 15),
               label: const Text('Thêm sân mới'),
               style: OutlinedButton.styleFrom(
@@ -532,6 +535,7 @@ class _CourtSection extends StatelessWidget {
                     fontWeight: FontWeight.w600, fontSize: 13),
               ),
               onPressed: () => _openForm(context, null),
+              ),
             ),
           ),
         ],
@@ -566,7 +570,7 @@ class _CourtRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final vnd = NumberFormat('#,###', 'vi_VN');
     final color =
-        _kSportColors[court.sportType] ?? AppColors.primary;
+        _kSportColors[court.primarySport] ?? AppColors.primary;
 
     return Container(
       padding:
@@ -603,7 +607,7 @@ class _CourtRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 1),
                 Text(
-                  '${court.sportType} · ${vnd.format(court.pricePerHour)}đ/giờ',
+                  '${court.primarySport} · ${vnd.format(court.pricePerHour)}đ/giờ',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: AppColors.neutral500,
@@ -681,7 +685,10 @@ class _EmptyCourtState extends StatelessWidget {
                 fontSize: 13, color: AppColors.neutral400),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
+          Semantics(
+            label: 'create-first-court-btn',
+            button: true,
+            child: FilledButton.icon(
             icon: const Icon(Icons.add_rounded, size: 16),
             label: const Text('Tạo sân đầu tiên'),
             style: FilledButton.styleFrom(
@@ -693,6 +700,7 @@ class _EmptyCourtState extends StatelessWidget {
                   fontWeight: FontWeight.w600, fontSize: 13),
             ),
             onPressed: onAdd,
+            ),
           ),
         ],
       ),

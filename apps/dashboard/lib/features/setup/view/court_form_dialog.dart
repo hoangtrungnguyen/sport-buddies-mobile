@@ -36,7 +36,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _capacityCtrl;
   late final TextEditingController _priceCtrl;
-  late String? _sportType;
+  late Set<String> _selectedSports;
   late int _openHour;
   late int _closeHour;
   bool _saving = false;
@@ -49,10 +49,11 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
     super.initState();
     final c = widget.court;
     _nameCtrl = TextEditingController(text: c?.name ?? '');
-    _capacityCtrl = TextEditingController(text: c?.capacity.toString() ?? '2');
-    _priceCtrl = TextEditingController(text: c?.pricePerHour.toString() ?? '');
-    _sportType =
-        (c?.sportType.isNotEmpty ?? false) ? c!.sportType : null;
+    _capacityCtrl =
+        TextEditingController(text: c?.capacity.toString() ?? '4');
+    _priceCtrl = TextEditingController(
+        text: c?.pricePerHour != 0 ? c?.pricePerHour.toString() ?? '' : '');
+    _selectedSports = Set<String>.from(c?.sportTypes ?? []);
     _openHour = c?.openHour ?? 6;
     _closeHour = c?.closeHour ?? 22;
   }
@@ -68,17 +69,23 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
   Future<void> _submit() async {
     setState(() => _error = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_closeHour <= _openHour) {
-      setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
+    if (_selectedSports.isEmpty) {
+      setState(() => _error = 'Vui lòng chọn ít nhất một môn thể thao.');
       return;
     }
+    if (_closeHour <= _openHour) {
+      setState(
+          () => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
+      return;
+    }
+
     setState(() => _saving = true);
     try {
       if (_isEdit) {
         await widget.repository.updateCourt(
           widget.court!.id,
           name: _nameCtrl.text.trim(),
-          sportType: _sportType!,
+          sportTypes: _selectedSports.toList(),
           capacity: int.parse(_capacityCtrl.text),
           openHour: _openHour,
           closeHour: _closeHour,
@@ -87,7 +94,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
       } else {
         await widget.repository.createCourt(
           name: _nameCtrl.text.trim(),
-          sportType: _sportType!,
+          sportTypes: _selectedSports.toList(),
           capacity: int.parse(_capacityCtrl.text),
           openHour: _openHour,
           closeHour: _closeHour,
@@ -95,10 +102,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
         );
       }
       if (mounted) Navigator.of(context).pop(true);
-    } catch (_) {
+    } catch (e) {
       setState(() {
         _saving = false;
-        _error = 'Không thể lưu sân. Vui lòng thử lại.';
+        _error = 'Không thể lưu sân. Vui lòng thử lại.\n${e.toString()}';
       });
     }
   }
@@ -106,9 +113,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: const BoxConstraints(maxWidth: 560),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Form(
@@ -117,6 +125,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title
                 Row(
                   children: [
                     Text(
@@ -129,15 +138,18 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
+                      icon:
+                          const Icon(Icons.close_rounded, size: 20),
                       color: AppColors.neutral500,
-                      onPressed:
-                          _saving ? null : () => Navigator.of(context).pop(false),
+                      onPressed: _saving
+                          ? null
+                          : () => Navigator.of(context).pop(false),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
 
+                // Error banner
                 if (_error != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -146,9 +158,11 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       color: AppColors.dangerBg,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color: AppColors.danger.withValues(alpha: 0.3)),
+                          color:
+                              AppColors.danger.withValues(alpha: 0.3)),
                     ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(Icons.error_outline_rounded,
                             size: 15, color: AppColors.danger),
@@ -157,7 +171,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                           child: Text(
                             _error!,
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
+                              fontSize: 12.5,
                               color: AppColors.dangerDark,
                             ),
                           ),
@@ -168,44 +182,82 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                   const SizedBox(height: 16),
                 ],
 
-                _FieldLabel('Tên sân'),
+                // Tên sân
+                _Label('Tên sân'),
                 const SizedBox(height: 6),
-                TextFormField(
+                Semantics(
+                  label: 'court-name-field',
+                  textField: true,
+                  child: TextFormField(
                   controller: _nameCtrl,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                  style:
+                      GoogleFonts.plusJakartaSans(fontSize: 14),
                   decoration: const InputDecoration(
                       hintText: 'Ví dụ: Sân 1, Pickleball A'),
-                  validator: (v) =>
-                      (v?.trim().isEmpty ?? true) ? 'Vui lòng nhập tên sân.' : null,
+                  validator: (v) => (v?.trim().isEmpty ?? true)
+                      ? 'Vui lòng nhập tên sân.'
+                      : null,
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                _FieldLabel('Môn thể thao'),
-                const SizedBox(height: 6),
-                DropdownButtonFormField<String>(
-                  initialValue: _sportType,
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14, color: AppColors.neutral900),
-                  decoration:
-                      const InputDecoration(hintText: 'Chọn môn thể thao'),
-                  items: kSportTypes
-                      .map((s) =>
-                          DropdownMenuItem(value: s, child: Text(s)))
-                      .toList(),
-                  onChanged: (v) => setState(() => _sportType = v),
-                  validator: (v) =>
-                      v == null ? 'Vui lòng chọn môn thể thao.' : null,
+                // Môn thể thao (multi-select chips)
+                _Label('Môn thể thao'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: kSportTypes.map((sport) {
+                    final selected = _selectedSports.contains(sport);
+                    return Semantics(
+                      label: 'sport-chip-$sport',
+                      button: true,
+                      child: FilterChip(
+                      label: Text(sport),
+                      selected: selected,
+                      onSelected: (v) => setState(() {
+                        if (v) {
+                          _selectedSports.add(sport);
+                        } else {
+                          _selectedSports.remove(sport);
+                        }
+                      }),
+                      labelStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        color: selected
+                            ? AppColors.primaryDark
+                            : AppColors.neutral700,
+                      ),
+                      selectedColor: AppColors.primaryLight,
+                      backgroundColor: AppColors.neutral100,
+                      checkmarkColor: AppColors.primary,
+                      side: BorderSide(
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.neutral200,
+                      ),
+                      showCheckmark: true,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      ),
+                    );
+                  }).toList(),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
+                // Sức chứa + Giá
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          _FieldLabel('Sức chứa (người)'),
+                          _Label('Sức chứa (người)'),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _capacityCtrl,
@@ -213,11 +265,15 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
                             ],
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                            decoration: const InputDecoration(hintText: '4'),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14),
+                            decoration: const InputDecoration(
+                                hintText: '4'),
                             validator: (v) {
                               final n = int.tryParse(v ?? '');
-                              if (n == null || n < 1) return 'Tối thiểu 1';
+                              if (n == null || n < 1) {
+                                return 'Tối thiểu 1';
+                              }
                               return null;
                             },
                           ),
@@ -227,9 +283,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
                         children: [
-                          _FieldLabel('Giá / giờ (đồng)'),
+                          _Label('Giá / giờ (đồng)'),
                           const SizedBox(height: 6),
                           TextFormField(
                             controller: _priceCtrl,
@@ -237,9 +294,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
                             ],
-                            style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                            decoration:
-                                const InputDecoration(hintText: '350000'),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14),
+                            decoration: const InputDecoration(
+                                hintText: '350000'),
                             validator: (v) {
                               final n = int.tryParse(v ?? '');
                               if (n == null || n < 0) {
@@ -253,9 +311,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
 
-                _FieldLabel('Giờ hoạt động'),
+                // Giờ hoạt động
+                _Label('Giờ hoạt động'),
                 const SizedBox(height: 6),
                 Row(
                   children: [
@@ -263,11 +322,13 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       child: _HourDropdown(
                         label: 'Mở cửa',
                         value: _openHour,
-                        onChanged: (v) => setState(() => _openHour = v),
+                        onChanged: (v) =>
+                            setState(() => _openHour = v),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12),
                       child: Text('–',
                           style: GoogleFonts.sora(
                               fontSize: 16,
@@ -277,29 +338,35 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       child: _HourDropdown(
                         label: 'Đóng cửa',
                         value: _closeHour,
-                        onChanged: (v) => setState(() => _closeHour = v),
+                        onChanged: (v) =>
+                            setState(() => _closeHour = v),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 28),
 
+                // Actions
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton(
                         onPressed: _saving
                             ? null
-                            : () => Navigator.of(context).pop(false),
+                            : () =>
+                                Navigator.of(context).pop(false),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.neutral700,
-                          side: const BorderSide(color: AppColors.neutral200),
+                          side: const BorderSide(
+                              color: AppColors.neutral200),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                              borderRadius:
+                                  BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14),
                           textStyle: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600, fontSize: 14),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14),
                         ),
                         child: const Text('Huỷ'),
                       ),
@@ -307,17 +374,22 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       flex: 2,
-                      child: FilledButton(
+                      child: Semantics(
+                        label: 'court-form-submit-btn',
+                        button: true,
+                        child: FilledButton(
                         onPressed: _saving ? null : _submit,
                         style: FilledButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                              borderRadius:
+                                  BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14),
                           textStyle: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600, fontSize: 14),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14),
                         ),
                         child: _saving
                             ? const SizedBox(
@@ -327,7 +399,9 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                                     strokeWidth: 2,
                                     color: Colors.white),
                               )
-                            : Text(_isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
+                            : Text(
+                                _isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
+                        ),
                       ),
                     ),
                   ],
@@ -341,8 +415,8 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
   }
 }
 
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.label);
+class _Label extends StatelessWidget {
+  const _Label(this.label);
   final String label;
 
   @override
@@ -385,7 +459,8 @@ class _HourDropdown extends StatelessWidget {
         items: List.generate(17, (i) => i + 6)
             .map((h) => DropdownMenuItem(
                   value: h,
-                  child: Text('${h.toString().padLeft(2, '0')}:00'),
+                  child:
+                      Text('${h.toString().padLeft(2, '0')}:00'),
                 ))
             .toList(),
         onChanged: (v) {

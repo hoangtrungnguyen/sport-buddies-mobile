@@ -204,7 +204,7 @@ class _CourtCard extends StatelessWidget {
   final VoidCallback onToggleActive;
 
   Color get _color =>
-      _kSportColors[court.sportType] ?? AppColors.primary;
+      _kSportColors[court.primarySport] ?? AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -249,7 +249,7 @@ class _CourtCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        court.sportType,
+                        court.primarySport,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           color: AppColors.neutral500,

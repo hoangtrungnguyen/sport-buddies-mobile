@@ -718,7 +718,10 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Semantics(
+      label: 'nav-${entry.route.replaceAll('/', '') == '' ? 'home' : entry.route.replaceAll('/', '')}',
+      button: true,
+      child: Container(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
       child: Material(
         color: _active ? AppColors.primaryLight : Colors.transparent,
@@ -776,6 +779,7 @@ class _NavItem extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
