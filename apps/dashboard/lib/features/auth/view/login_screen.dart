@@ -12,10 +12,16 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
+// Dev credential pre-fill — pass via --dart-define=DEV_EMAIL=x --dart-define=DEV_PASSWORD=y
+const _kDevEmail = String.fromEnvironment('DEV_EMAIL');
+const _kDevPassword = String.fromEnvironment('DEV_PASSWORD');
+
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
-  final _passCtrl = TextEditingController();
+  final _emailCtrl =
+      TextEditingController(text: _kDevEmail.isNotEmpty ? _kDevEmail : '');
+  final _passCtrl = TextEditingController(
+      text: _kDevPassword.isNotEmpty ? _kDevPassword : '');
   bool _obscure = true;
   String? _errorMsg;
 

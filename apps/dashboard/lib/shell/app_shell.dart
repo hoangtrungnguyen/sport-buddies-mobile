@@ -1,4 +1,8 @@
+import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
+import 'package:dashboard/features/notifications/bloc/notification_state.dart';
+import 'package:dashboard/features/notifications/view/notification_panel.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
@@ -96,17 +100,29 @@ const _routeTitle = <String, String>{
 // Shell
 // ---------------------------------------------------------------------------
 
-class AppShell extends StatelessWidget {
+class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.child});
   final Widget child;
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  bool _notifOpen = false;
+
+  void _openNotif() => setState(() => _notifOpen = true);
+  void _closeNotif() => setState(() => _notifOpen = false);
 
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     final isWide = MediaQuery.sizeOf(context).width >= 1024;
+    final showFab = location == '/' || location == '/requests';
 
+    Widget shell;
     if (isWide) {
-      return Scaffold(
+      shell = Scaffold(
         backgroundColor: AppColors.neutral50,
         body: Row(
           children: [
@@ -114,27 +130,101 @@ class AppShell extends StatelessWidget {
             Expanded(
               child: Column(
                 children: [
-                  _TopBar(location: location),
-                  Expanded(child: child),
+                  _TopBar(
+                    location: location,
+                    onBellTap: _openNotif,
+                  ),
+                  Expanded(child: widget.child),
                 ],
               ),
             ),
           ],
         ),
       );
+    } else {
+      shell = Scaffold(
+        backgroundColor: AppColors.neutral50,
+        body: Column(
+          children: [
+            _TopBar(
+              location: location,
+              isMobile: true,
+              onBellTap: _openNotif,
+            ),
+            Expanded(child: widget.child),
+          ],
+        ),
+        drawer: Drawer(
+          backgroundColor: AppColors.surface,
+          child: _Sidebar(location: location),
+        ),
+      );
     }
 
-    return Scaffold(
-      backgroundColor: AppColors.neutral50,
-      body: Column(
-        children: [
-          _TopBar(location: location, isMobile: true),
-          Expanded(child: child),
-        ],
-      ),
-      drawer: Drawer(
-        backgroundColor: AppColors.surface,
-        child: _Sidebar(location: location),
+    return Stack(
+      children: [
+        shell,
+        // Notification panel overlay
+        if (_notifOpen)
+          Positioned.fill(
+            child: NotificationPanel(onClose: _closeNotif),
+          ),
+        // FAB
+        if (showFab)
+          Positioned(
+            right: 24,
+            bottom: 24,
+            child: _Fab(),
+          ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// FAB
+// ---------------------------------------------------------------------------
+
+class _Fab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 4,
+      shadowColor: AppColors.primary.withValues(alpha: 0.4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Form đặt sân tại quầy sẽ có trong Epic Đặt Slot.',
+                style: GoogleFonts.plusJakartaSans(fontSize: 13),
+              ),
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+              const SizedBox(width: 8),
+              Text(
+                'Đặt sân tại quầy',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -145,8 +235,13 @@ class AppShell extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.location, this.isMobile = false});
+  const _TopBar({
+    required this.location,
+    required this.onBellTap,
+    this.isMobile = false,
+  });
   final String location;
+  final VoidCallback onBellTap;
   final bool isMobile;
 
   @override
@@ -157,12 +252,12 @@ class _TopBar extends StatelessWidget {
       height: 60,
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        border: Border(bottom: BorderSide(color: AppColors.neutral200)),
+        border:
+            Border(bottom: BorderSide(color: AppColors.neutral200)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          // Mobile: hamburger
           if (isMobile) ...[
             Builder(
               builder: (ctx) => IconButton(
@@ -181,9 +276,7 @@ class _TopBar extends StatelessWidget {
               Text(
                 'Chủ sân',
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: AppColors.neutral500,
-                ),
+                    fontSize: 13, color: AppColors.neutral500),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -201,8 +294,8 @@ class _TopBar extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.primaryLight,
                   borderRadius: BorderRadius.circular(99),
@@ -214,9 +307,8 @@ class _TopBar extends StatelessWidget {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primary,
-                      ),
+                          shape: BoxShape.circle,
+                          color: AppColors.primary),
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -235,59 +327,16 @@ class _TopBar extends StatelessWidget {
 
           const Spacer(),
 
-          // Search bar (desktop only)
+          // Search (desktop)
           if (!isMobile) ...[
-            Container(
-              width: 300,
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.neutral100,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.neutral200),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 10),
-                  const Icon(Icons.search_rounded,
-                      size: 15, color: AppColors.neutral400),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      'Tìm booking, khách hàng, mã đơn...',
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5, color: AppColors.neutral400),
-                    ),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.symmetric(
-                        vertical: 7, horizontal: 8),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '⌘K',
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10.5, color: AppColors.neutral500),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _SearchBar(),
             const SizedBox(width: 12),
           ],
 
-          // Mail
           _TopIconButton(
-            icon: Icons.mail_outline_rounded,
-            onTap: () {},
-          ),
+              icon: Icons.mail_outline_rounded, onTap: () {}),
           const SizedBox(width: 2),
-
-          // Notification bell with badge
-          _BellButton(),
+          _BellButton(onTap: onBellTap),
 
           Container(
             width: 1,
@@ -296,15 +345,13 @@ class _TopBar extends StatelessWidget {
             color: AppColors.neutral200,
           ),
 
-          // User avatar
           Container(
             width: 34,
             height: 34,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [AppColors.primary, AppColors.primaryDark],
-              ),
+                  colors: [AppColors.primary, AppColors.primaryDark]),
             ),
             child: Center(
               child: Text(
@@ -323,8 +370,156 @@ class _TopBar extends StatelessWidget {
   }
 }
 
+class _SearchBar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => _openSearch(context),
+      child: Container(
+        width: 300,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppColors.neutral100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.neutral200),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 10),
+            const Icon(Icons.search_rounded,
+                size: 15, color: AppColors.neutral400),
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                'Tìm booking, khách hàng, mã đơn...',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5, color: AppColors.neutral400),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.symmetric(
+                  vertical: 7, horizontal: 8),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 5, vertical: 1),
+              decoration: BoxDecoration(
+                color: AppColors.neutral200,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '⌘K',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10.5, color: AppColors.neutral500),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSearch(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black45,
+      builder: (_) => const _SearchDialog(),
+    );
+  }
+}
+
+class _SearchDialog extends StatefulWidget {
+  const _SearchDialog();
+
+  @override
+  State<_SearchDialog> createState() => _SearchDialogState();
+}
+
+class _SearchDialogState extends State<_SearchDialog> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      alignment: Alignment.topCenter,
+      insetPadding: const EdgeInsets.only(top: 80, left: 200, right: 200),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                const Icon(Icons.search_rounded,
+                    size: 18, color: AppColors.neutral400),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    autofocus: true,
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14, color: AppColors.neutral900),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Tìm booking, khách hàng, mã đơn...',
+                      hintStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 14, color: AppColors.neutral400),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      foregroundColor: AppColors.neutral500,
+                      textStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, fontWeight: FontWeight.w500)),
+                  child: const Text('Đóng'),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.neutral100),
+          Container(
+            height: 200,
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.search_rounded,
+                    size: 32, color: AppColors.neutral300),
+                const SizedBox(height: 10),
+                Text(
+                  _ctrl.text.isEmpty
+                      ? 'Nhập để tìm booking, khách hàng hoặc mã đơn'
+                      : 'Chức năng tìm kiếm sẽ có sau khi tích hợp booking',
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13, color: AppColors.neutral400),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TopIconButton extends StatelessWidget {
-  const _TopIconButton({required this.icon, required this.onTap});
+  const _TopIconButton(
+      {required this.icon, required this.onTap});
   final IconData icon;
   final VoidCallback onTap;
 
@@ -344,37 +539,47 @@ class _TopIconButton extends StatelessWidget {
 }
 
 class _BellButton extends StatelessWidget {
+  const _BellButton({required this.onTap});
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
+    final unread = context.select<NotificationBloc, int>(
+      (bloc) => bloc.state is NotificationLoaded
+          ? (bloc.state as NotificationLoaded).unreadCount
+          : 0,
+    );
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
         _TopIconButton(
           icon: Icons.notifications_outlined,
-          onTap: () {},
+          onTap: onTap,
         ),
-        Positioned(
-          right: 4,
-          top: 4,
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.danger,
-            ),
-            child: Center(
-              child: Text(
-                '4',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+        if (unread > 0)
+          Positioned(
+            right: 4,
+            top: 4,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.danger,
+              ),
+              child: Center(
+                child: Text(
+                  unread > 9 ? '9+' : unread.toString(),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -395,7 +600,6 @@ class _Sidebar extends StatelessWidget {
       color: AppColors.surface,
       child: Column(
         children: [
-          // Brand
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
             child: Row(
@@ -446,9 +650,7 @@ class _Sidebar extends StatelessWidget {
                     Text(
                       'Chủ sân · Quận 7',
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: AppColors.neutral500,
-                      ),
+                          fontSize: 11, color: AppColors.neutral500),
                     ),
                   ],
                 ),
@@ -463,29 +665,18 @@ class _Sidebar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // QUẢN LÝ group
                 _SectionLabel('Quản lý'),
                 ..._mainNav.map(
-                  (e) => _NavItem(entry: e, location: location),
-                ),
-
+                    (e) => _NavItem(entry: e, location: location)),
                 const SizedBox(height: 4),
-
-                // HỆ THỐNG group
                 _SectionLabel('Hệ thống'),
                 ..._systemNav.map(
-                  (e) => _NavItem(entry: e, location: location),
-                ),
-
+                    (e) => _NavItem(entry: e, location: location)),
                 const Spacer(),
                 const Divider(height: 1, color: AppColors.neutral100),
                 const SizedBox(height: 8),
-
-                // User profile footer
                 _UserCard(),
                 const SizedBox(height: 8),
-
-                // Promo banner
                 _PromoBanner(),
                 const SizedBox(height: 12),
               ],
@@ -536,24 +727,24 @@ class _NavItem extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
           onTap: () => context.go(entry.route),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            padding: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 9),
             child: Row(
               children: [
-                Icon(
-                  entry.icon,
-                  size: 17,
-                  color: _active
-                      ? AppColors.primaryDark
-                      : AppColors.neutral600,
-                ),
+                Icon(entry.icon,
+                    size: 17,
+                    color: _active
+                        ? AppColors.primaryDark
+                        : AppColors.neutral600),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     entry.label,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
-                      fontWeight:
-                          _active ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: _active
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                       color: _active
                           ? AppColors.primaryDark
                           : AppColors.neutral700,
@@ -597,9 +788,6 @@ class _UserCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-        ),
         child: Row(
           children: [
             Container(
@@ -608,8 +796,7 @@ class _UserCard extends StatelessWidget {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.primaryDark],
-                ),
+                    colors: [AppColors.primary, AppColors.primaryDark]),
               ),
               child: Center(
                 child: Text(
@@ -639,9 +826,7 @@ class _UserCard extends StatelessWidget {
                   Text(
                     'Chủ sân · 5 sân',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      color: AppColors.neutral500,
-                    ),
+                        fontSize: 11, color: AppColors.neutral500),
                   ),
                 ],
               ),
@@ -673,7 +858,8 @@ class _PromoBanner extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
@@ -700,9 +886,7 @@ class _PromoBanner extends StatelessWidget {
                   child: Text(
                     'Hết hạn 04/08/2026',
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      color: const Color(0xFF15803D),
-                    ),
+                        fontSize: 11, color: const Color(0xFF15803D)),
                   ),
                 ),
                 GestureDetector(

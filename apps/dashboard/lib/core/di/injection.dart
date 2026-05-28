@@ -1,4 +1,5 @@
 import 'package:dashboard/core/router/app_router.dart';
+import 'package:dashboard/features/notifications/repository/notification_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,10 @@ final sl = GetIt.instance;
 Future<void> configureDependencies() async {
   sl.registerLazySingleton<OwnerCourtRepository>(
     () => OwnerCourtRepository(Supabase.instance.client),
+  );
+
+  sl.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepository(Supabase.instance.client),
   );
 
   // Router registered last so it can resolve other singletons.

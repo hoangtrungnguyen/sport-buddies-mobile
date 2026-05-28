@@ -2,6 +2,9 @@ import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:dashboard/features/auth/view/forgot_password_screen.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
+import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
+import 'package:dashboard/features/notifications/bloc/notification_event.dart';
+import 'package:dashboard/features/notifications/repository/notification_repository.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_event.dart';
@@ -57,18 +60,27 @@ GoRouter buildRouter() {
         ),
       ),
 
-      // Authenticated shell
+      // Authenticated shell — sidebar + topbar + content.
       ShellRoute(
-        builder: (context, state, child) =>
+        builder: (context, state, child) => MultiRepositoryProvider(
+          providers: [
             RepositoryProvider<OwnerCourtRepository>.value(
-          value: sl<OwnerCourtRepository>(),
-          child: AppShell(child: child),
+                value: sl<OwnerCourtRepository>()),
+            RepositoryProvider<NotificationRepository>.value(
+                value: sl<NotificationRepository>()),
+          ],
+          child: BlocProvider<NotificationBloc>(
+            create: (_) =>
+                NotificationBloc(sl<NotificationRepository>())
+                  ..add(const NotificationEvent.loadRequested()),
+            child: AppShell(child: child),
+          ),
         ),
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, __) => const _PlaceholderScreen('Trang chủ',
-                Icons.home_outlined),
+            builder: (_, __) => const _PlaceholderScreen(
+                'Trang chủ', Icons.home_outlined),
           ),
           GoRoute(
             path: '/requests',
