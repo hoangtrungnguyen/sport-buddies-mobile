@@ -1,19 +1,108 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Authenticated app shell — sidebar + content area.
-/// Populated screen by screen as epics are implemented.
-class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+// ---------------------------------------------------------------------------
+// Nav model
+// ---------------------------------------------------------------------------
 
-  @override
-  State<AppShell> createState() => _AppShellState();
+class _NavEntry {
+  const _NavEntry({
+    required this.icon,
+    required this.label,
+    required this.route,
+    this.badge,
+    this.warn = false,
+  });
+  final IconData icon;
+  final String label;
+  final String route;
+  final int? badge;
+  final bool warn;
 }
 
-class _AppShellState extends State<AppShell> {
+const _mainNav = <_NavEntry>[
+  _NavEntry(
+    icon: Icons.home_outlined,
+    label: 'Trang chủ',
+    route: '/',
+    badge: 3,
+  ),
+  _NavEntry(
+    icon: Icons.inbox_outlined,
+    label: 'Yêu cầu',
+    route: '/requests',
+    badge: 8,
+    warn: true,
+  ),
+  _NavEntry(
+    icon: Icons.calendar_today_outlined,
+    label: 'Lịch sân',
+    route: '/schedule',
+  ),
+  _NavEntry(
+    icon: Icons.refresh_outlined,
+    label: 'Lịch cố định',
+    route: '/fixed',
+    badge: 6,
+  ),
+  _NavEntry(
+    icon: Icons.bar_chart_outlined,
+    label: 'Thống kê',
+    route: '/analytics',
+  ),
+  _NavEntry(
+    icon: Icons.people_outlined,
+    label: 'Khách hàng',
+    route: '/players',
+  ),
+];
+
+const _systemNav = <_NavEntry>[
+  _NavEntry(
+    icon: Icons.notifications_outlined,
+    label: 'Thông báo',
+    route: '/notifications',
+    badge: 4,
+    warn: true,
+  ),
+  _NavEntry(
+    icon: Icons.settings_outlined,
+    label: 'Cài đặt sân',
+    route: '/settings',
+  ),
+  _NavEntry(
+    icon: Icons.help_outline_rounded,
+    label: 'Hỗ trợ',
+    route: '/support',
+  ),
+];
+
+const _routeTitle = <String, String>{
+  '/': 'Trang chủ',
+  '/requests': 'Yêu cầu đặt sân',
+  '/schedule': 'Lịch sân',
+  '/fixed': 'Lịch cố định',
+  '/analytics': 'Thống kê',
+  '/players': 'Khách hàng',
+  '/notifications': 'Thông báo',
+  '/settings': 'Cài đặt sân',
+  '/support': 'Hỗ trợ',
+};
+
+// ---------------------------------------------------------------------------
+// Shell
+// ---------------------------------------------------------------------------
+
+class AppShell extends StatelessWidget {
+  const AppShell({super.key, required this.child});
+  final Widget child;
+
   @override
   Widget build(BuildContext context) {
+    final location = GoRouterState.of(context).matchedLocation;
     final isWide = MediaQuery.sizeOf(context).width >= 1024;
 
     if (isWide) {
@@ -21,8 +110,15 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: AppColors.neutral50,
         body: Row(
           children: [
-            _Sidebar(),
-            const Expanded(child: _Placeholder()),
+            _Sidebar(location: location),
+            Expanded(
+              child: Column(
+                children: [
+                  _TopBar(location: location),
+                  Expanded(child: child),
+                ],
+              ),
+            ),
           ],
         ),
       );
@@ -30,13 +126,268 @@ class _AppShellState extends State<AppShell> {
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
-      body: const _Placeholder(),
-      drawer: Drawer(child: _Sidebar()),
+      body: Column(
+        children: [
+          _TopBar(location: location, isMobile: true),
+          Expanded(child: child),
+        ],
+      ),
+      drawer: Drawer(
+        backgroundColor: AppColors.surface,
+        child: _Sidebar(location: location),
+      ),
     );
   }
 }
 
+// ---------------------------------------------------------------------------
+// Top bar
+// ---------------------------------------------------------------------------
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.location, this.isMobile = false});
+  final String location;
+  final bool isMobile;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = _routeTitle[location] ?? 'Trang chủ';
+
+    return Container(
+      height: 60,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.neutral200)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // Mobile: hamburger
+          if (isMobile) ...[
+            Builder(
+              builder: (ctx) => IconButton(
+                icon: const Icon(Icons.menu_rounded,
+                    size: 20, color: AppColors.neutral700),
+                onPressed: () => Scaffold.of(ctx).openDrawer(),
+              ),
+            ),
+            const SizedBox(width: 4),
+          ],
+
+          // Breadcrumb
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Chủ sân',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  color: AppColors.neutral500,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text('/',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13, color: AppColors.neutral300)),
+              ),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral900,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      'SnB Đại Lộc · Q7',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const Spacer(),
+
+          // Search bar (desktop only)
+          if (!isMobile) ...[
+            Container(
+              width: 300,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.neutral100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.neutral200),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: 10),
+                  const Icon(Icons.search_rounded,
+                      size: 15, color: AppColors.neutral400),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: Text(
+                      'Tìm booking, khách hàng, mã đơn...',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5, color: AppColors.neutral400),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 7, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: AppColors.neutral200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '⌘K',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10.5, color: AppColors.neutral500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+
+          // Mail
+          _TopIconButton(
+            icon: Icons.mail_outline_rounded,
+            onTap: () {},
+          ),
+          const SizedBox(width: 2),
+
+          // Notification bell with badge
+          _BellButton(),
+
+          Container(
+            width: 1,
+            height: 28,
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+            color: AppColors.neutral200,
+          ),
+
+          // User avatar
+          Container(
+            width: 34,
+            height: 34,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryDark],
+              ),
+            ),
+            child: Center(
+              child: Text(
+                'MN',
+                style: GoogleFonts.sora(
+                  color: Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopIconButton extends StatelessWidget {
+  const _TopIconButton({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        alignment: Alignment.center,
+        child: Icon(icon, size: 18, color: AppColors.neutral600),
+      ),
+    );
+  }
+}
+
+class _BellButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        _TopIconButton(
+          icon: Icons.notifications_outlined,
+          onTap: () {},
+        ),
+        Positioned(
+          right: 4,
+          top: 4,
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.danger,
+            ),
+            child: Center(
+              child: Text(
+                '4',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+
 class _Sidebar extends StatelessWidget {
+  const _Sidebar({required this.location});
+  final String location;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -46,7 +397,7 @@ class _Sidebar extends StatelessWidget {
         children: [
           // Brand
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
             child: Row(
               children: [
                 Container(
@@ -61,9 +412,9 @@ class _Sidebar extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.28),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -87,13 +438,13 @@ class _Sidebar extends StatelessWidget {
                       'SportBuddies',
                       style: GoogleFonts.sora(
                         fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                        letterSpacing: -0.1,
+                        fontSize: 14.5,
+                        letterSpacing: -0.2,
                         color: AppColors.neutral900,
                       ),
                     ),
                     Text(
-                      'Chủ sân',
+                      'Chủ sân · Quận 7',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: AppColors.neutral500,
@@ -104,71 +455,132 @@ class _Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           const Divider(height: 1, color: AppColors.neutral100),
-          const SizedBox(height: 8),
-          // Placeholder nav items — filled as epics ship
-          _NavItem(icon: Icons.home_outlined, label: 'Trang chủ', active: true),
-          _NavItem(icon: Icons.inbox_outlined, label: 'Yêu cầu'),
-          _NavItem(icon: Icons.calendar_today_outlined, label: 'Lịch sân'),
-          _NavItem(icon: Icons.bar_chart_outlined, label: 'Thống kê'),
-          _NavItem(icon: Icons.people_outlined, label: 'Khách hàng'),
-          const Spacer(),
-          const Divider(height: 1, color: AppColors.neutral100),
-          _NavItem(icon: Icons.notifications_outlined, label: 'Thông báo'),
-          _NavItem(icon: Icons.settings_outlined, label: 'Cài đặt sân'),
-          _NavItem(icon: Icons.logout_outlined, label: 'Đăng xuất'),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // QUẢN LÝ group
+                _SectionLabel('Quản lý'),
+                ..._mainNav.map(
+                  (e) => _NavItem(entry: e, location: location),
+                ),
+
+                const SizedBox(height: 4),
+
+                // HỆ THỐNG group
+                _SectionLabel('Hệ thống'),
+                ..._systemNav.map(
+                  (e) => _NavItem(entry: e, location: location),
+                ),
+
+                const Spacer(),
+                const Divider(height: 1, color: AppColors.neutral100),
+                const SizedBox(height: 8),
+
+                // User profile footer
+                _UserCard(),
+                const SizedBox(height: 8),
+
+                // Promo banner
+                _PromoBanner(),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    this.active = false,
-  });
-
-  final IconData icon;
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.label);
   final String label;
-  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+      child: Text(
+        label.toUpperCase(),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: AppColors.neutral400,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({required this.entry, required this.location});
+  final _NavEntry entry;
+  final String location;
+
+  bool get _active => location == entry.route;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
       child: Material(
-        color: active ? AppColors.primaryLight : Colors.transparent,
+        color: _active ? AppColors.primaryLight : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () {},
+          onTap: () => context.go(entry.route),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Row(
               children: [
                 Icon(
-                  icon,
-                  size: 18,
-                  color: active ? AppColors.primaryDark : AppColors.neutral700,
+                  entry.icon,
+                  size: 17,
+                  color: _active
+                      ? AppColors.primaryDark
+                      : AppColors.neutral600,
                 ),
-                const SizedBox(width: 11),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    label,
+                    entry.label,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
+                      fontSize: 13.5,
                       fontWeight:
-                          active ? FontWeight.w600 : FontWeight.w500,
-                      color: active
+                          _active ? FontWeight.w600 : FontWeight.w500,
+                      color: _active
                           ? AppColors.primaryDark
                           : AppColors.neutral700,
                     ),
                   ),
                 ),
+                if (entry.badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: entry.warn
+                          ? AppColors.warning.withValues(alpha: 0.15)
+                          : AppColors.neutral200,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      entry.badge.toString(),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: entry.warn
+                            ? AppColors.warning
+                            : AppColors.neutral600,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -178,22 +590,137 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class _Placeholder extends StatelessWidget {
-  const _Placeholder();
-
+class _UserCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.construction_rounded, size: 40, color: AppColors.neutral300),
-          SizedBox(height: 12),
-          Text(
-            'Dashboard — đang được phát triển',
-            style: TextStyle(color: AppColors.neutral500, fontSize: 14),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, AppColors.primaryDark],
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  'MN',
+                  style: GoogleFonts.sora(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Nguyễn Văn Minh',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutral900,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'Chủ sân · 5 sân',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: AppColors.neutral500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            InkWell(
+              borderRadius: BorderRadius.circular(6),
+              onTap: () async {
+                try {
+                  await Supabase.instance.client.auth.signOut();
+                } catch (_) {}
+                if (context.mounted) context.go('/login');
+              },
+              child: const Padding(
+                padding: EdgeInsets.all(4),
+                child: Icon(Icons.logout_outlined,
+                    size: 15, color: AppColors.neutral400),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PromoBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFECFCCB), Color(0xFFDCFCE7)],
           ),
-        ],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Gói miễn phí 3 tháng',
+              style: GoogleFonts.sora(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF166534),
+              ),
+            ),
+            const SizedBox(height: 3),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Hết hạn 04/08/2026',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: const Color(0xFF15803D),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {},
+                  child: Text(
+                    'Nâng cấp',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF15803D),
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
