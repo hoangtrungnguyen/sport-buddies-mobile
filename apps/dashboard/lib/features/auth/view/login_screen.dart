@@ -1,5 +1,6 @@
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:dashboard/features/auth/view/auth_scaffold.dart';
+import 'package:dashboard/features/auth/view/contact_support_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -182,19 +183,23 @@ class _FormPanel extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const AuthFieldLabel(label: 'Mật khẩu'),
-                      TextButton(
-                        onPressed: () => context.push('/forgot-password'),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'Quên mật khẩu?',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primary,
+                      Semantics(
+                        label: 'login-forgot-password-btn',
+                        button: true,
+                        child: TextButton(
+                          onPressed: () => showContactSupportDialog(context),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'Quên mật khẩu?',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
