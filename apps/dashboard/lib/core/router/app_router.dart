@@ -65,6 +65,9 @@ GoRouter buildRouter() {
           child: const SignupScreen(),
         ),
       ),
+      // UNUSED: reachable by direct URL only. The "Quên mật khẩu?" button now
+      // opens showContactSupportDialog instead of routing here. Tracking: Plane
+      // OWNER-55 (Cancelled).
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => BlocProvider(

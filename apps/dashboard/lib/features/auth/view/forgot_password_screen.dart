@@ -1,3 +1,7 @@
+// UNUSED — kept for reference only. Superseded by the contact-admin dialog
+// (showContactSupportDialog in contact_support_dialog.dart): the login screen's
+// "Quên mật khẩu?" no longer routes here, so this self-service Supabase reset
+// screen is reachable only by direct URL. Tracking: Plane OWNER-55 (Cancelled).
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

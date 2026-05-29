@@ -135,6 +135,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await _client?.auth.setSession(refreshToken, accessToken: accessToken);
   }
 
+  // UNUSED: superseded by the contact-admin dialog (Plane OWNER-55, Cancelled).
+  // No UI dispatches ForgotPasswordRequested anymore; kept for reference.
   Future<void> _onForgotPasswordRequested(
     ForgotPasswordRequested event,
     Emitter<AuthState> emit,
