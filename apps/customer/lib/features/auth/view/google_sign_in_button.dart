@@ -22,11 +22,17 @@ class GoogleSignInButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return BlocConsumer<AuthBloc, AuthState>(
       listenWhen: (_, current) =>
-          current is AuthSuccess || current is AuthFailureState,
+          current is AuthSuccess ||
+          current is AuthFailureState ||
+          current is AuthRejected,
       listener: (context, state) {
         if (state is AuthSuccess) {
           context.go('/');
         } else if (state is AuthFailureState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message)),
+          );
+        } else if (state is AuthRejected) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message)),
           );
@@ -36,7 +42,8 @@ class GoogleSignInButton extends StatelessWidget {
           current is AuthLoading ||
           current is AuthInitial ||
           current is AuthSuccess ||
-          current is AuthFailureState,
+          current is AuthFailureState ||
+          current is AuthRejected,
       builder: (context, state) {
         final isLoading = state is AuthLoading;
         return OutlinedButton(
