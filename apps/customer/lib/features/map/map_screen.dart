@@ -110,9 +110,6 @@ class _MapBodyState extends State<_MapBody> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cubit ??= _tryReadCubit(context);
-    if (_cubit?.state is MapInitial) {
-      _cubit!.loadCourts();
-    }
   }
 
   @override
@@ -569,6 +566,14 @@ class _SelectedCourtPanel extends StatelessWidget {
     );
   }
 
+  static IconData _sportIcon(List<String> sportTypes) {
+    return switch (sportTypes.firstOrNull ?? '') {
+      'football' => Icons.sports_soccer,
+      'multi' => Icons.sports,
+      _ => Icons.sports_tennis,
+    };
+  }
+
   Widget _buildCourtInfo(BuildContext context, CourtAvailability court) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -584,7 +589,7 @@ class _SelectedCourtPanel extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.sports_tennis, size: 26, color: Colors.white),
+          child: Icon(_sportIcon(court.sportTypes), size: 26, color: Colors.white),
         ),
         const SizedBox(width: 12),
         Expanded(
