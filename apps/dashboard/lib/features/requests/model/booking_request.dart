@@ -1,10 +1,14 @@
-// Domain model for the owner "incoming booking requests" list (OWNER-27).
+// Domain model for the owner "incoming booking requests" list (OWNER-27/28/29).
 //
 // A [BookingRequest] is one row of the `bookings` table joined to its slot and
-// court. The dashboard had never read `bookings` before this story, so the
-// exact column set is **assumed** here and parsed defensively — mirroring how
-// `OwnerSlot.fromRow` documents its slot contract. See [BookingRequest.fromRow]
-// for the assumed shape and the backend follow-ups it implies.
+// court. The dashboard had never read `bookings` before OWNER-27, so the exact
+// column set is **assumed** here and parsed defensively. See
+// [BookingRequest.fromRow] for the assumed shape and the backend follow-ups it
+// implies.
+
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'booking_request.freezed.dart';
 
 /// The three request states the owner queue distinguishes (OWNER-27 AC):
 /// yellow = [pending] (Chờ xác nhận), green = [confirmed] (Đã xác nhận),
@@ -37,44 +41,44 @@ BookingStatus bookingStatusFromRaw(String? raw) {
 /// One incoming booking request as shown on the owner's daily queue.
 ///
 /// [startAt]/[endAt] are stored UTC instants (parsed from the slot row); render
-/// them with `.toLocal()`. [revenue] is the already-resolved VND amount for this
-/// booking (see [fromRow]).
-class BookingRequest {
-  const BookingRequest({
-    required this.id,
-    required this.code,
-    required this.customerName,
-    required this.courtName,
-    required this.startAt,
-    required this.endAt,
-    required this.status,
-    required this.revenue,
-  });
+/// them with `.toLocal()`. [revenue] is the already-resolved VND amount.
+@freezed
+abstract class BookingRequest with _$BookingRequest {
+  const BookingRequest._();
 
-  /// Raw `bookings.id` (UUID) — the stable key.
-  final String id;
+  const factory BookingRequest({
+    /// Raw `bookings.id` (UUID) — the stable key.
+    required String id,
 
-  /// Short, human-facing order code shown on the card (e.g. `#A1B2C3`).
-  final String code;
+    /// Short, human-facing order code shown on the card (e.g. `#A1B2C3`).
+    required String code,
 
-  /// Display name of the customer. Falls back to `Khách lẻ` for an anonymous
-  /// walk-in with no recorded name.
-  final String customerName;
+    /// Display name of the customer (`Khách lẻ` when anonymous).
+    required String customerName,
 
-  /// Name of the booked court.
-  final String courtName;
+    /// Name of the booked court.
+    required String courtName,
 
-  /// Slot start (UTC). Render `.toLocal()`.
-  final DateTime startAt;
+    /// Slot start (UTC). Render `.toLocal()`.
+    required DateTime startAt,
 
-  /// Slot end (UTC). Render `.toLocal()`.
-  final DateTime endAt;
+    /// Slot end (UTC). Render `.toLocal()`.
+    required DateTime endAt,
 
-  final BookingStatus status;
+    required BookingStatus status,
 
-  /// Resolved VND revenue for this booking (explicit total if the row carried
-  /// one, otherwise court price-per-hour × duration). `0` when neither is known.
-  final int revenue;
+    /// Resolved VND revenue (explicit total if > 0, else court price ×
+    /// duration; `0` when neither is known).
+    required int revenue,
+
+    /// Linked `slots.id`, when the join provided it — needed to free the slot
+    /// on reject (OWNER-29).
+    String? slotId,
+
+    /// Customer phone. Per OWNER-28 it is only surfaced on the card **after**
+    /// approval — see [revealedPhone], which gates on [status].
+    String? customerPhone,
+  }) = _BookingRequest;
 
   bool get isCancelled => status == BookingStatus.cancelled;
   bool get isPending => status == BookingStatus.pending;
@@ -82,6 +86,13 @@ class BookingRequest {
 
   /// Slot length in (possibly fractional) hours.
   double get durationHours => endAt.difference(startAt).inMinutes / 60.0;
+
+  /// The phone to show on the card, or null when it must stay hidden. OWNER-28:
+  /// the customer's number is revealed only once the booking is [confirmed].
+  String? get revealedPhone {
+    final p = customerPhone?.trim();
+    return (isConfirmed && p != null && p.isNotEmpty) ? p : null;
+  }
 
   /// Maps a Supabase `bookings` row to a [BookingRequest].
   ///
@@ -94,9 +105,11 @@ class BookingRequest {
   ///   "status": "pending" | "confirmed" | "cancelled",
   ///   "code": "A1B2C3",                 // optional human order code
   ///   "customer_name": "Nguyễn Văn A",  // walk-ins (created via Django)
+  ///   "customer_phone": "+8490…",       // walk-ins; else profiles.phone
   ///   "total_price": 300000,            // optional explicit total (VND)
-  ///   "profiles": { "full_name": "…" }, // app-user bookings (joined)
+  ///   "profiles": { "full_name": "…", "phone": "…" }, // app-user bookings
   ///   "slots": {
+  ///     "id": "uuid",
   ///     "start_at": "2026-05-29T11:00:00Z",
   ///     "end_at":   "2026-05-29T12:30:00Z",
   ///     "courts": { "name": "Sân 1", "price_per_hour": 200000 }
@@ -104,35 +117,37 @@ class BookingRequest {
   /// }
   /// ```
   ///
-  /// Parsing is intentionally tolerant: a missing customer name, code, or price
-  /// degrades to a sensible default rather than throwing, so one odd row can't
-  /// blank the whole queue. Named `fromRow` (not `fromJson`) so freezed/
-  /// json_serializable is never wired — the dashboard does not depend on it.
+  /// Parsing is intentionally tolerant: a missing customer name, code, price, or
+  /// phone degrades to a sensible default rather than throwing. Named `fromRow`
+  /// (not `fromJson`) so json_serializable is never wired.
   ///
-  /// Backend follow-ups (filed separately): confirm `bookings.customer_name`
-  /// exists for walk-ins, confirm the revenue column name, and confirm RLS
+  /// Backend follow-ups (filed separately): confirm `bookings.customer_name`/
+  /// `customer_phone` for walk-ins, the revenue column name, and that RLS
   /// scopes `bookings` to `courts.owner_id = auth.uid()`.
   factory BookingRequest.fromRow(Map<String, dynamic> row) {
     final slot = _asMap(row['slots']);
     final court = _asMap(slot['courts']);
 
-    final start = _parseDate(slot['start_at']) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final start = _parseDate(slot['start_at']) ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     final end = _parseDate(slot['end_at']) ?? start;
 
     final pricePerHour = _asInt(court['price_per_hour']);
     final durationHours = end.difference(start).inMinutes / 60.0;
-    // Treat a positive explicit total as authoritative; a 0/absent total is
-    // taken as "unset" and falls back to court price × duration (a `0` is far
-    // more likely a missing column than a genuinely free booking).
-    final explicitTotal = _asInt(row['total_price'] ?? row['price'] ?? row['amount']);
+    // A positive explicit total is authoritative; a 0/absent total is treated
+    // as "unset" and falls back to court price × duration.
+    final explicitTotal =
+        _asInt(row['total_price'] ?? row['price'] ?? row['amount']);
     final revenue = (explicitTotal != null && explicitTotal > 0)
         ? explicitTotal
         : (pricePerHour != null ? (pricePerHour * durationHours).round() : 0);
 
     return BookingRequest(
       id: row['id']?.toString() ?? '',
+      slotId: (slot['id'] ?? row['slot_id'])?.toString(),
       code: _resolveCode(row),
       customerName: _resolveCustomerName(row),
+      customerPhone: _resolveCustomerPhone(row),
       courtName: (court['name'] as String?)?.trim().isNotEmpty == true
           ? court['name'] as String
           : 'Sân',
@@ -163,6 +178,17 @@ class BookingRequest {
     return 'Khách lẻ';
   }
 
+  /// Walk-in phone (`customer_phone`) or a joined app-user profile phone, else
+  /// null. Display is still gated on approval by [revealedPhone].
+  static String? _resolveCustomerPhone(Map<String, dynamic> row) {
+    final direct = (row['customer_phone'] as String?)?.trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+    final profile = _asMap(row['profiles']);
+    final p = (profile['phone'] ?? profile['phone_number']) as String?;
+    final pt = p?.trim();
+    return (pt != null && pt.isNotEmpty) ? pt : null;
+  }
+
   /// Uses an explicit order code when present, else derives a short `#`-prefixed
   /// code from the first 6 hex chars of the UUID.
   static String _resolveCode(Map<String, dynamic> row) {
@@ -171,6 +197,8 @@ class BookingRequest {
     if (e != null && e.isNotEmpty) return e.startsWith('#') ? e : '#$e';
     final id = row['id']?.toString() ?? '';
     final head = id.replaceAll('-', '');
-    return head.isEmpty ? '#—' : '#${head.substring(0, head.length < 6 ? head.length : 6).toUpperCase()}';
+    return head.isEmpty
+        ? '#—'
+        : '#${head.substring(0, head.length < 6 ? head.length : 6).toUpperCase()}';
   }
 }

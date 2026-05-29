@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/model/booking_request.dart';
+import 'package:dashboard/features/requests/model/requests_action.dart';
+import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -56,6 +58,38 @@ class _GatedRepo implements BookingRequestRepository {
   }
 }
 
+/// Records approve/reject/undo calls and can be told to throw. When
+/// [approveGate] is set, approve() suspends on it so the test can keep a call
+/// "in flight" and exercise the bloc's re-tap guard.
+class _FakeActionRepo implements BookingActionRepository {
+  _FakeActionRepo({this.throwIt = false, this.approveGate});
+  bool throwIt;
+  final Completer<void>? approveGate;
+  final List<String> log = [];
+
+  @override
+  Future<void> approve({required String bookingId}) async {
+    log.add('approve:$bookingId');
+    if (approveGate != null) await approveGate!.future;
+    if (throwIt) throw Exception('boom');
+  }
+
+  @override
+  Future<void> reject({required String bookingId, String? reason}) async {
+    log.add('reject:$bookingId:$reason');
+    if (throwIt) throw Exception('boom');
+  }
+
+  @override
+  Future<void> restorePending({
+    required String bookingId,
+    String? slotId,
+  }) async {
+    log.add('restore:$bookingId:$slotId');
+    if (throwIt) throw Exception('boom');
+  }
+}
+
 /// Yields several microtasks so queued events reach their first `await`.
 Future<void> _settle() async {
   for (var i = 0; i < 6; i++) {
@@ -67,8 +101,12 @@ void main() {
   final today = DateTime(2026, 5, 29);
   DateTime nowFixed() => DateTime(2026, 5, 29, 9, 30);
 
-  RequestsBloc bloc(_FakeRepo repo) =>
-      RequestsBloc(repository: repo, now: nowFixed);
+  RequestsBloc bloc(_FakeRepo repo, [BookingActionRepository? actions]) =>
+      RequestsBloc(
+        repository: repo,
+        actionRepository: actions ?? _FakeActionRepo(),
+        now: nowFixed,
+      );
 
   test('started loads today, sorted ascending by start time', () async {
     final repo = _FakeRepo(byDay: {
@@ -222,7 +260,11 @@ void main() {
     final t2 = DateTime(2026, 5, 30);
     final t3 = DateTime(2026, 5, 31);
     final repo = _GatedRepo();
-    final b = RequestsBloc(repository: repo, now: nowFixed);
+    final b = RequestsBloc(
+      repository: repo,
+      actionRepository: _FakeActionRepo(),
+      now: nowFixed,
+    );
     addTearDown(b.close);
 
     // Three loads in flight: today (started), then t2, then t3.
@@ -242,5 +284,164 @@ void main() {
     final state = b.state as RequestsLoaded;
     expect(state.day, t3); // stale t1/t2 emits were dropped
     expect(state.requests.single.id, 'c');
+  });
+
+  group('approve / reject / undo', () {
+    BookingRequest pending(String id, {String? slotId, String? phone}) =>
+        BookingRequest(
+          id: id,
+          code: '#$id',
+          customerName: 'Khách $id',
+          courtName: 'Sân 1',
+          startAt: DateTime(2026, 5, 29, 8),
+          endAt: DateTime(2026, 5, 29, 9),
+          status: BookingStatus.pending,
+          revenue: 100000,
+          slotId: slotId,
+          customerPhone: phone,
+        );
+
+    Future<(RequestsBloc, _FakeActionRepo)> loadedWith(
+      List<BookingRequest> items, {
+      _FakeActionRepo? act,
+    }) async {
+      final actions = act ?? _FakeActionRepo();
+      final repo = _FakeRepo(byDay: {_FakeRepo.key(today): items});
+      final b = bloc(repo, actions);
+      b.add(const RequestsEvent.started());
+      await b.stream.firstWhere((s) => s is RequestsLoaded);
+      return (b, actions);
+    }
+
+    test('approve confirms the request and emits an approved action', () async {
+      final req = pending('a', phone: '+84900000000');
+      final (b, actions) = await loadedWith([req]);
+      addTearDown(b.close);
+
+      final done = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestApproved);
+      b.add(RequestsEvent.approved(req));
+      final s = await done as RequestsLoaded;
+
+      expect(actions.log, ['approve:a']);
+      final updated = s.requests.single;
+      expect(updated.status, BookingStatus.confirmed);
+      expect(updated.revealedPhone, '+84900000000'); // revealed after approval
+      expect((s.lastAction as RequestApproved).request.id, 'a');
+    });
+
+    test('reject cancels the request, frees the slot, passes the reason',
+        () async {
+      final req = pending('b', slotId: 'slot-b');
+      final (b, actions) = await loadedWith([req]);
+      addTearDown(b.close);
+
+      final done = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestRejected);
+      b.add(RequestsEvent.rejected(req, reason: 'Trùng lịch'));
+      final s = await done as RequestsLoaded;
+
+      // Slot is freed by the DB trigger, not by an explicit reject slot write.
+      expect(actions.log, ['reject:b:Trùng lịch']);
+      expect(s.requests.single.status, BookingStatus.cancelled);
+      expect((s.lastAction as RequestRejected).reason, 'Trùng lịch');
+    });
+
+    test('undo restores a request to pending', () async {
+      final req = pending('c', slotId: 'slot-c');
+      final (b, actions) = await loadedWith([req]);
+      addTearDown(b.close);
+
+      // approve, then undo
+      b.add(RequestsEvent.approved(req));
+      final approved = await b.stream.firstWhere(
+              (s) => s is RequestsLoaded && s.lastAction is RequestApproved)
+          as RequestsLoaded;
+      final confirmed = approved.requests.single;
+
+      final undone = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestUndone);
+      b.add(RequestsEvent.undoRequested(confirmed));
+      final s = await undone as RequestsLoaded;
+
+      expect(actions.log, ['approve:c', 'restore:c:slot-c']);
+      expect(s.requests.single.status, BookingStatus.pending);
+    });
+
+    test('a failed approve keeps the row unchanged and emits a failure action',
+        () async {
+      final req = pending('d');
+      final (b, _) = await loadedWith([req], act: _FakeActionRepo(throwIt: true));
+      addTearDown(b.close);
+
+      final done = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestActionFailed);
+      b.add(RequestsEvent.approved(req));
+      final s = await done as RequestsLoaded;
+
+      expect(s.requests.single.status, BookingStatus.pending); // unchanged
+      expect((s.lastAction as RequestActionFailed).message,
+          contains('Không thể duyệt'));
+    });
+
+    test('reject and undo failures surface their own localized messages',
+        () async {
+      final req = pending('f', slotId: 'slot-f');
+      final (b, _) = await loadedWith([req], act: _FakeActionRepo(throwIt: true));
+      addTearDown(b.close);
+
+      final rejFail = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestActionFailed);
+      b.add(RequestsEvent.rejected(req, reason: 'x'));
+      final r = await rejFail as RequestsLoaded;
+      expect(r.requests.single.status, BookingStatus.pending); // unchanged
+      expect((r.lastAction as RequestActionFailed).message,
+          contains('Không thể từ chối'));
+
+      b.add(const RequestsEvent.actionConsumed());
+      final undoFail = b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestActionFailed);
+      b.add(RequestsEvent.undoRequested(req));
+      final u = await undoFail as RequestsLoaded;
+      expect((u.lastAction as RequestActionFailed).message,
+          contains('Không thể hoàn tác'));
+    });
+
+    test('a re-tap while an action is in flight is ignored (no duplicate)',
+        () async {
+      final req = pending('g');
+      final gate = Completer<void>();
+      final actions = _FakeActionRepo(approveGate: gate);
+      final repo = _FakeRepo(byDay: {_FakeRepo.key(today): [req]});
+      final b = bloc(repo, actions);
+      addTearDown(b.close);
+      b.add(const RequestsEvent.started());
+      await b.stream.firstWhere((s) => s is RequestsLoaded);
+
+      // First approve is held in flight by the gate; the second must be dropped.
+      b.add(RequestsEvent.approved(req));
+      await _settle();
+      b.add(RequestsEvent.approved(req));
+      await _settle();
+      gate.complete();
+      await _settle();
+
+      expect(actions.log, ['approve:g']); // second tap never reached the repo
+    });
+
+    test('actionConsumed clears the transient lastAction', () async {
+      final req = pending('e');
+      final (b, _) = await loadedWith([req]);
+      addTearDown(b.close);
+
+      b.add(RequestsEvent.approved(req));
+      await b.stream.firstWhere(
+          (s) => s is RequestsLoaded && s.lastAction is RequestApproved);
+
+      final cleared = b.stream
+          .firstWhere((s) => s is RequestsLoaded && s.lastAction == null);
+      b.add(const RequestsEvent.actionConsumed());
+      expect((await cleared as RequestsLoaded).lastAction, isNull);
+    });
   });
 }

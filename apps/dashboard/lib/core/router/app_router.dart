@@ -13,6 +13,7 @@ import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_event.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
+import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
@@ -110,6 +111,7 @@ GoRouter buildRouter() {
             builder: (context, state) => BlocProvider(
               create: (_) => RequestsBloc(
                 repository: sl<BookingRequestRepository>(),
+                actionRepository: sl<BookingActionRepository>(),
               )..add(const RequestsEvent.started()),
               child: const RequestsScreen(),
             ),

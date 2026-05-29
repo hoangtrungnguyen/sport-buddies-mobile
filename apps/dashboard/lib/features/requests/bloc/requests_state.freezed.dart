@@ -154,8 +154,8 @@ extension RequestsStatePatterns on RequestsState {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(
-            DateTime day, List<BookingRequest> requests, int page, bool busy)?
+    TResult Function(DateTime day, List<BookingRequest> requests, int page,
+            bool busy, RequestsAction? lastAction, int actionNonce)?
         loaded,
     TResult Function(String message, DateTime? day, StackTrace? stackTrace)?
         failure,
@@ -168,7 +168,8 @@ extension RequestsStatePatterns on RequestsState {
       case RequestsLoading() when loading != null:
         return loading();
       case RequestsLoaded() when loaded != null:
-        return loaded(_that.day, _that.requests, _that.page, _that.busy);
+        return loaded(_that.day, _that.requests, _that.page, _that.busy,
+            _that.lastAction, _that.actionNonce);
       case RequestsFailure() when failure != null:
         return failure(_that.message, _that.day, _that.stackTrace);
       case _:
@@ -193,8 +194,8 @@ extension RequestsStatePatterns on RequestsState {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(
-            DateTime day, List<BookingRequest> requests, int page, bool busy)
+    required TResult Function(DateTime day, List<BookingRequest> requests,
+            int page, bool busy, RequestsAction? lastAction, int actionNonce)
         loaded,
     required TResult Function(
             String message, DateTime? day, StackTrace? stackTrace)
@@ -207,7 +208,8 @@ extension RequestsStatePatterns on RequestsState {
       case RequestsLoading():
         return loading();
       case RequestsLoaded():
-        return loaded(_that.day, _that.requests, _that.page, _that.busy);
+        return loaded(_that.day, _that.requests, _that.page, _that.busy,
+            _that.lastAction, _that.actionNonce);
       case RequestsFailure():
         return failure(_that.message, _that.day, _that.stackTrace);
     }
@@ -229,8 +231,8 @@ extension RequestsStatePatterns on RequestsState {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(
-            DateTime day, List<BookingRequest> requests, int page, bool busy)?
+    TResult? Function(DateTime day, List<BookingRequest> requests, int page,
+            bool busy, RequestsAction? lastAction, int actionNonce)?
         loaded,
     TResult? Function(String message, DateTime? day, StackTrace? stackTrace)?
         failure,
@@ -242,7 +244,8 @@ extension RequestsStatePatterns on RequestsState {
       case RequestsLoading() when loading != null:
         return loading();
       case RequestsLoaded() when loaded != null:
-        return loaded(_that.day, _that.requests, _that.page, _that.busy);
+        return loaded(_that.day, _that.requests, _that.page, _that.busy,
+            _that.lastAction, _that.actionNonce);
       case RequestsFailure() when failure != null:
         return failure(_that.message, _that.day, _that.stackTrace);
       case _:
@@ -298,7 +301,9 @@ class RequestsLoaded implements RequestsState {
       {required this.day,
       required final List<BookingRequest> requests,
       this.page = 0,
-      this.busy = false})
+      this.busy = false,
+      this.lastAction,
+      this.actionNonce = 0})
       : _requests = requests;
 
   final DateTime day;
@@ -313,6 +318,19 @@ class RequestsLoaded implements RequestsState {
   final int page;
   @JsonKey()
   final bool busy;
+
+  /// Transient outcome of the most recent approve/reject/undo (OWNER-28/29).
+  /// Set by the bloc when the action resolves, consumed once by the screen
+  /// (undo snackbar / error), then cleared via
+  /// [RequestsEvent.actionConsumed]. Null in the steady state.
+  final RequestsAction? lastAction;
+
+  /// Bumped on every action emit. Without it, two value-equal [lastAction]s
+  /// (e.g. two identical failures) would compare equal under freezed
+  /// value-equality and Bloc would skip the second emit — silently dropping
+  /// that one-shot signal. The nonce guarantees each action state is distinct.
+  @JsonKey()
+  final int actionNonce;
 
   /// Create a copy of RequestsState
   /// with the given fields replaced by the non-null parameter values.
@@ -329,16 +347,26 @@ class RequestsLoaded implements RequestsState {
             (identical(other.day, day) || other.day == day) &&
             const DeepCollectionEquality().equals(other._requests, _requests) &&
             (identical(other.page, page) || other.page == page) &&
-            (identical(other.busy, busy) || other.busy == busy));
+            (identical(other.busy, busy) || other.busy == busy) &&
+            (identical(other.lastAction, lastAction) ||
+                other.lastAction == lastAction) &&
+            (identical(other.actionNonce, actionNonce) ||
+                other.actionNonce == actionNonce));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, day,
-      const DeepCollectionEquality().hash(_requests), page, busy);
+  int get hashCode => Object.hash(
+      runtimeType,
+      day,
+      const DeepCollectionEquality().hash(_requests),
+      page,
+      busy,
+      lastAction,
+      actionNonce);
 
   @override
   String toString() {
-    return 'RequestsState.loaded(day: $day, requests: $requests, page: $page, busy: $busy)';
+    return 'RequestsState.loaded(day: $day, requests: $requests, page: $page, busy: $busy, lastAction: $lastAction, actionNonce: $actionNonce)';
   }
 }
 
@@ -349,7 +377,15 @@ abstract mixin class $RequestsLoadedCopyWith<$Res>
           RequestsLoaded value, $Res Function(RequestsLoaded) _then) =
       _$RequestsLoadedCopyWithImpl;
   @useResult
-  $Res call({DateTime day, List<BookingRequest> requests, int page, bool busy});
+  $Res call(
+      {DateTime day,
+      List<BookingRequest> requests,
+      int page,
+      bool busy,
+      RequestsAction? lastAction,
+      int actionNonce});
+
+  $RequestsActionCopyWith<$Res>? get lastAction;
 }
 
 /// @nodoc
@@ -368,6 +404,8 @@ class _$RequestsLoadedCopyWithImpl<$Res>
     Object? requests = null,
     Object? page = null,
     Object? busy = null,
+    Object? lastAction = freezed,
+    Object? actionNonce = null,
   }) {
     return _then(RequestsLoaded(
       day: null == day
@@ -386,7 +424,29 @@ class _$RequestsLoadedCopyWithImpl<$Res>
           ? _self.busy
           : busy // ignore: cast_nullable_to_non_nullable
               as bool,
+      lastAction: freezed == lastAction
+          ? _self.lastAction
+          : lastAction // ignore: cast_nullable_to_non_nullable
+              as RequestsAction?,
+      actionNonce: null == actionNonce
+          ? _self.actionNonce
+          : actionNonce // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
+  }
+
+  /// Create a copy of RequestsState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $RequestsActionCopyWith<$Res>? get lastAction {
+    if (_self.lastAction == null) {
+      return null;
+    }
+
+    return $RequestsActionCopyWith<$Res>(_self.lastAction!, (value) {
+      return _then(_self.copyWith(lastAction: value));
+    });
   }
 }
 

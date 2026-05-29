@@ -54,6 +54,10 @@ extension RequestsEventPatterns on RequestsEvent {
     TResult Function(RequestsDateChanged value)? dateChanged,
     TResult Function(RequestsPageChanged value)? pageChanged,
     TResult Function(RequestsRefreshed value)? refreshed,
+    TResult Function(RequestsApproved value)? approved,
+    TResult Function(RequestsRejected value)? rejected,
+    TResult Function(RequestsUndoRequested value)? undoRequested,
+    TResult Function(RequestsActionConsumed value)? actionConsumed,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -66,6 +70,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that);
       case RequestsRefreshed() when refreshed != null:
         return refreshed(_that);
+      case RequestsApproved() when approved != null:
+        return approved(_that);
+      case RequestsRejected() when rejected != null:
+        return rejected(_that);
+      case RequestsUndoRequested() when undoRequested != null:
+        return undoRequested(_that);
+      case RequestsActionConsumed() when actionConsumed != null:
+        return actionConsumed(_that);
       case _:
         return orElse();
     }
@@ -90,6 +102,10 @@ extension RequestsEventPatterns on RequestsEvent {
     required TResult Function(RequestsDateChanged value) dateChanged,
     required TResult Function(RequestsPageChanged value) pageChanged,
     required TResult Function(RequestsRefreshed value) refreshed,
+    required TResult Function(RequestsApproved value) approved,
+    required TResult Function(RequestsRejected value) rejected,
+    required TResult Function(RequestsUndoRequested value) undoRequested,
+    required TResult Function(RequestsActionConsumed value) actionConsumed,
   }) {
     final _that = this;
     switch (_that) {
@@ -101,6 +117,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that);
       case RequestsRefreshed():
         return refreshed(_that);
+      case RequestsApproved():
+        return approved(_that);
+      case RequestsRejected():
+        return rejected(_that);
+      case RequestsUndoRequested():
+        return undoRequested(_that);
+      case RequestsActionConsumed():
+        return actionConsumed(_that);
     }
   }
 
@@ -122,6 +146,10 @@ extension RequestsEventPatterns on RequestsEvent {
     TResult? Function(RequestsDateChanged value)? dateChanged,
     TResult? Function(RequestsPageChanged value)? pageChanged,
     TResult? Function(RequestsRefreshed value)? refreshed,
+    TResult? Function(RequestsApproved value)? approved,
+    TResult? Function(RequestsRejected value)? rejected,
+    TResult? Function(RequestsUndoRequested value)? undoRequested,
+    TResult? Function(RequestsActionConsumed value)? actionConsumed,
   }) {
     final _that = this;
     switch (_that) {
@@ -133,6 +161,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that);
       case RequestsRefreshed() when refreshed != null:
         return refreshed(_that);
+      case RequestsApproved() when approved != null:
+        return approved(_that);
+      case RequestsRejected() when rejected != null:
+        return rejected(_that);
+      case RequestsUndoRequested() when undoRequested != null:
+        return undoRequested(_that);
+      case RequestsActionConsumed() when actionConsumed != null:
+        return actionConsumed(_that);
       case _:
         return null;
     }
@@ -156,6 +192,10 @@ extension RequestsEventPatterns on RequestsEvent {
     TResult Function(DateTime day)? dateChanged,
     TResult Function(int page)? pageChanged,
     TResult Function()? refreshed,
+    TResult Function(BookingRequest request)? approved,
+    TResult Function(BookingRequest request, String? reason)? rejected,
+    TResult Function(BookingRequest request)? undoRequested,
+    TResult Function()? actionConsumed,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -168,6 +208,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that.page);
       case RequestsRefreshed() when refreshed != null:
         return refreshed();
+      case RequestsApproved() when approved != null:
+        return approved(_that.request);
+      case RequestsRejected() when rejected != null:
+        return rejected(_that.request, _that.reason);
+      case RequestsUndoRequested() when undoRequested != null:
+        return undoRequested(_that.request);
+      case RequestsActionConsumed() when actionConsumed != null:
+        return actionConsumed();
       case _:
         return orElse();
     }
@@ -192,6 +240,10 @@ extension RequestsEventPatterns on RequestsEvent {
     required TResult Function(DateTime day) dateChanged,
     required TResult Function(int page) pageChanged,
     required TResult Function() refreshed,
+    required TResult Function(BookingRequest request) approved,
+    required TResult Function(BookingRequest request, String? reason) rejected,
+    required TResult Function(BookingRequest request) undoRequested,
+    required TResult Function() actionConsumed,
   }) {
     final _that = this;
     switch (_that) {
@@ -203,6 +255,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that.page);
       case RequestsRefreshed():
         return refreshed();
+      case RequestsApproved():
+        return approved(_that.request);
+      case RequestsRejected():
+        return rejected(_that.request, _that.reason);
+      case RequestsUndoRequested():
+        return undoRequested(_that.request);
+      case RequestsActionConsumed():
+        return actionConsumed();
     }
   }
 
@@ -224,6 +284,10 @@ extension RequestsEventPatterns on RequestsEvent {
     TResult? Function(DateTime day)? dateChanged,
     TResult? Function(int page)? pageChanged,
     TResult? Function()? refreshed,
+    TResult? Function(BookingRequest request)? approved,
+    TResult? Function(BookingRequest request, String? reason)? rejected,
+    TResult? Function(BookingRequest request)? undoRequested,
+    TResult? Function()? actionConsumed,
   }) {
     final _that = this;
     switch (_that) {
@@ -235,6 +299,14 @@ extension RequestsEventPatterns on RequestsEvent {
         return pageChanged(_that.page);
       case RequestsRefreshed() when refreshed != null:
         return refreshed();
+      case RequestsApproved() when approved != null:
+        return approved(_that.request);
+      case RequestsRejected() when rejected != null:
+        return rejected(_that.request, _that.reason);
+      case RequestsUndoRequested() when undoRequested != null:
+        return undoRequested(_that.request);
+      case RequestsActionConsumed() when actionConsumed != null:
+        return actionConsumed();
       case _:
         return null;
     }
@@ -406,6 +478,262 @@ class RequestsRefreshed implements RequestsEvent {
   @override
   String toString() {
     return 'RequestsEvent.refreshed()';
+  }
+}
+
+/// @nodoc
+
+class RequestsApproved implements RequestsEvent {
+  const RequestsApproved(this.request);
+
+  final BookingRequest request;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $RequestsApprovedCopyWith<RequestsApproved> get copyWith =>
+      _$RequestsApprovedCopyWithImpl<RequestsApproved>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is RequestsApproved &&
+            (identical(other.request, request) || other.request == request));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, request);
+
+  @override
+  String toString() {
+    return 'RequestsEvent.approved(request: $request)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $RequestsApprovedCopyWith<$Res>
+    implements $RequestsEventCopyWith<$Res> {
+  factory $RequestsApprovedCopyWith(
+          RequestsApproved value, $Res Function(RequestsApproved) _then) =
+      _$RequestsApprovedCopyWithImpl;
+  @useResult
+  $Res call({BookingRequest request});
+
+  $BookingRequestCopyWith<$Res> get request;
+}
+
+/// @nodoc
+class _$RequestsApprovedCopyWithImpl<$Res>
+    implements $RequestsApprovedCopyWith<$Res> {
+  _$RequestsApprovedCopyWithImpl(this._self, this._then);
+
+  final RequestsApproved _self;
+  final $Res Function(RequestsApproved) _then;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? request = null,
+  }) {
+    return _then(RequestsApproved(
+      null == request
+          ? _self.request
+          : request // ignore: cast_nullable_to_non_nullable
+              as BookingRequest,
+    ));
+  }
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BookingRequestCopyWith<$Res> get request {
+    return $BookingRequestCopyWith<$Res>(_self.request, (value) {
+      return _then(_self.copyWith(request: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class RequestsRejected implements RequestsEvent {
+  const RequestsRejected(this.request, {this.reason});
+
+  final BookingRequest request;
+  final String? reason;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $RequestsRejectedCopyWith<RequestsRejected> get copyWith =>
+      _$RequestsRejectedCopyWithImpl<RequestsRejected>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is RequestsRejected &&
+            (identical(other.request, request) || other.request == request) &&
+            (identical(other.reason, reason) || other.reason == reason));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, request, reason);
+
+  @override
+  String toString() {
+    return 'RequestsEvent.rejected(request: $request, reason: $reason)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $RequestsRejectedCopyWith<$Res>
+    implements $RequestsEventCopyWith<$Res> {
+  factory $RequestsRejectedCopyWith(
+          RequestsRejected value, $Res Function(RequestsRejected) _then) =
+      _$RequestsRejectedCopyWithImpl;
+  @useResult
+  $Res call({BookingRequest request, String? reason});
+
+  $BookingRequestCopyWith<$Res> get request;
+}
+
+/// @nodoc
+class _$RequestsRejectedCopyWithImpl<$Res>
+    implements $RequestsRejectedCopyWith<$Res> {
+  _$RequestsRejectedCopyWithImpl(this._self, this._then);
+
+  final RequestsRejected _self;
+  final $Res Function(RequestsRejected) _then;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? request = null,
+    Object? reason = freezed,
+  }) {
+    return _then(RequestsRejected(
+      null == request
+          ? _self.request
+          : request // ignore: cast_nullable_to_non_nullable
+              as BookingRequest,
+      reason: freezed == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BookingRequestCopyWith<$Res> get request {
+    return $BookingRequestCopyWith<$Res>(_self.request, (value) {
+      return _then(_self.copyWith(request: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class RequestsUndoRequested implements RequestsEvent {
+  const RequestsUndoRequested(this.request);
+
+  final BookingRequest request;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $RequestsUndoRequestedCopyWith<RequestsUndoRequested> get copyWith =>
+      _$RequestsUndoRequestedCopyWithImpl<RequestsUndoRequested>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is RequestsUndoRequested &&
+            (identical(other.request, request) || other.request == request));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, request);
+
+  @override
+  String toString() {
+    return 'RequestsEvent.undoRequested(request: $request)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $RequestsUndoRequestedCopyWith<$Res>
+    implements $RequestsEventCopyWith<$Res> {
+  factory $RequestsUndoRequestedCopyWith(RequestsUndoRequested value,
+          $Res Function(RequestsUndoRequested) _then) =
+      _$RequestsUndoRequestedCopyWithImpl;
+  @useResult
+  $Res call({BookingRequest request});
+
+  $BookingRequestCopyWith<$Res> get request;
+}
+
+/// @nodoc
+class _$RequestsUndoRequestedCopyWithImpl<$Res>
+    implements $RequestsUndoRequestedCopyWith<$Res> {
+  _$RequestsUndoRequestedCopyWithImpl(this._self, this._then);
+
+  final RequestsUndoRequested _self;
+  final $Res Function(RequestsUndoRequested) _then;
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? request = null,
+  }) {
+    return _then(RequestsUndoRequested(
+      null == request
+          ? _self.request
+          : request // ignore: cast_nullable_to_non_nullable
+              as BookingRequest,
+    ));
+  }
+
+  /// Create a copy of RequestsEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BookingRequestCopyWith<$Res> get request {
+    return $BookingRequestCopyWith<$Res>(_self.request, (value) {
+      return _then(_self.copyWith(request: value));
+    });
+  }
+}
+
+/// @nodoc
+
+class RequestsActionConsumed implements RequestsEvent {
+  const RequestsActionConsumed();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is RequestsActionConsumed);
+  }
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() {
+    return 'RequestsEvent.actionConsumed()';
   }
 }
 

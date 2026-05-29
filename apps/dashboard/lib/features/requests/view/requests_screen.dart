@@ -5,6 +5,7 @@ import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../bloc/requests_bloc.dart';
 import '../model/booking_request.dart';
+import '../model/requests_action.dart';
 import '../requests_logic.dart';
 
 /// Status foreground tones, shared by the summary bar and the card badges.
@@ -18,7 +19,14 @@ class RequestsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RequestsBloc, RequestsState>(
+    return BlocConsumer<RequestsBloc, RequestsState>(
+      // React exactly once to each fresh action signal (identity, not value).
+      listenWhen: (prev, curr) {
+        final p = prev is RequestsLoaded ? prev.lastAction : null;
+        final c = curr is RequestsLoaded ? curr.lastAction : null;
+        return c != null && !identical(p, c);
+      },
+      listener: _onAction,
       builder: (context, state) => switch (state) {
         RequestsInitial() || RequestsLoading() => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
@@ -26,6 +34,51 @@ class RequestsScreen extends StatelessWidget {
         RequestsLoaded() => _Loaded(state: state),
       },
     );
+  }
+
+  /// Surfaces the result of an approve/reject/undo, then clears the signal.
+  /// The approve/reject snackbars carry a "Hoàn tác" action whose visible
+  /// duration is the grace period within which the action can be undone.
+  static void _onAction(BuildContext context, RequestsState state) {
+    if (state is! RequestsLoaded) return;
+    final action = state.lastAction;
+    if (action == null) return;
+    final bloc = context.read<RequestsBloc>();
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+
+    SnackBar undoable(String text, BookingRequest request) => SnackBar(
+          content: Text(text),
+          backgroundColor: AppColors.neutral800,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Hoàn tác',
+            textColor: AppColors.primaryMid,
+            onPressed: () => bloc.add(RequestsEvent.undoRequested(request)),
+          ),
+        );
+
+    switch (action) {
+      case RequestApproved(:final request):
+        messenger.showSnackBar(
+            undoable('Đã duyệt đơn ${request.code}.', request));
+      case RequestRejected(:final request):
+        messenger.showSnackBar(
+            undoable('Đã từ chối đơn ${request.code}.', request));
+      case RequestUndone():
+        messenger.showSnackBar(const SnackBar(
+          content: Text('Đã hoàn tác.'),
+          backgroundColor: AppColors.neutral800,
+          behavior: SnackBarBehavior.floating,
+        ));
+      case RequestActionFailed(:final message):
+        messenger.showSnackBar(SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+        ));
+    }
+    bloc.add(const RequestsEvent.actionConsumed());
   }
 }
 
@@ -435,6 +488,7 @@ class _RequestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cancelled = request.isCancelled;
+    final phone = request.revealedPhone;
     final card = Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -443,71 +497,103 @@ class _RequestCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.neutral200),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _Avatar(name: request.customerName, greyed: cancelled),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          Row(
+            children: [
+              _Avatar(name: request.customerName, greyed: cancelled),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(
-                        request.customerName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.neutral900,
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            request.customerName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.neutral900,
+                            ),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 8),
+                        Text(
+                          request.code,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neutral400,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      request.code,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutral400,
-                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_rounded,
+                            size: 13, color: AppColors.neutral400),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            request.courtName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5, color: AppColors.neutral500),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.schedule_rounded,
+                            size: 13, color: AppColors.neutral400),
+                        const SizedBox(width: 4),
+                        Text(
+                          timeRange(request.startAt.toLocal(),
+                              request.endAt.toLocal()),
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12.5, color: AppColors.neutral500),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.place_rounded,
-                        size: 13, color: AppColors.neutral400),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        request.courtName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5, color: AppColors.neutral500),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.schedule_rounded,
-                        size: 13, color: AppColors.neutral400),
-                    const SizedBox(width: 4),
-                    Text(
-                      timeRange(
-                          request.startAt.toLocal(), request.endAt.toLocal()),
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5, color: AppColors.neutral500),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              _StatusBadge(status: request.status),
+            ],
           ),
-          const SizedBox(width: 10),
-          _StatusBadge(status: request.status),
+          // Phone is revealed only after approval (OWNER-28).
+          if (phone != null) ...[
+            const SizedBox(height: 10),
+            Semantics(
+              label: 'requests-phone-${request.id}',
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_rounded,
+                      size: 14, color: Color(0xFF166534)),
+                  const SizedBox(width: 6),
+                  Text(
+                    phone,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.neutral700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // Approve / reject actions appear only while pending (OWNER-28/29).
+          if (request.isPending) ...[
+            const SizedBox(height: 12),
+            _CardActions(request: request),
+          ],
         ],
       ),
     );
@@ -518,6 +604,148 @@ class _RequestCard extends StatelessWidget {
     );
     // Cancelled bookings are de-emphasized (reduced opacity), per OWNER-27 AC.
     return cancelled ? Opacity(opacity: 0.55, child: labelled) : labelled;
+  }
+}
+
+/// The Duyệt / Từ chối buttons shown on a pending card.
+class _CardActions extends StatelessWidget {
+  const _CardActions({required this.request});
+  final BookingRequest request;
+
+  Future<void> _reject(BuildContext context) async {
+    final bloc = context.read<RequestsBloc>();
+    final result = await showDialog<({String? reason})>(
+      context: context,
+      builder: (_) => _RejectDialog(code: request.code),
+    );
+    if (result == null) return; // dialog dismissed
+    bloc.add(RequestsEvent.rejected(request, reason: result.reason));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Semantics(
+          label: 'requests-reject-btn-${request.id}',
+          button: true,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.close_rounded, size: 16),
+            label: const Text('Từ chối'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.danger,
+              side: const BorderSide(color: AppColors.dangerBg),
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+              textStyle: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            onPressed: () => _reject(context),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Semantics(
+          label: 'requests-approve-btn-${request.id}',
+          button: true,
+          child: FilledButton.icon(
+            icon: const Icon(Icons.check_rounded, size: 16),
+            label: const Text('Duyệt'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.success,
+              foregroundColor: Colors.white,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              textStyle: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            // Single tap approves (≤ 2 taps per OWNER-28); undo via snackbar.
+            onPressed: () =>
+                context.read<RequestsBloc>().add(RequestsEvent.approved(request)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Reject confirmation with an optional reason field (OWNER-29). Pops a record
+/// `(reason:)` on confirm (reason null when blank), or null when dismissed.
+class _RejectDialog extends StatefulWidget {
+  const _RejectDialog({required this.code});
+  final String code;
+
+  @override
+  State<_RejectDialog> createState() => _RejectDialogState();
+}
+
+class _RejectDialogState extends State<_RejectDialog> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      title: Text(
+        'Từ chối đơn ${widget.code}?',
+        style: GoogleFonts.sora(
+            fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Khung giờ sẽ được mở lại cho khách khác.',
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 13.5, color: AppColors.neutral500),
+          ),
+          const SizedBox(height: 14),
+          Semantics(
+            label: 'requests-reject-reason-field',
+            textField: true,
+            child: TextField(
+              controller: _ctrl,
+              maxLines: 2,
+              style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+              decoration: const InputDecoration(
+                hintText: 'Lý do (không bắt buộc)',
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: AppColors.neutral600),
+          child: const Text('Huỷ'),
+        ),
+        Semantics(
+          label: 'requests-reject-confirm-btn',
+          button: true,
+          child: FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: AppColors.danger, foregroundColor: Colors.white),
+            onPressed: () {
+              final reason = _ctrl.text.trim();
+              Navigator.of(context)
+                  .pop((reason: reason.isEmpty ? null : reason));
+            },
+            child: const Text('Từ chối'),
+          ),
+        ),
+      ],
+    );
   }
 }
 

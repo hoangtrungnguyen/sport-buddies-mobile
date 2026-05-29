@@ -1,6 +1,7 @@
 import 'package:dashboard/core/router/app_router.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
+import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/schedule/repository/manual_booking_repository.dart';
 import 'package:dashboard/features/schedule/repository/owner_slot_repository.dart';
@@ -34,6 +35,10 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<BookingRequestRepository>(
     () => SupabaseBookingRequestRepository(Supabase.instance.client),
+  );
+
+  sl.registerLazySingleton<BookingActionRepository>(
+    () => SupabaseBookingActionRepository(Supabase.instance.client),
   );
 
   // Router registered last so it can resolve other singletons.

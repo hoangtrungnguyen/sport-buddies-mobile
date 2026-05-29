@@ -1,5 +1,6 @@
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/model/booking_request.dart';
+import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/requests/requests_logic.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
@@ -15,6 +16,8 @@ BookingRequest _req(
   BookingStatus status = BookingStatus.confirmed,
   int revenue = 100000,
   String name = 'Khách',
+  String? slotId,
+  String? phone,
 }) {
   final start = DateTime(_today.year, _today.month, _today.day, hour);
   return BookingRequest(
@@ -26,6 +29,8 @@ BookingRequest _req(
     endAt: start.add(const Duration(hours: 1)),
     status: status,
     revenue: revenue,
+    slotId: slotId,
+    customerPhone: phone,
   );
 }
 
@@ -42,13 +47,31 @@ class _FakeRepo implements BookingRequestRepository {
   }
 }
 
-Future<(RequestsBloc, _FakeRepo)> _pump(
+class _FakeActionRepo implements BookingActionRepository {
+  final List<String> log = [];
+  @override
+  Future<void> approve({required String bookingId}) async =>
+      log.add('approve:$bookingId');
+  @override
+  Future<void> reject({required String bookingId, String? reason}) async =>
+      log.add('reject:$bookingId:$reason');
+  @override
+  Future<void> restorePending({
+    required String bookingId,
+    String? slotId,
+  }) async =>
+      log.add('restore:$bookingId');
+}
+
+Future<(RequestsBloc, _FakeRepo, _FakeActionRepo)> _pump(
   WidgetTester tester,
   List<BookingRequest> items,
 ) async {
   final repo = _FakeRepo(items);
+  final actions = _FakeActionRepo();
   final bloc = RequestsBloc(
     repository: repo,
+    actionRepository: actions,
     now: () => DateTime(2026, 5, 29, 9, 30),
   )..add(const RequestsEvent.started());
   await tester.pumpWidget(MaterialApp(
@@ -60,13 +83,13 @@ Future<(RequestsBloc, _FakeRepo)> _pump(
     ),
   ));
   await tester.pumpAndSettle();
-  return (bloc, repo);
+  return (bloc, repo, actions);
 }
 
 void main() {
   testWidgets('renders the summary bar with total, pending and revenue',
       (tester) async {
-    final (bloc, _) = await _pump(tester, [
+    final (bloc, _, _) = await _pump(tester, [
       _req('a', 8, status: BookingStatus.confirmed, revenue: 100000),
       _req('b', 9, status: BookingStatus.pending, revenue: 50000),
       _req('c', 10, status: BookingStatus.cancelled, revenue: 999000),
@@ -84,7 +107,7 @@ void main() {
 
   testWidgets('a card shows customer, code, court, time and status badge',
       (tester) async {
-    final (bloc, _) = await _pump(tester, [
+    final (bloc, _, _) = await _pump(tester, [
       _req('a', 8, name: 'Nguyễn Văn A', status: BookingStatus.confirmed),
     ]);
     addTearDown(bloc.close);
@@ -99,7 +122,7 @@ void main() {
 
   testWidgets('cancelled bookings are de-emphasized via reduced opacity',
       (tester) async {
-    final (bloc, _) = await _pump(tester, [
+    final (bloc, _, _) = await _pump(tester, [
       _req('a', 8, status: BookingStatus.cancelled),
     ]);
     addTearDown(bloc.close);
@@ -112,7 +135,7 @@ void main() {
   });
 
   testWidgets('empty day shows the empty state', (tester) async {
-    final (bloc, _) = await _pump(tester, const []);
+    final (bloc, _, _) = await _pump(tester, const []);
     addTearDown(bloc.close);
 
     expect(find.text('Chưa có đơn đặt sân nào'), findsOneWidget);
@@ -123,7 +146,7 @@ void main() {
   testWidgets('paginates 4 per page and the next button advances the page',
       (tester) async {
     final items = List.generate(6, (i) => _req('$i', 6 + i)); // 6 items
-    final (bloc, _) = await _pump(tester, items);
+    final (bloc, _, _) = await _pump(tester, items);
     addTearDown(bloc.close);
 
     // Page 1: first 4 (hours 6–9). Record count is cumulative.
@@ -145,7 +168,7 @@ void main() {
   });
 
   testWidgets('day navigation fetches the next day', (tester) async {
-    final (bloc, repo) = await _pump(tester, [_req('a', 8)]);
+    final (bloc, repo, _) = await _pump(tester, [_req('a', 8)]);
     addTearDown(bloc.close);
 
     expect(find.text(dayHeading(_today)), findsOneWidget);
@@ -158,5 +181,120 @@ void main() {
     expect(find.text(dayHeading(tomorrow)), findsOneWidget);
     // Tomorrow has no data → empty state.
     expect(find.text('Chưa có đơn đặt sân nào'), findsOneWidget);
+  });
+
+  testWidgets('only pending cards show Duyệt / Từ chối buttons', (tester) async {
+    final (bloc, _, _) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending),
+      _req('c', 9, status: BookingStatus.confirmed),
+    ]);
+    addTearDown(bloc.close);
+
+    // One pending → exactly one pair of action buttons; the confirmed card adds
+    // none. (FilledButton.icon is a private subtype, so match by label text.)
+    expect(find.text('Duyệt'), findsOneWidget);
+    expect(find.text('Từ chối'), findsOneWidget);
+  });
+
+  testWidgets('approve confirms the card, reveals phone, and offers undo',
+      (tester) async {
+    final (bloc, _, actions) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending, phone: '+84900000000'),
+    ]);
+    addTearDown(bloc.close);
+
+    // Phone hidden while pending.
+    expect(find.text('+84900000000'), findsNothing);
+
+    await tester.tap(find.text('Duyệt'));
+    await tester.pumpAndSettle();
+
+    expect(actions.log, ['approve:p']);
+    expect(find.text('Đã xác nhận'), findsOneWidget); // badge flipped
+    expect(find.text('+84900000000'), findsOneWidget); // revealed
+    expect(find.text('Duyệt'), findsNothing); // action buttons gone
+    expect(find.text('Hoàn tác'), findsOneWidget); // undo snackbar
+
+    await tester.pumpAndSettle(const Duration(seconds: 5)); // flush snackbar
+  });
+
+  testWidgets('reject opens a reason step then cancels the card',
+      (tester) async {
+    final (bloc, _, actions) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending, slotId: 'slot-p'),
+    ]);
+    addTearDown(bloc.close);
+
+    await tester.tap(find.text('Từ chối'));
+    await tester.pumpAndSettle();
+
+    // Optional reason field + confirm step appears.
+    expect(find.text('Từ chối đơn #p?'), findsOneWidget);
+    await tester.enterText(
+        find.bySemanticsLabel('requests-reject-reason-field'), 'Trùng lịch');
+    await tester.tap(find.bySemanticsLabel('requests-reject-confirm-btn'));
+    await tester.pumpAndSettle();
+
+    expect(actions.log, ['reject:p:Trùng lịch']);
+    expect(find.text('Đã huỷ'), findsOneWidget); // cancelled badge
+
+    await tester.pumpAndSettle(const Duration(seconds: 5)); // flush snackbar
+  });
+
+  testWidgets('undo restores pending and re-hides the phone',
+      (tester) async {
+    final (bloc, _, actions) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending, phone: '+84900000000'),
+    ]);
+    addTearDown(bloc.close);
+
+    await tester.tap(find.text('Duyệt'));
+    await tester.pumpAndSettle();
+    expect(find.text('Đã xác nhận'), findsOneWidget);
+    expect(find.text('+84900000000'), findsOneWidget); // revealed
+
+    await tester.tap(find.text('Hoàn tác'));
+    await tester.pumpAndSettle();
+
+    expect(actions.log, ['approve:p', 'restore:p']);
+    expect(find.text('Duyệt'), findsOneWidget); // pending again → buttons back
+    expect(find.text('+84900000000'), findsNothing); // phone hidden again
+
+    await tester.pumpAndSettle(const Duration(seconds: 5)); // flush snackbar
+  });
+
+  testWidgets('reject with no reason confirms and forwards a null reason',
+      (tester) async {
+    final (bloc, _, actions) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending, slotId: 'slot-p'),
+    ]);
+    addTearDown(bloc.close);
+
+    await tester.tap(find.text('Từ chối'));
+    await tester.pumpAndSettle();
+    // Leave the reason blank; confirm.
+    await tester.tap(find.bySemanticsLabel('requests-reject-confirm-btn'));
+    await tester.pumpAndSettle();
+
+    expect(actions.log, ['reject:p:null']); // optional reason omitted
+    expect(find.text('Đã huỷ'), findsOneWidget);
+
+    await tester.pumpAndSettle(const Duration(seconds: 5)); // flush snackbar
+  });
+
+  testWidgets('dismissing the reject dialog leaves the request pending',
+      (tester) async {
+    final (bloc, _, actions) = await _pump(tester, [
+      _req('p', 8, status: BookingStatus.pending),
+    ]);
+    addTearDown(bloc.close);
+
+    await tester.tap(find.text('Từ chối'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Huỷ')); // cancel the dialog
+    await tester.pumpAndSettle();
+
+    expect(actions.log, isEmpty); // no mutation
+    expect(find.text('Duyệt'), findsOneWidget); // still pending
   });
 }
