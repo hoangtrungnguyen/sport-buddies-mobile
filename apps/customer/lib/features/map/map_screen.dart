@@ -110,6 +110,12 @@ class _MapBodyState extends State<_MapBody> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _cubit ??= _tryReadCubit(context);
+    // Eagerly fetch group slots so the badge shows the correct count before
+    // the user taps the toggle.
+    final slotCubit = _tryReadSlotCubit(context);
+    if (slotCubit != null && slotCubit.state is SlotListInitial) {
+      slotCubit.loadAllGroupSlots();
+    }
   }
 
   @override
@@ -137,25 +143,18 @@ class _MapBodyState extends State<_MapBody> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Center(
-                      child: _cubit == null
-                          ? _ViewToggle(
-                              isSlotView: _showSlotList,
-                              openSlotCount: 0,
-                              onToggle: (v) => _toggleSlotView(context, v),
-                            )
-                          : BlocBuilder<MapCubit, MapState>(
-                              builder: (ctx, state) {
-                                final total = state is MapLoaded
-                                    ? state.courts.fold<int>(
-                                        0, (s, c) => s + c.openSlotCount)
-                                    : 0;
-                                return _ViewToggle(
-                                  isSlotView: _showSlotList,
-                                  openSlotCount: total,
-                                  onToggle: (v) => _toggleSlotView(ctx, v),
-                                );
-                              },
-                            ),
+                      child: BlocBuilder<SlotListCubit, SlotListState>(
+                        builder: (ctx, slotState) {
+                          final total = slotState is SlotListLoaded
+                              ? slotState.slots.length
+                              : 0;
+                          return _ViewToggle(
+                            isSlotView: _showSlotList,
+                            openSlotCount: total,
+                            onToggle: (v) => _toggleSlotView(ctx, v),
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 8),
                     _showSlotList
@@ -243,7 +242,6 @@ class _MapBodyState extends State<_MapBody> {
         );
       },
     );
-
   }
 
   // Reads the user's real GPS position from LocationCubit (spb_core LatLng).
@@ -367,7 +365,6 @@ class _MapBodyState extends State<_MapBody> {
       return null;
     }
   }
-
 }
 
 // ---------------------------------------------------------------------------
@@ -589,7 +586,8 @@ class _SelectedCourtPanel extends StatelessWidget {
             ),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(_sportIcon(court.sportTypes), size: 26, color: Colors.white),
+          child:
+              Icon(_sportIcon(court.sportTypes), size: 26, color: Colors.white),
         ),
         const SizedBox(width: 12),
         Expanded(

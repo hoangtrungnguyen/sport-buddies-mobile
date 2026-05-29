@@ -28,3 +28,5 @@ packages/*/pubspec.lock
 zai-run.sh
 claude_code_zai_env.sh
 .mcp.json
+.claude/
+.claude/settings.json
