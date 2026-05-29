@@ -22,12 +22,12 @@ class _SportEntry {
 /// All supported sports.  The empty-slug entry ("All") is first so it appears
 /// at the leading edge of the scroll view.
 const List<_SportEntry> _kSports = [
-  _SportEntry(label: 'All', slug: ''),
-  _SportEntry(label: 'Football', slug: 'football'),
-  _SportEntry(label: 'Basketball', slug: 'basketball'),
-  _SportEntry(label: 'Tennis', slug: 'tennis'),
-  _SportEntry(label: 'Badminton', slug: 'badminton'),
+  _SportEntry(label: 'Tất cả', slug: ''),
+  _SportEntry(label: 'Bóng đá', slug: 'football'),
+  _SportEntry(label: 'Cầu lông', slug: 'badminton'),
   _SportEntry(label: 'Pickleball', slug: 'pickleball'),
+  _SportEntry(label: 'Tennis', slug: 'tennis'),
+  _SportEntry(label: 'Đa năng', slug: 'multi'),
 ];
 
 /// Horizontal scrollable row of [FilterChip] widgets for sport-type filtering.

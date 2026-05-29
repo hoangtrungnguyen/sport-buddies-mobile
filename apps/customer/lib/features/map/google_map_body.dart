@@ -11,10 +11,7 @@
 //   - When [userCenter] is non-null the map animates to that position.
 //   - Otherwise it stays on the HCMC default.
 
-import 'package:customer/features/map/location_cubit.dart';
-import 'package:customer/features/map/location_state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:spb_core/spb_core.dart' as spb;
 
@@ -144,24 +141,10 @@ class ReactiveGoogleMapBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    spb.LatLng? userCenter;
-    try {
-      final locState =
-          context.watch<LocationCubit>().state;
-      if (locState is LocationLoaded && !locState.isDefault) {
-        userCenter = spb.LatLng(
-          locState.center.latitude,
-          locState.center.longitude,
-        );
-      }
-    } catch (_) {
-      // LocationCubit absent (tests / storybook) — use HCMC default.
-    }
-
     return GoogleMapBody(
       courts: courts,
       onMarkerTap: onMarkerTap,
-      userCenter: userCenter,
+      userCenter: null,
     );
   }
 }

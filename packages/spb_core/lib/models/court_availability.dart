@@ -22,7 +22,7 @@ abstract class CourtAvailability with _$CourtAvailability {
     required double lat,
     required double lng,
     required int openSlotCount,
-    @Default('') String sportType,
+    @Default(<String>[]) List<String> sportTypes,
   }) = _CourtAvailability;
 
   /// Map pin colour derived from [openSlotCount].

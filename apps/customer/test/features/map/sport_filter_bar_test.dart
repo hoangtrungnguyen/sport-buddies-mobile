@@ -28,7 +28,7 @@ void main() {
       expect(find.byType(FilterChip), findsNWidgets(6));
     });
 
-    testWidgets('labels include All, Football, Basketball, Tennis, Badminton, Pickleball',
+    testWidgets('labels include Tất cả, Bóng đá, Cầu lông, Pickleball, Tennis, Đa năng',
         (tester) async {
       await tester.pumpWidget(
         _wrap(
@@ -39,12 +39,12 @@ void main() {
         ),
       );
       for (final label in [
-        'All',
-        'Football',
-        'Basketball',
-        'Tennis',
-        'Badminton',
+        'Tất cả',
+        'Bóng đá',
+        'Cầu lông',
         'Pickleball',
+        'Tennis',
+        'Đa năng',
       ]) {
         expect(find.text(label), findsOneWidget,
             reason: 'Expected chip with label "$label"');
@@ -62,7 +62,7 @@ void main() {
         ),
       );
       final allChip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'All'),
+        find.widgetWithText(FilterChip, 'Tất cả'),
       );
       expect(allChip.selected, isTrue);
     });
@@ -78,7 +78,7 @@ void main() {
         ),
       );
       final allChip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'All'),
+        find.widgetWithText(FilterChip, 'Tất cả'),
       );
       expect(allChip.selected, isFalse);
     });
@@ -94,7 +94,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.widgetWithText(FilterChip, 'Football'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Bóng đá'));
       await tester.pump();
       expect(calls, hasLength(1));
       expect(calls.first, contains('football'));
@@ -111,7 +111,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.widgetWithText(FilterChip, 'All'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Tất cả'));
       await tester.pump();
       expect(calls, hasLength(1));
       expect(calls.first, isEmpty);
@@ -121,13 +121,13 @@ void main() {
       await tester.pumpWidget(
         _wrap(
           SportFilterBar(
-            selectedSports: const {'basketball'},
+            selectedSports: const {'multi'},
             onSportsChanged: (_) {},
           ),
         ),
       );
       final chip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'Basketball'),
+        find.widgetWithText(FilterChip, 'Đa năng'),
       );
       expect(chip.selected, isTrue);
     });
@@ -142,10 +142,10 @@ void main() {
         ),
       );
       final footballChip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'Football'),
+        find.widgetWithText(FilterChip, 'Bóng đá'),
       );
       final badmintonChip = tester.widget<FilterChip>(
-        find.widgetWithText(FilterChip, 'Badminton'),
+        find.widgetWithText(FilterChip, 'Cầu lông'),
       );
       expect(footballChip.selected, isTrue);
       expect(badmintonChip.selected, isTrue);
@@ -175,7 +175,7 @@ void main() {
           ),
         ),
       );
-      await tester.tap(find.widgetWithText(FilterChip, 'Football'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Bóng đá'));
       await tester.pump();
       expect(calls, hasLength(1));
       expect(calls.first, isNot(contains('football')));

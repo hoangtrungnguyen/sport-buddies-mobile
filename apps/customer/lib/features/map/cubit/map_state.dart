@@ -48,7 +48,7 @@ final class MapLoaded extends MapState {
   }) {
     return courts.where((court) {
       if (onlyWithOpenSlots && court.openSlotCount == 0) return false;
-      if (sports.isNotEmpty && !sports.contains(court.sportType)) return false;
+      if (sports.isNotEmpty && !court.sportTypes.any(sports.contains)) return false;
       if (maxDistanceKm != null && userPos != null) {
         final courtPos = LatLng(court.lat, court.lng);
         if (!userPos.isWithinRadius(courtPos, maxDistanceKm)) return false;

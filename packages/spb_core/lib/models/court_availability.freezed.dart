@@ -19,7 +19,7 @@ mixin _$CourtAvailability {
   double get lat;
   double get lng;
   int get openSlotCount;
-  String get sportType;
+  List<String> get sportTypes;
 
   /// Create a copy of CourtAvailability
   /// with the given fields replaced by the non-null parameter values.
@@ -40,17 +40,17 @@ mixin _$CourtAvailability {
             (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.openSlotCount, openSlotCount) ||
                 other.openSlotCount == openSlotCount) &&
-            (identical(other.sportType, sportType) ||
-                other.sportType == sportType));
+            const DeepCollectionEquality()
+                .equals(other.sportTypes, sportTypes));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, courtId, name, lat, lng, openSlotCount, sportType);
+  int get hashCode => Object.hash(runtimeType, courtId, name, lat, lng,
+      openSlotCount, const DeepCollectionEquality().hash(sportTypes));
 
   @override
   String toString() {
-    return 'CourtAvailability(courtId: $courtId, name: $name, lat: $lat, lng: $lng, openSlotCount: $openSlotCount, sportType: $sportType)';
+    return 'CourtAvailability(courtId: $courtId, name: $name, lat: $lat, lng: $lng, openSlotCount: $openSlotCount, sportTypes: $sportTypes)';
   }
 }
 
@@ -66,7 +66,7 @@ abstract mixin class $CourtAvailabilityCopyWith<$Res> {
       double lat,
       double lng,
       int openSlotCount,
-      String sportType});
+      List<String> sportTypes});
 }
 
 /// @nodoc
@@ -87,7 +87,7 @@ class _$CourtAvailabilityCopyWithImpl<$Res>
     Object? lat = null,
     Object? lng = null,
     Object? openSlotCount = null,
-    Object? sportType = null,
+    Object? sportTypes = null,
   }) {
     return _then(_self.copyWith(
       courtId: null == courtId
@@ -110,10 +110,10 @@ class _$CourtAvailabilityCopyWithImpl<$Res>
           ? _self.openSlotCount
           : openSlotCount // ignore: cast_nullable_to_non_nullable
               as int,
-      sportType: null == sportType
-          ? _self.sportType
-          : sportType // ignore: cast_nullable_to_non_nullable
-              as String,
+      sportTypes: null == sportTypes
+          ? _self.sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -212,7 +212,7 @@ extension CourtAvailabilityPatterns on CourtAvailability {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(String courtId, String name, double lat, double lng,
-            int openSlotCount, String sportType)?
+            int openSlotCount, List<String> sportTypes)?
         $default, {
     required TResult orElse(),
   }) {
@@ -220,7 +220,7 @@ extension CourtAvailabilityPatterns on CourtAvailability {
     switch (_that) {
       case _CourtAvailability() when $default != null:
         return $default(_that.courtId, _that.name, _that.lat, _that.lng,
-            _that.openSlotCount, _that.sportType);
+            _that.openSlotCount, _that.sportTypes);
       case _:
         return orElse();
     }
@@ -242,14 +242,14 @@ extension CourtAvailabilityPatterns on CourtAvailability {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(String courtId, String name, double lat, double lng,
-            int openSlotCount, String sportType)
+            int openSlotCount, List<String> sportTypes)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CourtAvailability():
         return $default(_that.courtId, _that.name, _that.lat, _that.lng,
-            _that.openSlotCount, _that.sportType);
+            _that.openSlotCount, _that.sportTypes);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -270,14 +270,14 @@ extension CourtAvailabilityPatterns on CourtAvailability {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(String courtId, String name, double lat, double lng,
-            int openSlotCount, String sportType)?
+            int openSlotCount, List<String> sportTypes)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _CourtAvailability() when $default != null:
         return $default(_that.courtId, _that.name, _that.lat, _that.lng,
-            _that.openSlotCount, _that.sportType);
+            _that.openSlotCount, _that.sportTypes);
       case _:
         return null;
     }
@@ -293,8 +293,9 @@ class _CourtAvailability extends CourtAvailability {
       required this.lat,
       required this.lng,
       required this.openSlotCount,
-      this.sportType = ''})
-      : super._();
+      final List<String> sportTypes = const <String>[]})
+      : _sportTypes = sportTypes,
+        super._();
 
   @override
   final String courtId;
@@ -306,9 +307,14 @@ class _CourtAvailability extends CourtAvailability {
   final double lng;
   @override
   final int openSlotCount;
+  final List<String> _sportTypes;
   @override
   @JsonKey()
-  final String sportType;
+  List<String> get sportTypes {
+    if (_sportTypes is EqualUnmodifiableListView) return _sportTypes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sportTypes);
+  }
 
   /// Create a copy of CourtAvailability
   /// with the given fields replaced by the non-null parameter values.
@@ -329,17 +335,17 @@ class _CourtAvailability extends CourtAvailability {
             (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.openSlotCount, openSlotCount) ||
                 other.openSlotCount == openSlotCount) &&
-            (identical(other.sportType, sportType) ||
-                other.sportType == sportType));
+            const DeepCollectionEquality()
+                .equals(other._sportTypes, _sportTypes));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, courtId, name, lat, lng, openSlotCount, sportType);
+  int get hashCode => Object.hash(runtimeType, courtId, name, lat, lng,
+      openSlotCount, const DeepCollectionEquality().hash(_sportTypes));
 
   @override
   String toString() {
-    return 'CourtAvailability(courtId: $courtId, name: $name, lat: $lat, lng: $lng, openSlotCount: $openSlotCount, sportType: $sportType)';
+    return 'CourtAvailability(courtId: $courtId, name: $name, lat: $lat, lng: $lng, openSlotCount: $openSlotCount, sportTypes: $sportTypes)';
   }
 }
 
@@ -357,7 +363,7 @@ abstract mixin class _$CourtAvailabilityCopyWith<$Res>
       double lat,
       double lng,
       int openSlotCount,
-      String sportType});
+      List<String> sportTypes});
 }
 
 /// @nodoc
@@ -378,7 +384,7 @@ class __$CourtAvailabilityCopyWithImpl<$Res>
     Object? lat = null,
     Object? lng = null,
     Object? openSlotCount = null,
-    Object? sportType = null,
+    Object? sportTypes = null,
   }) {
     return _then(_CourtAvailability(
       courtId: null == courtId
@@ -401,10 +407,10 @@ class __$CourtAvailabilityCopyWithImpl<$Res>
           ? _self.openSlotCount
           : openSlotCount // ignore: cast_nullable_to_non_nullable
               as int,
-      sportType: null == sportType
-          ? _self.sportType
-          : sportType // ignore: cast_nullable_to_non_nullable
-              as String,
+      sportTypes: null == sportTypes
+          ? _self._sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }

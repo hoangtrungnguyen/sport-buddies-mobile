@@ -69,8 +69,8 @@ class SupabaseCourtAvailabilityRepository
           return startTime != null && startTime.isAfter(now);
         }).length;
 
-        final sportTypes = (row['sport_types'] as List<dynamic>?) ?? [];
-        final sportType = sportTypes.isNotEmpty ? sportTypes.first as String : '';
+        final sportTypes = ((row['sport_types'] as List<dynamic>?) ?? [])
+            .cast<String>();
 
         return CourtAvailability(
           courtId: row['id'] as String,
@@ -78,7 +78,7 @@ class SupabaseCourtAvailabilityRepository
           lat: (row['lat'] as num).toDouble(),
           lng: (row['lng'] as num).toDouble(),
           openSlotCount: openSlotCount,
-          sportType: sportType,
+          sportTypes: sportTypes,
         );
       }).toList();
 

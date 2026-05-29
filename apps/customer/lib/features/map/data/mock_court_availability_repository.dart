@@ -13,7 +13,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.7993,
       lng: 106.6795,
       openSlotCount: 4,
-      sportType: 'badminton',
+      sportTypes: ['badminton'],
     ),
     CourtAvailability(
       courtId: 'mock-002',
@@ -21,7 +21,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.8380,
       lng: 106.6648,
       openSlotCount: 2,
-      sportType: 'football',
+      sportTypes: ['football'],
     ),
     CourtAvailability(
       courtId: 'mock-003',
@@ -29,7 +29,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.8141,
       lng: 106.7062,
       openSlotCount: 0,
-      sportType: 'pickleball',
+      sportTypes: ['pickleball'],
     ),
     CourtAvailability(
       courtId: 'mock-004',
@@ -37,7 +37,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.7785,
       lng: 106.6894,
       openSlotCount: 1,
-      sportType: 'tennis',
+      sportTypes: ['tennis'],
     ),
     CourtAvailability(
       courtId: 'mock-005',
@@ -45,7 +45,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.8526,
       lng: 106.7541,
       openSlotCount: 6,
-      sportType: 'multi',
+      sportTypes: ['football', 'badminton', 'tennis', 'pickleball'],
     ),
     CourtAvailability(
       courtId: 'mock-006',
@@ -53,7 +53,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.7322,
       lng: 106.7187,
       openSlotCount: 3,
-      sportType: 'badminton',
+      sportTypes: ['badminton'],
     ),
     CourtAvailability(
       courtId: 'mock-007',
@@ -61,7 +61,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.8017,
       lng: 106.6528,
       openSlotCount: 0,
-      sportType: 'football',
+      sportTypes: ['football'],
     ),
     CourtAvailability(
       courtId: 'mock-008',
@@ -69,7 +69,7 @@ class MockCourtAvailabilityRepository implements CourtAvailabilityRepository {
       lat: 10.7769,
       lng: 106.7009,
       openSlotCount: 5,
-      sportType: 'pickleball',
+      sportTypes: ['pickleball'],
     ),
   ];
 

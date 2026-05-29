@@ -104,6 +104,7 @@ class _MapBody extends StatefulWidget {
 class _MapBodyState extends State<_MapBody> {
   MapCubit? _cubit;
   bool _showSlotList = false;
+  final _mapController = MapController();
 
   @override
   void didChangeDependencies() {
@@ -129,42 +130,44 @@ class _MapBodyState extends State<_MapBody> {
           child: Stack(
             children: [
               _buildMapArea(context),
-              // Bottom panel: slot list or court preview.
+              // Toggle + panel stacked at bottom — toggle naturally sits
+              // above the panel regardless of panel height.
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: _showSlotList
-                    ? _SlotListPanel(
-                        onClose: () => setState(() => _showSlotList = false),
-                      )
-                    : _SelectedCourtPanel(cubit: _cubit),
-              ),
-              // View toggle — sits above the panel.
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: _showSlotList ? 348 : 176,
-                child: Center(
-                  child: _cubit == null
-                      ? _ViewToggle(
-                          isSlotView: _showSlotList,
-                          openSlotCount: 0,
-                          onToggle: (v) => _toggleSlotView(context, v),
-                        )
-                      : BlocBuilder<MapCubit, MapState>(
-                          builder: (ctx, state) {
-                            final total = state is MapLoaded
-                                ? state.courts
-                                    .fold<int>(0, (s, c) => s + c.openSlotCount)
-                                : 0;
-                            return _ViewToggle(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: _cubit == null
+                          ? _ViewToggle(
                               isSlotView: _showSlotList,
-                              openSlotCount: total,
-                              onToggle: (v) => _toggleSlotView(ctx, v),
-                            );
-                          },
-                        ),
+                              openSlotCount: 0,
+                              onToggle: (v) => _toggleSlotView(context, v),
+                            )
+                          : BlocBuilder<MapCubit, MapState>(
+                              builder: (ctx, state) {
+                                final total = state is MapLoaded
+                                    ? state.courts.fold<int>(
+                                        0, (s, c) => s + c.openSlotCount)
+                                    : 0;
+                                return _ViewToggle(
+                                  isSlotView: _showSlotList,
+                                  openSlotCount: total,
+                                  onToggle: (v) => _toggleSlotView(ctx, v),
+                                );
+                              },
+                            ),
+                    ),
+                    const SizedBox(height: 8),
+                    _showSlotList
+                        ? _SlotListPanel(
+                            onClose: () =>
+                                setState(() => _showSlotList = false),
+                          )
+                        : _SelectedCourtPanel(cubit: _cubit),
+                  ],
                 ),
               ),
             ],
@@ -186,7 +189,11 @@ class _MapBodyState extends State<_MapBody> {
 
   Widget _buildMapArea(BuildContext context) {
     if (_cubit == null) {
-      return _buildFlutterMap(courts: const [], onMarkerTap: (_) {});
+      return _buildFlutterMap(
+        courts: const [],
+        onMarkerTap: (_) {},
+        mapController: _mapController,
+      );
     }
 
     return BlocConsumer<MapCubit, MapState>(
@@ -224,6 +231,7 @@ class _MapBodyState extends State<_MapBody> {
                   courts: filtered,
                   onMarkerTap: (court) => _cubit!.selectCourt(court),
                   userPos: userPos,
+                  mapController: _mapController,
                 ),
                 if (isLoading)
                   const Positioned(
@@ -238,6 +246,7 @@ class _MapBodyState extends State<_MapBody> {
         );
       },
     );
+
   }
 
   // Reads the user's real GPS position from LocationCubit (spb_core LatLng).
@@ -282,6 +291,7 @@ class _MapBodyState extends State<_MapBody> {
     required List<CourtAvailability> courts,
     required void Function(CourtAvailability) onMarkerTap,
     LatLng? userPos,
+    MapController? mapController,
   }) {
     if (Env.mapProvider.trim() == 'google' && _isGoogleKeyValid) {
       return ReactiveGoogleMapBody(
@@ -293,6 +303,7 @@ class _MapBodyState extends State<_MapBody> {
       courts: courts,
       onMarkerTap: onMarkerTap,
       userCenter: userPos,
+      mapController: mapController,
     );
   }
 
@@ -304,11 +315,13 @@ class _MapBodyState extends State<_MapBody> {
     required List<CourtAvailability> courts,
     required void Function(CourtAvailability) onMarkerTap,
     LatLng? userCenter,
+    MapController? mapController,
   }) {
     final center = userCenter != null
         ? ll.LatLng(userCenter.lat, userCenter.lng)
         : _hcmcLatLng;
     return FlutterMap(
+      mapController: mapController,
       options: MapOptions(
         initialCenter: center,
         initialZoom: _defaultZoom,
@@ -357,6 +370,7 @@ class _MapBodyState extends State<_MapBody> {
       return null;
     }
   }
+
 }
 
 // ---------------------------------------------------------------------------
@@ -1063,13 +1077,6 @@ class _FilterSheet extends StatelessWidget {
                 label: 'Chỉ hiển thị sân còn slot trống',
                 checked: state.onlyWithOpenSlots,
                 onTap: cubit.toggleOnlyOpenSlots,
-              ),
-              const SizedBox(height: 12),
-              // "Có slot mở chơi ghép" — pending open-slot feature
-              _CheckboxRow(
-                label: 'Có slot mở chơi ghép',
-                checked: false,
-                onTap: () {},
               ),
               const SizedBox(height: 24),
               SizedBox(
