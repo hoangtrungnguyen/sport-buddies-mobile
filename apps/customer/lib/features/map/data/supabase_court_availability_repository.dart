@@ -35,6 +35,7 @@
 // via two separate queries (courts + slot counts). For now the RPC path is
 // used; the fallback is left for a later migration task.
 
+import 'package:customer/core/debug/app_logger.dart';
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -58,10 +59,15 @@ class SupabaseCourtAvailabilityRepository
           )
           .eq('status', 'approved');
 
-      final courts = (rows as List<dynamic>).map((row) {
+      final now = DateTime.now().toUtc();
+      final in24h = now.add(const Duration(hours: 24));
+
+      final courts = (rows as List<dynamic>).expand((row) {
+        final lat = row['lat'];
+        final lng = row['lng'];
+        if (lat == null || lng == null) return const <CourtAvailability>[];
+
         final slots = (row['slots'] as List<dynamic>?) ?? [];
-        final now = DateTime.now().toUtc();
-        final in24h = now.add(const Duration(hours: 24));
         final openSlotCount = slots.where((s) {
           final status = s['status'] as String? ?? '';
           final startTimeRaw = s['start_at'];
@@ -72,23 +78,30 @@ class SupabaseCourtAvailabilityRepository
               startTime.isBefore(in24h);
         }).length;
 
-        final sportTypes = ((row['sport_types'] as List<dynamic>?) ?? [])
-            .cast<String>();
+        final sportTypes =
+            ((row['sport_types'] as List<dynamic>?) ?? []).cast<String>();
 
-        return CourtAvailability(
-          courtId: row['id'] as String,
-          name: row['name'] as String,
-          lat: (row['lat'] as num).toDouble(),
-          lng: (row['lng'] as num).toDouble(),
-          openSlotCount: openSlotCount,
-          sportTypes: sportTypes,
-        );
+        return [
+          CourtAvailability(
+            courtId: row['id'] as String,
+            name: row['name'] as String,
+            lat: (lat as num).toDouble(),
+            lng: (lng as num).toDouble(),
+            openSlotCount: openSlotCount,
+            sportTypes: sportTypes,
+          ),
+        ];
       }).toList();
 
       return Success(courts);
-    } on PostgrestException catch (e) {
-      return Failure(ServerFailure(e.code != null ? int.tryParse(e.code!) ?? 0 : 0));
-    } catch (_) {
+    } on PostgrestException catch (e, st) {
+      appLogger.e('fetchCourtsWithAvailability: PostgREST error',
+          error: e, stackTrace: st);
+      return Failure(
+          ServerFailure(e.code != null ? int.tryParse(e.code!) ?? 0 : 0));
+    } catch (e, st) {
+      appLogger.e('fetchCourtsWithAvailability: unexpected error',
+          error: e, stackTrace: st);
       return const Failure(NetworkFailure());
     }
   }
