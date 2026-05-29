@@ -716,22 +716,29 @@ class _NavItem extends StatelessWidget {
 
   bool get _active => location == entry.route;
 
+  String get _semanticsLabel =>
+      'nav-${entry.route == '/' ? 'home' : entry.route.replaceAll('/', '')}';
+
   @override
   Widget build(BuildContext context) {
+    // GestureDetector + Semantics(onTap) reliably generates an interactive
+    // flt-semantics node with aria-label, unlike Material > InkWell which
+    // swallows the custom label in the semantics tree.
     return Semantics(
-      label: 'nav-${entry.route.replaceAll('/', '') == '' ? 'home' : entry.route.replaceAll('/', '')}',
+      label: _semanticsLabel,
       button: true,
-      child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
-      child: Material(
-        color: _active ? AppColors.primaryLight : Colors.transparent,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: () => context.go(entry.route),
+      onTap: () => context.go(entry.route),
+      child: GestureDetector(
+        onTap: () => context.go(entry.route),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+          decoration: BoxDecoration(
+            color: _active ? AppColors.primaryLight : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 12, vertical: 9),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
             child: Row(
               children: [
                 Icon(entry.icon,
@@ -745,9 +752,8 @@ class _NavItem extends StatelessWidget {
                     entry.label,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13.5,
-                      fontWeight: _active
-                          ? FontWeight.w600
-                          : FontWeight.w500,
+                      fontWeight:
+                          _active ? FontWeight.w600 : FontWeight.w500,
                       color: _active
                           ? AppColors.primaryDark
                           : AppColors.neutral700,
@@ -779,7 +785,6 @@ class _NavItem extends StatelessWidget {
             ),
           ),
         ),
-      ),
       ),
     );
   }

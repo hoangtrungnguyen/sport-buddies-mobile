@@ -5,6 +5,10 @@ import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/auth/view/forgot_password_screen.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
 import 'package:dashboard/features/auth/view/signup_screen.dart';
+import 'package:dashboard/features/schedule/bloc/schedule_bloc.dart';
+import 'package:dashboard/features/schedule/repository/manual_booking_repository.dart';
+import 'package:dashboard/features/schedule/repository/owner_slot_repository.dart';
+import 'package:dashboard/features/schedule/view/schedule_screen.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_event.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
@@ -105,8 +109,14 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/schedule',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Lịch sân', Icons.calendar_today_outlined),
+            builder: (context, state) => BlocProvider(
+              create: (_) => ScheduleBloc(
+                slotRepository: sl<OwnerSlotRepository>(),
+                bookingRepository: sl<ManualBookingRepository>(),
+                loadCourts: () => sl<OwnerCourtRepository>().getCourts(),
+              )..add(const ScheduleEvent.started()),
+              child: const ScheduleScreen(),
+            ),
           ),
           GoRoute(
             path: '/fixed',
