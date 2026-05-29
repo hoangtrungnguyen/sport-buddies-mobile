@@ -1,7 +1,10 @@
 import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
+import 'package:dashboard/features/auth/bloc/signup_bloc.dart';
+import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/auth/view/forgot_password_screen.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
+import 'package:dashboard/features/auth/view/signup_screen.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_event.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
@@ -17,14 +20,17 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 GoRouter buildRouter() {
-  const publicPaths = {'/login', '/forgot-password'};
+  const publicPaths = {'/login', '/signup', '/forgot-password'};
 
   AuthBloc createAuthBloc() {
     SupabaseClient? client;
     try {
       client = Supabase.instance.client;
     } catch (_) {}
-    return AuthBloc(supabaseClient: client);
+    return AuthBloc(
+      ownerAuthRepository: sl<OwnerAuthRepository>(),
+      supabaseClient: client,
+    );
   }
 
   return GoRouter(
@@ -50,6 +56,13 @@ GoRouter buildRouter() {
           create: (_) =>
               createAuthBloc()..add(const AuthEvent.appStarted()),
           child: const LoginScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/signup',
+        builder: (context, state) => BlocProvider(
+          create: (_) => SignupBloc(sl<OwnerAuthRepository>()),
+          child: const SignupScreen(),
         ),
       ),
       GoRoute(
@@ -143,7 +156,10 @@ class _PlaceholderScreen extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 40, color: AppColors.neutral300),
+          Semantics(
+            label: 'placeholder-$title',
+            child: Icon(icon, size: 40, color: AppColors.neutral300),
+          ),
           const SizedBox(height: 12),
           Text(
             '$title — đang được phát triển',

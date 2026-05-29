@@ -30,6 +30,9 @@ dependencies:
   # Backend
   supabase_flutter: ^2.0.0
 
+  # HTTP client for the SportBuddies REST API (owner signup, etc.)
+  dio: ^5.7.0
+
   # Localisation
   intl: ^0.20.2
 
