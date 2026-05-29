@@ -80,7 +80,7 @@ class SupabaseSlotRepository implements SlotRepository {
       final rows = await _client
           .from('slots')
           .select(_slotSelect)
-          .eq('status', 'open')
+          .eq('status', 'booked')
           .eq('access_policy', 'open')
           .gt('start_at', now)
           .order('start_at', ascending: true);
