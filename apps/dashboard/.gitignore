@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local Flutter web run config (secrets) — keep scripts/.env.web.example tracked
+scripts/.env.web

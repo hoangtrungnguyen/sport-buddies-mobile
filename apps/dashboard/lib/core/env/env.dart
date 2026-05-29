@@ -11,6 +11,15 @@ abstract final class Env {
   static const String supabaseAnonKey =
       String.fromEnvironment('SUPABASE_ANON_KEY');
 
+  /// Base URL of the SportBuddies REST backend (Django) — used for endpoints
+  /// that are not served directly by Supabase, e.g. `POST /auth/owner/signup`.
+  /// Defaults to the conventional local Django dev server; override with
+  /// `--dart-define=API_BASE_URL=https://api.example.com`.
+  static const String apiBaseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
+
   /// Throws [StateError] when required vars are missing.
   static void assertConfigured() {
     final missing = <String>[
