@@ -12,6 +12,9 @@ import 'package:dashboard/features/schedule/view/schedule_screen.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_event.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
+import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
+import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
+import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_event.dart';
@@ -104,8 +107,12 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/requests',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Yêu cầu đặt sân', Icons.inbox_outlined),
+            builder: (context, state) => BlocProvider(
+              create: (_) => RequestsBloc(
+                repository: sl<BookingRequestRepository>(),
+              )..add(const RequestsEvent.started()),
+              child: const RequestsScreen(),
+            ),
           ),
           GoRoute(
             path: '/schedule',
