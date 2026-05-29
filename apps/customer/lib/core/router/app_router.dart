@@ -97,8 +97,9 @@ GoRouter buildRouter() {
                     BlocProvider(
                       create: (_) => MapCubit(
                         repository: SupabaseCourtAvailabilityRepository(
-                                Supabase.instance.client,
-                              ),
+                          Supabase.instance.client,
+                        ),
+                        realtimeClient: Supabase.instance.client,
                       )..loadCourts(),
                     ),
                     BlocProvider(

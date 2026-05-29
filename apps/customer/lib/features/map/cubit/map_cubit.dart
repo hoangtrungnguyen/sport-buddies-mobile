@@ -9,6 +9,7 @@
 import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'map_state.dart';
 
@@ -23,11 +24,37 @@ part 'map_state.dart';
 /// When availability data changes (e.g. a slot is booked), the widget can
 /// call [loadCourts] again to refresh the markers.
 class MapCubit extends Cubit<MapState> {
-  MapCubit({required CourtAvailabilityRepository repository})
-      : _repository = repository,
-        super(const MapInitial());
+  MapCubit({
+    required CourtAvailabilityRepository repository,
+    SupabaseClient? realtimeClient,
+  })  : _repository = repository,
+        super(const MapInitial()) {
+    _setupRealtime(realtimeClient);
+  }
 
   final CourtAvailabilityRepository _repository;
+  RealtimeChannel? _channel;
+
+  void _setupRealtime(SupabaseClient? client) {
+    if (client == null) return;
+    _channel = client
+        .channel('map_slots_availability')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'slots',
+          callback: (_) {
+            if (!isClosed) loadCourts();
+          },
+        );
+    _channel!.subscribe();
+  }
+
+  @override
+  Future<void> close() {
+    _channel?.unsubscribe();
+    return super.close();
+  }
 
   /// Fetches courts with availability and updates state.
   ///

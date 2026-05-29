@@ -5,7 +5,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'court_availability.freezed.dart';
 
 const Color _markerGreen = Color(0xFF2E7D32);
-const Color _markerGrey = Color(0xFF9E9E9E);
+const Color _markerRed = Color(0xFFC62828);
 
 /// An approved court enriched with real-time slot availability.
 ///
@@ -26,5 +26,5 @@ abstract class CourtAvailability with _$CourtAvailability {
   }) = _CourtAvailability;
 
   /// Map pin colour derived from [openSlotCount].
-  Color get markerColor => openSlotCount > 0 ? _markerGreen : _markerGrey;
+  Color get markerColor => openSlotCount > 0 ? _markerGreen : _markerRed;
 }

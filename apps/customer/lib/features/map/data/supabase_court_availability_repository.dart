@@ -61,12 +61,15 @@ class SupabaseCourtAvailabilityRepository
       final courts = (rows as List<dynamic>).map((row) {
         final slots = (row['slots'] as List<dynamic>?) ?? [];
         final now = DateTime.now().toUtc();
+        final in24h = now.add(const Duration(hours: 24));
         final openSlotCount = slots.where((s) {
           final status = s['status'] as String? ?? '';
           final startTimeRaw = s['start_at'];
           if (status != 'open' || startTimeRaw == null) return false;
           final startTime = DateTime.tryParse(startTimeRaw as String);
-          return startTime != null && startTime.isAfter(now);
+          return startTime != null &&
+              startTime.isAfter(now) &&
+              startTime.isBefore(in24h);
         }).length;
 
         final sportTypes = ((row['sport_types'] as List<dynamic>?) ?? [])
