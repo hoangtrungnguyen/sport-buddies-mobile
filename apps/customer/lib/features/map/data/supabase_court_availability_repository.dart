@@ -54,7 +54,7 @@ class SupabaseCourtAvailabilityRepository
       final rows = await _client
           .from('courts')
           .select(
-            'id, name, lat, lng, sport_type, slots!left(id, status, start_time)',
+            'id, name, lat, lng, sport_types, slots!left(id, status, start_at)',
           )
           .eq('status', 'approved');
 
@@ -63,11 +63,14 @@ class SupabaseCourtAvailabilityRepository
         final now = DateTime.now().toUtc();
         final openSlotCount = slots.where((s) {
           final status = s['status'] as String? ?? '';
-          final startTimeRaw = s['start_time'];
+          final startTimeRaw = s['start_at'];
           if (status != 'open' || startTimeRaw == null) return false;
           final startTime = DateTime.tryParse(startTimeRaw as String);
           return startTime != null && startTime.isAfter(now);
         }).length;
+
+        final sportTypes = (row['sport_types'] as List<dynamic>?) ?? [];
+        final sportType = sportTypes.isNotEmpty ? sportTypes.first as String : '';
 
         return CourtAvailability(
           courtId: row['id'] as String,
@@ -75,7 +78,7 @@ class SupabaseCourtAvailabilityRepository
           lat: (row['lat'] as num).toDouble(),
           lng: (row['lng'] as num).toDouble(),
           openSlotCount: openSlotCount,
-          sportType: (row['sport_type'] as String?) ?? '',
+          sportType: sportType,
         );
       }).toList();
 
