@@ -29,7 +29,7 @@ class _ScheduleOverviewScreenState extends State<ScheduleOverviewScreen> {
         title: const Text('Lịch tổng hợp'),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: BackButton(onPressed: () => context.pop()),
+        leading: const BackButton(),
       ),
       body: BlocBuilder<ScheduleOverviewCubit, ScheduleOverviewState>(
         builder: (context, state) => switch (state) {
