@@ -16,6 +16,7 @@
 
 import 'package:customer/features/map/cubit/map_cubit.dart';
 import 'package:customer/features/map/map_screen.dart';
+import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -30,6 +31,37 @@ import 'package:spb_core/spb_core.dart';
 class MockCourtAvailabilityRepository extends Mock
     implements CourtAvailabilityRepository {}
 
+class MockSlotRepository extends Mock implements SlotRepository {}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/// Pumps [MapScreen] with both required cubits.
+Future<void> pumpMapScreen(
+  WidgetTester tester, {
+  required MapCubit mapCubit,
+  SlotListCubit? slotCubit,
+}) async {
+  final sc = slotCubit ?? _defaultSlotCubit();
+  await tester.pumpWidget(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider<MapCubit>(create: (_) => mapCubit),
+        BlocProvider<SlotListCubit>(create: (_) => sc),
+      ],
+      child: const MaterialApp(home: MapScreen()),
+    ),
+  );
+}
+
+SlotListCubit _defaultSlotCubit() {
+  final repo = MockSlotRepository();
+  when(() => repo.fetchAllGroupSlots())
+      .thenAnswer((_) async => const Success([]));
+  return SlotListCubit(repo);
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -40,32 +72,22 @@ void main() {
         (WidgetTester tester) async {
       final mockRepo = MockCourtAvailabilityRepository();
       when(() => mockRepo.fetchCourtsWithAvailability())
-          .thenAnswer((_) async => Success(const []));
+          .thenAnswer((_) async => const Success([]));
       final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       expect(find.byType(MapScreen), findsOneWidget);
     });
 
     testWidgets('contains a FlutterMap widget', (WidgetTester tester) async {
       final mockRepo = MockCourtAvailabilityRepository();
       when(() => mockRepo.fetchCourtsWithAvailability())
-          .thenAnswer((_) async => Success(const []));
+          .thenAnswer((_) async => const Success([]));
       final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       expect(find.byType(FlutterMap), findsOneWidget);
     });
 
@@ -73,16 +95,11 @@ void main() {
         (WidgetTester tester) async {
       final mockRepo = MockCourtAvailabilityRepository();
       when(() => mockRepo.fetchCourtsWithAvailability())
-          .thenAnswer((_) async => Success(const []));
+          .thenAnswer((_) async => const Success([]));
       final cubit = MapCubit(repository: mockRepo);
       addTearDown(cubit.close);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       expect(find.byType(Scaffold), findsAtLeastNWidgets(1));
     });
 
@@ -92,12 +109,7 @@ void main() {
       addTearDown(cubit.close);
       cubit.setLoading();
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
@@ -118,12 +130,7 @@ void main() {
       addTearDown(cubit.close);
       cubit.setLoaded(courts);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       expect(find.byType(MarkerLayer), findsOneWidget);
@@ -144,12 +151,7 @@ void main() {
       addTearDown(cubit.close);
       cubit.setLoaded(courts);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       await tester.tap(find.byIcon(Icons.location_pin));
@@ -164,13 +166,7 @@ void main() {
       final cubit = _ManualMapCubit();
       addTearDown(cubit.close);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
-
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       // After pump, loadCourts() is called and completes with empty list
@@ -186,12 +182,7 @@ void main() {
       addTearDown(cubit.close);
       cubit.setLoaded(const []);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       expect(find.byIcon(Icons.location_off), findsOneWidget);
@@ -203,12 +194,7 @@ void main() {
       addTearDown(cubit.close);
       cubit.setLoaded(const []);
 
-      await tester.pumpWidget(
-        BlocProvider<MapCubit>(
-          create: (_) => cubit,
-          child: const MaterialApp(home: MapScreen()),
-        ),
-      );
+      await pumpMapScreen(tester, mapCubit: cubit);
       await tester.pump();
 
       expect(
@@ -232,8 +218,6 @@ class _ManualMapCubit extends MapCubit {
 class _FakeRepository implements CourtAvailabilityRepository {
   @override
   Future<Result<List<CourtAvailability>>> fetchCourtsWithAvailability() async {
-    // Return empty list by default - tests should use setLoaded/setLoading/setError
-    // to control the state directly
     return const Success([]);
   }
 }

@@ -1,95 +1,120 @@
+import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:spb_core/spb_core.dart';
 
-class SlotDetailScreen extends StatelessWidget {
-  const SlotDetailScreen({super.key, required this.slotId, this.isFull = false});
+class SlotDetailScreen extends StatefulWidget {
+  const SlotDetailScreen({super.key, required this.slotId});
 
   final String slotId;
-  final bool isFull;
 
-  static const _players = [
-    _PlayerData(
-      initials: 'TM',
-      color: Color(0xFF16A34A),
-      name: 'Trần Minh',
-      sub: 'Chủ slot · ⭐ 4.8 · 12 trận',
-      isHost: true,
-    ),
-    _PlayerData(
-      initials: 'NH',
-      color: Color(0xFF0EA5E9),
-      name: 'Nguyễn Hoàng',
-      sub: '⭐ 4.6 · 8 trận',
-      isHost: false,
-    ),
-    _PlayerData(
-      initials: 'PT',
-      color: Color(0xFFEAB308),
-      name: 'Phạm Thuỷ',
-      sub: '⭐ 4.9 · 14 trận',
-      isHost: false,
-    ),
-  ];
+  @override
+  State<SlotDetailScreen> createState() => _SlotDetailScreenState();
+}
 
-  static const int _joined = 3;
-  static const int _max = 6;
+class _SlotDetailScreenState extends State<SlotDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<SlotDetailCubit>().loadSlot(widget.slotId);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final joined = isFull ? _max : _joined;
-    final max = _max;
-    final full = joined >= max;
-    final empties = full ? 0 : max - joined;
-    final displayPlayers = isFull ? _players : _players;
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('Chi tiết slot'),
-        backgroundColor: const Color(0xFFF9FAFB),
-        elevation: 0,
-        leading: BackButton(onPressed: () => context.pop()),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {},
+    return BlocBuilder<SlotDetailCubit, SlotDetailState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF9FAFB),
+          appBar: AppBar(
+            title: const Text('Chi tiết slot'),
+            backgroundColor: const Color(0xFFF9FAFB),
+            elevation: 0,
+            leading: BackButton(onPressed: () => context.pop()),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share_outlined),
+                onPressed: () {},
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _HeroSection(),
-                const SizedBox(height: 8),
-                _TimeCard(),
-                const SizedBox(height: 12),
-                _FullnessCard(
-                  joined: joined,
-                  max: max,
-                  full: full,
-                  empties: empties,
-                  players: displayPlayers,
+          body: switch (state) {
+            SlotDetailLoading() || SlotDetailInitial() => const Center(
+                child: CircularProgressIndicator(),
+              ),
+            SlotDetailError(message: final msg) => Center(
+                child: Text(
+                  msg,
+                  style: const TextStyle(color: Color(0xFF6B7280)),
                 ),
-                const SizedBox(height: 12),
-                _HostMessageCard(),
-                const SizedBox(height: 12),
-              ],
-            ),
+              ),
+            SlotDetailLoaded(slot: final slot) => _Body(slot: slot),
+          },
+        );
+      },
+    );
+  }
+}
+
+class _Body extends StatelessWidget {
+  const _Body({required this.slot});
+
+  final Slot slot;
+
+  @override
+  Widget build(BuildContext context) {
+    final joined = slot.currentPlayers;
+    final max = slot.maxPlayers;
+    final full = slot.isFull;
+    final empties = full ? 0 : max - joined;
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 100),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _HeroSection(slot: slot),
+              const SizedBox(height: 8),
+              _TimeCard(slot: slot),
+              const SizedBox(height: 12),
+              _FullnessCard(
+                joined: joined,
+                max: max,
+                full: full,
+                empties: empties,
+              ),
+              const SizedBox(height: 12),
+              _HostMessageCard(),
+              const SizedBox(height: 12),
+            ],
           ),
-          _StickyCtaBar(isFull: full),
-        ],
-      ),
+        ),
+        _StickyCtaBar(isFull: full, slot: slot),
+      ],
     );
   }
 }
 
 class _HeroSection extends StatelessWidget {
+  const _HeroSection({required this.slot});
+
+  final Slot slot;
+
+  static const _sportIcons = <String, IconData>{
+    'pickleball': Icons.sports_tennis,
+    'badminton': Icons.sports_tennis,
+    'tennis': Icons.sports_tennis,
+    'football': Icons.sports_soccer,
+    'basketball': Icons.sports_basketball,
+    'volleyball': Icons.sports_volleyball,
+  };
+
   @override
   Widget build(BuildContext context) {
+    final icon = _sportIcons[slot.sportType] ?? Icons.sports;
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
@@ -97,7 +122,7 @@ class _HeroSection extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF0EA5E9).withOpacity(0.12),
+            Color(0xFF0EA5E9).withValues(alpha: 0.12),
             const Color(0xFFF9FAFB),
           ],
         ),
@@ -119,41 +144,34 @@ class _HeroSection extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.sports_tennis,
-              size: 28,
-              color: Color(0xFF0EA5E9),
-            ),
+            child: Icon(icon, size: 28, color: const Color(0xFF0EA5E9)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Pickle Hub Q1 · Sân B',
-                  style: TextStyle(
+                Text(
+                  slot.courtName,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  '123 Nguyễn Du, Q.1 · 1.2 km',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
+                    if (slot.accessPolicy == 'open') ...[
+                      const _BadgePill(
+                        label: '🌐 Mở chơi ghép',
+                        bg: Colors.white,
+                        textColor: Color(0xFF374151),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
                     _BadgePill(
-                      label: '🌐 Mở chơi ghép',
-                      bg: Colors.white,
-                      textColor: const Color(0xFF374151),
-                    ),
-                    const SizedBox(width: 6),
-                    _BadgePill(
-                      label: 'Pickleball',
+                      label: slot.sportType,
                       bg: Colors.white,
                       textColor: const Color(0xFF374151),
                     ),
@@ -169,8 +187,19 @@ class _HeroSection extends StatelessWidget {
 }
 
 class _TimeCard extends StatelessWidget {
+  const _TimeCard({required this.slot});
+
+  final Slot slot;
+
   @override
   Widget build(BuildContext context) {
+    final timeFmt = DateFormat('HH:mm');
+    final dateFmt = DateFormat('EEE, dd/MM', 'vi');
+    final durationH = slot.endTime.difference(slot.startTime).inMinutes / 60;
+    final durationLabel = durationH == durationH.roundToDouble()
+        ? '${durationH.toInt()} giờ'
+        : '${durationH.toStringAsFixed(1)} giờ';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -191,8 +220,8 @@ class _TimeCard extends StatelessWidget {
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
+              children: [
+                const Text(
                   'THỜI GIAN',
                   style: TextStyle(
                     fontSize: 11,
@@ -201,48 +230,20 @@ class _TimeCard extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  '19:00 – 20:30',
-                  style: TextStyle(
+                  '${timeFmt.format(slot.startTime)} – ${timeFmt.format(slot.endTime)}',
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'Thứ tư, 14/05 · 1.5 giờ',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: const [
-                Text(
-                  'PHÍ / NGƯỜI',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF6B7280),
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '50k',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Tổng sân 250k · chia đều',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                  '${dateFmt.format(slot.startTime)} · $durationLabel',
+                  style: const TextStyle(
+                      fontSize: 13, color: Color(0xFF6B7280)),
                 ),
               ],
             ),
@@ -259,14 +260,12 @@ class _FullnessCard extends StatelessWidget {
     required this.max,
     required this.full,
     required this.empties,
-    required this.players,
   });
 
   final int joined;
   final int max;
   final bool full;
   final int empties;
-  final List<_PlayerData> players;
 
   @override
   Widget build(BuildContext context) {
@@ -327,12 +326,9 @@ class _FullnessCard extends StatelessWidget {
               style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
             ),
             const Divider(height: 28, color: Color(0xFFE5E7EB)),
-            ...players.map((p) => _PlayerRow(player: p)),
+            ...List.generate(joined, (_) => const _EmptyPlayerRow(filled: true)),
             if (!full)
-              ...List.generate(
-                empties,
-                (i) => const _EmptyPlayerRow(),
-              ),
+              ...List.generate(empties, (_) => const _EmptyPlayerRow(filled: false)),
           ],
         ),
       ),
@@ -358,9 +354,9 @@ class _HostMessageCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
+        child: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'LỜI NHẮN TỪ CHỦ SLOT',
               style: TextStyle(
@@ -372,7 +368,7 @@ class _HostMessageCard extends StatelessWidget {
             ),
             SizedBox(height: 6),
             Text(
-              '"Mình tìm 3 bạn chơi đôi level trung bình. Mang vợt + giày sạch nhé. Cảm ơn 🏓"',
+              '"Mình tìm bạn chơi ghép. Mang vợt + giày sạch nhé. Cảm ơn 🏓"',
               style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFF374151),
@@ -387,9 +383,10 @@ class _HostMessageCard extends StatelessWidget {
 }
 
 class _StickyCtaBar extends StatelessWidget {
-  const _StickyCtaBar({required this.isFull});
+  const _StickyCtaBar({required this.isFull, required this.slot});
 
   final bool isFull;
+  final Slot slot;
 
   @override
   Widget build(BuildContext context) {
@@ -436,7 +433,7 @@ class _StickyCtaBar extends StatelessWidget {
                   ),
                 ),
                 child: const Text(
-                  'Đăng ký chơi cùng · 50k',
+                  'Đăng ký chơi cùng',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -496,10 +493,10 @@ class _FullnessPill extends StatelessWidget {
   }
 }
 
-class _PlayerRow extends StatelessWidget {
-  const _PlayerRow({required this.player});
+class _EmptyPlayerRow extends StatelessWidget {
+  const _EmptyPlayerRow({required this.filled});
 
-  final _PlayerData player;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
@@ -511,112 +508,37 @@ class _PlayerRow extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: player.color,
+              color: filled ? const Color(0xFFDCFCE7) : const Color(0xFFF3F4F6),
               shape: BoxShape.circle,
+              border: Border.all(
+                color: filled
+                    ? const Color(0xFF86EFAC)
+                    : const Color(0xFFD1D5DB),
+                width: 1.5,
+              ),
             ),
             child: Center(
               child: Text(
-                player.initials,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      player.name,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
-                      ),
-                    ),
-                    if (player.isHost) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFDCFCE7),
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                        child: const Text(
-                          'Chủ slot',
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF15803D),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  player.sub,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyPlayerRow extends StatelessWidget {
-  const _EmptyPlayerRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFD1D5DB),
-                width: 1.5,
-                style: BorderStyle.solid,
-              ),
-            ),
-            child: const Center(
-              child: Text(
-                '+',
+                filled ? '✓' : '+',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF9CA3AF),
+                  color: filled
+                      ? const Color(0xFF16A34A)
+                      : const Color(0xFF9CA3AF),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Chỗ trống',
+          Text(
+            filled ? 'Đã có người' : 'Chỗ trống',
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w700,
-              color: Color(0xFF9CA3AF),
+              color: filled
+                  ? const Color(0xFF374151)
+                  : const Color(0xFF9CA3AF),
             ),
           ),
         ],
@@ -655,20 +577,4 @@ class _BadgePill extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PlayerData {
-  const _PlayerData({
-    required this.initials,
-    required this.color,
-    required this.name,
-    required this.sub,
-    required this.isHost,
-  });
-
-  final String initials;
-  final Color color;
-  final String name;
-  final String sub;
-  final bool isHost;
 }

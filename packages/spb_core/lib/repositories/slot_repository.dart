@@ -22,4 +22,7 @@ abstract interface class SlotRepository {
 
   /// Returns all open group slots across every court (map panel).
   Future<Result<List<Slot>>> fetchAllGroupSlots();
+
+  /// Returns a single slot by [slotId].
+  Future<Result<Slot>> fetchSlotById(String slotId);
 }

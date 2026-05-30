@@ -35,6 +35,7 @@ import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
 import 'package:customer/features/recurring/recurring_booking_screen.dart';
+import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:customer/features/slots/slot_detail_screen.dart';
 import 'package:customer/core/di/injection.dart';
 import 'package:flutter/material.dart';
@@ -190,8 +191,12 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/slot/:id',
-        builder: (context, state) =>
-            SlotDetailScreen(slotId: state.pathParameters['id']!),
+        builder: (context, state) => BlocProvider(
+          create: (_) => SlotDetailCubit(
+            SupabaseSlotRepository(client: Supabase.instance.client),
+          ),
+          child: SlotDetailScreen(slotId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/booking/recurring',

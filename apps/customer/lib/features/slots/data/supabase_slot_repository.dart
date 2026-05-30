@@ -74,6 +74,23 @@ class SupabaseSlotRepository implements SlotRepository {
   }
 
   @override
+  Future<Result<Slot>> fetchSlotById(String slotId) async {
+    try {
+      final row = await _client
+          .from('slots')
+          .select(_slotSelect)
+          .eq('id', slotId)
+          .single();
+      return Success(Slot.fromJson(_mapRow(row)));
+    } on PostgrestException catch (e) {
+      final code = int.tryParse(e.code ?? '') ?? 500;
+      return Failure(ServerFailure(code));
+    } catch (_) {
+      return const Failure(NetworkFailure());
+    }
+  }
+
+  @override
   Future<Result<List<Slot>>> fetchAllGroupSlots() async {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
