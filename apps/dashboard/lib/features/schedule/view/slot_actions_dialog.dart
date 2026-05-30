@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
+import '../../setup/model/owner_court.dart';
+import '../../slot_detail/view/slot_players_dialog.dart';
 import '../bloc/schedule_bloc.dart';
 import '../model/owner_slot.dart';
 
@@ -12,24 +14,30 @@ import '../model/owner_slot.dart';
 /// - **open** → "Khoá giờ" with an optional reason → [ScheduleEvent.slotBlocked]
 /// - **blocked** → shows the reason + "Bỏ khoá" → [ScheduleEvent.slotUnblocked]
 /// - **booked** → block is disabled with an explanatory error (AC: cannot block
-///   a booked slot)
+///   a booked slot), plus a "Xem danh sách người chơi" action (OWNER-33)
 /// - anything else (owner/pending/maintenance) → an info note; only open slots
 ///   are blockable.
 Future<void> showSlotActionsDialog(
   BuildContext context, {
   required ScheduleBloc bloc,
   required OwnerSlot slot,
+  required OwnerCourt court,
 }) {
   return showDialog<void>(
     context: context,
-    builder: (_) => _SlotActionsDialog(bloc: bloc, slot: slot),
+    builder: (_) => _SlotActionsDialog(bloc: bloc, slot: slot, court: court),
   );
 }
 
 class _SlotActionsDialog extends StatefulWidget {
-  const _SlotActionsDialog({required this.bloc, required this.slot});
+  const _SlotActionsDialog({
+    required this.bloc,
+    required this.slot,
+    required this.court,
+  });
   final ScheduleBloc bloc;
   final OwnerSlot slot;
+  final OwnerCourt court;
 
   @override
   State<_SlotActionsDialog> createState() => _SlotActionsDialogState();
@@ -64,6 +72,19 @@ class _SlotActionsDialogState extends State<_SlotActionsDialog> {
     Navigator.of(context).pop();
   }
 
+  /// OWNER-33: open the slot's player roster (stacked over this sheet).
+  void _viewPlayers() {
+    showSlotPlayersDialog(
+      context,
+      slotId: _slot.id,
+      courtName: widget.court.name,
+      // Per-slot cap drives the "X/Y" denominator; fall back to court capacity.
+      capacity: _slot.maxPlayers ?? widget.court.capacity,
+      startLocal: _slot.startAt.toLocal(),
+      endLocal: _slot.endAt.toLocal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -89,10 +110,7 @@ class _SlotActionsDialogState extends State<_SlotActionsDialog> {
   List<Widget> _body() => switch (_slot.status) {
         SlotStatus.open => _blockBody(),
         SlotStatus.blocked => _unblockBody(),
-        SlotStatus.booked => _cannotBody(
-            'Khung giờ đã được đặt',
-            'Không thể khoá khung giờ đã có khách đặt.',
-          ),
+        SlotStatus.booked => _bookedBody(),
         _ => _cannotBody(
             'Không thể khoá',
             'Chỉ có thể khoá khung giờ còn trống.',
@@ -292,6 +310,99 @@ class _SlotActionsDialogState extends State<_SlotActionsDialog> {
             ),
             const SizedBox(width: 12),
             Expanded(child: _CancelButton(onTap: () => Navigator.of(context).pop(), label: 'Đóng')),
+          ],
+        ),
+      ];
+
+  // --- booked → cannot block, but can view the player list (OWNER-33) -------
+  List<Widget> _bookedBody() => [
+        _Header(
+          icon: Icons.event_busy_rounded,
+          iconBg: AppColors.dangerBg,
+          iconColor: AppColors.danger,
+          title: 'Khung giờ đã được đặt',
+          subtitle: _timeLabel,
+          onClose: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(height: 16),
+        Semantics(
+          label: 'slot-block-error',
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.dangerBg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.error_outline_rounded,
+                    size: 16, color: AppColors.danger),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Không thể khoá khung giờ đã có khách đặt.',
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13, color: AppColors.dangerDark),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity,
+          child: Semantics(
+            label: 'slot-view-players-btn',
+            button: true,
+            child: FilledButton.icon(
+              icon: const Icon(Icons.groups_rounded, size: 18),
+              label: const Text('Xem danh sách người chơi'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+              onPressed: _viewPlayers,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            // Block stays disabled for a booked slot (OWNER-25 AC #4).
+            Expanded(
+              child: Semantics(
+                label: 'slot-block-btn',
+                button: true,
+                enabled: false,
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.lock_rounded, size: 16),
+                  label: const Text('Khoá giờ'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.neutral800,
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.neutral200,
+                    disabledForegroundColor: AppColors.neutral400,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: null, // disabled
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+                child: _CancelButton(
+                    onTap: () => Navigator.of(context).pop(), label: 'Đóng')),
           ],
         ),
       ];

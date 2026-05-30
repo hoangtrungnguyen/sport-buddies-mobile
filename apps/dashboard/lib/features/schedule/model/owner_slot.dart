@@ -51,6 +51,11 @@ abstract class OwnerSlot with _$OwnerSlot {
     /// Owner-supplied reason shown on a blocked slot (OWNER-25). Maps to
     /// `slots.blocked_reason`; null unless [status] is [SlotStatus.blocked].
     String? blockedReason,
+
+    /// Per-slot player cap (`slots.max_players`), nullable. The slot detail
+    /// roster uses this as the count denominator (OWNER-33), falling back to
+    /// the court capacity when null.
+    int? maxPlayers,
   }) = _OwnerSlot;
 
   /// True when this slot is the owner's own reservation (OWNER-19).
@@ -82,5 +87,6 @@ abstract class OwnerSlot with _$OwnerSlot {
         endAt: DateTime.parse(json['end_at'] as String),
         status: json['status'] as String? ?? SlotStatus.open,
         blockedReason: json['blocked_reason'] as String?,
+        maxPlayers: (json['max_players'] as num?)?.toInt(),
       );
 }

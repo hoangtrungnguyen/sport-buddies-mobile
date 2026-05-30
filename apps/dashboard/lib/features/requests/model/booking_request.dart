@@ -27,6 +27,7 @@ BookingStatus bookingStatusFromRaw(String? raw) {
     case 'confirmed':
     case 'booked':
     case 'approved':
+    case 'completed': // a finished booking reads as a confirmed/honored one
       return BookingStatus.confirmed;
     case 'cancelled':
     case 'canceled':

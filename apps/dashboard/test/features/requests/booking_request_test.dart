@@ -36,6 +36,7 @@ void main() {
       expect(bookingStatusFromRaw('confirmed'), BookingStatus.confirmed);
       expect(bookingStatusFromRaw('booked'), BookingStatus.confirmed);
       expect(bookingStatusFromRaw('approved'), BookingStatus.confirmed);
+      expect(bookingStatusFromRaw('completed'), BookingStatus.confirmed);
       expect(bookingStatusFromRaw('cancelled'), BookingStatus.cancelled);
       expect(bookingStatusFromRaw('canceled'), BookingStatus.cancelled);
       expect(bookingStatusFromRaw('rejected'), BookingStatus.cancelled);

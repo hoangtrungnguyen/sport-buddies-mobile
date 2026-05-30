@@ -92,7 +92,7 @@ Future<void> _open(WidgetTester tester, ScheduleBloc bloc, OwnerSlot slot) async
       return const SizedBox();
     })),
   ));
-  showSlotActionsDialog(ctx, bloc: bloc, slot: slot);
+  showSlotActionsDialog(ctx, bloc: bloc, slot: slot, court: _court());
   await tester.pumpAndSettle();
 }
 

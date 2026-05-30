@@ -114,6 +114,7 @@ class _Loaded extends StatelessWidget {
       context,
       bloc: context.read<ScheduleBloc>(),
       slot: slot,
+      court: _activeCourt,
     );
   }
 

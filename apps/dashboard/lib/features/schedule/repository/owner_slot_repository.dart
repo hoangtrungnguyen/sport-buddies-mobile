@@ -68,7 +68,8 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
 
   final SupabaseClient _client;
 
-  static const _cols = 'id, court_id, start_at, end_at, status, blocked_reason';
+  static const _cols =
+      'id, court_id, start_at, end_at, status, blocked_reason, max_players';
 
   @override
   Future<List<OwnerSlot>> fetchWeekSlots({
