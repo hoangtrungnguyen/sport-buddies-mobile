@@ -51,6 +51,14 @@ abstract class SlotPlayer with _$SlotPlayer {
     BookingStatus? bookingStatus,
 
     @Default(PaymentStatus.unknown) PaymentStatus paymentStatus,
+
+    /// Payment method from `slot_participants.payment_method`
+    /// (`cash | transfer | app_wallet`); null when unknown or not recorded.
+    String? paymentMethod,
+
+    /// Expected amount for this player from `bookings.total_price`; null when
+    /// the booking row carries no price (e.g. owner-slot, walk-in without price).
+    int? expectedPrice,
   }) = _SlotPlayer;
 
   /// True only when the player has actually paid (drives the paid badge).

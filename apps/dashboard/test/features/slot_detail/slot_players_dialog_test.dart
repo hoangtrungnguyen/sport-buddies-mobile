@@ -58,6 +58,10 @@ void main() {
     expect(find.text('Đã thanh toán'), findsOneWidget);
     expect(find.text('Thanh toán một phần'), findsOneWidget);
     expect(find.text('Chưa thanh toán'), findsOneWidget);
+    // Summary bar (OWNER-35).
+    expect(find.text('Đã thu'), findsOneWidget);
+    expect(find.text('Dự kiến'), findsOneWidget);
+    expect(find.text('Chưa thu'), findsOneWidget);
   });
 
   testWidgets('paid players are visually distinguished from unpaid',

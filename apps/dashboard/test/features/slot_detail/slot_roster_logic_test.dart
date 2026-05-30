@@ -110,6 +110,40 @@ void main() {
     });
   });
 
+  group('computePaymentSummary (OWNER-35)', () {
+    test('sums collected + expected, counts paid/unpaid', () {
+      final players = [
+        SlotPlayer(id: '1', name: 'A', paymentStatus: PaymentStatus.paid,
+            bookingStatus: BookingStatus.confirmed, expectedPrice: 100000),
+        SlotPlayer(id: '2', name: 'B', paymentStatus: PaymentStatus.unpaid,
+            bookingStatus: BookingStatus.confirmed, expectedPrice: 150000),
+        SlotPlayer(id: '3', name: 'C', paymentStatus: PaymentStatus.partial,
+            bookingStatus: BookingStatus.confirmed, expectedPrice: 80000),
+      ];
+      final s = computePaymentSummary(players);
+      expect(s.totalCollected, 100000);
+      expect(s.totalExpected, 330000);
+      expect(s.paidCount, 1);
+      expect(s.unpaidCount, 2); // unpaid + partial
+    });
+
+    test('empty roster returns all zeroes', () {
+      final s = computePaymentSummary([]);
+      expect(s.totalCollected, 0);
+      expect(s.totalExpected, 0);
+    });
+  });
+
+  group('paymentMethodLabel (OWNER-35)', () {
+    test('localizes known methods', () {
+      expect(paymentMethodLabel('cash'), 'Tiền mặt');
+      expect(paymentMethodLabel('transfer'), 'Chuyển khoản');
+      expect(paymentMethodLabel('app_wallet'), 'Ví ứng dụng');
+      expect(paymentMethodLabel(null), '');
+      expect(paymentMethodLabel('unknown'), '');
+    });
+  });
+
   group('mergeSlotRoster edge cases', () {
     test('multiple walk-ins sharing a user_id stay distinct rows', () {
       final roster = mergeSlotRoster(
@@ -149,6 +183,21 @@ void main() {
       );
       expect(roster, hasLength(1));
       expect(roster.single.paymentStatus, PaymentStatus.paid);
+    });
+
+    test('paymentMethod and expectedPrice are threaded through', () {
+      final roster = mergeSlotRoster(
+        participants: [
+          {'id': 'p1', 'user_id': 'u1', 'payment_status': 'paid',
+           'payment_method': 'cash'},
+        ],
+        bookings: [
+          {'id': 'b1', 'user_id': 'u1', 'status': 'confirmed',
+           'customer_name': 'An', 'total_price': 200000},
+        ],
+      );
+      expect(roster.single.paymentMethod, 'cash');
+      expect(roster.single.expectedPrice, 200000);
     });
 
     test('a completed booking reads as a confirmed badge, not pending', () {

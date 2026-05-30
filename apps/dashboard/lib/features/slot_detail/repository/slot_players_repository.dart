@@ -39,7 +39,7 @@ class SupabaseSlotPlayersRepository implements SlotPlayersRepository {
         .order('joined_at');
     final bookings = await _client
         .from('bookings')
-        .select('id, user_id, status, customer_name, is_walk_in')
+        .select('id, user_id, status, customer_name, is_walk_in, total_price')
         .eq('slot_id', slotId)
         .neq('status', 'cancelled');
     return mergeSlotRoster(

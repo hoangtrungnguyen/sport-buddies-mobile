@@ -30,6 +30,14 @@ mixin _$SlotPlayer {
   BookingStatus? get bookingStatus;
   PaymentStatus get paymentStatus;
 
+  /// Payment method from `slot_participants.payment_method`
+  /// (`cash | transfer | app_wallet`); null when unknown or not recorded.
+  String? get paymentMethod;
+
+  /// Expected amount for this player from `bookings.total_price`; null when
+  /// the booking row carries no price (e.g. owner-slot, walk-in without price).
+  int? get expectedPrice;
+
   /// Create a copy of SlotPlayer
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -50,16 +58,20 @@ mixin _$SlotPlayer {
             (identical(other.bookingStatus, bookingStatus) ||
                 other.bookingStatus == bookingStatus) &&
             (identical(other.paymentStatus, paymentStatus) ||
-                other.paymentStatus == paymentStatus));
+                other.paymentStatus == paymentStatus) &&
+            (identical(other.paymentMethod, paymentMethod) ||
+                other.paymentMethod == paymentMethod) &&
+            (identical(other.expectedPrice, expectedPrice) ||
+                other.expectedPrice == expectedPrice));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, name, userId, avatarUrl, bookingStatus, paymentStatus);
+  int get hashCode => Object.hash(runtimeType, id, name, userId, avatarUrl,
+      bookingStatus, paymentStatus, paymentMethod, expectedPrice);
 
   @override
   String toString() {
-    return 'SlotPlayer(id: $id, name: $name, userId: $userId, avatarUrl: $avatarUrl, bookingStatus: $bookingStatus, paymentStatus: $paymentStatus)';
+    return 'SlotPlayer(id: $id, name: $name, userId: $userId, avatarUrl: $avatarUrl, bookingStatus: $bookingStatus, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, expectedPrice: $expectedPrice)';
   }
 }
 
@@ -75,7 +87,9 @@ abstract mixin class $SlotPlayerCopyWith<$Res> {
       String? userId,
       String? avatarUrl,
       BookingStatus? bookingStatus,
-      PaymentStatus paymentStatus});
+      PaymentStatus paymentStatus,
+      String? paymentMethod,
+      int? expectedPrice});
 }
 
 /// @nodoc
@@ -96,6 +110,8 @@ class _$SlotPlayerCopyWithImpl<$Res> implements $SlotPlayerCopyWith<$Res> {
     Object? avatarUrl = freezed,
     Object? bookingStatus = freezed,
     Object? paymentStatus = null,
+    Object? paymentMethod = freezed,
+    Object? expectedPrice = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -122,6 +138,14 @@ class _$SlotPlayerCopyWithImpl<$Res> implements $SlotPlayerCopyWith<$Res> {
           ? _self.paymentStatus
           : paymentStatus // ignore: cast_nullable_to_non_nullable
               as PaymentStatus,
+      paymentMethod: freezed == paymentMethod
+          ? _self.paymentMethod
+          : paymentMethod // ignore: cast_nullable_to_non_nullable
+              as String?,
+      expectedPrice: freezed == expectedPrice
+          ? _self.expectedPrice
+          : expectedPrice // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -219,16 +243,30 @@ extension SlotPlayerPatterns on SlotPlayer {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, String name, String? userId, String? avatarUrl,
-            BookingStatus? bookingStatus, PaymentStatus paymentStatus)?
+    TResult Function(
+            String id,
+            String name,
+            String? userId,
+            String? avatarUrl,
+            BookingStatus? bookingStatus,
+            PaymentStatus paymentStatus,
+            String? paymentMethod,
+            int? expectedPrice)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _SlotPlayer() when $default != null:
-        return $default(_that.id, _that.name, _that.userId, _that.avatarUrl,
-            _that.bookingStatus, _that.paymentStatus);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.userId,
+            _that.avatarUrl,
+            _that.bookingStatus,
+            _that.paymentStatus,
+            _that.paymentMethod,
+            _that.expectedPrice);
       case _:
         return orElse();
     }
@@ -249,15 +287,29 @@ extension SlotPlayerPatterns on SlotPlayer {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, String name, String? userId, String? avatarUrl,
-            BookingStatus? bookingStatus, PaymentStatus paymentStatus)
+    TResult Function(
+            String id,
+            String name,
+            String? userId,
+            String? avatarUrl,
+            BookingStatus? bookingStatus,
+            PaymentStatus paymentStatus,
+            String? paymentMethod,
+            int? expectedPrice)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _SlotPlayer():
-        return $default(_that.id, _that.name, _that.userId, _that.avatarUrl,
-            _that.bookingStatus, _that.paymentStatus);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.userId,
+            _that.avatarUrl,
+            _that.bookingStatus,
+            _that.paymentStatus,
+            _that.paymentMethod,
+            _that.expectedPrice);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -277,15 +329,29 @@ extension SlotPlayerPatterns on SlotPlayer {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, String name, String? userId, String? avatarUrl,
-            BookingStatus? bookingStatus, PaymentStatus paymentStatus)?
+    TResult? Function(
+            String id,
+            String name,
+            String? userId,
+            String? avatarUrl,
+            BookingStatus? bookingStatus,
+            PaymentStatus paymentStatus,
+            String? paymentMethod,
+            int? expectedPrice)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _SlotPlayer() when $default != null:
-        return $default(_that.id, _that.name, _that.userId, _that.avatarUrl,
-            _that.bookingStatus, _that.paymentStatus);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.userId,
+            _that.avatarUrl,
+            _that.bookingStatus,
+            _that.paymentStatus,
+            _that.paymentMethod,
+            _that.expectedPrice);
       case _:
         return null;
     }
@@ -301,7 +367,9 @@ class _SlotPlayer extends SlotPlayer {
       this.userId,
       this.avatarUrl,
       this.bookingStatus,
-      this.paymentStatus = PaymentStatus.unknown})
+      this.paymentStatus = PaymentStatus.unknown,
+      this.paymentMethod,
+      this.expectedPrice})
       : super._();
 
   /// Stable list key (participant id, else booking id, else user id).
@@ -327,6 +395,16 @@ class _SlotPlayer extends SlotPlayer {
   @JsonKey()
   final PaymentStatus paymentStatus;
 
+  /// Payment method from `slot_participants.payment_method`
+  /// (`cash | transfer | app_wallet`); null when unknown or not recorded.
+  @override
+  final String? paymentMethod;
+
+  /// Expected amount for this player from `bookings.total_price`; null when
+  /// the booking row carries no price (e.g. owner-slot, walk-in without price).
+  @override
+  final int? expectedPrice;
+
   /// Create a copy of SlotPlayer
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -348,16 +426,20 @@ class _SlotPlayer extends SlotPlayer {
             (identical(other.bookingStatus, bookingStatus) ||
                 other.bookingStatus == bookingStatus) &&
             (identical(other.paymentStatus, paymentStatus) ||
-                other.paymentStatus == paymentStatus));
+                other.paymentStatus == paymentStatus) &&
+            (identical(other.paymentMethod, paymentMethod) ||
+                other.paymentMethod == paymentMethod) &&
+            (identical(other.expectedPrice, expectedPrice) ||
+                other.expectedPrice == expectedPrice));
   }
 
   @override
-  int get hashCode => Object.hash(
-      runtimeType, id, name, userId, avatarUrl, bookingStatus, paymentStatus);
+  int get hashCode => Object.hash(runtimeType, id, name, userId, avatarUrl,
+      bookingStatus, paymentStatus, paymentMethod, expectedPrice);
 
   @override
   String toString() {
-    return 'SlotPlayer(id: $id, name: $name, userId: $userId, avatarUrl: $avatarUrl, bookingStatus: $bookingStatus, paymentStatus: $paymentStatus)';
+    return 'SlotPlayer(id: $id, name: $name, userId: $userId, avatarUrl: $avatarUrl, bookingStatus: $bookingStatus, paymentStatus: $paymentStatus, paymentMethod: $paymentMethod, expectedPrice: $expectedPrice)';
   }
 }
 
@@ -375,7 +457,9 @@ abstract mixin class _$SlotPlayerCopyWith<$Res>
       String? userId,
       String? avatarUrl,
       BookingStatus? bookingStatus,
-      PaymentStatus paymentStatus});
+      PaymentStatus paymentStatus,
+      String? paymentMethod,
+      int? expectedPrice});
 }
 
 /// @nodoc
@@ -396,6 +480,8 @@ class __$SlotPlayerCopyWithImpl<$Res> implements _$SlotPlayerCopyWith<$Res> {
     Object? avatarUrl = freezed,
     Object? bookingStatus = freezed,
     Object? paymentStatus = null,
+    Object? paymentMethod = freezed,
+    Object? expectedPrice = freezed,
   }) {
     return _then(_SlotPlayer(
       id: null == id
@@ -422,6 +508,14 @@ class __$SlotPlayerCopyWithImpl<$Res> implements _$SlotPlayerCopyWith<$Res> {
           ? _self.paymentStatus
           : paymentStatus // ignore: cast_nullable_to_non_nullable
               as PaymentStatus,
+      paymentMethod: freezed == paymentMethod
+          ? _self.paymentMethod
+          : paymentMethod // ignore: cast_nullable_to_non_nullable
+              as String?,
+      expectedPrice: freezed == expectedPrice
+          ? _self.expectedPrice
+          : expectedPrice // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
