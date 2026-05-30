@@ -35,6 +35,10 @@ final class BookingSubmitted extends BookingState {
   final String bookingId;
 }
 
+final class BookingSlotTaken extends BookingState {
+  const BookingSlotTaken();
+}
+
 final class BookingError extends BookingState with AppExceptionMixin {
   const BookingError(this.message, {this.stackTrace});
 

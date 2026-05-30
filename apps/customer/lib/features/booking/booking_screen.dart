@@ -55,6 +55,15 @@ class _BookingScreenState extends State<BookingScreen> {
           );
           context.go('/bookings/upcoming');
         }
+        if (state is BookingSlotTaken) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Slot vừa được đặt, chọn giờ khác'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          context.pop();
+        }
         if (state is BookingError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

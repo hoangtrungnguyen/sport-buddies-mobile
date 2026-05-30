@@ -71,25 +71,26 @@ class BookingCubit extends Cubit<BookingState> {
           pricePerHour != null ? pricePerHour * durationMinutes / 60 : null;
       final notesVal = notes?.trim().isEmpty == true ? null : notes?.trim();
 
-      final response = await _client.from('bookings').insert({
-        'slot_id': slotId,
-        'user_id': userId,
-        'court_id': slot.courtId,
-        'customer_name': name.trim(),
-        'customer_phone': phone.trim(),
-        if (notesVal != null) 'notes': notesVal,
-        'status': 'pending',
-        if (pricePerHour != null) 'price_per_hour': pricePerHour,
-        'duration_minutes': durationMinutes,
-        if (totalPrice != null) 'total_price': totalPrice,
-        'is_owner_slot': false,
-        'is_walk_in': false,
-        'is_auto_approved': false,
-      }).select('id').single();
+      final bookingId = await _client.rpc('place_booking', params: {
+        'p_slot_id': slotId,
+        'p_user_id': userId,
+        'p_court_id': slot.courtId,
+        'p_customer_name': name.trim(),
+        'p_customer_phone': phone.trim(),
+        if (notesVal != null) 'p_notes': notesVal,
+        if (pricePerHour != null) 'p_price_per_hour': pricePerHour,
+        'p_duration_minutes': durationMinutes,
+        if (totalPrice != null) 'p_total_price': totalPrice,
+      }) as String;
 
-      emit(BookingSubmitted(bookingId: response['id'] as String));
+      emit(BookingSubmitted(bookingId: bookingId));
     } catch (e, st) {
-      emit(BookingError(e.toString(), stackTrace: st));
+      final msg = e.toString();
+      if (msg.contains('SLOT_TAKEN')) {
+        emit(const BookingSlotTaken());
+      } else {
+        emit(BookingError(msg, stackTrace: st));
+      }
     }
   }
 }
