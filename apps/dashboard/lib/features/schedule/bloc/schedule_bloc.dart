@@ -36,6 +36,8 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     on<ScheduleOwnerSlotCreated>(_onOwnerSlotCreated);
     on<ScheduleManualBookingCreated>(_onManualBookingCreated);
     on<ScheduleBookingResultCleared>(_onBookingResultCleared);
+    on<ScheduleSlotBlocked>(_onSlotBlocked);
+    on<ScheduleSlotUnblocked>(_onSlotUnblocked);
   }
 
   final OwnerSlotRepository _slots;
@@ -190,6 +192,50 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
         bookingResult: const ManualBookingFailed(
             'Không thể tạo booking. Vui lòng thử lại.'),
       ));
+    }
+  }
+
+  Future<void> _onSlotBlocked(
+    ScheduleSlotBlocked event,
+    Emitter<ScheduleState> emit,
+  ) =>
+      _runSlotAction(
+        emit,
+        () => _slots.blockSlot(slotId: event.slotId, reason: event.reason),
+      );
+
+  Future<void> _onSlotUnblocked(
+    ScheduleSlotUnblocked event,
+    Emitter<ScheduleState> emit,
+  ) =>
+      _runSlotAction(emit, () => _slots.unblockSlot(slotId: event.slotId));
+
+  /// Runs a slot block/unblock (OWNER-25) then reloads the week so the calendar
+  /// reflects the new status/reason. A failed [action] (e.g. the slot was
+  /// booked meanwhile, so the `status='open'` guard matched nothing — the
+  /// compose dialog already blocks that case in the UI) is non-destructive: we
+  /// fall through to the reload, which surfaces the true server state rather
+  /// than the failure screen. Only a failed reload escalates to a failure.
+  Future<void> _runSlotAction(
+    Emitter<ScheduleState> emit,
+    Future<void> Function() action,
+  ) async {
+    final s = state;
+    if (s is! ScheduleLoaded || s.activeCourtId.isEmpty) return;
+    emit(s.copyWith(busy: true, bookingResult: null));
+    try {
+      await action();
+    } catch (_) {
+      // Action rejected/failed — reload below reflects the real state.
+    }
+    try {
+      final slots = await _slots.fetchWeekSlots(
+        courtId: s.activeCourtId,
+        weekStart: s.weekStart,
+      );
+      emit(s.copyWith(slots: slots, busy: false, bookingResult: null));
+    } catch (e, st) {
+      emit(ScheduleFailure('Không thể tải lịch sân.', stackTrace: st));
     }
   }
 

@@ -29,7 +29,35 @@ void main() {
 
       expect(slot.status, SlotStatus.open);
       expect(slot.isOwnerSlot, isFalse);
+      expect(slot.isOpen, isTrue);
       expect(slot.durationHours, 1.5);
+    });
+
+    test('maps a blocked slot with its reason (OWNER-25)', () {
+      final slot = OwnerSlot.fromRow({
+        'id': 's3',
+        'court_id': 'c1',
+        'start_at': '2026-05-14T08:00:00Z',
+        'end_at': '2026-05-14T09:00:00Z',
+        'status': 'blocked',
+        'blocked_reason': 'Bảo trì sân',
+      });
+
+      expect(slot.status, SlotStatus.blocked);
+      expect(slot.isBlocked, isTrue);
+      expect(slot.blockedReason, 'Bảo trì sân');
+    });
+
+    test('blocked_reason is null when absent', () {
+      final slot = OwnerSlot.fromRow({
+        'id': 's4',
+        'court_id': 'c1',
+        'start_at': '2026-05-14T08:00:00Z',
+        'end_at': '2026-05-14T09:00:00Z',
+        'status': 'blocked',
+      });
+
+      expect(slot.blockedReason, isNull);
     });
   });
 }

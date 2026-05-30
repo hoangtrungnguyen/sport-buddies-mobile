@@ -34,6 +34,14 @@ class _SlotRepo implements OwnerSlotRepository {
     required DateTime endAt,
   }) async =>
       throw UnimplementedError();
+
+  @override
+  Future<void> blockSlot({required String slotId, String? reason}) async =>
+      throw UnimplementedError();
+
+  @override
+  Future<void> unblockSlot({required String slotId}) async =>
+      throw UnimplementedError();
 }
 
 class _BookingRepo implements ManualBookingRepository {

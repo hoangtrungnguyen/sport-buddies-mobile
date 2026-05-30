@@ -14,6 +14,7 @@ import '../model/owner_slot.dart';
 import '../schedule_logic.dart';
 import 'create_manual_booking_dialog.dart';
 import 'create_owner_slot_dialog.dart';
+import 'slot_actions_dialog.dart';
 
 // ---------------------------------------------------------------------------
 // Slot visual tokens — lifted verbatim from the design (styles.css `.slot.*`).
@@ -107,6 +108,15 @@ class _Loaded extends StatelessWidget {
     );
   }
 
+  /// Tapping an existing slot opens the block / unblock sheet (OWNER-25).
+  void _openSlotActions(BuildContext context, OwnerSlot slot) {
+    showSlotActionsDialog(
+      context,
+      bloc: context.read<ScheduleBloc>(),
+      slot: slot,
+    );
+  }
+
   Future<void> _openManualBooking(BuildContext context, {DateTime? at}) async {
     final result = await showCreateManualBookingDialog(
       context,
@@ -162,6 +172,7 @@ class _Loaded extends StatelessWidget {
                 slots: state.slots,
                 calendar: calendar,
                 onTapEmpty: (at) => _openCreate(context, at: at),
+                onTapSlot: (slot) => _openSlotActions(context, slot),
               ),
             ],
           ),
@@ -526,15 +537,18 @@ class _CalendarCard extends StatelessWidget {
     required this.slots,
     required this.calendar,
     required this.onTapEmpty,
+    required this.onTapSlot,
   });
   final List<OwnerSlot> slots;
   final CalendarController calendar;
   final ValueChanged<DateTime> onTapEmpty;
+  final ValueChanged<OwnerSlot> onTapSlot;
 
   @override
   Widget build(BuildContext context) {
     final appointments = slots
         .map((s) => Appointment(
+              id: s.id,
               startTime: s.startAt.toLocal(),
               endTime: s.endAt.toLocal(),
               subject: _styleFor(s.status).label,
@@ -603,9 +617,18 @@ class _CalendarCard extends StatelessWidget {
                     .add(ScheduleEvent.weekChanged(monday));
               },
               onTap: (details) {
-                if (details.targetElement == CalendarElement.calendarCell &&
-                    (details.appointments == null ||
-                        details.appointments!.isEmpty) &&
+                final appts = details.appointments;
+                if (appts != null && appts.isNotEmpty) {
+                  // Tapped an existing slot → block / unblock sheet (OWNER-25).
+                  final id = (appts.first as Appointment).id;
+                  for (final s in slots) {
+                    if (s.id == id) {
+                      onTapSlot(s);
+                      return;
+                    }
+                  }
+                } else if (details.targetElement ==
+                        CalendarElement.calendarCell &&
                     details.date != null) {
                   onTapEmpty(details.date!);
                 }
@@ -623,6 +646,17 @@ class _CalendarCard extends StatelessWidget {
     final appt = details.appointments.first as Appointment;
     final style = _styleFor(appt.notes ?? SlotStatus.open);
     final isOwner = appt.notes == SlotStatus.owner;
+    final isBlocked = appt.notes == SlotStatus.blocked;
+    // Blocked slots show their reason (OWNER-25), looked up by appointment id.
+    String? blockedReason;
+    if (isBlocked) {
+      for (final s in slots) {
+        if (s.id == appt.id) {
+          blockedReason = s.blockedReason?.trim();
+          break;
+        }
+      }
+    }
     return Container(
       decoration: BoxDecoration(
         color: style.bg,
@@ -641,6 +675,11 @@ class _CalendarCard extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 3),
                   child:
                       Icon(Icons.person_rounded, size: 11, color: style.text),
+                )
+              else if (isBlocked)
+                Padding(
+                  padding: const EdgeInsets.only(right: 3),
+                  child: Icon(Icons.lock_rounded, size: 11, color: style.text),
                 ),
               Flexible(
                 child: Text(
@@ -665,6 +704,17 @@ class _CalendarCard extends StatelessWidget {
               color: style.text.withValues(alpha: 0.8),
             ),
           ),
+          if (blockedReason != null && blockedReason.isNotEmpty)
+            Text(
+              blockedReason,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 9.5,
+                fontStyle: FontStyle.italic,
+                color: style.text.withValues(alpha: 0.75),
+              ),
+            ),
         ],
       ),
     );

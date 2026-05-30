@@ -47,10 +47,23 @@ abstract class OwnerSlot with _$OwnerSlot {
     required DateTime startAt,
     required DateTime endAt,
     @Default(SlotStatus.open) String status,
+
+    /// Owner-supplied reason shown on a blocked slot (OWNER-25). Maps to
+    /// `slots.blocked_reason`; null unless [status] is [SlotStatus.blocked].
+    String? blockedReason,
   }) = _OwnerSlot;
 
   /// True when this slot is the owner's own reservation (OWNER-19).
   bool get isOwnerSlot => status == SlotStatus.owner;
+
+  /// True when the owner has manually closed this time (OWNER-25).
+  bool get isBlocked => status == SlotStatus.blocked;
+
+  /// True when this slot is bookable/free — the only state that can be blocked.
+  bool get isOpen => status == SlotStatus.open;
+
+  /// True when a customer has booked this time — must never be blocked.
+  bool get isBooked => status == SlotStatus.booked;
 
   /// Length of the slot in (possibly fractional) hours — drives the calendar
   /// block height (1h == 56px in the design).
@@ -68,5 +81,6 @@ abstract class OwnerSlot with _$OwnerSlot {
         startAt: DateTime.parse(json['start_at'] as String),
         endAt: DateTime.parse(json['end_at'] as String),
         status: json['status'] as String? ?? SlotStatus.open,
+        blockedReason: json['blocked_reason'] as String?,
       );
 }

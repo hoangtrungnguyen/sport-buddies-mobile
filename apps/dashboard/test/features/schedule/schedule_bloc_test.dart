@@ -27,6 +27,12 @@ class _FakeSlotRepo implements OwnerSlotRepository {
   String? lastCourtId;
   DateTime? lastWeekStart;
   final List<OwnerSlot> created = [];
+  final List<Map<String, dynamic>> blockCalls = [];
+  final List<String> unblockCalls = [];
+
+  /// When set, blockSlot raises [OwnerSlotException] (simulating the
+  /// `status='open'` guard matching no row, e.g. the slot was booked meanwhile).
+  bool throwOnBlock = false;
 
   @override
   Future<List<OwnerSlot>> fetchWeekSlots({
@@ -37,6 +43,29 @@ class _FakeSlotRepo implements OwnerSlotRepository {
     lastCourtId = courtId;
     lastWeekStart = weekStart;
     return List.of(_slots);
+  }
+
+  @override
+  Future<void> blockSlot({required String slotId, String? reason}) async {
+    blockCalls.add({'slotId': slotId, 'reason': reason});
+    if (throwOnBlock) throw const OwnerSlotException('not_open');
+    _slots = [
+      for (final s in _slots)
+        s.id == slotId
+            ? s.copyWith(status: SlotStatus.blocked, blockedReason: reason)
+            : s,
+    ];
+  }
+
+  @override
+  Future<void> unblockSlot({required String slotId}) async {
+    unblockCalls.add(slotId);
+    _slots = [
+      for (final s in _slots)
+        s.id == slotId
+            ? s.copyWith(status: SlotStatus.open, blockedReason: null)
+            : s,
+    ];
   }
 
   @override
@@ -464,6 +493,87 @@ void main() {
       expect((state.bookingResult as ManualBookingFailed).message,
           contains('đã có người đặt'));
       expect(booking.calls, hasLength(1));
+      await bloc.close();
+    });
+
+    // ---- OWNER-25: block / unblock a slot --------------------------------
+
+    ScheduleBloc blocWith(_FakeSlotRepo repo) => ScheduleBloc(
+          slotRepository: repo,
+          bookingRepository: _FakeBookingRepo(),
+          loadCourts: () async => [_court('c1', 'Sân 1')],
+          now: _fixedNow,
+        );
+
+    OwnerSlot slotOf(String id, String status, {String? reason}) => OwnerSlot(
+          id: id,
+          courtId: 'c1',
+          startAt: DateTime(2026, 5, 14, 8),
+          endAt: DateTime(2026, 5, 14, 9),
+          status: status,
+          blockedReason: reason,
+        );
+
+    test('slotBlocked blocks an open slot with its reason and reloads',
+        () async {
+      final repo = _FakeSlotRepo(initial: [slotOf('s1', SlotStatus.open)]);
+      final bloc = blocWith(repo);
+      bloc.add(const ScheduleEvent.started());
+      await expectLater(bloc.stream, emitsThrough(isA<ScheduleLoaded>()));
+
+      bloc.add(const ScheduleEvent.slotBlocked('s1', reason: 'Bảo trì sân'));
+      await expectLater(
+        bloc.stream,
+        emitsThrough(isA<ScheduleLoaded>()
+            .having((s) => s.busy, 'busy', false)
+            .having((s) => s.slots.first.status, 'status', SlotStatus.blocked)),
+      );
+
+      expect(repo.blockCalls.single,
+          {'slotId': 's1', 'reason': 'Bảo trì sân'});
+      final s = bloc.state as ScheduleLoaded;
+      expect(s.slots.first.blockedReason, 'Bảo trì sân');
+      await bloc.close();
+    });
+
+    test('slotUnblocked reverts a blocked slot to open', () async {
+      final repo = _FakeSlotRepo(
+          initial: [slotOf('s1', SlotStatus.blocked, reason: 'x')]);
+      final bloc = blocWith(repo);
+      bloc.add(const ScheduleEvent.started());
+      await expectLater(bloc.stream, emitsThrough(isA<ScheduleLoaded>()));
+
+      bloc.add(const ScheduleEvent.slotUnblocked('s1'));
+      await expectLater(
+        bloc.stream,
+        emitsThrough(isA<ScheduleLoaded>()
+            .having((s) => s.slots.first.status, 'status', SlotStatus.open)),
+      );
+
+      expect(repo.unblockCalls.single, 's1');
+      expect((bloc.state as ScheduleLoaded).slots.first.blockedReason, isNull);
+      await bloc.close();
+    });
+
+    test('a failed block keeps the view loaded and the slot unchanged',
+        () async {
+      final repo = _FakeSlotRepo(initial: [slotOf('s1', SlotStatus.open)])
+        ..throwOnBlock = true;
+      final bloc = blocWith(repo);
+      bloc.add(const ScheduleEvent.started());
+      await expectLater(bloc.stream, emitsThrough(isA<ScheduleLoaded>()));
+
+      bloc.add(const ScheduleEvent.slotBlocked('s1'));
+      await expectLater(
+        bloc.stream,
+        emitsThrough(
+            isA<ScheduleLoaded>().having((s) => s.busy, 'busy', false)),
+      );
+
+      // Did NOT escalate to ScheduleFailure; the slot stays open (reload truth).
+      final s = bloc.state as ScheduleLoaded;
+      expect(s.slots.first.status, SlotStatus.open);
+      expect(repo.blockCalls, hasLength(1));
       await bloc.close();
     });
   });

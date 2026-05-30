@@ -2,6 +2,19 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/owner_slot.dart';
 
+/// Predictable failure of a slot action. [code] is a stable key; the bloc maps
+/// any throw to a recoverable failure rather than crashing the view.
+class OwnerSlotException implements Exception {
+  const OwnerSlotException(this.code);
+
+  /// e.g. `not_open` (block guard failed — the slot was no longer open, e.g.
+  /// booked) or `not_blocked` (unblock guard failed).
+  final String code;
+
+  @override
+  String toString() => 'OwnerSlotException($code)';
+}
+
 /// Read/write contract for owner-side slots. An interface so the bloc can be
 /// driven by an in-memory fake in tests (the concrete impl talks to Supabase).
 abstract interface class OwnerSlotRepository {
@@ -22,6 +35,18 @@ abstract interface class OwnerSlotRepository {
     required DateTime startAt,
     required DateTime endAt,
   });
+
+  /// Blocks an **open** slot (OWNER-25): `status → blocked`, persisting an
+  /// optional [reason] to `blocked_reason`. Guarded so a booked (or otherwise
+  /// non-open) slot is never blocked — throws [OwnerSlotException]`('not_open')`
+  /// when no open row matched. A blocked slot drops out of the customer picker
+  /// automatically (it filters `status = 'open'`).
+  Future<void> blockSlot({required String slotId, String? reason});
+
+  /// Unblocks a blocked slot (OWNER-25): `status → open`, clearing
+  /// `blocked_reason`. Throws [OwnerSlotException]`('not_blocked')` when the
+  /// slot was not blocked.
+  Future<void> unblockSlot({required String slotId});
 }
 
 /// Supabase-backed [OwnerSlotRepository].
@@ -43,7 +68,7 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
 
   final SupabaseClient _client;
 
-  static const _cols = 'id, court_id, start_at, end_at, status';
+  static const _cols = 'id, court_id, start_at, end_at, status, blocked_reason';
 
   @override
   Future<List<OwnerSlot>> fetchWeekSlots({
@@ -81,5 +106,36 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
         .select(_cols)
         .single();
     return OwnerSlot.fromRow(row);
+  }
+
+  @override
+  Future<void> blockSlot({required String slotId, String? reason}) async {
+    final trimmed = reason?.trim();
+    final rows = await _client
+        .from('slots')
+        .update({
+          'status': SlotStatus.blocked,
+          'blocked_reason':
+              (trimmed != null && trimmed.isNotEmpty) ? trimmed : null,
+        })
+        .eq('id', slotId)
+        .eq('status', SlotStatus.open) // never block a booked/owner/etc. slot
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw const OwnerSlotException('not_open');
+    }
+  }
+
+  @override
+  Future<void> unblockSlot({required String slotId}) async {
+    final rows = await _client
+        .from('slots')
+        .update({'status': SlotStatus.open, 'blocked_reason': null})
+        .eq('id', slotId)
+        .eq('status', SlotStatus.blocked)
+        .select('id');
+    if ((rows as List).isEmpty) {
+      throw const OwnerSlotException('not_blocked');
+    }
   }
 }

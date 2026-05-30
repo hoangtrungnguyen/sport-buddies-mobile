@@ -20,6 +20,10 @@ mixin _$OwnerSlot {
   DateTime get endAt;
   String get status;
 
+  /// Owner-supplied reason shown on a blocked slot (OWNER-25). Maps to
+  /// `slots.blocked_reason`; null unless [status] is [SlotStatus.blocked].
+  String? get blockedReason;
+
   /// Create a copy of OwnerSlot
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -36,16 +40,18 @@ mixin _$OwnerSlot {
             (identical(other.courtId, courtId) || other.courtId == courtId) &&
             (identical(other.startAt, startAt) || other.startAt == startAt) &&
             (identical(other.endAt, endAt) || other.endAt == endAt) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.blockedReason, blockedReason) ||
+                other.blockedReason == blockedReason));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, courtId, startAt, endAt, status);
+  int get hashCode => Object.hash(
+      runtimeType, id, courtId, startAt, endAt, status, blockedReason);
 
   @override
   String toString() {
-    return 'OwnerSlot(id: $id, courtId: $courtId, startAt: $startAt, endAt: $endAt, status: $status)';
+    return 'OwnerSlot(id: $id, courtId: $courtId, startAt: $startAt, endAt: $endAt, status: $status, blockedReason: $blockedReason)';
   }
 }
 
@@ -59,7 +65,8 @@ abstract mixin class $OwnerSlotCopyWith<$Res> {
       String courtId,
       DateTime startAt,
       DateTime endAt,
-      String status});
+      String status,
+      String? blockedReason});
 }
 
 /// @nodoc
@@ -79,6 +86,7 @@ class _$OwnerSlotCopyWithImpl<$Res> implements $OwnerSlotCopyWith<$Res> {
     Object? startAt = null,
     Object? endAt = null,
     Object? status = null,
+    Object? blockedReason = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -101,6 +109,10 @@ class _$OwnerSlotCopyWithImpl<$Res> implements $OwnerSlotCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      blockedReason: freezed == blockedReason
+          ? _self.blockedReason
+          : blockedReason // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -199,15 +211,15 @@ extension OwnerSlotPatterns on OwnerSlot {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(String id, String courtId, DateTime startAt,
-            DateTime endAt, String status)?
+            DateTime endAt, String status, String? blockedReason)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _OwnerSlot() when $default != null:
-        return $default(
-            _that.id, _that.courtId, _that.startAt, _that.endAt, _that.status);
+        return $default(_that.id, _that.courtId, _that.startAt, _that.endAt,
+            _that.status, _that.blockedReason);
       case _:
         return orElse();
     }
@@ -229,14 +241,14 @@ extension OwnerSlotPatterns on OwnerSlot {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(String id, String courtId, DateTime startAt,
-            DateTime endAt, String status)
+            DateTime endAt, String status, String? blockedReason)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _OwnerSlot():
-        return $default(
-            _that.id, _that.courtId, _that.startAt, _that.endAt, _that.status);
+        return $default(_that.id, _that.courtId, _that.startAt, _that.endAt,
+            _that.status, _that.blockedReason);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -257,14 +269,14 @@ extension OwnerSlotPatterns on OwnerSlot {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(String id, String courtId, DateTime startAt,
-            DateTime endAt, String status)?
+            DateTime endAt, String status, String? blockedReason)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _OwnerSlot() when $default != null:
-        return $default(
-            _that.id, _that.courtId, _that.startAt, _that.endAt, _that.status);
+        return $default(_that.id, _that.courtId, _that.startAt, _that.endAt,
+            _that.status, _that.blockedReason);
       case _:
         return null;
     }
@@ -279,7 +291,8 @@ class _OwnerSlot extends OwnerSlot {
       required this.courtId,
       required this.startAt,
       required this.endAt,
-      this.status = SlotStatus.open})
+      this.status = SlotStatus.open,
+      this.blockedReason})
       : super._();
 
   @override
@@ -293,6 +306,11 @@ class _OwnerSlot extends OwnerSlot {
   @override
   @JsonKey()
   final String status;
+
+  /// Owner-supplied reason shown on a blocked slot (OWNER-25). Maps to
+  /// `slots.blocked_reason`; null unless [status] is [SlotStatus.blocked].
+  @override
+  final String? blockedReason;
 
   /// Create a copy of OwnerSlot
   /// with the given fields replaced by the non-null parameter values.
@@ -311,16 +329,18 @@ class _OwnerSlot extends OwnerSlot {
             (identical(other.courtId, courtId) || other.courtId == courtId) &&
             (identical(other.startAt, startAt) || other.startAt == startAt) &&
             (identical(other.endAt, endAt) || other.endAt == endAt) &&
-            (identical(other.status, status) || other.status == status));
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.blockedReason, blockedReason) ||
+                other.blockedReason == blockedReason));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, courtId, startAt, endAt, status);
+  int get hashCode => Object.hash(
+      runtimeType, id, courtId, startAt, endAt, status, blockedReason);
 
   @override
   String toString() {
-    return 'OwnerSlot(id: $id, courtId: $courtId, startAt: $startAt, endAt: $endAt, status: $status)';
+    return 'OwnerSlot(id: $id, courtId: $courtId, startAt: $startAt, endAt: $endAt, status: $status, blockedReason: $blockedReason)';
   }
 }
 
@@ -337,7 +357,8 @@ abstract mixin class _$OwnerSlotCopyWith<$Res>
       String courtId,
       DateTime startAt,
       DateTime endAt,
-      String status});
+      String status,
+      String? blockedReason});
 }
 
 /// @nodoc
@@ -357,6 +378,7 @@ class __$OwnerSlotCopyWithImpl<$Res> implements _$OwnerSlotCopyWith<$Res> {
     Object? startAt = null,
     Object? endAt = null,
     Object? status = null,
+    Object? blockedReason = freezed,
   }) {
     return _then(_OwnerSlot(
       id: null == id
@@ -379,6 +401,10 @@ class __$OwnerSlotCopyWithImpl<$Res> implements _$OwnerSlotCopyWith<$Res> {
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      blockedReason: freezed == blockedReason
+          ? _self.blockedReason
+          : blockedReason // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

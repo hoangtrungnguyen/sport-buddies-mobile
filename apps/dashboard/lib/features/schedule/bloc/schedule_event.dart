@@ -41,4 +41,15 @@ sealed class ScheduleEvent with _$ScheduleEvent {
   /// later reload never re-triggers the same success/error signal.
   const factory ScheduleEvent.bookingResultCleared() =
       ScheduleBookingResultCleared;
+
+  /// Block an open slot (OWNER-25): `status → blocked` with an optional
+  /// [reason], then reload the week.
+  const factory ScheduleEvent.slotBlocked(
+    String slotId, {
+    String? reason,
+  }) = ScheduleSlotBlocked;
+
+  /// Unblock a blocked slot (OWNER-25): `status → open`, then reload the week.
+  const factory ScheduleEvent.slotUnblocked(String slotId) =
+      ScheduleSlotUnblocked;
 }

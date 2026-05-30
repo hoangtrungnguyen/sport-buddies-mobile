@@ -57,6 +57,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult Function(ScheduleOwnerSlotCreated value)? ownerSlotCreated,
     TResult Function(ScheduleManualBookingCreated value)? manualBookingCreated,
     TResult Function(ScheduleBookingResultCleared value)? bookingResultCleared,
+    TResult Function(ScheduleSlotBlocked value)? slotBlocked,
+    TResult Function(ScheduleSlotUnblocked value)? slotUnblocked,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -75,6 +77,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
         return bookingResultCleared(_that);
+      case ScheduleSlotBlocked() when slotBlocked != null:
+        return slotBlocked(_that);
+      case ScheduleSlotUnblocked() when slotUnblocked != null:
+        return slotUnblocked(_that);
       case _:
         return orElse();
     }
@@ -104,6 +110,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         manualBookingCreated,
     required TResult Function(ScheduleBookingResultCleared value)
         bookingResultCleared,
+    required TResult Function(ScheduleSlotBlocked value) slotBlocked,
+    required TResult Function(ScheduleSlotUnblocked value) slotUnblocked,
   }) {
     final _that = this;
     switch (_that) {
@@ -121,6 +129,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared():
         return bookingResultCleared(_that);
+      case ScheduleSlotBlocked():
+        return slotBlocked(_that);
+      case ScheduleSlotUnblocked():
+        return slotUnblocked(_that);
     }
   }
 
@@ -145,6 +157,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult? Function(ScheduleOwnerSlotCreated value)? ownerSlotCreated,
     TResult? Function(ScheduleManualBookingCreated value)? manualBookingCreated,
     TResult? Function(ScheduleBookingResultCleared value)? bookingResultCleared,
+    TResult? Function(ScheduleSlotBlocked value)? slotBlocked,
+    TResult? Function(ScheduleSlotUnblocked value)? slotUnblocked,
   }) {
     final _that = this;
     switch (_that) {
@@ -162,6 +176,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
         return bookingResultCleared(_that);
+      case ScheduleSlotBlocked() when slotBlocked != null:
+        return slotBlocked(_that);
+      case ScheduleSlotUnblocked() when slotUnblocked != null:
+        return slotUnblocked(_that);
       case _:
         return null;
     }
@@ -190,6 +208,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
             String? customerPhone, String? notes, int? pricePerHourOverride)?
         manualBookingCreated,
     TResult Function()? bookingResultCleared,
+    TResult Function(String slotId, String? reason)? slotBlocked,
+    TResult Function(String slotId)? slotUnblocked,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -214,6 +234,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
             _that.pricePerHourOverride);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
         return bookingResultCleared();
+      case ScheduleSlotBlocked() when slotBlocked != null:
+        return slotBlocked(_that.slotId, _that.reason);
+      case ScheduleSlotUnblocked() when slotUnblocked != null:
+        return slotUnblocked(_that.slotId);
       case _:
         return orElse();
     }
@@ -249,6 +273,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
             int? pricePerHourOverride)
         manualBookingCreated,
     required TResult Function() bookingResultCleared,
+    required TResult Function(String slotId, String? reason) slotBlocked,
+    required TResult Function(String slotId) slotUnblocked,
   }) {
     final _that = this;
     switch (_that) {
@@ -272,6 +298,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
             _that.pricePerHourOverride);
       case ScheduleBookingResultCleared():
         return bookingResultCleared();
+      case ScheduleSlotBlocked():
+        return slotBlocked(_that.slotId, _that.reason);
+      case ScheduleSlotUnblocked():
+        return slotUnblocked(_that.slotId);
     }
   }
 
@@ -298,6 +328,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
             String? customerPhone, String? notes, int? pricePerHourOverride)?
         manualBookingCreated,
     TResult? Function()? bookingResultCleared,
+    TResult? Function(String slotId, String? reason)? slotBlocked,
+    TResult? Function(String slotId)? slotUnblocked,
   }) {
     final _that = this;
     switch (_that) {
@@ -321,6 +353,10 @@ extension ScheduleEventPatterns on ScheduleEvent {
             _that.pricePerHourOverride);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
         return bookingResultCleared();
+      case ScheduleSlotBlocked() when slotBlocked != null:
+        return slotBlocked(_that.slotId, _that.reason);
+      case ScheduleSlotUnblocked() when slotUnblocked != null:
+        return slotUnblocked(_that.slotId);
       case _:
         return null;
     }
@@ -704,6 +740,142 @@ class ScheduleBookingResultCleared implements ScheduleEvent {
   @override
   String toString() {
     return 'ScheduleEvent.bookingResultCleared()';
+  }
+}
+
+/// @nodoc
+
+class ScheduleSlotBlocked implements ScheduleEvent {
+  const ScheduleSlotBlocked(this.slotId, {this.reason});
+
+  final String slotId;
+  final String? reason;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ScheduleSlotBlockedCopyWith<ScheduleSlotBlocked> get copyWith =>
+      _$ScheduleSlotBlockedCopyWithImpl<ScheduleSlotBlocked>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ScheduleSlotBlocked &&
+            (identical(other.slotId, slotId) || other.slotId == slotId) &&
+            (identical(other.reason, reason) || other.reason == reason));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, slotId, reason);
+
+  @override
+  String toString() {
+    return 'ScheduleEvent.slotBlocked(slotId: $slotId, reason: $reason)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ScheduleSlotBlockedCopyWith<$Res>
+    implements $ScheduleEventCopyWith<$Res> {
+  factory $ScheduleSlotBlockedCopyWith(
+          ScheduleSlotBlocked value, $Res Function(ScheduleSlotBlocked) _then) =
+      _$ScheduleSlotBlockedCopyWithImpl;
+  @useResult
+  $Res call({String slotId, String? reason});
+}
+
+/// @nodoc
+class _$ScheduleSlotBlockedCopyWithImpl<$Res>
+    implements $ScheduleSlotBlockedCopyWith<$Res> {
+  _$ScheduleSlotBlockedCopyWithImpl(this._self, this._then);
+
+  final ScheduleSlotBlocked _self;
+  final $Res Function(ScheduleSlotBlocked) _then;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? slotId = null,
+    Object? reason = freezed,
+  }) {
+    return _then(ScheduleSlotBlocked(
+      null == slotId
+          ? _self.slotId
+          : slotId // ignore: cast_nullable_to_non_nullable
+              as String,
+      reason: freezed == reason
+          ? _self.reason
+          : reason // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ScheduleSlotUnblocked implements ScheduleEvent {
+  const ScheduleSlotUnblocked(this.slotId);
+
+  final String slotId;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ScheduleSlotUnblockedCopyWith<ScheduleSlotUnblocked> get copyWith =>
+      _$ScheduleSlotUnblockedCopyWithImpl<ScheduleSlotUnblocked>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ScheduleSlotUnblocked &&
+            (identical(other.slotId, slotId) || other.slotId == slotId));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, slotId);
+
+  @override
+  String toString() {
+    return 'ScheduleEvent.slotUnblocked(slotId: $slotId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ScheduleSlotUnblockedCopyWith<$Res>
+    implements $ScheduleEventCopyWith<$Res> {
+  factory $ScheduleSlotUnblockedCopyWith(ScheduleSlotUnblocked value,
+          $Res Function(ScheduleSlotUnblocked) _then) =
+      _$ScheduleSlotUnblockedCopyWithImpl;
+  @useResult
+  $Res call({String slotId});
+}
+
+/// @nodoc
+class _$ScheduleSlotUnblockedCopyWithImpl<$Res>
+    implements $ScheduleSlotUnblockedCopyWith<$Res> {
+  _$ScheduleSlotUnblockedCopyWithImpl(this._self, this._then);
+
+  final ScheduleSlotUnblocked _self;
+  final $Res Function(ScheduleSlotUnblocked) _then;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? slotId = null,
+  }) {
+    return _then(ScheduleSlotUnblocked(
+      null == slotId
+          ? _self.slotId
+          : slotId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
