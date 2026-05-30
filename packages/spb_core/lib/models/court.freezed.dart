@@ -18,6 +18,12 @@ mixin _$Court {
   String get name;
   double get lat;
   double get lng;
+  List<String> get sportTypes;
+  String? get address;
+  double? get pricePerHour;
+  String? get description;
+  List<String> get amenities;
+  List<String> get photos;
 
   /// Create a copy of Court
   /// with the given fields replaced by the non-null parameter values.
@@ -37,16 +43,36 @@ mixin _$Court {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.lat, lat) || other.lat == lat) &&
-            (identical(other.lng, lng) || other.lng == lng));
+            (identical(other.lng, lng) || other.lng == lng) &&
+            const DeepCollectionEquality()
+                .equals(other.sportTypes, sportTypes) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.pricePerHour, pricePerHour) ||
+                other.pricePerHour == pricePerHour) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            const DeepCollectionEquality().equals(other.amenities, amenities) &&
+            const DeepCollectionEquality().equals(other.photos, photos));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, lat, lng);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      lat,
+      lng,
+      const DeepCollectionEquality().hash(sportTypes),
+      address,
+      pricePerHour,
+      description,
+      const DeepCollectionEquality().hash(amenities),
+      const DeepCollectionEquality().hash(photos));
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng)';
+    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
   }
 }
 
@@ -55,7 +81,17 @@ abstract mixin class $CourtCopyWith<$Res> {
   factory $CourtCopyWith(Court value, $Res Function(Court) _then) =
       _$CourtCopyWithImpl;
   @useResult
-  $Res call({String id, String name, double lat, double lng});
+  $Res call(
+      {String id,
+      String name,
+      double lat,
+      double lng,
+      List<String> sportTypes,
+      String? address,
+      double? pricePerHour,
+      String? description,
+      List<String> amenities,
+      List<String> photos});
 }
 
 /// @nodoc
@@ -74,6 +110,12 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
     Object? name = null,
     Object? lat = null,
     Object? lng = null,
+    Object? sportTypes = null,
+    Object? address = freezed,
+    Object? pricePerHour = freezed,
+    Object? description = freezed,
+    Object? amenities = null,
+    Object? photos = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -92,6 +134,30 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
           ? _self.lng
           : lng // ignore: cast_nullable_to_non_nullable
               as double,
+      sportTypes: null == sportTypes
+          ? _self.sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      address: freezed == address
+          ? _self.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pricePerHour: freezed == pricePerHour
+          ? _self.pricePerHour
+          : pricePerHour // ignore: cast_nullable_to_non_nullable
+              as double?,
+      description: freezed == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amenities: null == amenities
+          ? _self.amenities
+          : amenities // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      photos: null == photos
+          ? _self.photos
+          : photos // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -189,14 +255,34 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, String name, double lat, double lng)?
+    TResult Function(
+            String id,
+            String name,
+            double lat,
+            double lng,
+            List<String> sportTypes,
+            String? address,
+            double? pricePerHour,
+            String? description,
+            List<String> amenities,
+            List<String> photos)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _Court() when $default != null:
-        return $default(_that.id, _that.name, _that.lat, _that.lng);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.lat,
+            _that.lng,
+            _that.sportTypes,
+            _that.address,
+            _that.pricePerHour,
+            _that.description,
+            _that.amenities,
+            _that.photos);
       case _:
         return orElse();
     }
@@ -217,12 +303,33 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, String name, double lat, double lng) $default,
+    TResult Function(
+            String id,
+            String name,
+            double lat,
+            double lng,
+            List<String> sportTypes,
+            String? address,
+            double? pricePerHour,
+            String? description,
+            List<String> amenities,
+            List<String> photos)
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Court():
-        return $default(_that.id, _that.name, _that.lat, _that.lng);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.lat,
+            _that.lng,
+            _that.sportTypes,
+            _that.address,
+            _that.pricePerHour,
+            _that.description,
+            _that.amenities,
+            _that.photos);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -242,12 +349,33 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, String name, double lat, double lng)? $default,
+    TResult? Function(
+            String id,
+            String name,
+            double lat,
+            double lng,
+            List<String> sportTypes,
+            String? address,
+            double? pricePerHour,
+            String? description,
+            List<String> amenities,
+            List<String> photos)?
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Court() when $default != null:
-        return $default(_that.id, _that.name, _that.lat, _that.lng);
+        return $default(
+            _that.id,
+            _that.name,
+            _that.lat,
+            _that.lng,
+            _that.sportTypes,
+            _that.address,
+            _that.pricePerHour,
+            _that.description,
+            _that.amenities,
+            _that.photos);
       case _:
         return null;
     }
@@ -255,13 +383,23 @@ extension CourtPatterns on Court {
 }
 
 /// @nodoc
-@JsonSerializable()
+
+@JsonSerializable(fieldRename: FieldRename.snake)
 class _Court implements Court {
   const _Court(
       {required this.id,
       required this.name,
-      required this.lat,
-      required this.lng});
+      this.lat = 0.0,
+      this.lng = 0.0,
+      final List<String> sportTypes = const <String>[],
+      this.address,
+      this.pricePerHour,
+      this.description,
+      final List<String> amenities = const <String>[],
+      final List<String> photos = const <String>[]})
+      : _sportTypes = sportTypes,
+        _amenities = amenities,
+        _photos = photos;
   factory _Court.fromJson(Map<String, dynamic> json) => _$CourtFromJson(json);
 
   @override
@@ -269,9 +407,43 @@ class _Court implements Court {
   @override
   final String name;
   @override
+  @JsonKey()
   final double lat;
   @override
+  @JsonKey()
   final double lng;
+  final List<String> _sportTypes;
+  @override
+  @JsonKey()
+  List<String> get sportTypes {
+    if (_sportTypes is EqualUnmodifiableListView) return _sportTypes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sportTypes);
+  }
+
+  @override
+  final String? address;
+  @override
+  final double? pricePerHour;
+  @override
+  final String? description;
+  final List<String> _amenities;
+  @override
+  @JsonKey()
+  List<String> get amenities {
+    if (_amenities is EqualUnmodifiableListView) return _amenities;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_amenities);
+  }
+
+  final List<String> _photos;
+  @override
+  @JsonKey()
+  List<String> get photos {
+    if (_photos is EqualUnmodifiableListView) return _photos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_photos);
+  }
 
   /// Create a copy of Court
   /// with the given fields replaced by the non-null parameter values.
@@ -296,16 +468,37 @@ class _Court implements Court {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.lat, lat) || other.lat == lat) &&
-            (identical(other.lng, lng) || other.lng == lng));
+            (identical(other.lng, lng) || other.lng == lng) &&
+            const DeepCollectionEquality()
+                .equals(other._sportTypes, _sportTypes) &&
+            (identical(other.address, address) || other.address == address) &&
+            (identical(other.pricePerHour, pricePerHour) ||
+                other.pricePerHour == pricePerHour) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            const DeepCollectionEquality()
+                .equals(other._amenities, _amenities) &&
+            const DeepCollectionEquality().equals(other._photos, _photos));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, lat, lng);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      name,
+      lat,
+      lng,
+      const DeepCollectionEquality().hash(_sportTypes),
+      address,
+      pricePerHour,
+      description,
+      const DeepCollectionEquality().hash(_amenities),
+      const DeepCollectionEquality().hash(_photos));
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng)';
+    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
   }
 }
 
@@ -315,7 +508,17 @@ abstract mixin class _$CourtCopyWith<$Res> implements $CourtCopyWith<$Res> {
       __$CourtCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, String name, double lat, double lng});
+  $Res call(
+      {String id,
+      String name,
+      double lat,
+      double lng,
+      List<String> sportTypes,
+      String? address,
+      double? pricePerHour,
+      String? description,
+      List<String> amenities,
+      List<String> photos});
 }
 
 /// @nodoc
@@ -334,6 +537,12 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
     Object? name = null,
     Object? lat = null,
     Object? lng = null,
+    Object? sportTypes = null,
+    Object? address = freezed,
+    Object? pricePerHour = freezed,
+    Object? description = freezed,
+    Object? amenities = null,
+    Object? photos = null,
   }) {
     return _then(_Court(
       id: null == id
@@ -352,6 +561,30 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
           ? _self.lng
           : lng // ignore: cast_nullable_to_non_nullable
               as double,
+      sportTypes: null == sportTypes
+          ? _self._sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      address: freezed == address
+          ? _self.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      pricePerHour: freezed == pricePerHour
+          ? _self.pricePerHour
+          : pricePerHour // ignore: cast_nullable_to_non_nullable
+              as double?,
+      description: freezed == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+      amenities: null == amenities
+          ? _self._amenities
+          : amenities // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      photos: null == photos
+          ? _self._photos
+          : photos // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }

@@ -8,8 +8,8 @@ import '../models/court.dart';
 /// Supabase dependency.
 abstract interface class CourtRepository {
   /// Returns all courts with `status = 'approved'`.
-  ///
-  /// Resolves to [Success<List<Court>>] on a successful response or
-  /// [Failure] (wrapping an [AppFailure]) on network / server error.
   Future<Result<List<Court>>> getApprovedCourts();
+
+  /// Returns a single court by [courtId] with full detail fields.
+  Future<Result<Court>> fetchCourtById(String courtId);
 }

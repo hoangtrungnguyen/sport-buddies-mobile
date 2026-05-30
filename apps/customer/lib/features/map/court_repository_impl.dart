@@ -40,11 +40,28 @@ class SupabaseCourtRepository implements CourtRepository {
       final courts = rows.map(Court.fromJson).toList();
       return Success(courts);
     } on PostgrestException catch (e) {
-      // Supabase REST / RPC error — treat as server failure.
       final code = int.tryParse(e.code ?? '') ?? 500;
       return Failure(ServerFailure(code));
     } catch (_) {
-      // Generic transport / parse error.
+      return const Failure(NetworkFailure());
+    }
+  }
+
+  @override
+  Future<Result<Court>> fetchCourtById(String courtId) async {
+    try {
+      final row = await _client
+          .from('courts')
+          .select(
+            'id, name, lat, lng, sport_types, address, price_per_hour, description, amenities, photos',
+          )
+          .eq('id', courtId)
+          .single();
+      return Success(Court.fromJson(row));
+    } on PostgrestException catch (e) {
+      final code = int.tryParse(e.code ?? '') ?? 500;
+      return Failure(ServerFailure(code));
+    } catch (_) {
       return const Failure(NetworkFailure());
     }
   }
