@@ -19,6 +19,7 @@ import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/booking/booking_cubit.dart';
 import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/booking_history_screen.dart';
@@ -208,7 +209,19 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/booking',
-        builder: (context, state) => const BookingScreen(),
+        builder: (context, state) {
+          final slotId = state.extra as String;
+          return BlocProvider(
+            create: (_) => BookingCubit(
+              slotRepository:
+                  SupabaseSlotRepository(client: Supabase.instance.client),
+              courtRepository:
+                  SupabaseCourtRepository(client: Supabase.instance.client),
+              client: Supabase.instance.client,
+            ),
+            child: BookingScreen(slotId: slotId),
+          );
+        },
       ),
       GoRoute(
         path: '/slot/:id',

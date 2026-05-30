@@ -1,38 +1,144 @@
+import 'package:customer/features/booking/booking_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:spb_core/spb_core.dart';
 
-class BookingScreen extends StatelessWidget {
-  const BookingScreen({super.key});
+class BookingScreen extends StatefulWidget {
+  const BookingScreen({super.key, required this.slotId});
+
+  final String slotId;
+
+  @override
+  State<BookingScreen> createState() => _BookingScreenState();
+}
+
+class _BookingScreenState extends State<BookingScreen> {
+  final _nameCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
+  final _notesCtrl = TextEditingController();
+  bool _populated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<BookingCubit>().load(widget.slotId);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
+    _notesCtrl.dispose();
+    super.dispose();
+  }
+
+  void _populateControllers(BookingLoaded state) {
+    if (_populated) return;
+    _nameCtrl.text = state.name;
+    _phoneCtrl.text = state.phone;
+    _populated = true;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Xác nhận đặt sân'),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: BackButton(onPressed: () => context.pop()),
-      ),
-      body: Column(
-        children: [
-          const _StepperRow(step: 0),
-          Expanded(
-            child: Stack(
-              children: [
-                SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 100),
-                  child: _Step1Content(),
-                ),
-                const _BottomConfirmBtn(),
-              ],
+    return BlocConsumer<BookingCubit, BookingState>(
+      listener: (context, state) {
+        if (state is BookingLoaded) _populateControllers(state);
+        if (state is BookingSubmitted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đặt sân thành công! Chờ chủ sân xác nhận.'),
+              backgroundColor: Color(0xFF16A34A),
             ),
+          );
+          context.go('/bookings/upcoming');
+        }
+        if (state is BookingError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text('Xác nhận đặt sân'),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: const BackButton(),
           ),
-        ],
-      ),
+          body: switch (state) {
+            BookingLoading() => const Center(child: CircularProgressIndicator()),
+            BookingLoaded(:final slot, :final pricePerHour) => Column(
+                children: [
+                  const _StepperRow(step: 0),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: 100),
+                          child: _Step1Content(
+                            slot: slot,
+                            pricePerHour: pricePerHour,
+                            nameCtrl: _nameCtrl,
+                            phoneCtrl: _phoneCtrl,
+                            notesCtrl: _notesCtrl,
+                          ),
+                        ),
+                        _BottomConfirmBtn(
+                          submitting: false,
+                          onConfirm: () => context.read<BookingCubit>().submit(
+                                slotId: widget.slotId,
+                                name: _nameCtrl.text,
+                                phone: _phoneCtrl.text,
+                                notes: _notesCtrl.text,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            BookingSubmitting() => Column(
+                children: [
+                  const _StepperRow(step: 0),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        const SingleChildScrollView(
+                          padding: EdgeInsets.only(bottom: 100),
+                          child: SizedBox(),
+                        ),
+                        const _BottomConfirmBtn(submitting: true),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            BookingError(:final message) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(message,
+                      style: const TextStyle(color: Color(0xFF6B7280))),
+                ),
+              ),
+            _ => const Center(child: CircularProgressIndicator()),
+          },
+        );
+      },
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Step indicator
+// ---------------------------------------------------------------------------
 
 class _StepperRow extends StatelessWidget {
   const _StepperRow({required this.step});
@@ -67,15 +173,46 @@ class _StepperRow extends StatelessWidget {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Step 1 content
+// ---------------------------------------------------------------------------
+
 class _Step1Content extends StatelessWidget {
+  const _Step1Content({
+    required this.slot,
+    required this.pricePerHour,
+    required this.nameCtrl,
+    required this.phoneCtrl,
+    required this.notesCtrl,
+  });
+
+  final Slot slot;
+  final double? pricePerHour;
+  final TextEditingController nameCtrl;
+  final TextEditingController phoneCtrl;
+  final TextEditingController notesCtrl;
+
+  static final _timeFmt = DateFormat('HH:mm');
+  static final _dateFmt = DateFormat('EEE, dd/MM', 'vi');
+  static final _priceFmt =
+      NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+
   @override
   Widget build(BuildContext context) {
+    final durationH =
+        slot.endTime.difference(slot.startTime).inMinutes / 60.0;
+    final durationLabel = durationH == durationH.roundToDouble()
+        ? '${durationH.toInt()} giờ'
+        : '${durationH.toStringAsFixed(1)} giờ';
+    final totalPrice =
+        pricePerHour != null ? pricePerHour! * durationH : null;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CourtCard(),
+          _CourtCard(courtName: slot.courtName),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -89,14 +226,15 @@ class _Step1Content extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(99),
                 ),
-                child: const Text(
-                  '3 khung · 4 giờ',
-                  style: TextStyle(
+                child: Text(
+                  '1 khung · $durationLabel',
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF15803D),
@@ -106,65 +244,36 @@ class _Step1Content extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          const _SlotLine(
-            time: '09:00 – 10:30',
-            date: 'Thứ tư, 14/05',
-            sub: 'Sân B · 1.5 giờ',
-            price: '180.000 đ',
-          ),
-          const SizedBox(height: 8),
-          const _SlotLine(
-            time: '10:30 – 12:00',
-            date: 'Thứ tư, 14/05',
-            sub: 'Sân B · 1.5 giờ · liền kề',
-            price: '180.000 đ',
-          ),
-          const SizedBox(height: 8),
-          const _SlotLine(
-            time: '18:30 – 20:00',
-            date: 'Thứ tư, 14/05',
-            sub: 'Sân B · 1.5 giờ',
-            price: '250.000 đ',
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('⚡', style: TextStyle(fontSize: 16)),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Khung 09:00–10:30 và 10:30–12:00 liền nhau sẽ được gộp thành 1 buổi chơi 3 giờ.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF15803D),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          _SlotLine(
+            time:
+                '${_timeFmt.format(slot.startTime)} – ${_timeFmt.format(slot.endTime)}',
+            date: _dateFmt.format(slot.startTime),
+            sub: '$durationLabel',
+            price: pricePerHour != null
+                ? _priceFmt.format(pricePerHour! * durationH)
+                : '—',
           ),
           const SizedBox(height: 16),
-          const _SummaryRow(k: 'Tổng thời lượng', v: '4 giờ'),
-          const _SummaryRow(k: 'Tổng giá thuê', v: '610.000 đ'),
+          _SummaryRow(k: 'Tổng thời lượng', v: durationLabel),
+          _SummaryRow(
+            k: 'Giá thuê',
+            v: pricePerHour != null
+                ? '${_priceFmt.format(pricePerHour!)}/giờ'
+                : '—',
+          ),
           const _SummaryRow(k: 'Phí dịch vụ', v: 'Miễn phí'),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             decoration: BoxDecoration(
               color: const Color(0xFFF9FAFB),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
+                const Text(
                   'Tổng thanh toán',
                   style: TextStyle(
                     fontSize: 15,
@@ -173,8 +282,8 @@ class _Step1Content extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '610.000 đ',
-                  style: TextStyle(
+                  totalPrice != null ? _priceFmt.format(totalPrice) : '—',
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF15803D),
@@ -185,14 +294,16 @@ class _Step1Content extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: const Color(0xFFFEF9C3),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Row(
               children: [
-                Icon(Icons.payments_outlined, color: Color(0xFF92670B), size: 20),
+                Icon(Icons.payments_outlined,
+                    color: Color(0xFF92670B), size: 20),
                 SizedBox(width: 8),
                 Text(
                   'Thanh toán tiền mặt tại sân',
@@ -215,14 +326,26 @@ class _Step1Content extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          _ContactForm(),
+          _ContactForm(
+            nameCtrl: nameCtrl,
+            phoneCtrl: phoneCtrl,
+            notesCtrl: notesCtrl,
+          ),
         ],
       ),
     );
   }
 }
 
+// ---------------------------------------------------------------------------
+// Widgets
+// ---------------------------------------------------------------------------
+
 class _CourtCard extends StatelessWidget {
+  const _CourtCard({required this.courtName});
+
+  final String courtName;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -245,27 +368,18 @@ class _CourtCard extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.sports_tennis, color: Colors.white, size: 28),
+            child: const Icon(Icons.sports_tennis,
+                color: Colors.white, size: 28),
           ),
           const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Pickle Hub Q1 · Sân A',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  '123 Nguyễn Du, Q.1',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-                ),
-              ],
+          Expanded(
+            child: Text(
+              courtName,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+              ),
             ),
           ),
         ],
@@ -323,9 +437,7 @@ class _SlotLine extends StatelessWidget {
                 Text(
                   '$date · $sub',
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF6B7280),
-                  ),
+                      fontSize: 12, color: Color(0xFF6B7280)),
                 ),
               ],
             ),
@@ -355,23 +467,21 @@ class _SummaryRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+        border:
+            Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            k,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
-          ),
-          Text(
-            v,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
-            ),
-          ),
+          Text(k,
+              style: const TextStyle(
+                  fontSize: 14, color: Color(0xFF6B7280))),
+          Text(v,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF111827),
+              )),
         ],
       ),
     );
@@ -379,23 +489,36 @@ class _SummaryRow extends StatelessWidget {
 }
 
 class _ContactForm extends StatelessWidget {
+  const _ContactForm({
+    required this.nameCtrl,
+    required this.phoneCtrl,
+    required this.notesCtrl,
+  });
+
+  final TextEditingController nameCtrl;
+  final TextEditingController phoneCtrl;
+  final TextEditingController notesCtrl;
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _FormField(
+        _EditableField(
           label: 'Họ tên',
-          value: 'Trần Minh',
+          controller: nameCtrl,
+          keyboardType: TextInputType.name,
         ),
         const SizedBox(height: 12),
-        _FormField(
+        _EditableField(
           label: 'Số điện thoại',
-          value: '0903 123 456',
+          controller: phoneCtrl,
           prefixIcon: Icons.phone_outlined,
+          keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 12),
-        _FormField(
+        _EditableField(
           label: 'Ghi chú cho chủ sân (tuỳ chọn)',
+          controller: notesCtrl,
           hint: 'VD: cần mượn vợt, đến muộn 10p...',
           multiline: true,
         ),
@@ -404,20 +527,22 @@ class _ContactForm extends StatelessWidget {
   }
 }
 
-class _FormField extends StatelessWidget {
-  const _FormField({
+class _EditableField extends StatelessWidget {
+  const _EditableField({
     required this.label,
-    this.value,
+    required this.controller,
     this.hint,
     this.prefixIcon,
     this.multiline = false,
+    this.keyboardType,
   });
 
   final String label;
-  final String? value;
+  final TextEditingController controller;
   final String? hint;
   final IconData? prefixIcon;
   final bool multiline;
+  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
@@ -433,33 +558,34 @@ class _FormField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: const Color(0xFFD1D5DB)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Row(
-            crossAxisAlignment:
-                multiline ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-            children: [
-              if (prefixIcon != null) ...[
-                Icon(prefixIcon, size: 18, color: const Color(0xFF6B7280)),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Text(
-                  value ?? hint ?? '',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: value != null
-                        ? const Color(0xFF111827)
-                        : const Color(0xFF9CA3AF),
-                  ),
-                ),
-              ),
-            ],
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: multiline ? 3 : 1,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF111827)),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle:
+                const TextStyle(fontSize: 14, color: Color(0xFF9CA3AF)),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, size: 18, color: const Color(0xFF6B7280))
+                : null,
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF16A34A)),
+            ),
+            filled: true,
+            fillColor: Colors.white,
           ),
         ),
       ],
@@ -468,7 +594,10 @@ class _FormField extends StatelessWidget {
 }
 
 class _BottomConfirmBtn extends StatelessWidget {
-  const _BottomConfirmBtn();
+  const _BottomConfirmBtn({this.submitting = false, this.onConfirm});
+
+  final bool submitting;
+  final VoidCallback? onConfirm;
 
   @override
   Widget build(BuildContext context) {
@@ -483,22 +612,32 @@ class _BottomConfirmBtn extends StatelessWidget {
           border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
         ),
         child: FilledButton(
-          onPressed: () {},
+          onPressed: submitting ? null : onConfirm,
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF16A34A),
+            disabledBackgroundColor: const Color(0xFFD1D5DB),
             minimumSize: const Size(double.infinity, 52),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text(
-            'Xác nhận đặt sân',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ),
+          child: submitting
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  'Xác nhận đặt sân',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ),
     );

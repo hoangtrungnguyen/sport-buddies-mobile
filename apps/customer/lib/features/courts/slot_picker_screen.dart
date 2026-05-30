@@ -393,7 +393,10 @@ class _BottomCta extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: () => context.push('/booking'),
+                onPressed: () => context.push(
+                  '/booking',
+                  extra: '0ec04944-a7d5-40f9-868c-43b703bd77c0',
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF16A34A),
                   minimumSize: const Size(double.infinity, 52),
