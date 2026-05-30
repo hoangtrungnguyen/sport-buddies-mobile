@@ -47,13 +47,7 @@ class _BookingScreenState extends State<BookingScreen> {
       listener: (context, state) {
         if (state is BookingLoaded) _populateControllers(state);
         if (state is BookingSubmitted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đặt sân thành công! Chờ chủ sân xác nhận.'),
-              backgroundColor: Color(0xFF16A34A),
-            ),
-          );
-          context.go('/bookings/upcoming');
+          context.go('/booking/awaiting/${state.bookingId}');
         }
         if (state is BookingSlotTaken) {
           ScaffoldMessenger.of(context).showSnackBar(

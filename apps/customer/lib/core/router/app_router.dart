@@ -19,6 +19,8 @@ import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
+import 'package:customer/features/booking/awaiting_confirmation_cubit.dart';
+import 'package:customer/features/booking/awaiting_confirmation_screen.dart';
 import 'package:customer/features/booking/booking_cubit.dart';
 import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
@@ -230,6 +232,17 @@ GoRouter buildRouter() {
             SupabaseSlotRepository(client: Supabase.instance.client),
           ),
           child: SlotDetailScreen(slotId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/booking/awaiting/:bookingId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => AwaitingConfirmationCubit(
+            client: Supabase.instance.client,
+          ),
+          child: AwaitingConfirmationScreen(
+            bookingId: state.pathParameters['bookingId']!,
+          ),
         ),
       ),
       GoRoute(
