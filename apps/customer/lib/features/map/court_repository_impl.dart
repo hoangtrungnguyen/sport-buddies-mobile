@@ -48,12 +48,34 @@ class SupabaseCourtRepository implements CourtRepository {
   }
 
   @override
+  Future<Result<List<Court>>> fetchCourtsByOwner(String ownerId) async {
+    try {
+      final rows = await _client
+          .from('courts')
+          .select(
+            'id, name, owner_id, lat, lng, sport_types, address, price_per_hour, description, amenities, photos',
+          )
+          .eq('owner_id', ownerId)
+          .eq('status', 'approved');
+      final courts = (rows as List<dynamic>)
+          .map<Court>((r) => Court.fromJson(r as Map<String, dynamic>))
+          .toList();
+      return Success(courts);
+    } on PostgrestException catch (e) {
+      final code = int.tryParse(e.code ?? '') ?? 500;
+      return Failure(ServerFailure(code));
+    } catch (_) {
+      return const Failure(NetworkFailure());
+    }
+  }
+
+  @override
   Future<Result<Court>> fetchCourtById(String courtId) async {
     try {
       final row = await _client
           .from('courts')
           .select(
-            'id, name, lat, lng, sport_types, address, price_per_hour, description, amenities, photos',
+            'id, name, owner_id, lat, lng, sport_types, address, price_per_hour, description, amenities, photos',
           )
           .eq('id', courtId)
           .single();

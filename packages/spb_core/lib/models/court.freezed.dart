@@ -16,6 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$Court {
   String get id;
   String get name;
+  String? get ownerId;
   double get lat;
   double get lng;
   List<String> get sportTypes;
@@ -42,6 +43,7 @@ mixin _$Court {
             other is Court &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.ownerId, ownerId) || other.ownerId == ownerId) &&
             (identical(other.lat, lat) || other.lat == lat) &&
             (identical(other.lng, lng) || other.lng == lng) &&
             const DeepCollectionEquality()
@@ -61,6 +63,7 @@ mixin _$Court {
       runtimeType,
       id,
       name,
+      ownerId,
       lat,
       lng,
       const DeepCollectionEquality().hash(sportTypes),
@@ -72,7 +75,7 @@ mixin _$Court {
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
+    return 'Court(id: $id, name: $name, ownerId: $ownerId, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
   }
 }
 
@@ -84,6 +87,7 @@ abstract mixin class $CourtCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
+      String? ownerId,
       double lat,
       double lng,
       List<String> sportTypes,
@@ -108,6 +112,7 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? ownerId = freezed,
     Object? lat = null,
     Object? lng = null,
     Object? sportTypes = null,
@@ -126,6 +131,10 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      ownerId: freezed == ownerId
+          ? _self.ownerId
+          : ownerId // ignore: cast_nullable_to_non_nullable
+              as String?,
       lat: null == lat
           ? _self.lat
           : lat // ignore: cast_nullable_to_non_nullable
@@ -258,6 +267,7 @@ extension CourtPatterns on Court {
     TResult Function(
             String id,
             String name,
+            String? ownerId,
             double lat,
             double lng,
             List<String> sportTypes,
@@ -275,6 +285,7 @@ extension CourtPatterns on Court {
         return $default(
             _that.id,
             _that.name,
+            _that.ownerId,
             _that.lat,
             _that.lng,
             _that.sportTypes,
@@ -306,6 +317,7 @@ extension CourtPatterns on Court {
     TResult Function(
             String id,
             String name,
+            String? ownerId,
             double lat,
             double lng,
             List<String> sportTypes,
@@ -322,6 +334,7 @@ extension CourtPatterns on Court {
         return $default(
             _that.id,
             _that.name,
+            _that.ownerId,
             _that.lat,
             _that.lng,
             _that.sportTypes,
@@ -352,6 +365,7 @@ extension CourtPatterns on Court {
     TResult? Function(
             String id,
             String name,
+            String? ownerId,
             double lat,
             double lng,
             List<String> sportTypes,
@@ -368,6 +382,7 @@ extension CourtPatterns on Court {
         return $default(
             _that.id,
             _that.name,
+            _that.ownerId,
             _that.lat,
             _that.lng,
             _that.sportTypes,
@@ -389,6 +404,7 @@ class _Court implements Court {
   const _Court(
       {required this.id,
       required this.name,
+      this.ownerId,
       this.lat = 0.0,
       this.lng = 0.0,
       final List<String> sportTypes = const <String>[],
@@ -406,6 +422,8 @@ class _Court implements Court {
   final String id;
   @override
   final String name;
+  @override
+  final String? ownerId;
   @override
   @JsonKey()
   final double lat;
@@ -467,6 +485,7 @@ class _Court implements Court {
             other is _Court &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
+            (identical(other.ownerId, ownerId) || other.ownerId == ownerId) &&
             (identical(other.lat, lat) || other.lat == lat) &&
             (identical(other.lng, lng) || other.lng == lng) &&
             const DeepCollectionEquality()
@@ -487,6 +506,7 @@ class _Court implements Court {
       runtimeType,
       id,
       name,
+      ownerId,
       lat,
       lng,
       const DeepCollectionEquality().hash(_sportTypes),
@@ -498,7 +518,7 @@ class _Court implements Court {
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
+    return 'Court(id: $id, name: $name, ownerId: $ownerId, lat: $lat, lng: $lng, sportTypes: $sportTypes, address: $address, pricePerHour: $pricePerHour, description: $description, amenities: $amenities, photos: $photos)';
   }
 }
 
@@ -511,6 +531,7 @@ abstract mixin class _$CourtCopyWith<$Res> implements $CourtCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
+      String? ownerId,
       double lat,
       double lng,
       List<String> sportTypes,
@@ -535,6 +556,7 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? ownerId = freezed,
     Object? lat = null,
     Object? lng = null,
     Object? sportTypes = null,
@@ -553,6 +575,10 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      ownerId: freezed == ownerId
+          ? _self.ownerId
+          : ownerId // ignore: cast_nullable_to_non_nullable
+              as String?,
       lat: null == lat
           ? _self.lat
           : lat // ignore: cast_nullable_to_non_nullable

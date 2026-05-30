@@ -374,6 +374,69 @@ class _CourtInfoSection extends StatelessWidget {
               ),
             ),
           ],
+          // Schedule overview link
+          const SizedBox(height: 24),
+          const Text(
+            'Thuộc cụm sân',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () => context.push('/court/${court.id}/schedule'),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF16A34A), Color(0xFF0EA5E9)],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Xem lịch tổng hợp',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF111827),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'So sánh khung giờ trống toàn bộ sân',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Color(0xFF6B7280)),
+                ],
+              ),
+            ),
+          ),
           const SizedBox(height: 24),
         ],
       ),

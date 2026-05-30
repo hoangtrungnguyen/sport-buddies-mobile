@@ -9,6 +9,7 @@ abstract class Court with _$Court {
   const factory Court({
     required String id,
     required String name,
+    String? ownerId,
     @Default(0.0) double lat,
     @Default(0.0) double lng,
     @Default(<String>[]) List<String> sportTypes,

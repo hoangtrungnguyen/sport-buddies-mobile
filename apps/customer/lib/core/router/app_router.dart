@@ -25,6 +25,8 @@ import 'package:customer/features/bookings/booking_history_screen.dart';
 import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
+import 'package:customer/features/courts/cubit/schedule_overview_cubit.dart';
+import 'package:customer/features/courts/schedule_overview_screen.dart';
 import 'package:customer/features/courts/slot_picker_screen.dart';
 import 'package:customer/features/map/court_repository_impl.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
@@ -190,6 +192,19 @@ GoRouter buildRouter() {
         path: '/court/:id/slots',
         builder: (context, state) =>
             SlotPickerScreen(courtId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/court/:id/schedule',
+        builder: (context, state) => BlocProvider(
+          create: (_) => ScheduleOverviewCubit(
+            courtRepository:
+                SupabaseCourtRepository(client: Supabase.instance.client),
+            slotRepository: SupabaseSlotRepository(
+                client: Supabase.instance.client),
+          ),
+          child: ScheduleOverviewScreen(
+              courtId: state.pathParameters['id']!),
+        ),
       ),
       GoRoute(
         path: '/booking',

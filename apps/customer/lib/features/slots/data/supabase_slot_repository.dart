@@ -91,6 +91,34 @@ class SupabaseSlotRepository implements SlotRepository {
   }
 
   @override
+  Future<Result<List<Slot>>> fetchScheduleSlots(
+      List<String> courtIds, DateTime date) async {
+    if (courtIds.isEmpty) return const Success([]);
+    try {
+      final dayStart = DateTime(date.year, date.month, date.day).toUtc();
+      final dayEnd = dayStart.add(const Duration(days: 1));
+
+      final rows = await _client
+          .from('slots')
+          .select(_slotSelect)
+          .inFilter('court_id', courtIds)
+          .gte('start_at', dayStart.toIso8601String())
+          .lt('start_at', dayEnd.toIso8601String())
+          .order('start_at', ascending: true);
+
+      final slots = (rows as List<dynamic>)
+          .map<Slot>((row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)))
+          .toList();
+      return Success(slots);
+    } on PostgrestException catch (e) {
+      final code = int.tryParse(e.code ?? '') ?? 500;
+      return Failure(ServerFailure(code));
+    } catch (_) {
+      return const Failure(NetworkFailure());
+    }
+  }
+
+  @override
   Future<Result<List<Slot>>> fetchAllGroupSlots() async {
     try {
       final now = DateTime.now().toUtc().toIso8601String();

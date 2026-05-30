@@ -12,4 +12,7 @@ abstract interface class CourtRepository {
 
   /// Returns a single court by [courtId] with full detail fields.
   Future<Result<Court>> fetchCourtById(String courtId);
+
+  /// Returns all approved courts belonging to [ownerId].
+  Future<Result<List<Court>>> fetchCourtsByOwner(String ownerId);
 }

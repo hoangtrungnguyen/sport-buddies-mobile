@@ -25,4 +25,8 @@ abstract interface class SlotRepository {
 
   /// Returns a single slot by [slotId].
   Future<Result<Slot>> fetchSlotById(String slotId);
+
+  /// Returns all slots for [courtIds] on [date] (local time, any status).
+  Future<Result<List<Slot>>> fetchScheduleSlots(
+      List<String> courtIds, DateTime date);
 }
