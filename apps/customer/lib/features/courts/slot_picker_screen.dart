@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class SlotPickerScreen extends StatefulWidget {
-  const SlotPickerScreen({super.key, required this.courtId});
+  const SlotPickerScreen({
+    super.key,
+    required this.courtId,
+    this.courtName,
+    this.courtAddress,
+  });
 
   final String courtId;
+  final String? courtName;
+  final String? courtAddress;
 
   @override
   State<SlotPickerScreen> createState() => _SlotPickerScreenState();
@@ -12,16 +19,34 @@ class SlotPickerScreen extends StatefulWidget {
 
 class _SlotPickerScreenState extends State<SlotPickerScreen> {
   int? _selectedIndex = 7; // 18:00 pre-selected to match original mock
+  // 0 = yesterday, 1 = today (default), …, 14 = today+13
+  int _selectedDateIndex = 1;
 
-  static const _dates = [
-    _DateTab(day: 'T2', num: '5', isActive: true),
-    _DateTab(day: 'T3', num: '6', label: 'hôm nay'),
-    _DateTab(day: 'T4', num: '7'),
-    _DateTab(day: 'T5', num: '8'),
-    _DateTab(day: 'T6', num: '9'),
-    _DateTab(day: 'T7', num: '10'),
-    _DateTab(day: 'CN', num: '11'),
-  ];
+  static List<_DateTab> _buildDates() {
+    final today = DateTime.now();
+    final yesterday = today.subtract(const Duration(days: 1));
+    return List.generate(15, (i) {
+      final date = yesterday.add(Duration(days: i));
+      final isToday = date.day == today.day &&
+          date.month == today.month &&
+          date.year == today.year;
+      return _DateTab(
+        day: _weekdayLabel(date.weekday),
+        num: date.day.toString(),
+        label: isToday ? 'hôm nay' : null,
+      );
+    });
+  }
+
+  static String _weekdayLabel(int weekday) => switch (weekday) {
+        1 => 'T2',
+        2 => 'T3',
+        3 => 'T4',
+        4 => 'T5',
+        5 => 'T6',
+        6 => 'T7',
+        _ => 'CN',
+      };
 
   static const _slots = [
     _SlotData(time: '06:00', dur: '07:00', price: '300K', status: 'open'),
@@ -39,12 +64,14 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
   ];
 
   void _onSelect(int index) => setState(() => _selectedIndex = index);
+  void _onDateSelect(int index) => setState(() => _selectedDateIndex = index);
 
   @override
   Widget build(BuildContext context) {
     const morningCount = 5;
     final morningSlots = _slots.sublist(0, morningCount);
     final eveningSlots = _slots.sublist(morningCount);
+    final dates = _buildDates();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -61,8 +88,15 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _CourtSummaryHeader(),
-                const _DateTabRow(dates: _dates),
+                _CourtSummaryHeader(
+                  courtName: widget.courtName,
+                  courtAddress: widget.courtAddress,
+                ),
+                _DateTabRow(
+                  dates: dates,
+                  selectedIndex: _selectedDateIndex,
+                  onTap: _onDateSelect,
+                ),
                 const _SectionDivider(label: 'SÁNG'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -97,7 +131,10 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
 // ── Header ────────────────────────────────────────────────────────────────────
 
 class _CourtSummaryHeader extends StatelessWidget {
-  const _CourtSummaryHeader();
+  const _CourtSummaryHeader({this.courtName, this.courtAddress});
+
+  final String? courtName;
+  final String? courtAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -109,30 +146,37 @@ class _CourtSummaryHeader extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9).withValues(alpha:0.1),
+              color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.sports_tennis,
+            child: const Icon(Icons.sports_soccer,
                 size: 20, color: Color(0xFF0EA5E9)),
           ),
           const SizedBox(width: 10),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Sân Bóng Tao Đàn',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  courtName ?? 'Sân thể thao',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              SizedBox(height: 2),
-              Text(
-                '55 Trương Định · 0.8 km',
-                style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-              ),
-            ],
+                if (courtAddress != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    courtAddress!,
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF6B7280)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
           ),
         ],
       ),
@@ -143,77 +187,96 @@ class _CourtSummaryHeader extends StatelessWidget {
 // ── Date tabs ─────────────────────────────────────────────────────────────────
 
 class _DateTabRow extends StatelessWidget {
-  const _DateTabRow({required this.dates});
+  const _DateTabRow({
+    required this.dates,
+    required this.selectedIndex,
+    required this.onTap,
+  });
 
   final List<_DateTab> dates;
+  final int selectedIndex;
+  final ValueChanged<int> onTap;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 84,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         itemCount: dates.length,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, i) => _DateTabItem(tab: dates[i]),
+        itemBuilder: (_, i) => _DateTabItem(
+          tab: dates[i],
+          isSelected: i == selectedIndex,
+          onTap: () => onTap(i),
+        ),
       ),
     );
   }
 }
 
 class _DateTabItem extends StatelessWidget {
-  const _DateTabItem({required this.tab});
+  const _DateTabItem({
+    required this.tab,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   final _DateTab tab;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 54,
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-      decoration: BoxDecoration(
-        color: tab.isActive ? const Color(0xFF111827) : Colors.white,
-        border: Border.all(
-          color: tab.isActive
-              ? const Color(0xFF111827)
-              : const Color(0xFFE5E7EB),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 54,
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF111827) : Colors.white,
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF111827)
+                : const Color(0xFFE5E7EB),
+          ),
+          borderRadius: BorderRadius.circular(10),
         ),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            tab.day,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: tab.isActive
-                  ? Colors.white.withValues(alpha:0.7)
-                  : const Color(0xFF374151),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            tab.num,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: tab.isActive ? Colors.white : const Color(0xFF111827),
-            ),
-          ),
-          if (tab.label != null)
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             Text(
-              tab.label!,
+              tab.day,
               style: TextStyle(
-                fontSize: 9,
-                color: tab.isActive
-                    ? Colors.white.withValues(alpha:0.7)
-                    : const Color(0xFF6B7280),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.7)
+                    : const Color(0xFF374151),
               ),
             ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              tab.num,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : const Color(0xFF111827),
+              ),
+            ),
+            if (tab.label != null)
+              Text(
+                tab.label!,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: isSelected
+                      ? Colors.white.withValues(alpha: 0.7)
+                      : const Color(0xFF6B7280),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -471,13 +534,11 @@ class _DateTab {
     required this.day,
     required this.num,
     this.label,
-    this.isActive = false,
   });
 
   final String day;
   final String num;
   final String? label;
-  final bool isActive;
 }
 
 class _SlotData {

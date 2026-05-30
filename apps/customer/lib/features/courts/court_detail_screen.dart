@@ -105,7 +105,7 @@ class _BodyState extends State<_Body> {
                 currentPage: _currentPage,
                 onPageChanged: (i) => setState(() => _currentPage = i),
               ),
-              _CourtInfoSection(court: court),
+              _CourtInfoSection(court: court, openSlotCount: widget.openSlotCount),
             ],
           ),
         ),
@@ -113,6 +113,8 @@ class _BodyState extends State<_Body> {
           courtId: court.id,
           pricePerHour: court.pricePerHour,
           openSlotCount: widget.openSlotCount,
+          courtName: court.name,
+          courtAddress: court.address,
         ),
       ],
     );
@@ -244,9 +246,10 @@ class _OverlayIconBtn extends StatelessWidget {
 }
 
 class _CourtInfoSection extends StatelessWidget {
-  const _CourtInfoSection({required this.court});
+  const _CourtInfoSection({required this.court, required this.openSlotCount});
 
   final Court court;
+  final int openSlotCount;
 
   static const _sportColors = <String, Color>{
     'pickleball': Color(0xFF15803D),
@@ -334,8 +337,8 @@ class _CourtInfoSection extends StatelessWidget {
               Expanded(
                 child: _StatTile(
                   label: 'Slot trống hôm nay',
-                  value: widget.openSlotCount.toString(),
-                  valueColor: widget.openSlotCount > 0
+                  value: openSlotCount.toString(),
+                  valueColor: openSlotCount > 0
                       ? const Color(0xFF22C55E)
                       : const Color(0xFFEF4444),
                 ),
@@ -595,11 +598,15 @@ class _BottomCta extends StatelessWidget {
     required this.courtId,
     required this.openSlotCount,
     this.pricePerHour,
+    this.courtName,
+    this.courtAddress,
   });
 
   final String courtId;
   final double? pricePerHour;
   final int openSlotCount;
+  final String? courtName;
+  final String? courtAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -624,69 +631,105 @@ class _BottomCta extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            Row(
               children: [
-                const Text('Từ',
-                    style:
-                        TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-                const SizedBox(height: 2),
-                Text.rich(
-                  TextSpan(
-                    children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Từ',
+                        style:
+                            TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                    const SizedBox(height: 2),
+                    Text.rich(
                       TextSpan(
-                        text: priceLabel,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                      if (pricePerHour != null)
-                        const TextSpan(
-                          text: '/giờ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Color(0xFF6B7280),
+                        children: [
+                          TextSpan(
+                            text: priceLabel,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
                           ),
-                        ),
-                    ],
+                          if (pricePerHour != null)
+                            const TextSpan(
+                              text: '/giờ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: openSlotCount > 0
+                        ? () => context.push(
+                              '/court/$courtId/slots',
+                              extra: <String, String?>{
+                                'name': courtName,
+                                'address': courtAddress,
+                              },
+                            )
+                        : null,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: openSlotCount > 0
+                          ? const Color(0xFF16A34A)
+                          : const Color(0xFFD1D5DB),
+                      disabledBackgroundColor: const Color(0xFFD1D5DB),
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      openSlotCount > 0 ? 'Đặt sân ngay' : 'Hết slot hôm nay',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: openSlotCount > 0
+                            ? Colors.white
+                            : const Color(0xFF9CA3AF),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton(
-                onPressed: openSlotCount > 0
-                    ? () => context.push('/court/$courtId/slots')
-                    : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: openSlotCount > 0
-                      ? const Color(0xFF16A34A)
-                      : const Color(0xFFD1D5DB),
-                  disabledBackgroundColor: const Color(0xFFD1D5DB),
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  openSlotCount > 0 ? 'Đặt sân ngay' : 'Hết slot hôm nay',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: openSlotCount > 0
-                        ? Colors.white
-                        : const Color(0xFF9CA3AF),
-                  ),
+            if (openSlotCount == 0) ...[
+              const SizedBox(height: 8),
+              GestureDetector(
+                onTap: () => context.push('/court/$courtId/schedule'),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_month_outlined,
+                        size: 16, color: Color(0xFF0EA5E9)),
+                    SizedBox(width: 4),
+                    Text(
+                      'Xem lịch trống những ngày tới',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF0EA5E9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(width: 2),
+                    Icon(Icons.chevron_right,
+                        size: 16, color: Color(0xFF0EA5E9)),
+                  ],
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
