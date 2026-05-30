@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -161,7 +162,7 @@ class _FormPanel extends StatelessWidget {
                     textField: true,
                     child: TextFormField(
                       controller: emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autofillHints: const [AutofillHints.email],
                       style: GoogleFonts.plusJakartaSans(fontSize: 14),

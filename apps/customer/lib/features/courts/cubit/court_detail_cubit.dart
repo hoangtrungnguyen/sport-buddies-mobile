@@ -5,15 +5,28 @@ import 'package:spb_core/spb_core.dart';
 part 'court_detail_state.dart';
 
 class CourtDetailCubit extends Cubit<CourtDetailState> {
-  CourtDetailCubit(this._repository) : super(const CourtDetailInitial());
+  CourtDetailCubit(this._repository, {required SlotRepository slotRepository})
+      : _slotRepository = slotRepository,
+        super(const CourtDetailInitial());
 
   final CourtRepository _repository;
+  final SlotRepository _slotRepository;
 
   Future<void> loadCourt(String courtId) async {
     emit(const CourtDetailLoading());
-    final result = await _repository.fetchCourtById(courtId);
-    result.when(
-      success: (court) => emit(CourtDetailLoaded(court)),
+    final (courtResult, slotsResult) = await (
+      _repository.fetchCourtById(courtId),
+      _slotRepository.fetchSlots(courtId),
+    ).wait;
+
+    courtResult.when(
+      success: (court) {
+        final openCount = switch (slotsResult) {
+          Success(:final value) => value.length,
+          Failure() => 0,
+        };
+        emit(CourtDetailLoaded(court, openSlotCount: openCount));
+      },
       failure: (f) => emit(CourtDetailError(_message(f))),
     );
   }

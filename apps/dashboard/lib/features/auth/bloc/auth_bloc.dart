@@ -15,6 +15,7 @@
 
 import 'dart:async';
 
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:dashboard/features/auth/auth_validators.dart';
 import 'package:dashboard/features/auth/bloc/auth_event.dart';
 import 'package:dashboard/features/auth/bloc/auth_state.dart';
@@ -109,18 +110,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
       );
+      final sessionAfter = _client?.auth.currentSession;
+      appLogger.d('[AuthBloc] hydrateSession done — session=${sessionAfter != null ? "present" : "NULL"}');
       // Hydration also fires onAuthStateChange(signedIn) → _onAuthStateChanged,
       // which emits AuthAuthenticated. Emitting here too is harmless (bloc drops
       // a repeat of the current state) and is the sole signal when there is no
       // Supabase auth stream (e.g. tests / null client).
       emit(const AuthAuthenticated());
     } on OwnerLoginException catch (e, st) {
+      appLogger.e('[AuthBloc] OwnerLoginException: ${e.code}', error: e, stackTrace: st);
       emit(AuthRejected(e.code, stackTrace: st));
     } on AuthException catch (e, st) {
       // Login succeeded at the backend but hydrating the Supabase session
       // failed (e.g. Supabase unreachable / token rejected). Recoverable —
       // let the owner retry.
+      appLogger.e('[AuthBloc] AuthException during hydration: ${e.message}', error: e, stackTrace: st);
       emit(AuthRejected('login_failed', stackTrace: st));
+    } catch (e, st) {
+      appLogger.e('[AuthBloc] UNEXPECTED exception during login: $e', error: e, stackTrace: st);
+      rethrow;
     }
   }
 

@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class SlotPickerScreen extends StatelessWidget {
+class SlotPickerScreen extends StatefulWidget {
   const SlotPickerScreen({super.key, required this.courtId});
 
   final String courtId;
+
+  @override
+  State<SlotPickerScreen> createState() => _SlotPickerScreenState();
+}
+
+class _SlotPickerScreenState extends State<SlotPickerScreen> {
+  int? _selectedIndex = 7; // 18:00 pre-selected to match original mock
 
   static const _dates = [
     _DateTab(day: 'T2', num: '5', isActive: true),
@@ -24,22 +31,20 @@ class SlotPickerScreen extends StatelessWidget {
     _SlotData(time: '10:00', dur: '11:00', price: '300K', status: 'open'),
     _SlotData(time: '16:00', dur: '17:00', price: '350K', status: 'open'),
     _SlotData(time: '17:00', dur: '18:00', price: '350K', status: 'booked'),
-    _SlotData(
-        time: '18:00',
-        dur: '19:00',
-        price: '450K',
-        status: 'open',
-        selected: true),
+    _SlotData(time: '18:00', dur: '19:00', price: '450K', status: 'open'),
     _SlotData(time: '19:00', dur: '20:00', price: '450K', status: 'booked'),
     _SlotData(time: '20:00', dur: '21:00', price: '450K', status: 'open'),
     _SlotData(time: '21:00', dur: '22:00', price: '350K', status: 'open'),
     _SlotData(time: '22:00', dur: '23:00', price: '300K', status: 'open'),
   ];
 
+  void _onSelect(int index) => setState(() => _selectedIndex = index);
+
   @override
   Widget build(BuildContext context) {
-    final morningSlots = _slots.sublist(0, 5);
-    final eveningSlots = _slots.sublist(5);
+    const morningCount = 5;
+    final morningSlots = _slots.sublist(0, morningCount);
+    final eveningSlots = _slots.sublist(morningCount);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -47,9 +52,7 @@ class SlotPickerScreen extends StatelessWidget {
         title: const Text('Chọn khung giờ'),
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: BackButton(
-          onPressed: () => context.pop(),
-        ),
+        leading: BackButton(onPressed: () => context.pop()),
       ),
       body: Stack(
         children: [
@@ -58,30 +61,44 @@ class SlotPickerScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _CourtSummaryHeader(),
-                _DateTabRow(dates: _dates),
+                const _CourtSummaryHeader(),
+                const _DateTabRow(dates: _dates),
                 const _SectionDivider(label: 'SÁNG'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: _SlotGrid(slots: morningSlots),
+                  child: _SlotGrid(
+                    slots: morningSlots,
+                    indexOffset: 0,
+                    selectedIndex: _selectedIndex,
+                    onSelect: _onSelect,
+                  ),
                 ),
                 const _SectionDivider(label: 'CHIỀU – TỐI'),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: _SlotGrid(slots: eveningSlots),
+                  child: _SlotGrid(
+                    slots: eveningSlots,
+                    indexOffset: morningCount,
+                    selectedIndex: _selectedIndex,
+                    onSelect: _onSelect,
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
             ),
           ),
-          _BottomCta(courtId: courtId),
+          _BottomCta(courtId: widget.courtId),
         ],
       ),
     );
   }
 }
 
+// ── Header ────────────────────────────────────────────────────────────────────
+
 class _CourtSummaryHeader extends StatelessWidget {
+  const _CourtSummaryHeader();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -92,16 +109,16 @@ class _CourtSummaryHeader extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: const Color(0xFF0EA5E9).withOpacity(0.1),
+              color: const Color(0xFF0EA5E9).withValues(alpha:0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: const Icon(Icons.sports_tennis,
                 size: 20, color: Color(0xFF0EA5E9)),
           ),
           const SizedBox(width: 10),
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
+            children: [
               Text(
                 'Sân Bóng Tao Đàn',
                 style: TextStyle(
@@ -123,6 +140,8 @@ class _CourtSummaryHeader extends StatelessWidget {
   }
 }
 
+// ── Date tabs ─────────────────────────────────────────────────────────────────
+
 class _DateTabRow extends StatelessWidget {
   const _DateTabRow({required this.dates});
 
@@ -137,10 +156,7 @@ class _DateTabRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         itemCount: dates.length,
         separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (_, i) {
-          final d = dates[i];
-          return _DateTabItem(tab: d);
-        },
+        itemBuilder: (_, i) => _DateTabItem(tab: dates[i]),
       ),
     );
   }
@@ -174,7 +190,7 @@ class _DateTabItem extends StatelessWidget {
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: tab.isActive
-                  ? Colors.white.withOpacity(0.7)
+                  ? Colors.white.withValues(alpha:0.7)
                   : const Color(0xFF374151),
             ),
           ),
@@ -193,7 +209,7 @@ class _DateTabItem extends StatelessWidget {
               style: TextStyle(
                 fontSize: 9,
                 color: tab.isActive
-                    ? Colors.white.withOpacity(0.7)
+                    ? Colors.white.withValues(alpha:0.7)
                     : const Color(0xFF6B7280),
               ),
             ),
@@ -202,6 +218,8 @@ class _DateTabItem extends StatelessWidget {
     );
   }
 }
+
+// ── Section divider ───────────────────────────────────────────────────────────
 
 class _SectionDivider extends StatelessWidget {
   const _SectionDivider({required this.label});
@@ -224,19 +242,27 @@ class _SectionDivider extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Expanded(
-            child: Divider(color: Color(0xFFE5E7EB), height: 1),
-          ),
+          const Expanded(child: Divider(color: Color(0xFFE5E7EB), height: 1)),
         ],
       ),
     );
   }
 }
 
+// ── Slot grid + tile ──────────────────────────────────────────────────────────
+
 class _SlotGrid extends StatelessWidget {
-  const _SlotGrid({required this.slots});
+  const _SlotGrid({
+    required this.slots,
+    required this.indexOffset,
+    required this.selectedIndex,
+    required this.onSelect,
+  });
 
   final List<_SlotData> slots;
+  final int indexOffset;
+  final int? selectedIndex;
+  final ValueChanged<int> onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -247,25 +273,37 @@ class _SlotGrid extends StatelessWidget {
       mainAxisSpacing: 8,
       crossAxisSpacing: 8,
       childAspectRatio: 2.0,
-      children: slots.map((s) => _SlotTile(slot: s)).toList(),
+      children: [
+        for (var i = 0; i < slots.length; i++)
+          _SlotTile(
+            slot: slots[i],
+            isSelected: selectedIndex == indexOffset + i,
+            onTap: () => onSelect(indexOffset + i),
+          ),
+      ],
     );
   }
 }
 
 class _SlotTile extends StatelessWidget {
-  const _SlotTile({required this.slot});
+  const _SlotTile({
+    required this.slot,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   final _SlotData slot;
+  final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isBooked = slot.status == 'booked';
     final isBlocked = slot.status == 'blocked';
     final isDisabled = isBooked || isBlocked;
-    final isSelected = slot.selected;
 
-    Color bgColor;
-    Color borderColor;
+    final Color bgColor;
+    final Color borderColor;
     if (isSelected) {
       bgColor = const Color(0xFFDCFCE7);
       borderColor = const Color(0xFF16A34A);
@@ -277,73 +315,78 @@ class _SlotTile extends StatelessWidget {
       borderColor = const Color(0xFFE5E7EB);
     }
 
-    return Opacity(
-      opacity: isDisabled ? 0.6 : 1.0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        decoration: BoxDecoration(
-          color: bgColor,
-          border: Border.all(
-            color: borderColor,
-            width: isSelected ? 2.0 : 1.0,
+    return GestureDetector(
+      onTap: isDisabled ? null : onTap,
+      child: Opacity(
+        opacity: isDisabled ? 0.6 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          decoration: BoxDecoration(
+            color: bgColor,
+            border: Border.all(
+              color: borderColor,
+              width: isSelected ? 2.0 : 1.0,
+            ),
+            borderRadius: BorderRadius.circular(12),
           ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                if (isSelected)
-                  Container(
-                    width: 18,
-                    height: 18,
-                    margin: const EdgeInsets.only(right: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF16A34A),
-                      borderRadius: BorderRadius.circular(4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                children: [
+                  if (isSelected)
+                    Container(
+                      width: 18,
+                      height: 18,
+                      margin: const EdgeInsets.only(right: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF16A34A),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Icon(Icons.check,
+                          size: 12, color: Colors.white),
                     ),
-                    child: const Icon(Icons.check,
-                        size: 12, color: Colors.white),
-                  ),
-                Expanded(
-                  child: Text(
-                    '${slot.time} – ${slot.dur}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? const Color(0xFF15803D)
-                          : const Color(0xFF111827),
-                      decoration:
-                          isBooked ? TextDecoration.lineThrough : null,
+                  Expanded(
+                    child: Text(
+                      '${slot.time} – ${slot.dur}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? const Color(0xFF15803D)
+                            : const Color(0xFF111827),
+                        decoration:
+                            isBooked ? TextDecoration.lineThrough : null,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              isBlocked
-                  ? 'Đã đóng'
-                  : isBooked
-                      ? 'Đã đặt'
-                      : '${slot.price}đ',
-              style: TextStyle(
-                fontSize: 11,
-                color: isSelected
-                    ? const Color(0xFF15803D).withOpacity(0.7)
-                    : const Color(0xFF6B7280),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                isBlocked
+                    ? 'Đã đóng'
+                    : isBooked
+                        ? 'Đã đặt'
+                        : '${slot.price}đ',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isSelected
+                      ? const Color(0xFF15803D).withValues(alpha:0.7)
+                      : const Color(0xFF6B7280),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+// ── Bottom CTA ────────────────────────────────────────────────────────────────
 
 class _BottomCta extends StatelessWidget {
   const _BottomCta({required this.courtId});
@@ -371,10 +414,10 @@ class _BottomCta extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              children: const [
+              children: [
                 Text(
                   '2 khung · 3 giờ',
                   style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
@@ -421,8 +464,15 @@ class _BottomCta extends StatelessWidget {
   }
 }
 
+// ── Data classes ──────────────────────────────────────────────────────────────
+
 class _DateTab {
-  const _DateTab({required this.day, required this.num, this.label, this.isActive = false});
+  const _DateTab({
+    required this.day,
+    required this.num,
+    this.label,
+    this.isActive = false,
+  });
 
   final String day;
   final String num;
@@ -436,12 +486,10 @@ class _SlotData {
     required this.dur,
     required this.price,
     required this.status,
-    this.selected = false,
   });
 
   final String time;
   final String dur;
   final String price;
   final String status;
-  final bool selected;
 }

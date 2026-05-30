@@ -19,9 +19,13 @@ import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
 import 'package:customer/features/auth/view/sign_up_screen.dart';
-import 'package:customer/features/booking/awaiting_confirmation_cubit.dart';
+import 'package:customer/features/booking/state/access_control_cubit.dart';
+import 'package:customer/features/booking/access_control_screen.dart';
+import 'package:customer/features/booking/state/awaiting_confirmation_cubit.dart';
 import 'package:customer/features/booking/awaiting_confirmation_screen.dart';
-import 'package:customer/features/booking/booking_cubit.dart';
+import 'package:customer/features/booking/state/booking_cubit.dart';
+import 'package:customer/features/booking/state/payment_cubit.dart';
+import 'package:customer/features/booking/payment_screen.dart';
 import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/booking_history_screen.dart';
@@ -187,6 +191,8 @@ GoRouter buildRouter() {
         builder: (context, state) => BlocProvider(
           create: (_) => CourtDetailCubit(
             SupabaseCourtRepository(client: Supabase.instance.client),
+            slotRepository:
+                SupabaseSlotRepository(client: Supabase.instance.client),
           ),
           child: CourtDetailScreen(courtId: state.pathParameters['id']!),
         ),
@@ -242,6 +248,25 @@ GoRouter buildRouter() {
           ),
           child: AwaitingConfirmationScreen(
             bookingId: state.pathParameters['bookingId']!,
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/booking/payment/:slotId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => PaymentCubit(client: Supabase.instance.client)
+            ..load(state.pathParameters['slotId']!),
+          child: const PaymentScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/booking/access-control/:slotId',
+        builder: (context, state) => BlocProvider(
+          create: (_) => AccessControlCubit(
+            client: Supabase.instance.client,
+          ),
+          child: AccessControlScreen(
+            slotId: state.pathParameters['slotId']!,
           ),
         ),
       ),

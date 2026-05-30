@@ -8,5 +8,18 @@
       "node_modules",
       ".cache"
     ]
+  },
+  "mcpServers": {
+    "plane": {
+      "command": "uvx",
+      "args": [
+        "plane-mcp-server",
+        "stdio"
+      ],
+      "env": {
+        "PLANE_API_KEY": "plane_api_5668c6b91a87439180044e7e63959e0f",
+        "PLANE_WORKSPACE_SLUG": "sportbuddies"
+      }
+    }
   }
 }

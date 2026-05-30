@@ -1,5 +1,7 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:dashboard/core/env/env.dart';
 import 'package:dio/dio.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 /// Predictable failure from the owner auth API. [code] is a stable key the UI
 /// maps to a localized message (see `SignupScreen._mapError`); it deliberately
@@ -97,7 +99,17 @@ class OwnerAuthRepository {
                 contentType: Headers.jsonContentType,
                 responseType: ResponseType.json,
               ),
-            );
+            ) {
+    _dio.interceptors.add(
+      TalkerDioLogger(
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printResponseMessage: true,
+        ),
+      ),
+    );
+  }
 
   final Dio _dio;
 
@@ -124,8 +136,9 @@ class OwnerAuthRepository {
         // (not on BaseOptions) so the mapping holds for any injected Dio.
         options: Options(validateStatus: (_) => true),
       );
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
       // Connection refused / DNS / TLS / timeout / cancellation.
+      appLogger.e('DioException during signup', error: e, stackTrace: stackTrace);
       throw OwnerSignupException('network', statusCode: e.response?.statusCode);
     }
 

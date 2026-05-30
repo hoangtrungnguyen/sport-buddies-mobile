@@ -34,7 +34,8 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 message: msg,
                 courtId: widget.courtId,
               ),
-            CourtDetailLoaded(court: final court) => _Body(court: court),
+            CourtDetailLoaded(court: final court, openSlotCount: final openSlotCount) =>
+              _Body(court: court, openSlotCount: openSlotCount),
           },
         );
       },
@@ -69,9 +70,10 @@ class _ErrorBody extends StatelessWidget {
 }
 
 class _Body extends StatefulWidget {
-  const _Body({required this.court});
+  const _Body({required this.court, required this.openSlotCount});
 
   final Court court;
+  final int openSlotCount;
 
   @override
   State<_Body> createState() => _BodyState();
@@ -107,7 +109,11 @@ class _BodyState extends State<_Body> {
             ],
           ),
         ),
-        _BottomCta(courtId: court.id, pricePerHour: court.pricePerHour),
+        _BottomCta(
+          courtId: court.id,
+          pricePerHour: court.pricePerHour,
+          openSlotCount: widget.openSlotCount,
+        ),
       ],
     );
   }
@@ -325,11 +331,13 @@ class _CourtInfoSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: _StatTile(
                   label: 'Slot trống hôm nay',
-                  value: '–',
-                  valueColor: Color(0xFF22C55E),
+                  value: widget.openSlotCount.toString(),
+                  valueColor: widget.openSlotCount > 0
+                      ? const Color(0xFF22C55E)
+                      : const Color(0xFFEF4444),
                 ),
               ),
             ],
@@ -583,10 +591,15 @@ class _AmenityChip extends StatelessWidget {
 }
 
 class _BottomCta extends StatelessWidget {
-  const _BottomCta({required this.courtId, this.pricePerHour});
+  const _BottomCta({
+    required this.courtId,
+    required this.openSlotCount,
+    this.pricePerHour,
+  });
 
   final String courtId;
   final double? pricePerHour;
+  final int openSlotCount;
 
   @override
   Widget build(BuildContext context) {
@@ -649,20 +662,27 @@ class _BottomCta extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: FilledButton(
-                onPressed: () => context.push('/court/$courtId/slots'),
+                onPressed: openSlotCount > 0
+                    ? () => context.push('/court/$courtId/slots')
+                    : null,
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
+                  backgroundColor: openSlotCount > 0
+                      ? const Color(0xFF16A34A)
+                      : const Color(0xFFD1D5DB),
+                  disabledBackgroundColor: const Color(0xFFD1D5DB),
                   minimumSize: const Size(double.infinity, 52),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text(
-                  'Đặt sân ngay',
+                child: Text(
+                  openSlotCount > 0 ? 'Đặt sân ngay' : 'Hết slot hôm nay',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: openSlotCount > 0
+                        ? Colors.white
+                        : const Color(0xFF9CA3AF),
                   ),
                 ),
               ),

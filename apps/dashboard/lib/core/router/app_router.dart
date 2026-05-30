@@ -52,6 +52,7 @@ GoRouter buildRouter() {
 
       final authed = session != null;
       final going = state.matchedLocation;
+      debugPrint('[Router] redirect — going=$going authed=$authed session=${session?.accessToken.substring(0, 20)}...');
 
       if (!authed && !publicPaths.contains(going)) return '/login';
       if (authed && going == '/login') return '/';

@@ -16,6 +16,7 @@
 
 import 'package:customer/core/env/env.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
+import 'package:customer/features/map/cubit/map_state.dart';
 import 'package:customer/features/map/google_map_body.dart';
 import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_state.dart';

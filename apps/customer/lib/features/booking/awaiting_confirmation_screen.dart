@@ -1,4 +1,5 @@
-import 'package:customer/features/booking/awaiting_confirmation_cubit.dart';
+import 'package:customer/features/booking/state/awaiting_confirmation_cubit.dart';
+import 'package:customer/features/booking/state/awaiting_confirmation_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,13 +46,7 @@ class _AwaitingConfirmationScreenState
     return BlocConsumer<AwaitingConfirmationCubit, AwaitingState>(
       listener: (context, state) {
         if (state is AwaitingConfirmed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Chủ sân đã xác nhận! Booking thành công.'),
-              backgroundColor: Color(0xFF16A34A),
-            ),
-          );
-          context.go('/bookings/upcoming');
+          context.go('/booking/access-control/${state.slotId}');
         }
       },
       builder: (context, state) => Scaffold(
@@ -70,15 +65,9 @@ class _AwaitingConfirmationScreenState
             Center(child: Text(message, style: const TextStyle(color: Colors.red))),
           AwaitingConfirmed() =>
             const Center(child: CircularProgressIndicator()),
-          AwaitingLoaded(:final bookingId, :final courtName, :final slotStart, :final slotEnd, :final status) =>
+          AwaitingLoaded() =>
             _LoadedBody(
-              state: AwaitingLoaded(
-                bookingId: bookingId,
-                courtName: courtName,
-                slotStart: slotStart,
-                slotEnd: slotEnd,
-                status: status,
-              ),
+              state: state,
               pulseAnim: _pulseAnim,
             ),
         },
@@ -102,7 +91,7 @@ class _LoadedBody extends StatelessWidget {
 
     return Column(
       children: [
-        _StepperRow(step: 1),
+        const _StepperRow(step: 1),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),

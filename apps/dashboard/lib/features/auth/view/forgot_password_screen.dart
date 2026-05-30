@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -156,7 +157,7 @@ class _FormView extends StatelessWidget {
           const SizedBox(height: 6),
           TextFormField(
             controller: emailCtrl,
-            keyboardType: TextInputType.emailAddress,
+            keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => onSubmit(),
             style: GoogleFonts.plusJakartaSans(fontSize: 14),

@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
+
 // `Headers` collides with dio's; we only need the Supabase client here.
 import 'package:supabase_flutter/supabase_flutter.dart' hide Headers;
 
@@ -62,7 +64,17 @@ class HttpManualBookingRepository implements ManualBookingRepository {
               ),
             ),
         _accessToken = accessToken ??
-            (() => Supabase.instance.client.auth.currentSession?.accessToken);
+            (() => Supabase.instance.client.auth.currentSession?.accessToken) {
+    _dio.interceptors.add(
+      TalkerDioLogger(
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printResponseMessage: true,
+        ),
+      ),
+    );
+  }
 
   final Dio _dio;
   final String? Function() _accessToken;

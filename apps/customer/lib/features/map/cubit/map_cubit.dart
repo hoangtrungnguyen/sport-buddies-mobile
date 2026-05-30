@@ -6,12 +6,10 @@
 // The cubit is pure business logic with no Flutter SDK dependency; it is
 // provided to the widget tree via BlocProvider in the router builder (§6.2).
 
-import 'package:customer/core/mixins/app_exception_mixin.dart';
+import 'package:customer/features/map/cubit/map_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
-part 'map_state.dart';
 
 /// Cubit that manages the map's court list enriched with availability data.
 ///
@@ -28,7 +26,7 @@ class MapCubit extends Cubit<MapState> {
     required CourtAvailabilityRepository repository,
     SupabaseClient? realtimeClient,
   })  : _repository = repository,
-        super(const MapInitial()) {
+        super(const MapState.initial()) {
     _setupRealtime(realtimeClient);
   }
 
@@ -60,14 +58,12 @@ class MapCubit extends Cubit<MapState> {
   ///
   /// Safe to call multiple times — each call resets to [MapLoading] first.
   Future<void> loadCourts() async {
-    emit(const MapLoading());
+    emit(const MapState.loading());
 
     final result = await _repository.fetchCourtsWithAvailability();
     result.when(
-      success: (courts) => emit(MapLoaded(courts)),
-      failure: (failure) => emit(
-        MapError(_failureMessage(failure)),
-      ),
+      success: (courts) => emit(MapState.loaded(courts)),
+      failure: (failure) => emit(MapState.error(_failureMessage(failure))),
     );
   }
 
