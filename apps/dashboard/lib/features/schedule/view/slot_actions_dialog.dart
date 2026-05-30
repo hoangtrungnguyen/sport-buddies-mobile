@@ -80,6 +80,11 @@ class _SlotActionsDialogState extends State<_SlotActionsDialog> {
       courtName: widget.court.name,
       // Per-slot cap drives the "X/Y" denominator; fall back to court capacity.
       capacity: _slot.maxPlayers ?? widget.court.capacity,
+      sportType: widget.court.primarySport.isNotEmpty
+          ? widget.court.primarySport
+          : null,
+      // slot_participants has no notes column; blockedReason is the closest note.
+      notes: _slot.blockedReason,
       startLocal: _slot.startAt.toLocal(),
       endLocal: _slot.endAt.toLocal(),
     );

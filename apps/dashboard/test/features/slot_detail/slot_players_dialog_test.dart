@@ -88,4 +88,35 @@ void main() {
     await _open(tester, [_p('1', name: 'An')], capacity: null);
     expect(find.text('1 người chơi'), findsOneWidget);
   });
+
+  testWidgets('slot detail header shows court, sport, date/time, duration + notes',
+      (tester) async {
+    late BuildContext ctx;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(body: Builder(builder: (c) {
+        ctx = c;
+        return const SizedBox();
+      })),
+    ));
+    showSlotPlayersDialog(
+      ctx,
+      slotId: 's1',
+      courtName: 'Sân Tennis',
+      startLocal: DateTime(2026, 5, 30, 15),
+      endLocal: DateTime(2026, 5, 30, 16, 30),
+      capacity: 4,
+      sportType: 'Tennis',
+      notes: 'Bảo trì thiết bị',
+      repository: _FakeRepo(const []),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sân Tennis'), findsOneWidget);
+    expect(find.text('Tennis'), findsOneWidget);
+    expect(find.text('30/05/2026'), findsOneWidget);
+    expect(find.text('15:00 – 16:30'), findsOneWidget);
+    expect(find.text('1h30p'), findsOneWidget);
+    expect(find.text('Bảo trì thiết bị'), findsOneWidget);
+    expect(find.text('Xem lịch sân'), findsOneWidget); // AC#3 back-link
+  });
 }

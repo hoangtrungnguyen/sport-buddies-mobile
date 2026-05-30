@@ -22,6 +22,11 @@ Future<void> showSlotPlayersDialog(
   required DateTime startLocal,
   required DateTime endLocal,
   int? capacity,
+  /// Primary sport type label, e.g. "Tennis" (AC#1 OWNER-36).
+  String? sportType,
+  /// Optional slot note — shown if non-empty (AC#2 OWNER-36). In practice
+  /// this is `OwnerSlot.blockedReason`; slots have no dedicated notes column.
+  String? notes,
   SlotPlayersRepository? repository,
 }) {
   return showDialog<void>(
@@ -36,6 +41,8 @@ Future<void> showSlotPlayersDialog(
         startLocal: startLocal,
         endLocal: endLocal,
         capacity: capacity,
+        sportType: sportType,
+        notes: notes,
       ),
     ),
   );
@@ -47,69 +54,43 @@ class _SlotPlayersDialog extends StatelessWidget {
     required this.startLocal,
     required this.endLocal,
     required this.capacity,
+    this.sportType,
+    this.notes,
   });
   final String courtName;
   final DateTime startLocal;
   final DateTime endLocal;
   final int? capacity;
+  final String? sportType;
+  final String? notes;
 
   @override
   Widget build(BuildContext context) {
-    final f = DateFormat('HH:mm');
-    final subtitle = '$courtName · ${f.format(startLocal)} – ${f.format(endLocal)}';
     return Dialog(
       backgroundColor: AppColors.surface,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460),
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Semantics(
           label: 'slot-players-dialog',
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.groups_rounded,
-                          size: 20, color: AppColors.primary),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Người chơi',
-                            style: GoogleFonts.sora(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.neutral900),
-                          ),
-                          Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13, color: AppColors.neutral500),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 20),
-                      color: AppColors.neutral500,
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ],
+                // OWNER-36 slot detail header — court, sport, date/time, duration.
+                _SlotDetailHeader(
+                  courtName: courtName,
+                  startLocal: startLocal,
+                  endLocal: endLocal,
+                  sportType: sportType,
+                  notes: notes,
+                  onClose: () => Navigator.of(context).pop(),
+                  // AC#3: pop all dialogs to return to the schedule calendar.
+                  // Dialogs don't have a route name; pop until a named route.
+                  onViewSchedule: () => Navigator.of(context)
+                      .popUntil((route) => route.settings.name != null),
                 ),
                 const SizedBox(height: 16),
                 BlocBuilder<SlotPlayersBloc, SlotPlayersState>(
@@ -134,6 +115,189 @@ class _SlotPlayersDialog extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// OWNER-36 slot detail header
+// ---------------------------------------------------------------------------
+
+class _SlotDetailHeader extends StatelessWidget {
+  const _SlotDetailHeader({
+    required this.courtName,
+    required this.startLocal,
+    required this.endLocal,
+    required this.onClose,
+    required this.onViewSchedule,
+    this.sportType,
+    this.notes,
+  });
+  final String courtName;
+  final DateTime startLocal;
+  final DateTime endLocal;
+  final String? sportType;
+  final String? notes;
+  final VoidCallback onClose;
+  final VoidCallback onViewSchedule;
+
+  @override
+  Widget build(BuildContext context) {
+    final f = DateFormat('HH:mm');
+    final fd = DateFormat('dd/MM/yyyy');
+    final durationMin = endLocal.difference(startLocal).inMinutes;
+    final durationLabel = durationMin >= 60
+        ? '${durationMin ~/ 60}h${durationMin % 60 == 0 ? '' : '${durationMin % 60}p'}'
+        : '${durationMin}p';
+    final note = notes?.trim();
+    return Semantics(
+      label: 'slot-detail-header',
+      container: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.event_rounded,
+                    size: 22, color: AppColors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      courtName,
+                      style: GoogleFonts.sora(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.neutral900,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    if (sportType != null && sportType!.isNotEmpty)
+                      Text(
+                        sportType!,
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5, color: AppColors.neutral500),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                color: AppColors.neutral500,
+                onPressed: onClose,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Date + time + duration chips.
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: [
+              _InfoChip(icon: Icons.calendar_today_rounded,
+                  label: fd.format(startLocal)),
+              _InfoChip(icon: Icons.schedule_rounded,
+                  label: '${f.format(startLocal)} – ${f.format(endLocal)}'),
+              _InfoChip(icon: Icons.timelapse_rounded, label: durationLabel),
+            ],
+          ),
+          // Notes (AC#2) — shown when non-empty.
+          if (note != null && note.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Semantics(
+              label: 'slot-detail-notes',
+              container: true,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                decoration: BoxDecoration(
+                  color: AppColors.neutral50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.neutral200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.notes_rounded,
+                        size: 15, color: AppColors.neutral400),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        note,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: AppColors.neutral700,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          // "Xem lịch" back-link (AC#3) — closes all dialogs to the calendar.
+          const SizedBox(height: 10),
+          Semantics(
+            label: 'slot-detail-view-schedule-btn',
+            button: true,
+            child: TextButton.icon(
+              icon: const Icon(Icons.calendar_view_week_rounded, size: 15),
+              label: const Text('Xem lịch sân'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                textStyle: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              onPressed: onViewSchedule,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    decoration: BoxDecoration(
+      color: AppColors.neutral100,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 13, color: AppColors.neutral500),
+        const SizedBox(width: 5),
+        Text(label,
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 12, color: AppColors.neutral700,
+                fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
+}
+
+// ---------------------------------------------------------------------------
 
 class _Roster extends StatelessWidget {
   const _Roster({required this.players, required this.capacity});
