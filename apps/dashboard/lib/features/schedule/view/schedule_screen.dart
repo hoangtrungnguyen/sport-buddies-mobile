@@ -647,9 +647,13 @@ class _CalendarCard extends StatelessWidget {
     final style = _styleFor(appt.notes ?? SlotStatus.open);
     final isOwner = appt.notes == SlotStatus.owner;
     final isBlocked = appt.notes == SlotStatus.blocked;
-    // Blocked slots show their reason (OWNER-25), looked up by appointment id.
+    // Blocked slots show their reason (OWNER-25), looked up by appointment id —
+    // but only when the cell is tall enough for a 3rd line (a 1h slot is 56px
+    // and fits just the label + time; the reason is always in the unblock
+    // sheet). Showing it on a short cell triggers a RenderFlex overflow.
     String? blockedReason;
-    if (isBlocked) {
+    final tallEnough = appt.endTime.difference(appt.startTime).inMinutes >= 90;
+    if (isBlocked && tallEnough) {
       for (final s in slots) {
         if (s.id == appt.id) {
           blockedReason = s.blockedReason?.trim();
