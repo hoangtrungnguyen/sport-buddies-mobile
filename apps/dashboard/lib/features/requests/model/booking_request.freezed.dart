@@ -45,6 +45,10 @@ mixin _$BookingRequest {
   /// approval — see [revealedPhone], which gates on [status].
   String? get customerPhone;
 
+  /// Whether this booking was auto-approved by the system (OWNER-45).
+  /// Shown as a "Tự động" chip on confirmed cards.
+  bool get isAutoApproved;
+
   /// Create a copy of BookingRequest
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -70,16 +74,29 @@ mixin _$BookingRequest {
             (identical(other.revenue, revenue) || other.revenue == revenue) &&
             (identical(other.slotId, slotId) || other.slotId == slotId) &&
             (identical(other.customerPhone, customerPhone) ||
-                other.customerPhone == customerPhone));
+                other.customerPhone == customerPhone) &&
+            (identical(other.isAutoApproved, isAutoApproved) ||
+                other.isAutoApproved == isAutoApproved));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, code, customerName,
-      courtName, startAt, endAt, status, revenue, slotId, customerPhone);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      code,
+      customerName,
+      courtName,
+      startAt,
+      endAt,
+      status,
+      revenue,
+      slotId,
+      customerPhone,
+      isAutoApproved);
 
   @override
   String toString() {
-    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone)';
+    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved)';
   }
 }
 
@@ -99,7 +116,8 @@ abstract mixin class $BookingRequestCopyWith<$Res> {
       BookingStatus status,
       int revenue,
       String? slotId,
-      String? customerPhone});
+      String? customerPhone,
+      bool isAutoApproved});
 }
 
 /// @nodoc
@@ -125,6 +143,7 @@ class _$BookingRequestCopyWithImpl<$Res>
     Object? revenue = null,
     Object? slotId = freezed,
     Object? customerPhone = freezed,
+    Object? isAutoApproved = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -167,6 +186,10 @@ class _$BookingRequestCopyWithImpl<$Res>
           ? _self.customerPhone
           : customerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
+      isAutoApproved: null == isAutoApproved
+          ? _self.isAutoApproved
+          : isAutoApproved // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -274,7 +297,8 @@ extension BookingRequestPatterns on BookingRequest {
             BookingStatus status,
             int revenue,
             String? slotId,
-            String? customerPhone)?
+            String? customerPhone,
+            bool isAutoApproved)?
         $default, {
     required TResult orElse(),
   }) {
@@ -291,7 +315,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.status,
             _that.revenue,
             _that.slotId,
-            _that.customerPhone);
+            _that.customerPhone,
+            _that.isAutoApproved);
       case _:
         return orElse();
     }
@@ -322,7 +347,8 @@ extension BookingRequestPatterns on BookingRequest {
             BookingStatus status,
             int revenue,
             String? slotId,
-            String? customerPhone)
+            String? customerPhone,
+            bool isAutoApproved)
         $default,
   ) {
     final _that = this;
@@ -338,7 +364,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.status,
             _that.revenue,
             _that.slotId,
-            _that.customerPhone);
+            _that.customerPhone,
+            _that.isAutoApproved);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -368,7 +395,8 @@ extension BookingRequestPatterns on BookingRequest {
             BookingStatus status,
             int revenue,
             String? slotId,
-            String? customerPhone)?
+            String? customerPhone,
+            bool isAutoApproved)?
         $default,
   ) {
     final _that = this;
@@ -384,7 +412,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.status,
             _that.revenue,
             _that.slotId,
-            _that.customerPhone);
+            _that.customerPhone,
+            _that.isAutoApproved);
       case _:
         return null;
     }
@@ -404,7 +433,8 @@ class _BookingRequest extends BookingRequest {
       required this.status,
       required this.revenue,
       this.slotId,
-      this.customerPhone})
+      this.customerPhone,
+      this.isAutoApproved = false})
       : super._();
 
   /// Raw `bookings.id` (UUID) — the stable key.
@@ -448,6 +478,12 @@ class _BookingRequest extends BookingRequest {
   @override
   final String? customerPhone;
 
+  /// Whether this booking was auto-approved by the system (OWNER-45).
+  /// Shown as a "Tự động" chip on confirmed cards.
+  @override
+  @JsonKey()
+  final bool isAutoApproved;
+
   /// Create a copy of BookingRequest
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -473,16 +509,29 @@ class _BookingRequest extends BookingRequest {
             (identical(other.revenue, revenue) || other.revenue == revenue) &&
             (identical(other.slotId, slotId) || other.slotId == slotId) &&
             (identical(other.customerPhone, customerPhone) ||
-                other.customerPhone == customerPhone));
+                other.customerPhone == customerPhone) &&
+            (identical(other.isAutoApproved, isAutoApproved) ||
+                other.isAutoApproved == isAutoApproved));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, code, customerName,
-      courtName, startAt, endAt, status, revenue, slotId, customerPhone);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      code,
+      customerName,
+      courtName,
+      startAt,
+      endAt,
+      status,
+      revenue,
+      slotId,
+      customerPhone,
+      isAutoApproved);
 
   @override
   String toString() {
-    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone)';
+    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved)';
   }
 }
 
@@ -504,7 +553,8 @@ abstract mixin class _$BookingRequestCopyWith<$Res>
       BookingStatus status,
       int revenue,
       String? slotId,
-      String? customerPhone});
+      String? customerPhone,
+      bool isAutoApproved});
 }
 
 /// @nodoc
@@ -530,6 +580,7 @@ class __$BookingRequestCopyWithImpl<$Res>
     Object? revenue = null,
     Object? slotId = freezed,
     Object? customerPhone = freezed,
+    Object? isAutoApproved = null,
   }) {
     return _then(_BookingRequest(
       id: null == id
@@ -572,6 +623,10 @@ class __$BookingRequestCopyWithImpl<$Res>
           ? _self.customerPhone
           : customerPhone // ignore: cast_nullable_to_non_nullable
               as String?,
+      isAutoApproved: null == isAutoApproved
+          ? _self.isAutoApproved
+          : isAutoApproved // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }

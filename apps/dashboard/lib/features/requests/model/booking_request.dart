@@ -79,6 +79,10 @@ abstract class BookingRequest with _$BookingRequest {
     /// Customer phone. Per OWNER-28 it is only surfaced on the card **after**
     /// approval — see [revealedPhone], which gates on [status].
     String? customerPhone,
+
+    /// Whether this booking was auto-approved by the system (OWNER-45).
+    /// Shown as a "Tự động" chip on confirmed cards.
+    @Default(false) bool isAutoApproved,
   }) = _BookingRequest;
 
   bool get isCancelled => status == BookingStatus.cancelled;
@@ -156,6 +160,7 @@ abstract class BookingRequest with _$BookingRequest {
       endAt: end,
       status: bookingStatusFromRaw(row['status'] as String?),
       revenue: revenue,
+      isAutoApproved: (row['is_auto_approved'] as bool?) ?? false,
     );
   }
 

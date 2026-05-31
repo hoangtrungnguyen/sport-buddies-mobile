@@ -6,7 +6,7 @@ class OwnerCourtRepository {
   final SupabaseClient _client;
 
   static const _cols =
-      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, status';
+      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, status, auto_approve_single';
 
   Future<List<OwnerCourt>> getCourts() async {
     final uid = _client.auth.currentUser?.id;
@@ -71,6 +71,17 @@ class OwnerCourtRepository {
         .select(_cols)
         .single();
     return OwnerCourt.fromJson(row);
+  }
+
+  /// Persists `courts.auto_approve_single` for [courtId] (OWNER-44/45).
+  /// Column-level RLS (migration 0003) allows the court owner to UPDATE this
+  /// field; no extra filter needed because the row-level policy already scopes
+  /// to `owner_id = auth.uid()`.
+  Future<void> updateAutoApprove(String courtId, {required bool value}) async {
+    await _client
+        .from('courts')
+        .update({'auto_approve_single': value})
+        .eq('id', courtId);
   }
 
   Future<void> deactivateCourt(String id) async {

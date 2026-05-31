@@ -564,7 +564,17 @@ class _RequestCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              _StatusBadge(status: request.status),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _StatusBadge(status: request.status),
+                  // OWNER-45: "Tự động" label for auto-approved confirmed bookings.
+                  if (request.isAutoApproved && request.isConfirmed) ...[
+                    const SizedBox(height: 4),
+                    _AutoLabel(),
+                  ],
+                ],
+              ),
             ],
           ),
           // Phone is revealed only after approval (OWNER-28).
@@ -812,6 +822,39 @@ class _StatusBadge extends StatelessWidget {
       ),
     );
   }
+}
+
+/// "Tự động" mini-chip shown under the status badge for auto-approved bookings
+/// (OWNER-45).
+class _AutoLabel extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Semantics(
+        label: 'requests-auto-approved',
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: AppColors.neutral100,
+            borderRadius: BorderRadius.circular(99),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.auto_awesome_rounded,
+                  size: 10, color: AppColors.neutral500),
+              const SizedBox(width: 4),
+              Text(
+                'Tự động',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 // ---------------------------------------------------------------------------

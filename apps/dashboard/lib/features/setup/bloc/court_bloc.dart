@@ -9,6 +9,7 @@ class CourtBloc extends Bloc<CourtEvent, CourtState> {
     on<CourtLoadRequested>(_onLoad);
     on<CourtDeactivateRequested>(_onDeactivate);
     on<CourtReactivateRequested>(_onReactivate);
+    on<CourtAutoApproveToggled>(_onAutoApproveToggled);
   }
 
   final OwnerCourtRepository _repo;
@@ -59,6 +60,35 @@ class CourtBloc extends Bloc<CourtEvent, CourtState> {
       emit(CourtState.loaded(updated));
     } catch (e, st) {
       emit(CourtState.failure('Không thể kích hoạt sân.', stackTrace: st));
+    }
+  }
+
+  /// Optimistic-update: flip the toggle in the in-memory list immediately,
+  /// then persist in the background. On failure restore the old value and emit
+  /// a failure so the view can show a snackbar (OWNER-44).
+  Future<void> _onAutoApproveToggled(
+    CourtAutoApproveToggled event,
+    Emitter<CourtState> emit,
+  ) async {
+    final current = state;
+    if (current is! CourtLoaded) return;
+    final optimistic = current.courts
+        .map((c) => c.id == event.courtId
+            ? c.copyWith(autoApproveSingle: event.value)
+            : c)
+        .toList();
+    emit(CourtState.loaded(optimistic));
+    try {
+      await _repo.updateAutoApprove(event.courtId, value: event.value);
+    } catch (e, st) {
+      // Revert on failure.
+      final reverted = optimistic
+          .map((c) => c.id == event.courtId
+              ? c.copyWith(autoApproveSingle: !event.value)
+              : c)
+          .toList();
+      emit(CourtState.loaded(reverted));
+      emit(CourtState.failure('Không thể lưu cài đặt.', stackTrace: st));
     }
   }
 }

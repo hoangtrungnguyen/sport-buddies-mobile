@@ -228,13 +228,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Expanded(
                     child: Column(
                       children: [
-                        _PlaceholderSection(
+                        _AutoApproveSection(
                           key: _autoApproveKey,
-                          icon: Icons.check_circle_outline,
-                          title: 'Tự động duyệt yêu cầu đặt sân lẻ',
-                          desc:
-                              'Khi bật, hệ thống sẽ tự động duyệt các yêu cầu đặt sân 1 lần đáp ứng đủ điều kiện.',
-                          comingSoon: true,
+                          state: state,
                         ),
                         const SizedBox(height: 16),
                         _PlaceholderSection(
@@ -340,6 +336,240 @@ class _TocItem extends StatelessWidget {
 
 // ---------------------------------------------------------------------------
 // Placeholder section (for future epics)
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Auto-approve section (OWNER-44/45)
+// ---------------------------------------------------------------------------
+
+class _AutoApproveSection extends StatefulWidget {
+  const _AutoApproveSection({super.key, required this.state});
+  final CourtState state;
+
+  @override
+  State<_AutoApproveSection> createState() => _AutoApproveSectionState();
+}
+
+class _AutoApproveSectionState extends State<_AutoApproveSection> {
+  String? _selectedCourtId;
+
+  @override
+  void didUpdateWidget(_AutoApproveSection old) {
+    super.didUpdateWidget(old);
+    // Reset selection when courts reload.
+    if (widget.state is CourtLoaded && old.state is! CourtLoaded) {
+      _selectedCourtId = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final courts = switch (widget.state) {
+      CourtLoaded(:final courts) => courts,
+      _ => <OwnerCourt>[],
+    };
+    final loading = widget.state is CourtLoading;
+
+    // Default to the first court when none is selected.
+    final court = courts.isEmpty
+        ? null
+        : courts.firstWhere(
+            (c) => c.id == (_selectedCourtId ?? courts.first.id),
+            orElse: () => courts.first,
+          );
+
+    return Container(
+      key: widget.key,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.neutral200),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.check_circle_outline,
+                    size: 18, color: AppColors.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tự động duyệt đặt sân một lần',
+                      style: GoogleFonts.sora(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neutral900,
+                      ),
+                    ),
+                    Text(
+                      'Chỉ áp dụng cho đặt sân một lần. Lịch cố định vẫn cần duyệt thủ công.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: AppColors.neutral500,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (courts.isEmpty && !loading) ...[
+            const SizedBox(height: 16),
+            Text(
+              'Tạo ít nhất một sân để cài đặt tự động duyệt.',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13, color: AppColors.neutral400),
+            ),
+          ] else ...[
+            // Court selector (multi-court owners).
+            if (courts.length > 1) ...[
+              const SizedBox(height: 16),
+              Text(
+                'Sân',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Semantics(
+                label: 'settings-auto-approve-court-selector',
+                child: DropdownButton<String>(
+                  value: court?.id,
+                  isExpanded: true,
+                  underline: Container(
+                      height: 1, color: AppColors.neutral200),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13.5, color: AppColors.neutral900),
+                  items: courts
+                      .map((c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.name),
+                          ))
+                      .toList(),
+                  onChanged: (id) =>
+                      setState(() => _selectedCourtId = id),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            // Toggle row.
+            if (court != null)
+              _AutoApproveToggle(
+                court: court,
+                loading: loading,
+                onChanged: (value) {
+                  context.read<CourtBloc>().add(
+                        CourtEvent.autoApproveToggled(court.id,
+                            value: value),
+                      );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        value
+                            ? 'Đã bật tự động duyệt cho ${court.name}.'
+                            : 'Đã tắt tự động duyệt cho ${court.name}.',
+                      ),
+                      backgroundColor: AppColors.neutral800,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _AutoApproveToggle extends StatelessWidget {
+  const _AutoApproveToggle({
+    required this.court,
+    required this.loading,
+    required this.onChanged,
+  });
+  final OwnerCourt court;
+  final bool loading;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: court.autoApproveSingle
+            ? AppColors.primaryLight
+            : AppColors.neutral50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: court.autoApproveSingle
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.neutral200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  court.autoApproveSingle ? 'Đang bật' : 'Đang tắt',
+                  style: GoogleFonts.sora(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: court.autoApproveSingle
+                        ? AppColors.primaryDark
+                        : AppColors.neutral700,
+                  ),
+                ),
+                Text(
+                  court.autoApproveSingle
+                      ? 'Yêu cầu đặt sân một lần sẽ được duyệt tự động.'
+                      : 'Bạn cần duyệt từng yêu cầu thủ công.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: court.autoApproveSingle
+                        ? AppColors.primary
+                        : AppColors.neutral500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Semantics(
+            label: 'settings-auto-approve-toggle',
+            toggled: court.autoApproveSingle,
+            child: Switch(
+              value: court.autoApproveSingle,
+              onChanged: loading ? null : onChanged,
+              activeTrackColor: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 class _PlaceholderSection extends StatelessWidget {

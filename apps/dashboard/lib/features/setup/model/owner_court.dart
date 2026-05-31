@@ -9,6 +9,7 @@ class OwnerCourt {
     required this.pricePerHour,
     required this.isActive,
     this.address,
+    this.autoApproveSingle = false,
   });
 
   final String id;
@@ -31,6 +32,10 @@ class OwnerCourt {
 
   final String? address;
 
+  /// Whether single-time booking requests are auto-approved for this court
+  /// (`courts.auto_approve_single`). OWNER-44/45.
+  final bool autoApproveSingle;
+
   /// First sport type for display convenience.
   String get primarySport =>
       sportTypes.isNotEmpty ? sportTypes.first : '';
@@ -51,6 +56,8 @@ class OwnerCourt {
       pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
       isActive: (json['status'] as String?) != 'inactive',
       address: json['address'] as String?,
+      autoApproveSingle:
+          (json['auto_approve_single'] as bool?) ?? false,
     );
   }
 
@@ -62,6 +69,7 @@ class OwnerCourt {
     int? closeHour,
     int? pricePerHour,
     bool? isActive,
+    bool? autoApproveSingle,
   }) =>
       OwnerCourt(
         id: id,
@@ -73,5 +81,6 @@ class OwnerCourt {
         pricePerHour: pricePerHour ?? this.pricePerHour,
         isActive: isActive ?? this.isActive,
         address: address,
+        autoApproveSingle: autoApproveSingle ?? this.autoApproveSingle,
       );
 }

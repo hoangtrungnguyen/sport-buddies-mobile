@@ -53,6 +53,7 @@ extension CourtEventPatterns on CourtEvent {
     TResult Function(CourtLoadRequested value)? loadRequested,
     TResult Function(CourtDeactivateRequested value)? deactivateRequested,
     TResult Function(CourtReactivateRequested value)? reactivateRequested,
+    TResult Function(CourtAutoApproveToggled value)? autoApproveToggled,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -63,6 +64,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that);
       case CourtReactivateRequested() when reactivateRequested != null:
         return reactivateRequested(_that);
+      case CourtAutoApproveToggled() when autoApproveToggled != null:
+        return autoApproveToggled(_that);
       case _:
         return orElse();
     }
@@ -88,6 +91,7 @@ extension CourtEventPatterns on CourtEvent {
         deactivateRequested,
     required TResult Function(CourtReactivateRequested value)
         reactivateRequested,
+    required TResult Function(CourtAutoApproveToggled value) autoApproveToggled,
   }) {
     final _that = this;
     switch (_that) {
@@ -97,6 +101,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that);
       case CourtReactivateRequested():
         return reactivateRequested(_that);
+      case CourtAutoApproveToggled():
+        return autoApproveToggled(_that);
     }
   }
 
@@ -117,6 +123,7 @@ extension CourtEventPatterns on CourtEvent {
     TResult? Function(CourtLoadRequested value)? loadRequested,
     TResult? Function(CourtDeactivateRequested value)? deactivateRequested,
     TResult? Function(CourtReactivateRequested value)? reactivateRequested,
+    TResult? Function(CourtAutoApproveToggled value)? autoApproveToggled,
   }) {
     final _that = this;
     switch (_that) {
@@ -126,6 +133,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that);
       case CourtReactivateRequested() when reactivateRequested != null:
         return reactivateRequested(_that);
+      case CourtAutoApproveToggled() when autoApproveToggled != null:
+        return autoApproveToggled(_that);
       case _:
         return null;
     }
@@ -148,6 +157,7 @@ extension CourtEventPatterns on CourtEvent {
     TResult Function()? loadRequested,
     TResult Function(String id)? deactivateRequested,
     TResult Function(String id)? reactivateRequested,
+    TResult Function(String courtId, bool value)? autoApproveToggled,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -158,6 +168,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that.id);
       case CourtReactivateRequested() when reactivateRequested != null:
         return reactivateRequested(_that.id);
+      case CourtAutoApproveToggled() when autoApproveToggled != null:
+        return autoApproveToggled(_that.courtId, _that.value);
       case _:
         return orElse();
     }
@@ -181,6 +193,7 @@ extension CourtEventPatterns on CourtEvent {
     required TResult Function() loadRequested,
     required TResult Function(String id) deactivateRequested,
     required TResult Function(String id) reactivateRequested,
+    required TResult Function(String courtId, bool value) autoApproveToggled,
   }) {
     final _that = this;
     switch (_that) {
@@ -190,6 +203,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that.id);
       case CourtReactivateRequested():
         return reactivateRequested(_that.id);
+      case CourtAutoApproveToggled():
+        return autoApproveToggled(_that.courtId, _that.value);
     }
   }
 
@@ -210,6 +225,7 @@ extension CourtEventPatterns on CourtEvent {
     TResult? Function()? loadRequested,
     TResult? Function(String id)? deactivateRequested,
     TResult? Function(String id)? reactivateRequested,
+    TResult? Function(String courtId, bool value)? autoApproveToggled,
   }) {
     final _that = this;
     switch (_that) {
@@ -219,6 +235,8 @@ extension CourtEventPatterns on CourtEvent {
         return deactivateRequested(_that.id);
       case CourtReactivateRequested() when reactivateRequested != null:
         return reactivateRequested(_that.id);
+      case CourtAutoApproveToggled() when autoApproveToggled != null:
+        return autoApproveToggled(_that.courtId, _that.value);
       case _:
         return null;
     }
@@ -371,6 +389,78 @@ class _$CourtReactivateRequestedCopyWithImpl<$Res>
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class CourtAutoApproveToggled implements CourtEvent {
+  const CourtAutoApproveToggled(this.courtId, {required this.value});
+
+  final String courtId;
+  final bool value;
+
+  /// Create a copy of CourtEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $CourtAutoApproveToggledCopyWith<CourtAutoApproveToggled> get copyWith =>
+      _$CourtAutoApproveToggledCopyWithImpl<CourtAutoApproveToggled>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is CourtAutoApproveToggled &&
+            (identical(other.courtId, courtId) || other.courtId == courtId) &&
+            (identical(other.value, value) || other.value == value));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, courtId, value);
+
+  @override
+  String toString() {
+    return 'CourtEvent.autoApproveToggled(courtId: $courtId, value: $value)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $CourtAutoApproveToggledCopyWith<$Res>
+    implements $CourtEventCopyWith<$Res> {
+  factory $CourtAutoApproveToggledCopyWith(CourtAutoApproveToggled value,
+          $Res Function(CourtAutoApproveToggled) _then) =
+      _$CourtAutoApproveToggledCopyWithImpl;
+  @useResult
+  $Res call({String courtId, bool value});
+}
+
+/// @nodoc
+class _$CourtAutoApproveToggledCopyWithImpl<$Res>
+    implements $CourtAutoApproveToggledCopyWith<$Res> {
+  _$CourtAutoApproveToggledCopyWithImpl(this._self, this._then);
+
+  final CourtAutoApproveToggled _self;
+  final $Res Function(CourtAutoApproveToggled) _then;
+
+  /// Create a copy of CourtEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? courtId = null,
+    Object? value = null,
+  }) {
+    return _then(CourtAutoApproveToggled(
+      null == courtId
+          ? _self.courtId
+          : courtId // ignore: cast_nullable_to_non_nullable
+              as String,
+      value: null == value
+          ? _self.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
