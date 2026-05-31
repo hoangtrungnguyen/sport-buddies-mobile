@@ -33,17 +33,24 @@ class _LoadedScreen extends StatelessWidget {
 
   static final _timeFmt = DateFormat('HH:mm');
   static final _dateFmt = DateFormat('EEE, dd/MM/yyyy', 'vi');
-  static final _priceFmt = NumberFormat('#,###', 'vi');
+  static final _priceFmt =
+      NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
 
   @override
   Widget build(BuildContext context) {
+    final shortId = state.bookingId.split('-').first.toUpperCase();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Thanh toán'),
+        title: const Text('Hoàn tất'),
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => context.go('/'),
+        ),
       ),
       body: Column(
         children: [
@@ -53,48 +60,99 @@ class _LoadedScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
+                  // Success ring — outer 120, inner 80
                   Container(
-                    width: 72,
-                    height: 72,
+                    width: 120,
+                    height: 120,
                     decoration: const BoxDecoration(
                       color: Color(0xFFDCFCE7),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      size: 40,
-                      color: Color(0xFF16A34A),
+                    child: Center(
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF16A34A),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check_rounded,
+                          size: 44,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   const Text(
                     'Đặt sân thành công!',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Vui lòng thanh toán tại sân khi đến.',
+                  Text(
+                    'Hẹn gặp bạn tại ${state.courtName}.\nĐến đúng giờ và mang theo tiền mặt nhé.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF6B7280),
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  // Booking breakdown card
+                  // Booking detail card
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF9FAFB),
+                      color: Colors.white,
                       border: Border.all(color: const Color(0xFFE5E7EB)),
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x0A000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Mã đặt sân',
+                              style: TextStyle(
+                                  fontSize: 13, color: Color(0xFF6B7280)),
+                            ),
+                            Text(
+                              '#$shortId',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'monospace',
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 10),
+                          child: Divider(height: 1, color: Color(0xFFE5E7EB)),
+                        ),
                         _Row(label: 'Sân', value: state.courtName),
+                        const _Divider(),
+                        _Row(
+                          label: 'Ngày',
+                          value: _dateFmt.format(state.slotStart),
+                        ),
                         const _Divider(),
                         _Row(
                           label: 'Thời gian',
@@ -103,29 +161,32 @@ class _LoadedScreen extends StatelessWidget {
                         ),
                         const _Divider(),
                         _Row(
-                          label: 'Ngày',
-                          value: _dateFmt.format(state.slotStart),
-                        ),
-                        const _Divider(),
-                        _Row(
-                          label: 'Tổng tiền',
-                          value: '${_priceFmt.format(state.totalPrice)} VNĐ',
+                          label: 'Tổng',
+                          value: _priceFmt.format(state.totalPrice),
                           valueStyle: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF16A34A),
+                            color: Color(0xFF15803D),
                           ),
                         ),
-                        const _Divider(),
-                        const _Row(
-                          label: 'Thanh toán',
-                          value: 'Tại sân (tiền mặt)',
+                        const SizedBox(height: 12),
+                        // Status badge
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            _Badge(
+                              label: 'Đã xác nhận',
+                              dotColor: const Color(0xFF16A34A),
+                              bg: const Color(0xFFF0FDF4),
+                              textColor: const Color(0xFF15803D),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Cash notice
+                  // Cash notice with price
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -134,22 +195,32 @@ class _LoadedScreen extends StatelessWidget {
                       border: Border.all(color: const Color(0xFFFCD34D)),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Row(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.wallet_rounded,
-                          size: 20,
-                          color: Color(0xFFB45309),
-                        ),
-                        SizedBox(width: 10),
+                        const Text('💵', style: TextStyle(fontSize: 22)),
+                        const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            'Nhớ mang tiền mặt khi đến sân!',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF92400E),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Nhớ mang tiền mặt',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF92400E),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Thanh toán ${_priceFmt.format(state.totalPrice)} tại sân khi đến chơi.',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF92400E),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -164,25 +235,6 @@ class _LoadedScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
             child: Column(
               children: [
-                FilledButton(
-                  onPressed: () =>
-                      context.go('/bookings/${state.bookingId}'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    backgroundColor: const Color(0xFF16A34A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'Xem lịch đặt của tôi',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
                 OutlinedButton(
                   onPressed: () => context.go('/'),
                   style: OutlinedButton.styleFrom(
@@ -201,7 +253,69 @@ class _LoadedScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: () => context.go('/bookings/${state.bookingId}'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    backgroundColor: const Color(0xFF16A34A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Xem lịch đặt',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Badge extends StatelessWidget {
+  const _Badge({
+    required this.label,
+    required this.dotColor,
+    required this.bg,
+    required this.textColor,
+  });
+
+  final String label;
+  final Color dotColor;
+  final Color bg;
+  final Color textColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor,
             ),
           ),
         ],

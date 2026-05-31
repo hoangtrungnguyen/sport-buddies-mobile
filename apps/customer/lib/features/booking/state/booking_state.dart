@@ -18,12 +18,14 @@ final class BookingLoaded extends BookingState {
     required this.pricePerHour,
     required this.name,
     required this.phone,
+    this.courtAddress,
   });
 
   final Slot slot;
   final double? pricePerHour;
   final String name;
   final String phone;
+  final String? courtAddress;
 }
 
 final class BookingSubmitting extends BookingState {

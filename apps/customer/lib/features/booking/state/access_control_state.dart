@@ -7,7 +7,9 @@ part 'access_control_state.freezed.dart';
 sealed class AccessControlState with _$AccessControlState {
   const factory AccessControlState.idle() = AccessControlIdle;
   const factory AccessControlState.saving() = AccessControlSaving;
-  const factory AccessControlState.saved() = AccessControlSaved;
+  const factory AccessControlState.saved({required String bookingId}) =
+      AccessControlSaved;
+  const factory AccessControlState.slotTaken() = AccessControlSlotTaken;
 
   @With<AppExceptionMixin>()
   const factory AccessControlState.failure(

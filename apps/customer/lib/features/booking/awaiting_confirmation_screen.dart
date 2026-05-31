@@ -46,7 +46,7 @@ class _AwaitingConfirmationScreenState
     return BlocConsumer<AwaitingConfirmationCubit, AwaitingState>(
       listener: (context, state) {
         if (state is AwaitingConfirmed) {
-          context.go('/booking/access-control/${state.slotId}');
+          context.go('/booking/payment/${state.slotId}');
         }
       },
       builder: (context, state) => Scaffold(
@@ -91,7 +91,7 @@ class _LoadedBody extends StatelessWidget {
 
     return Column(
       children: [
-        const _StepperRow(step: 1),
+        const _StepperRow(step: 2),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -178,18 +178,27 @@ class _LoadedBody extends StatelessWidget {
                           color: const Color(0xFFFEF9C3),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Text(
-                          'Chờ chủ sân xác nhận',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF92400E),
-                          ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.circle, size: 6, color: Color(0xFFCA8A04)),
+                            SizedBox(width: 5),
+                            Text(
+                              'Chờ xác nhận',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF92400E),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 28),
+                _TimelineSection(submittedAt: state.slotStart),
               ],
             ),
           ),
@@ -198,7 +207,7 @@ class _LoadedBody extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
           child: OutlinedButton(
-            onPressed: () => context.go('/'),
+            onPressed: () => context.go('/bookings/upcoming'),
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
               side: const BorderSide(color: Color(0xFFD1D5DB)),
@@ -207,7 +216,7 @@ class _LoadedBody extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'Về bản đồ',
+              'Xem lịch đặt',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -244,6 +253,138 @@ class _DetailRow extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF111827),
               ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TimelineSection extends StatelessWidget {
+  const _TimelineSection({required this.submittedAt});
+
+  final DateTime submittedAt;
+
+  static final _timeFmt = DateFormat('HH:mm');
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _TimelineItem(
+          done: true,
+          label: 'Bạn gửi yêu cầu đặt sân',
+          time: _timeFmt.format(submittedAt),
+        ),
+        _TimelineItem(
+          active: true,
+          label: 'Chờ chủ sân phản hồi...',
+          time: 'đang chờ',
+        ),
+        _TimelineItem(
+          label: 'Đặt sân được xác nhận',
+          time: '',
+          isLast: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _TimelineItem extends StatelessWidget {
+  const _TimelineItem({
+    required this.label,
+    required this.time,
+    this.done = false,
+    this.active = false,
+    this.isLast = false,
+  });
+
+  final String label;
+  final String time;
+  final bool done;
+  final bool active;
+  final bool isLast;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color dotColor = done
+        ? const Color(0xFF16A34A)
+        : active
+            ? const Color(0xFFCA8A04)
+            : const Color(0xFFE5E7EB);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          child: Column(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: dotColor,
+                  border: active
+                      ? Border.all(color: const Color(0xFFFEF9C3), width: 3)
+                      : null,
+                ),
+                child: done
+                    ? const Icon(Icons.check, size: 14, color: Colors.white)
+                    : active
+                        ? const Center(
+                            child: SizedBox(
+                              width: 6,
+                              height: 6,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          )
+                        : null,
+              ),
+              if (!isLast)
+                Container(
+                  width: 2,
+                  height: 32,
+                  color: const Color(0xFFE5E7EB),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: done || active
+                        ? const Color(0xFF111827)
+                        : const Color(0xFF9CA3AF),
+                  ),
+                ),
+                if (time.isNotEmpty)
+                  Text(
+                    time,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ],
     );

@@ -1,3 +1,4 @@
+import 'package:customer/core/debug/app_logger.dart';
 import 'package:customer/features/booking/state/awaiting_confirmation_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -39,6 +40,7 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
 
       _subscribeRealtime(bookingId, slotId);
     } catch (e, st) {
+      appLogger.e('AwaitingConfirmationCubit.load', error: e, stackTrace: st);
       emit(AwaitingState.error(e.toString(), stackTrace: st));
     }
   }

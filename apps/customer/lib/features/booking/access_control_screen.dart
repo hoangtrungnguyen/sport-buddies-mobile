@@ -1,14 +1,30 @@
 import 'package:customer/features/booking/state/access_control_cubit.dart';
 import 'package:customer/features/booking/state/access_control_state.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AccessControlScreen extends StatefulWidget {
-  const AccessControlScreen({super.key, required this.slotId});
+  const AccessControlScreen({
+    super.key,
+    required this.slotId,
+    required this.name,
+    required this.phone,
+    this.notes,
+    required this.courtId,
+    this.pricePerHour,
+    required this.durationMinutes,
+    this.totalPrice,
+  });
 
   final String slotId;
+  final String name;
+  final String phone;
+  final String? notes;
+  final String courtId;
+  final double? pricePerHour;
+  final int durationMinutes;
+  final double? totalPrice;
 
   @override
   State<AccessControlScreen> createState() => _AccessControlScreenState();
@@ -16,45 +32,45 @@ class AccessControlScreen extends StatefulWidget {
 
 class _AccessControlScreenState extends State<AccessControlScreen> {
   String _policy = 'closed';
-  final _maxPlayersCtrl = TextEditingController(text: '4');
-  String? _maxPlayersError;
-
-  @override
-  void dispose() {
-    _maxPlayersCtrl.dispose();
-    super.dispose();
-  }
+  int _maxPlayers = 4;
 
   void _setPolicy(String policy) => setState(() {
         _policy = policy;
-        _maxPlayersError = null;
       });
 
-  bool _validate() {
-    if (_policy == 'open') {
-      final mp = int.tryParse(_maxPlayersCtrl.text);
-      if (mp == null || mp < 2 || mp > 20) {
-        setState(() => _maxPlayersError = 'Nhập số từ 2 đến 20');
-        return false;
-      }
-    }
-    return true;
+  void _incrementMaxPlayers() {
+    if (_maxPlayers < 20) setState(() => _maxPlayers++);
+  }
+
+  void _decrementMaxPlayers() {
+    if (_maxPlayers > 2) setState(() => _maxPlayers--);
   }
 
   void _save() {
-    if (!_validate()) return;
-    context.read<AccessControlCubit>().save(
-          widget.slotId,
+    context.read<AccessControlCubit>().submitAndSave(
+          slotId: widget.slotId,
+          name: widget.name,
+          phone: widget.phone,
+          notes: widget.notes,
+          courtId: widget.courtId,
+          pricePerHour: widget.pricePerHour,
+          durationMinutes: widget.durationMinutes,
+          totalPrice: widget.totalPrice,
           policy: _policy,
-          maxPlayers: _policy == 'open'
-              ? int.parse(_maxPlayersCtrl.text)
-              : 4,
+          maxPlayers: _maxPlayers,
         );
   }
 
   void _skip() {
-    context.read<AccessControlCubit>().save(
-          widget.slotId,
+    context.read<AccessControlCubit>().submitAndSave(
+          slotId: widget.slotId,
+          name: widget.name,
+          phone: widget.phone,
+          notes: widget.notes,
+          courtId: widget.courtId,
+          pricePerHour: widget.pricePerHour,
+          durationMinutes: widget.durationMinutes,
+          totalPrice: widget.totalPrice,
           policy: 'closed',
           maxPlayers: 4,
         );
@@ -65,7 +81,22 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
     return BlocConsumer<AccessControlCubit, AccessControlState>(
       listener: (context, state) {
         if (state is AccessControlSaved) {
-          context.go('/booking/payment/${widget.slotId}');
+          context.go('/booking/awaiting/${state.bookingId}');
+        } else if (state is AccessControlSlotTaken) {
+          showModalBottomSheet<void>(
+            context: context,
+            isDismissible: false,
+            enableDrag: false,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            builder: (sheetCtx) => _SlotTakenSheet(
+              onPickAnother: () {
+                Navigator.of(sheetCtx).pop();
+                context.go('/court/${widget.courtId}/slots');
+              },
+            ),
+          );
         } else if (state is AccessControlFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -84,16 +115,66 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
             backgroundColor: Colors.white,
             elevation: 0,
             automaticallyImplyLeading: false,
+            actions: [
+              TextButton(
+                onPressed: isSaving ? null : _skip,
+                child: const Text(
+                  'Bỏ qua',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+              ),
+            ],
           ),
           body: Column(
             children: [
-              const _StepperRow(step: 2),
+              const _StepperRow(step: 1),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Owner confirmation banner
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF0FDF4),
+                          border: Border.all(color: const Color(0xFFBBF7D0)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Row(
+                          children: [
+                            _SuccessCircle(),
+                            SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Đã chọn khung giờ',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF15803D),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF16A34A),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 24),
                       const Text(
                         'Ai có thể tham gia?',
@@ -103,29 +184,37 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                           color: Color(0xFF111827),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       const Text(
-                        'Chọn chế độ phù hợp với buổi chơi của bạn.',
+                        'Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.',
                         style: TextStyle(
                           fontSize: 14,
                           color: Color(0xFF6B7280),
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      _PolicyToggle(
-                        policy: _policy,
-                        onChanged: isSaving ? null : _setPolicy,
+                      const SizedBox(height: 16),
+                      _PolicyCard(
+                        value: 'closed',
+                        label: '🔒 Riêng tư',
+                        description: 'Chỉ bạn và những người bạn mời mới chơi được.',
+                        selected: _policy == 'closed',
+                        onTap: isSaving ? null : () => _setPolicy('closed'),
                       ),
-                      if (_policy == 'open') ...[
-                        const SizedBox(height: 20),
-                        _MaxPlayersField(
-                          controller: _maxPlayersCtrl,
-                          errorText: _maxPlayersError,
-                          enabled: !isSaving,
-                          onChanged: (_) =>
-                              setState(() => _maxPlayersError = null),
-                        ),
-                      ],
+                      const SizedBox(height: 10),
+                      _PolicyCard(
+                        value: 'open',
+                        label: '🌐 Mở chơi ghép',
+                        description: 'Slot xuất hiện trong "Slot trống". Bạn duyệt yêu cầu tham gia.',
+                        selected: _policy == 'open',
+                        onTap: isSaving ? null : () => _setPolicy('open'),
+                        child: _policy == 'open'
+                            ? _MaxPlayersStepper(
+                                value: _maxPlayers,
+                                onIncrement: isSaving ? null : _incrementMaxPlayers,
+                                onDecrement: isSaving ? null : _decrementMaxPlayers,
+                              )
+                            : null,
+                      ),
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -133,54 +222,31 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-                child: Column(
-                  children: [
-                    FilledButton(
-                      onPressed: isSaving ? null : _save,
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
-                        backgroundColor: const Color(0xFF16A34A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: isSaving
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text(
-                              'Xác nhận',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                child: FilledButton(
+                  onPressed: isSaving ? null : _save,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    backgroundColor: const Color(0xFF16A34A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: isSaving ? null : _skip,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
-                        side: const BorderSide(color: Color(0xFFD1D5DB)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: isSaving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Lưu & tiếp tục',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Bỏ qua',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF374151),
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -191,54 +257,39 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
   }
 }
 
-class _PolicyToggle extends StatelessWidget {
-  const _PolicyToggle({required this.policy, required this.onChanged});
-
-  final String policy;
-  final ValueChanged<String>? onChanged;
+class _SuccessCircle extends StatelessWidget {
+  const _SuccessCircle();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _PolicyCard(
-            label: 'Riêng tư',
-            description: 'Chỉ người được mời',
-            icon: Icons.lock_outline_rounded,
-            selected: policy == 'closed',
-            onTap: onChanged == null ? null : () => onChanged!('closed'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _PolicyCard(
-            label: 'Mở',
-            description: 'Ai cũng có thể yêu cầu',
-            icon: Icons.public_rounded,
-            selected: policy == 'open',
-            onTap: onChanged == null ? null : () => onChanged!('open'),
-          ),
-        ),
-      ],
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: const BoxDecoration(
+        color: Color(0xFF16A34A),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(Icons.check_rounded, size: 18, color: Colors.white),
     );
   }
 }
 
 class _PolicyCard extends StatelessWidget {
   const _PolicyCard({
+    required this.value,
     required this.label,
     required this.description,
-    required this.icon,
     required this.selected,
     required this.onTap,
+    this.child,
   });
 
+  final String value;
   final String label;
   final String description;
-  final IconData icon;
   final bool selected;
   final VoidCallback? onTap;
+  final Widget? child;
 
   @override
   Widget build(BuildContext context) {
@@ -246,46 +297,47 @@ class _PolicyCard extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFFF0FDF4)
-              : const Color(0xFFF9FAFB),
+          color: selected ? const Color(0xFFF0FDF4) : const Color(0xFFF9FAFB),
           border: Border.all(
-            color: selected
-                ? const Color(0xFF16A34A)
-                : const Color(0xFFE5E7EB),
+            color: selected ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
             width: selected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: selected
-                  ? const Color(0xFF16A34A)
-                  : const Color(0xFF6B7280),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: selected
-                    ? const Color(0xFF15803D)
-                    : const Color(0xFF111827),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Color(0xFF6B7280),
+            _RadioCircle(selected: selected),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: selected
+                          ? const Color(0xFF15803D)
+                          : const Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  if (child != null) ...[
+                    const SizedBox(height: 14),
+                    child!,
+                  ],
+                ],
               ),
             ),
           ],
@@ -295,59 +347,141 @@ class _PolicyCard extends StatelessWidget {
   }
 }
 
-class _MaxPlayersField extends StatelessWidget {
-  const _MaxPlayersField({
-    required this.controller,
-    required this.errorText,
-    required this.enabled,
-    required this.onChanged,
-  });
+class _RadioCircle extends StatelessWidget {
+  const _RadioCircle({required this.selected});
 
-  final TextEditingController controller;
-  final String? errorText;
-  final bool enabled;
-  final ValueChanged<String> onChanged;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Số người tối đa',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF374151),
-          ),
+    return Container(
+      width: 22,
+      height: 22,
+      margin: const EdgeInsets.only(top: 2),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? const Color(0xFF16A34A) : Colors.white,
+        border: Border.all(
+          color: selected ? const Color(0xFF16A34A) : const Color(0xFFD1D5DB),
+          width: 2,
         ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          enabled: enabled,
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-          onChanged: onChanged,
-          decoration: InputDecoration(
-            hintText: 'Ví dụ: 4',
-            errorText: errorText,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF16A34A)),
+      ),
+      child: selected
+          ? const Center(
+              child: SizedBox(
+                width: 8,
+                height: 8,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+class _MaxPlayersStepper extends StatelessWidget {
+  const _MaxPlayersStepper({
+    required this.value,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
+
+  final int value;
+  final VoidCallback? onIncrement;
+  final VoidCallback? onDecrement;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Số người tối đa',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
             ),
           ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _StepperButton(
+                icon: Icons.remove,
+                onTap: onDecrement,
+                active: false,
+              ),
+              Expanded(
+                child: Text(
+                  '$value',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+              _StepperButton(
+                icon: Icons.add,
+                onTap: onIncrement,
+                active: true,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Bao gồm cả bạn. Khuyến nghị 4 cho pickleball đôi.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  const _StepperButton({
+    required this.icon,
+    required this.onTap,
+    required this.active,
+  });
+
+  final IconData icon;
+  final VoidCallback? onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: active ? const Color(0xFF16A34A) : Colors.white,
+          border: Border.all(
+            color: active ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
+          ),
+          borderRadius: BorderRadius.circular(10),
         ),
-      ],
+        child: Icon(
+          icon,
+          size: 20,
+          color: active ? Colors.white : const Color(0xFF6B7280),
+        ),
+      ),
     );
   }
 }
@@ -380,6 +514,73 @@ class _StepperRow extends StatelessWidget {
             ),
           );
         }),
+      ),
+    );
+  }
+}
+
+class _SlotTakenSheet extends StatelessWidget {
+  const _SlotTakenSheet({required this.onPickAnother});
+
+  final VoidCallback onPickAnother;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEF3C7),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.warning_amber_rounded,
+                size: 40,
+                color: Color(0xFFF59E0B),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Khung giờ đã được đặt',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF111827),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.5,
+                color: Color(0xFF6B7280),
+              ),
+            ),
+            const SizedBox(height: 28),
+            FilledButton(
+              onPressed: onPickAnother,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                backgroundColor: const Color(0xFF16A34A),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                'Chọn giờ khác',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

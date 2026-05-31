@@ -54,6 +54,7 @@ extension AccessControlStatePatterns on AccessControlState {
     TResult Function(AccessControlIdle value)? idle,
     TResult Function(AccessControlSaving value)? saving,
     TResult Function(AccessControlSaved value)? saved,
+    TResult Function(AccessControlSlotTaken value)? slotTaken,
     TResult Function(AccessControlFailure value)? failure,
     required TResult orElse(),
   }) {
@@ -65,6 +66,8 @@ extension AccessControlStatePatterns on AccessControlState {
         return saving(_that);
       case AccessControlSaved() when saved != null:
         return saved(_that);
+      case AccessControlSlotTaken() when slotTaken != null:
+        return slotTaken(_that);
       case AccessControlFailure() when failure != null:
         return failure(_that);
       case _:
@@ -90,6 +93,7 @@ extension AccessControlStatePatterns on AccessControlState {
     required TResult Function(AccessControlIdle value) idle,
     required TResult Function(AccessControlSaving value) saving,
     required TResult Function(AccessControlSaved value) saved,
+    required TResult Function(AccessControlSlotTaken value) slotTaken,
     required TResult Function(AccessControlFailure value) failure,
   }) {
     final _that = this;
@@ -100,6 +104,8 @@ extension AccessControlStatePatterns on AccessControlState {
         return saving(_that);
       case AccessControlSaved():
         return saved(_that);
+      case AccessControlSlotTaken():
+        return slotTaken(_that);
       case AccessControlFailure():
         return failure(_that);
     }
@@ -122,6 +128,7 @@ extension AccessControlStatePatterns on AccessControlState {
     TResult? Function(AccessControlIdle value)? idle,
     TResult? Function(AccessControlSaving value)? saving,
     TResult? Function(AccessControlSaved value)? saved,
+    TResult? Function(AccessControlSlotTaken value)? slotTaken,
     TResult? Function(AccessControlFailure value)? failure,
   }) {
     final _that = this;
@@ -132,6 +139,8 @@ extension AccessControlStatePatterns on AccessControlState {
         return saving(_that);
       case AccessControlSaved() when saved != null:
         return saved(_that);
+      case AccessControlSlotTaken() when slotTaken != null:
+        return slotTaken(_that);
       case AccessControlFailure() when failure != null:
         return failure(_that);
       case _:
@@ -155,7 +164,8 @@ extension AccessControlStatePatterns on AccessControlState {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? idle,
     TResult Function()? saving,
-    TResult Function()? saved,
+    TResult Function(String bookingId)? saved,
+    TResult Function()? slotTaken,
     TResult Function(String message, StackTrace? stackTrace)? failure,
     required TResult orElse(),
   }) {
@@ -166,7 +176,9 @@ extension AccessControlStatePatterns on AccessControlState {
       case AccessControlSaving() when saving != null:
         return saving();
       case AccessControlSaved() when saved != null:
-        return saved();
+        return saved(_that.bookingId);
+      case AccessControlSlotTaken() when slotTaken != null:
+        return slotTaken();
       case AccessControlFailure() when failure != null:
         return failure(_that.message, _that.stackTrace);
       case _:
@@ -191,7 +203,8 @@ extension AccessControlStatePatterns on AccessControlState {
   TResult when<TResult extends Object?>({
     required TResult Function() idle,
     required TResult Function() saving,
-    required TResult Function() saved,
+    required TResult Function(String bookingId) saved,
+    required TResult Function() slotTaken,
     required TResult Function(String message, StackTrace? stackTrace) failure,
   }) {
     final _that = this;
@@ -201,7 +214,9 @@ extension AccessControlStatePatterns on AccessControlState {
       case AccessControlSaving():
         return saving();
       case AccessControlSaved():
-        return saved();
+        return saved(_that.bookingId);
+      case AccessControlSlotTaken():
+        return slotTaken();
       case AccessControlFailure():
         return failure(_that.message, _that.stackTrace);
     }
@@ -223,7 +238,8 @@ extension AccessControlStatePatterns on AccessControlState {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? idle,
     TResult? Function()? saving,
-    TResult? Function()? saved,
+    TResult? Function(String bookingId)? saved,
+    TResult? Function()? slotTaken,
     TResult? Function(String message, StackTrace? stackTrace)? failure,
   }) {
     final _that = this;
@@ -233,7 +249,9 @@ extension AccessControlStatePatterns on AccessControlState {
       case AccessControlSaving() when saving != null:
         return saving();
       case AccessControlSaved() when saved != null:
-        return saved();
+        return saved(_that.bookingId);
+      case AccessControlSlotTaken() when slotTaken != null:
+        return slotTaken();
       case AccessControlFailure() when failure != null:
         return failure(_that.message, _that.stackTrace);
       case _:
@@ -285,12 +303,77 @@ class AccessControlSaving implements AccessControlState {
 /// @nodoc
 
 class AccessControlSaved implements AccessControlState {
-  const AccessControlSaved();
+  const AccessControlSaved({required this.bookingId});
+
+  final String bookingId;
+
+  /// Create a copy of AccessControlState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $AccessControlSavedCopyWith<AccessControlSaved> get copyWith =>
+      _$AccessControlSavedCopyWithImpl<AccessControlSaved>(this, _$identity);
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
-        (other.runtimeType == runtimeType && other is AccessControlSaved);
+        (other.runtimeType == runtimeType &&
+            other is AccessControlSaved &&
+            (identical(other.bookingId, bookingId) ||
+                other.bookingId == bookingId));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, bookingId);
+
+  @override
+  String toString() {
+    return 'AccessControlState.saved(bookingId: $bookingId)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $AccessControlSavedCopyWith<$Res>
+    implements $AccessControlStateCopyWith<$Res> {
+  factory $AccessControlSavedCopyWith(
+          AccessControlSaved value, $Res Function(AccessControlSaved) _then) =
+      _$AccessControlSavedCopyWithImpl;
+  @useResult
+  $Res call({String bookingId});
+}
+
+/// @nodoc
+class _$AccessControlSavedCopyWithImpl<$Res>
+    implements $AccessControlSavedCopyWith<$Res> {
+  _$AccessControlSavedCopyWithImpl(this._self, this._then);
+
+  final AccessControlSaved _self;
+  final $Res Function(AccessControlSaved) _then;
+
+  /// Create a copy of AccessControlState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? bookingId = null,
+  }) {
+    return _then(AccessControlSaved(
+      bookingId: null == bookingId
+          ? _self.bookingId
+          : bookingId // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class AccessControlSlotTaken implements AccessControlState {
+  const AccessControlSlotTaken();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType && other is AccessControlSlotTaken);
   }
 
   @override
@@ -298,7 +381,7 @@ class AccessControlSaved implements AccessControlState {
 
   @override
   String toString() {
-    return 'AccessControlState.saved()';
+    return 'AccessControlState.slotTaken()';
   }
 }
 

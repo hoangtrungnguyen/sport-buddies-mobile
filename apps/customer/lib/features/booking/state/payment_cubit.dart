@@ -1,3 +1,4 @@
+import 'package:customer/core/debug/app_logger.dart';
 import 'package:customer/features/booking/state/payment_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -34,6 +35,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         totalPrice: (data['total_price'] as num?)?.toDouble() ?? 0.0,
       ));
     } catch (e, st) {
+      appLogger.e('PaymentCubit.load', error: e, stackTrace: st);
       emit(PaymentState.error(e.toString(), stackTrace: st));
     }
   }

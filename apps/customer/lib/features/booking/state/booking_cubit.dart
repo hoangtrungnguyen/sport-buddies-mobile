@@ -1,3 +1,4 @@
+import 'package:customer/core/debug/app_logger.dart';
 import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
@@ -30,19 +31,40 @@ class BookingCubit extends Cubit<BookingState> {
     final slot = slotResult.value;
 
     final courtResult = await _courtRepo.fetchCourtById(slot.courtId);
-    final pricePerHour = courtResult is Success<Court>
-        ? courtResult.value.pricePerHour
-        : null;
+    final court = courtResult is Success<Court> ? courtResult.value : null;
+    final pricePerHour = court?.pricePerHour;
+    final courtAddress = court?.address;
 
-    final meta = _client.auth.currentSession?.user.userMetadata ?? {};
-    final name = (meta['full_name'] as String?) ?? '';
-    final phone = (meta['phone'] as String?) ?? '';
+    final userId = _client.auth.currentSession?.user.id;
+    String name = '';
+    String phone = '';
+    if (userId != null) {
+      try {
+        final row = await _client
+            .from('customers')
+            .select('full_name, phone')
+            .eq('id', userId)
+            .maybeSingle();
+        name = (row?['full_name'] as String?) ?? '';
+        phone = (row?['phone'] as String?) ?? '';
+      } catch (e, st) {
+        appLogger.w(
+          'BookingCubit.load: customers query failed, falling back to metadata',
+          error: e,
+          stackTrace: st,
+        );
+        final meta = _client.auth.currentSession?.user.userMetadata ?? {};
+        name = (meta['full_name'] as String?) ?? '';
+        phone = (meta['phone'] as String?) ?? '';
+      }
+    }
 
     emit(BookingLoaded(
       slot: slot,
       pricePerHour: pricePerHour,
       name: name,
       phone: phone,
+      courtAddress: courtAddress,
     ));
   }
 
@@ -85,6 +107,7 @@ class BookingCubit extends Cubit<BookingState> {
 
       emit(BookingSubmitted(bookingId: bookingId));
     } catch (e, st) {
+      appLogger.e('BookingCubit.submit', error: e, stackTrace: st);
       final msg = e.toString();
       if (msg.contains('SLOT_TAKEN')) {
         emit(const BookingSlotTaken());

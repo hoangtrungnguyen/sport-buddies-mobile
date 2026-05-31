@@ -33,6 +33,7 @@ import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/schedule/court_schedule_overview_screen.dart';
 import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
+import 'package:customer/features/courts/cubit/slot_picker_cubit.dart';
 import 'package:customer/features/courts/slot_picker_screen.dart';
 import 'package:customer/features/map/court_repository_impl.dart';
 import 'package:customer/features/map/cubit/map_cubit.dart';
@@ -200,10 +201,16 @@ GoRouter buildRouter() {
         path: '/court/:id/slots',
         builder: (context, state) {
           final extra = state.extra as Map<String, String?>?;
-          return SlotPickerScreen(
-            courtId: state.pathParameters['id']!,
-            courtName: extra?['name'],
-            courtAddress: extra?['address'],
+          return BlocProvider(
+            create: (_) => SlotPickerCubit(
+              slotRepository: SupabaseSlotRepository(client: Supabase.instance.client),
+              courtRepository: SupabaseCourtRepository(client: Supabase.instance.client),
+            ),
+            child: SlotPickerScreen(
+              courtId: state.pathParameters['id']!,
+              courtName: extra?['name'],
+              courtAddress: extra?['address'],
+            ),
           );
         },
       ),
@@ -259,14 +266,24 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/booking/access-control/:slotId',
-        builder: (context, state) => BlocProvider(
-          create: (_) => AccessControlCubit(
-            client: Supabase.instance.client,
-          ),
-          child: AccessControlScreen(
-            slotId: state.pathParameters['slotId']!,
-          ),
-        ),
+        builder: (context, state) {
+          final extra = (state.extra as Map<String, dynamic>?) ?? {};
+          return BlocProvider(
+            create: (_) => AccessControlCubit(
+              client: Supabase.instance.client,
+            ),
+            child: AccessControlScreen(
+              slotId: state.pathParameters['slotId']!,
+              name: extra['name'] as String? ?? '',
+              phone: extra['phone'] as String? ?? '',
+              notes: extra['notes'] as String?,
+              courtId: extra['courtId'] as String? ?? '',
+              pricePerHour: (extra['pricePerHour'] as num?)?.toDouble(),
+              durationMinutes: extra['durationMinutes'] as int? ?? 0,
+              totalPrice: (extra['totalPrice'] as num?)?.toDouble(),
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '/booking/recurring',

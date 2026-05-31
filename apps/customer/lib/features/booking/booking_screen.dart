@@ -46,9 +46,6 @@ class _BookingScreenState extends State<BookingScreen> {
     return BlocConsumer<BookingCubit, BookingState>(
       listener: (context, state) {
         if (state is BookingLoaded) _populateControllers(state);
-        if (state is BookingSubmitted) {
-          context.go('/booking/awaiting/${state.bookingId}');
-        }
         if (state is BookingSlotTaken) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -78,7 +75,7 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
           body: switch (state) {
             BookingLoading() => const Center(child: CircularProgressIndicator()),
-            BookingLoaded(:final slot, :final pricePerHour) => Column(
+            BookingLoaded(:final slot, :final pricePerHour, :final courtAddress) => Column(
                 children: [
                   const _StepperRow(step: 0),
                   Expanded(
@@ -92,16 +89,33 @@ class _BookingScreenState extends State<BookingScreen> {
                             nameCtrl: _nameCtrl,
                             phoneCtrl: _phoneCtrl,
                             notesCtrl: _notesCtrl,
+                            courtAddress: courtAddress,
                           ),
                         ),
                         _BottomConfirmBtn(
                           submitting: false,
-                          onConfirm: () => context.read<BookingCubit>().submit(
-                                slotId: widget.slotId,
-                                name: _nameCtrl.text,
-                                phone: _phoneCtrl.text,
-                                notes: _notesCtrl.text,
-                              ),
+                          onConfirm: () {
+                            final durationMinutes = slot.endTime
+                                .difference(slot.startTime)
+                                .inMinutes;
+                            final totalPrice = pricePerHour != null
+                                ? pricePerHour * durationMinutes / 60
+                                : null;
+                            context.go(
+                              '/booking/access-control/${widget.slotId}',
+                              extra: {
+                                'name': _nameCtrl.text.trim(),
+                                'phone': _phoneCtrl.text.trim(),
+                                'notes': _notesCtrl.text.trim().isEmpty
+                                    ? null
+                                    : _notesCtrl.text.trim(),
+                                'courtId': slot.courtId,
+                                'pricePerHour': pricePerHour,
+                                'durationMinutes': durationMinutes,
+                                'totalPrice': totalPrice,
+                              },
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -187,6 +201,7 @@ class _Step1Content extends StatelessWidget {
     required this.nameCtrl,
     required this.phoneCtrl,
     required this.notesCtrl,
+    this.courtAddress,
   });
 
   final Slot slot;
@@ -194,6 +209,7 @@ class _Step1Content extends StatelessWidget {
   final TextEditingController nameCtrl;
   final TextEditingController phoneCtrl;
   final TextEditingController notesCtrl;
+  final String? courtAddress;
 
   static final _timeFmt = DateFormat('HH:mm');
   static final _dateFmt = DateFormat('EEE, dd/MM', 'vi');
@@ -215,7 +231,7 @@ class _Step1Content extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CourtCard(courtName: slot.courtName),
+          _CourtCard(courtName: slot.courtName, address: courtAddress),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -251,7 +267,7 @@ class _Step1Content extends StatelessWidget {
             time:
                 '${_timeFmt.format(slot.startTime)} – ${_timeFmt.format(slot.endTime)}',
             date: _dateFmt.format(slot.startTime),
-            sub: '$durationLabel',
+            sub: durationLabel,
             price: pricePerHour != null
                 ? _priceFmt.format(pricePerHour! * durationH)
                 : '—',
@@ -345,9 +361,10 @@ class _Step1Content extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _CourtCard extends StatelessWidget {
-  const _CourtCard({required this.courtName});
+  const _CourtCard({required this.courtName, this.address});
 
   final String courtName;
+  final String? address;
 
   @override
   Widget build(BuildContext context) {
@@ -376,13 +393,29 @@ class _CourtCard extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              courtName,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111827),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  courtName,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                if (address != null && address!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    address!,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF6B7280),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
           ),
         ],
