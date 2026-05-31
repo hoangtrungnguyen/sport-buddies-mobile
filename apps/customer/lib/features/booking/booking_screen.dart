@@ -1,3 +1,4 @@
+import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/booking_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -77,7 +78,7 @@ class _BookingScreenState extends State<BookingScreen> {
             BookingLoading() => const Center(child: CircularProgressIndicator()),
             BookingLoaded(:final slot, :final pricePerHour, :final courtAddress) => Column(
                 children: [
-                  const _StepperRow(step: 0),
+                  const BookingStepper(step: 0),
                   Expanded(
                     child: Stack(
                       children: [
@@ -124,7 +125,7 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             BookingSubmitting() => Column(
                 children: [
-                  const _StepperRow(step: 0),
+                  const BookingStepper(step: 0),
                   Expanded(
                     child: Stack(
                       children: [
@@ -149,43 +150,6 @@ class _BookingScreenState extends State<BookingScreen> {
           },
         );
       },
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Step indicator
-// ---------------------------------------------------------------------------
-
-class _StepperRow extends StatelessWidget {
-  const _StepperRow({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(4, (i) {
-          final isActive = i == step;
-          final isDone = i < step;
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF16A34A)
-                  : isDone
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFFD1D5DB),
-              borderRadius: BorderRadius.circular(99),
-            ),
-          );
-        }),
-      ),
     );
   }
 }

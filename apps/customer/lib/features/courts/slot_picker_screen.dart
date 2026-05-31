@@ -140,6 +140,7 @@ class _LoadedBody extends StatelessWidget {
         : 0.0;
 
     return Stack(
+      fit: StackFit.expand,
       children: [
         SingleChildScrollView(
           padding: EdgeInsets.only(

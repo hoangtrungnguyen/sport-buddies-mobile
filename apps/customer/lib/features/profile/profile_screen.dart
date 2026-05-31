@@ -100,7 +100,7 @@ class _ProfileBody extends StatelessWidget {
             phone: phone,
             email: email,
             avatarUrl: avatarUrl,
-            onEditTap: () => _showEditNameSheet(context),
+            onEditTap: () => _showEditPersonalInfoSheet(context, fullName, phone),
             onAvatarTap: () => _pickAndUploadAvatar(context),
           ),
           const SizedBox(height: 16),
@@ -115,7 +115,7 @@ class _ProfileBody extends StatelessWidget {
                       icon: Icons.person_outline,
                       label: l10n.profilePersonalInfo,
                       subtitle: l10n.profilePersonalInfoSub,
-                      onTap: () => _showEditNameSheet(context),
+                      onTap: () => _showEditPersonalInfoSheet(context, fullName, phone),
                     ),
                     const _RowDivider(),
                     _LanguageMenuRow(l10n: l10n),
@@ -250,7 +250,11 @@ class _ProfileBody extends StatelessWidget {
     }
   }
 
-  void _showEditNameSheet(BuildContext context) {
+  void _showEditPersonalInfoSheet(
+    BuildContext context,
+    String currentName,
+    String currentPhone,
+  ) {
     final cubit = context.read<ProfileCubit>();
     showModalBottomSheet<void>(
       context: context,
@@ -261,7 +265,10 @@ class _ProfileBody extends StatelessWidget {
       ),
       builder: (sheetCtx) => BlocProvider.value(
         value: cubit,
-        child: _EditNameSheet(currentName: fullName),
+        child: _EditPersonalInfoSheet(
+          currentName: currentName,
+          currentPhone: currentPhone,
+        ),
       ),
     );
   }
@@ -732,30 +739,37 @@ class _LangOption extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Edit name bottom sheet
+// Edit personal info bottom sheet (name + phone)
 // ---------------------------------------------------------------------------
 
-class _EditNameSheet extends StatefulWidget {
-  const _EditNameSheet({required this.currentName});
+class _EditPersonalInfoSheet extends StatefulWidget {
+  const _EditPersonalInfoSheet({
+    required this.currentName,
+    required this.currentPhone,
+  });
 
   final String currentName;
+  final String currentPhone;
 
   @override
-  State<_EditNameSheet> createState() => _EditNameSheetState();
+  State<_EditPersonalInfoSheet> createState() => _EditPersonalInfoSheetState();
 }
 
-class _EditNameSheetState extends State<_EditNameSheet> {
-  late final TextEditingController _nameController;
+class _EditPersonalInfoSheetState extends State<_EditPersonalInfoSheet> {
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.currentName);
+    _nameCtrl = TextEditingController(text: widget.currentName);
+    _phoneCtrl = TextEditingController(text: widget.currentPhone);
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     super.dispose();
   }
 
@@ -791,7 +805,7 @@ class _EditNameSheetState extends State<_EditNameSheet> {
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.nameEditTitle,
+              l10n.profilePersonalInfo,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -800,7 +814,7 @@ class _EditNameSheetState extends State<_EditNameSheet> {
             const SizedBox(height: 20),
             TextFormField(
               key: const Key('editNameField'),
-              controller: _nameController,
+              controller: _nameCtrl,
               decoration: InputDecoration(
                 labelText: l10n.labelFullName,
                 border: const OutlineInputBorder(),
@@ -810,19 +824,41 @@ class _EditNameSheetState extends State<_EditNameSheet> {
               textCapitalization: TextCapitalization.words,
               autofocus: true,
             ),
+            const SizedBox(height: 14),
+            TextFormField(
+              key: const Key('editPhoneField'),
+              controller: _phoneCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Số điện thoại',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.phone_outlined),
+                hintText: '0901 234 567',
+              ),
+              keyboardType: TextInputType.phone,
+            ),
             const SizedBox(height: 16),
             BlocBuilder<ProfileCubit, ProfileState>(
               builder: (context, state) {
                 final isSaving = state is ProfileSaving;
                 return FilledButton(
-                  key: const Key('saveNameButton'),
+                  key: const Key('saveProfileButton'),
                   onPressed: isSaving
                       ? null
                       : () {
-                          final name = _nameController.text.trim();
+                          final name = _nameCtrl.text.trim();
                           if (name.isEmpty) return;
-                          context.read<ProfileCubit>().updateFullName(name);
+                          context.read<ProfileCubit>().updateProfile(
+                                name: name,
+                                phone: _phoneCtrl.text.trim(),
+                              );
                         },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF16A34A),
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                   child: isSaving
                       ? const SizedBox(
                           height: 20,

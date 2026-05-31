@@ -66,7 +66,10 @@ In BLoC handlers:
   emit(AuthRejected('invalid_credentials', stackTrace: stackTrace));
 } // No bare catch — unknown exceptions propagate to BlocObserver.onError
 ```
-
+#### Command to generate freezed.g.dart file
+```
+fvm dart run build_runner build --delete-conflicting-outputs
+```
 ---
 
 ### Logging

@@ -1,3 +1,4 @@
+import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/payment_cubit.dart';
 import 'package:customer/features/booking/state/payment_state.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ class _LoadedScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          const _StepperRow(step: 3),
+          const BookingStepper(step: 3),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -233,41 +234,45 @@ class _LoadedScreen extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
-            child: Column(
+            child: Row(
               children: [
-                OutlinedButton(
-                  onPressed: () => context.go('/'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    side: const BorderSide(color: Color(0xFFD1D5DB)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => context.go('/'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      side: const BorderSide(color: Color(0xFFD1D5DB)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Về bản đồ',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF374151),
+                    child: const Text(
+                      'Về bản đồ',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF374151),
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                FilledButton(
-                  onPressed: () => context.go('/bookings/${state.bookingId}'),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48),
-                    backgroundColor: const Color(0xFF16A34A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => context.go('/bookings/${state.bookingId}'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 48),
+                      backgroundColor: const Color(0xFF16A34A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Xem lịch đặt',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                    child: const Text(
+                      'Xem lịch đặt',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -364,35 +369,3 @@ class _Divider extends StatelessWidget {
   }
 }
 
-class _StepperRow extends StatelessWidget {
-  const _StepperRow({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(4, (i) {
-          final isActive = i == step;
-          final isDone = i < step;
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF16A34A)
-                  : isDone
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFFD1D5DB),
-              borderRadius: BorderRadius.circular(99),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}

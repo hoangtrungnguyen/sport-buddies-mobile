@@ -80,12 +80,18 @@ class ProfileCubit extends Cubit<ProfileState> {
         return;
       }
 
+      final row = await client
+          .from('customers')
+          .select('full_name, phone, avatar_url')
+          .eq('id', user.id)
+          .maybeSingle();
+
       final meta = user.userMetadata ?? {};
       emit(ProfileLoaded(
-        fullName: (meta['full_name'] as String?) ?? '',
-        phone: (meta['phone'] as String?) ?? '',
+        fullName: (row?['full_name'] as String?) ?? (meta['full_name'] as String?) ?? '',
+        phone: (row?['phone'] as String?) ?? (meta['phone'] as String?) ?? '',
         email: user.email ?? '',
-        avatarUrl: meta['avatar_url'] as String?,
+        avatarUrl: (row?['avatar_url'] as String?) ?? meta['avatar_url'] as String?,
       ));
     } catch (e, st) {
       emit(ProfileError(e.toString(), stackTrace: st));
@@ -174,23 +180,52 @@ class ProfileCubit extends Cubit<ProfileState> {
     try {
       final overrideFn = _updateFn;
       if (overrideFn != null) {
-        // Test path: delegate to the injected stub.
         await overrideFn('', name);
       } else {
         final client = _client;
         if (client == null) {
-          // Defensive: no client in non-test path should not happen.
           emit(const ProfileUpdateError('Supabase client not available.'));
           return;
         }
         final userId = client.auth.currentSession?.user.id ?? '';
         await client
-            .from('users')
+            .from('customers')
             .update({'full_name': name}).eq('id', userId);
       }
       emit(ProfileLoaded(
         fullName: name,
         phone: current.phone,
+        email: current.email,
+        avatarUrl: current.avatarUrl,
+      ));
+    } catch (e, st) {
+      emit(ProfileUpdateError(e.toString(), stackTrace: st));
+    }
+  }
+
+  Future<void> updateProfile({
+    required String name,
+    required String phone,
+  }) async {
+    final current = state;
+    if (current is! ProfileLoaded) return;
+
+    emit(const ProfileSaving());
+    try {
+      final client = _client;
+      if (client == null) {
+        emit(const ProfileUpdateError('Supabase client not available.'));
+        return;
+      }
+      final userId = client.auth.currentSession?.user.id ?? '';
+      await client.from('customers').update({
+        'full_name': name,
+        'phone': phone,
+      }).eq('id', userId);
+
+      emit(ProfileLoaded(
+        fullName: name,
+        phone: phone,
         email: current.email,
         avatarUrl: current.avatarUrl,
       ));

@@ -1,3 +1,4 @@
+import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/access_control_cubit.dart';
 import 'package:customer/features/booking/state/access_control_state.dart';
 import 'package:flutter/material.dart';
@@ -131,7 +132,7 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
           ),
           body: Column(
             children: [
-              const _StepperRow(step: 1),
+              const BookingStepper(step: 1),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -486,38 +487,6 @@ class _StepperButton extends StatelessWidget {
   }
 }
 
-class _StepperRow extends StatelessWidget {
-  const _StepperRow({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(4, (i) {
-          final isActive = i == step;
-          final isDone = i < step;
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF16A34A)
-                  : isDone
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFFD1D5DB),
-              borderRadius: BorderRadius.circular(99),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
 
 class _SlotTakenSheet extends StatelessWidget {
   const _SlotTakenSheet({required this.onPickAnother});

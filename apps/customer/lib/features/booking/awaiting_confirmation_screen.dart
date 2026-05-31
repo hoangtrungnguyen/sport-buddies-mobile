@@ -1,3 +1,4 @@
+import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/awaiting_confirmation_cubit.dart';
 import 'package:customer/features/booking/state/awaiting_confirmation_state.dart';
 import 'package:flutter/material.dart';
@@ -91,32 +92,47 @@ class _LoadedBody extends StatelessWidget {
 
     return Column(
       children: [
-        const _StepperRow(step: 2),
+        const BookingStepper(step: 2),
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Pulsing icon
+                // Pulsing clock ring
                 ScaleTransition(
                   scale: pulseAnim,
-                  child: Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF9C3),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFFDE047),
-                        width: 2,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 140,
+                        height: 140,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFEF9C3),
+                          shape: BoxShape.circle,
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.hourglass_top_rounded,
-                      size: 48,
-                      color: Color(0xFFCA8A04),
-                    ),
+                      Container(
+                        width: 104,
+                        height: 104,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.schedule,
+                          size: 52,
+                          color: Color(0xFFCA8A04),
+                        ),
+                      ),
+                      const Positioned(
+                        top: 0,
+                        child: CircleAvatar(
+                          radius: 6,
+                          backgroundColor: Color(0xFFCA8A04),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -391,35 +407,3 @@ class _TimelineItem extends StatelessWidget {
   }
 }
 
-class _StepperRow extends StatelessWidget {
-  const _StepperRow({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(4, (i) {
-          final isActive = i == step;
-          final isDone = i < step;
-          return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: isActive ? 24 : 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFF16A34A)
-                  : isDone
-                      ? const Color(0xFF22C55E)
-                      : const Color(0xFFD1D5DB),
-              borderRadius: BorderRadius.circular(99),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
