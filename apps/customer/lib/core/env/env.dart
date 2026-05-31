@@ -1,46 +1,50 @@
-/// Environment configuration loaded from .env file via envied.
-///
-/// Requirements:
-/// 1. Add envied dependencies to pubspec.yaml
-/// 2. Create .env file in project root with required vars
-/// 3. Run: fvm dart run build_runner build --delete-conflicting-outputs
-///
-/// Example .env:
-/// ```
-/// SUPABASE_URL=https://xxx.supabase.co
-/// SUPABASE_KEY=eyJxxx...
-/// VIETMAP_API_KEY=xxx...
-/// ```
-
 import 'package:envied/envied.dart';
 
 part 'env.g.dart';
 
-@Envied(path: '.env')
+/// Environment configuration loaded from .env files via envied.
+/// Supports local, dev, and prod environments.
+@Envied(path: '.local.env', name: 'LocalEnv')
+@Envied(path: '.dev.env', name: 'DevEnv')
+@Envied(path: '.prod.env', name: 'ProdEnv')
 abstract class Env {
   Env._(); // Private constructor
 
+  static const String environment =
+      String.fromEnvironment('ENVIRONMENT', defaultValue: 'local');
+
+  static final Env _instance = switch (environment) {
+    'prod' => _ProdEnv(),
+    'dev' => _DevEnv(),
+    _ => _LocalEnv(),
+  };
+
   /// Supabase project URL.
   @EnviedField(varName: 'SUPABASE_URL')
-  static const String supabaseUrl = _Env.supabaseUrl;
+  final String _supabaseUrl = _instance._supabaseUrl;
+  static String get supabaseUrl => _instance._supabaseUrl;
 
   /// Supabase anonymous/public key.
-  @EnviedField(varName: 'SUPABASE_KEY')
-  static const String supabaseAnonKey = _Env.supabaseAnonKey;
+  @EnviedField(varName: 'SUPABASE_PUBLISHABLE_KEY')
+  final String _supabaseAnonKey = _instance._supabaseAnonKey;
+  static String get supabaseAnonKey => _instance._supabaseAnonKey;
 
   /// VietMap / Goong tile + geocoding API key.
   @EnviedField(varName: 'VIETMAP_API_KEY', defaultValue: '')
-  static const String vietmapApiKey = _Env.vietmapApiKey;
+  final String _vietmapApiKey = _instance._vietmapApiKey;
+  static String get vietmapApiKey => _instance._vietmapApiKey;
 
   /// Google Maps API key for map tiles.
   /// Leave empty in dev — the provider falls back to the keyless endpoint.
   @EnviedField(varName: 'GOOGLE_MAP_API_KEY', defaultValue: '')
-  static const String googleMapApiKey = _Env.googleMapApiKey;
+  final String _googleMapApiKey = _instance._googleMapApiKey;
+  static String get googleMapApiKey => _instance._googleMapApiKey;
 
   /// Active map tile provider: 'google' (default) or 'vietmap'.
   /// Controls which [MapTileProvider] strategy [MapTileProvider.fromEnv] picks.
   @EnviedField(varName: 'MAP_PROVIDER', defaultValue: 'google')
-  static const String mapProvider = _Env.mapProvider;
+  final String _mapProvider = _instance._mapProvider;
+  static String get mapProvider => _instance._mapProvider;
 
   /// Throws [StateError] if any required env var is empty.
   static void assertConfigured() {

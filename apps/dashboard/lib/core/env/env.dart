@@ -1,54 +1,49 @@
-/// Compile-time environment configuration.
+import 'package:envied/envied.dart';
+
+part 'env.g.dart';
+
+/// Compile-time environment configuration supporting multiple environments.
 ///
-/// Pass values at build / run time via --dart-define:
-///   fvm flutter run
-///     --dart-define=SUPABASE_URL=http://localhost:54321
-///     --dart-define=SUPABASE_PUBLISHABLE_KEY=[sb_publishable_…]
-abstract final class Env {
+/// Build for a specific environment using `--dart-define=ENVIRONMENT=prod` or `dev`.
+/// Defaults to `local`.
+@Envied(path: '.local.env', name: 'LocalEnv')
+@Envied(path: '.dev.env', name: 'DevEnv')
+@Envied(path: '.prod.env', name: 'ProdEnv')
+abstract class Env {
   Env._();
 
-  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+  static const String environment =
+      String.fromEnvironment('ENVIRONMENT', defaultValue: 'local');
 
-  /// Client API key passed to `Supabase.initialize`. Uses the current Supabase
-  /// key scheme — `SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`) — falling back
-  /// to the legacy `SUPABASE_ANON_KEY` for older environments. The matching
-  /// `SUPABASE_SECRET_KEY` is server-side only and is intentionally NOT read
-  /// here: a secret key must never ship in a web client.
-  static const String _publishableKey =
-      String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
-  static const String supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY');
+  static final Env _instance = switch (environment) {
+    'prod' => _ProdEnv(),
+    'dev' => _DevEnv(),
+    _ => _LocalEnv(),
+  };
 
-  /// The key to hand to the Supabase client (publishable preferred).
-  static String get supabaseClientKey =>
-      _publishableKey.isNotEmpty ? _publishableKey : supabaseAnonKey;
+  @EnviedField(varName: 'SUPABASE_URL', obfuscate: true)
+  final String _supabaseUrl = _instance._supabaseUrl;
+  static String get supabaseUrl => _instance._supabaseUrl;
 
-  /// DEV ONLY — when true the app auto-signs-in with a fixed dev account at
-  /// startup (see `main.dart`) so the dashboard can be previewed without typing
-  /// credentials. It establishes a **real** Supabase session, so the normal
-  /// auth gate and RLS-backed data all behave as in production. Enable with
-  /// `--dart-define=BYPASS_AUTH=true`. Defaults to false so it never leaks into
-  /// a production build.
-  static const bool bypassAuth =
-      bool.fromEnvironment('BYPASS_AUTH', defaultValue: false);
+  @EnviedField(varName: 'SUPABASE_PUBLISHABLE_KEY', obfuscate: true)
+  final String _supabasePublishableKey = _instance._supabasePublishableKey;
+  static String get supabaseClientKey => _instance._supabasePublishableKey;
 
-  /// Dev account used by [bypassAuth] auto-login. Overridable via
-  /// `--dart-define=BYPASS_EMAIL=… --dart-define=BYPASS_PASSWORD=…`.
-  static const String bypassEmail =
-      String.fromEnvironment('BYPASS_EMAIL', defaultValue: 'dev@snb.com');
-  static const String bypassPassword = String.fromEnvironment(
-    'BYPASS_PASSWORD',
-    defaultValue: '123456&QWE',
-  );
+  @EnviedField(varName: 'BYPASS_AUTH', defaultValue: 'false')
+  final String _bypassAuth = _instance._bypassAuth;
+  static bool get bypassAuth => _instance._bypassAuth.toLowerCase() == 'true';
 
-  /// Base URL of the SportBuddies REST backend (Django) — used for endpoints
-  /// that are not served directly by Supabase, e.g. `POST /auth/owner/signup`.
-  /// Defaults to the conventional local Django dev server; override with
-  /// `--dart-define=API_BASE_URL=https://api.example.com`.
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:8010',
-  );
+  @EnviedField(varName: 'BYPASS_EMAIL', defaultValue: 'dev@snb.com', obfuscate: true)
+  final String _bypassEmail = _instance._bypassEmail;
+  static String get bypassEmail => _instance._bypassEmail;
+
+  @EnviedField(varName: 'BYPASS_PASSWORD', defaultValue: '123456&QWE', obfuscate: true)
+  final String _bypassPassword = _instance._bypassPassword;
+  static String get bypassPassword => _instance._bypassPassword;
+
+  @EnviedField(varName: 'API_BASE_URL', defaultValue: 'http://localhost:8010', obfuscate: true)
+  final String _apiBaseUrl = _instance._apiBaseUrl;
+  static String get apiBaseUrl => _instance._apiBaseUrl;
 
   /// Throws [StateError] when required vars are missing.
   static void assertConfigured() {
@@ -58,7 +53,7 @@ abstract final class Env {
     ];
     if (missing.isNotEmpty) {
       throw StateError(
-        'Missing --dart-define vars: ${missing.join(', ')}',
+        'Missing env vars: ${missing.join(', ')}',
       );
     }
   }
