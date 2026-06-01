@@ -1,6 +1,8 @@
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:dashboard/features/notifications/view/notification_panel.dart';
+import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
+import 'package:dashboard/features/requests/model/booking_request.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -38,7 +40,6 @@ const _mainNav = <_NavEntry>[
     icon: Icons.inbox_outlined,
     label: 'Yêu cầu',
     route: '/requests',
-    badge: 8,
     warn: true,
   ),
   _NavEntry(
@@ -666,8 +667,24 @@ class _Sidebar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _SectionLabel('Quản lý'),
-                ..._mainNav.map(
-                    (e) => _NavItem(entry: e, location: location)),
+                ..._mainNav.map((e) {
+                  if (e.route == '/requests') {
+                    final pendingCount =
+                        context.select<RequestsBloc, int>((bloc) {
+                      final s = bloc.state;
+                      return s is RequestsLoaded
+                          ? s.requests
+                              .where((r) => r.status == BookingStatus.pending)
+                              .length
+                          : 0;
+                    });
+                    return _NavItem(
+                        entry: e,
+                        location: location,
+                        liveBadge: pendingCount > 0 ? pendingCount : null);
+                  }
+                  return _NavItem(entry: e, location: location);
+                }),
                 const SizedBox(height: 4),
                 _SectionLabel('Hệ thống'),
                 ..._systemNav.map(
@@ -710,9 +727,10 @@ class _SectionLabel extends StatelessWidget {
 }
 
 class _NavItem extends StatelessWidget {
-  const _NavItem({required this.entry, required this.location});
+  const _NavItem({required this.entry, required this.location, this.liveBadge});
   final _NavEntry entry;
   final String location;
+  final int? liveBadge;
 
   bool get _active => location == entry.route;
 
@@ -760,7 +778,7 @@ class _NavItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (entry.badge != null)
+                if (liveBadge != null || entry.badge != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 6, vertical: 2),
@@ -771,7 +789,7 @@ class _NavItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(99),
                     ),
                     child: Text(
-                      entry.badge.toString(),
+                      (liveBadge ?? entry.badge!).toString(),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,

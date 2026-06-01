@@ -94,10 +94,20 @@ GoRouter buildRouter() {
             RepositoryProvider<NotificationRepository>.value(
                 value: sl<NotificationRepository>()),
           ],
-          child: BlocProvider<NotificationBloc>(
-            create: (_) =>
-                NotificationBloc(sl<NotificationRepository>())
-                  ..add(const NotificationEvent.loadRequested()),
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<NotificationBloc>(
+                create: (_) =>
+                    NotificationBloc(sl<NotificationRepository>())
+                      ..add(const NotificationEvent.loadRequested()),
+              ),
+              BlocProvider<RequestsBloc>(
+                create: (_) => RequestsBloc(
+                  repository: sl<BookingRequestRepository>(),
+                  actionRepository: sl<BookingActionRepository>(),
+                )..add(const RequestsEvent.started()),
+              ),
+            ],
             child: AppShell(child: child),
           ),
         ),
@@ -109,13 +119,7 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/requests',
-            builder: (context, state) => BlocProvider(
-              create: (_) => RequestsBloc(
-                repository: sl<BookingRequestRepository>(),
-                actionRepository: sl<BookingActionRepository>(),
-              )..add(const RequestsEvent.started()),
-              child: const RequestsScreen(),
-            ),
+            builder: (_, __) => const RequestsScreen(),
           ),
           GoRoute(
             path: '/schedule',
