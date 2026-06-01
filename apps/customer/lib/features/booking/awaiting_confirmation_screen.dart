@@ -56,7 +56,15 @@ class _AwaitingConfirmationScreenState
           title: const Text('Chờ xác nhận'),
           backgroundColor: Colors.white,
           elevation: 0,
-          automaticallyImplyLeading: false,
+          leading: BackButton(
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/bookings/upcoming');
+              }
+            },
+          ),
         ),
         body: switch (state) {
           AwaitingLoading() ||
