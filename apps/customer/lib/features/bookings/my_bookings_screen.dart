@@ -1,6 +1,9 @@
 // My Bookings — unified screen with 3 tabs: Upcoming / Pending / History.
 //
-// Uses mock data. Replace with BLoC + Supabase calls when backend is ready.
+// Upcoming + Pending tabs are backed by [BookingsCubit] (future bookings
+// whose status is pending or confirmed).
+// History tab is backed by [HistoryCubit] (completed/cancelled bookings).
+//
 // Design reference: EPIC-6 My Bookings.html
 
 import 'package:flutter/material.dart';
@@ -10,6 +13,9 @@ import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'booking_model.dart';
+import 'bookings_cubit.dart';
+import 'bookings_state.dart';
 import 'history_cubit.dart';
 import 'history_state.dart';
 import 'mock_booking.dart';
@@ -22,11 +28,20 @@ class MyBookingsPage extends StatelessWidget {
   const MyBookingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => BlocProvider(
-        create: (_) =>
-            HistoryCubit(Supabase.instance.client)..loadHistory(),
-        child: const MyBookingsScreen(),
-      );
+  Widget build(BuildContext context) {
+    final client = Supabase.instance.client;
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => BookingsCubit(client)..loadUpcoming(),
+        ),
+        BlocProvider(
+          create: (_) => HistoryCubit(client)..loadHistory(),
+        ),
+      ],
+      child: const MyBookingsScreen(),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,26 +75,25 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     super.dispose();
   }
 
-  List<MockBooking> get _filteredUpcoming {
-    final all = mockUpcomingBookings;
-    if (_upcomingFilter == null) return all;
+  List<MockBooking> _filterUpcoming(List<Booking> all) {
+    final mapped = all.map((b) => b.toMockBooking()).toList();
+    if (_upcomingFilter == null) return mapped;
     return switch (_upcomingFilter!) {
-      'one_off' => all.where((b) => b.type == BookingType.oneOff).toList(),
-      'recurring' => all.where((b) => b.type == BookingType.recurring).toList(),
-      _ => all.where((b) => b.sport.name == _upcomingFilter).toList(),
+      'one_off' => mapped.where((b) => b.type == BookingType.oneOff).toList(),
+      'recurring' =>
+        mapped.where((b) => b.type == BookingType.recurring).toList(),
+      _ => mapped.where((b) => b.sport.name == _upcomingFilter).toList(),
     };
   }
 
-  List<MockBooking> _filteredHistory(List<HistoryBookingItem> items) {
-    final all = items.map((i) => i.toMockBooking()).toList();
-    if (_historyFilter == null) return all;
-    return switch (_historyFilter!) {
-      'completed' =>
-        items.where((i) => i.dbStatus == 'completed').map((i) => i.toMockBooking()).toList(),
-      'cancelled' =>
-        items.where((i) => i.dbStatus == 'cancelled').map((i) => i.toMockBooking()).toList(),
-      _ => all,
+  List<MockBooking> _filterHistory(List<HistoryBookingItem> items) {
+    final filtered = switch (_historyFilter) {
+      null => items,
+      'completed' => items.where((i) => i.dbStatus == 'completed').toList(),
+      'cancelled' => items.where((i) => i.dbStatus == 'cancelled').toList(),
+      _ => items,
     };
+    return filtered.map((i) => i.toMockBooking()).toList();
   }
 
   @override
@@ -88,38 +102,40 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       backgroundColor: AppColors.neutral50,
       body: Column(
         children: [
-          _MyBookingsHeader(
-            tabController: _tabController,
-            upcomingCount: mockUpcomingBookings.length,
-            pendingCount: mockJoinRequests.length,
+          BlocBuilder<BookingsCubit, BookingsState>(
+            builder: (context, state) {
+              final all = state is BookingsLoaded ? state.bookings : const <Booking>[];
+              final upcomingCount = all.length;
+              final pendingCount =
+                  all.where((b) => b.status == 'pending').length;
+              return _MyBookingsHeader(
+                tabController: _tabController,
+                upcomingCount: upcomingCount,
+                pendingCount: pendingCount,
+              );
+            },
           ),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                _UpcomingTabView(
-                  bookings: _filteredUpcoming,
-                  activeFilter: _upcomingFilter,
-                  onFilterChanged: (f) => setState(() => _upcomingFilter = f),
+                BlocBuilder<BookingsCubit, BookingsState>(
+                  builder: (context, state) => _buildUpcomingTab(state),
                 ),
-                const _PendingTabView(),
+                BlocBuilder<BookingsCubit, BookingsState>(
+                  builder: (context, state) => _buildPendingTab(state),
+                ),
                 BlocBuilder<HistoryCubit, HistoryState>(
-                  builder: (context, historyState) => switch (historyState) {
-                    HistoryLoading() => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    HistoryError(:final message) => Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Text(
-                            message,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.neutral500),
-                          ),
-                        ),
+                  builder: (context, state) => switch (state) {
+                    HistoryLoading() =>
+                      const Center(child: CircularProgressIndicator()),
+                    HistoryError(:final message) => _ErrorView(
+                        message: message,
+                        onRetry: () =>
+                            context.read<HistoryCubit>().loadHistory(),
                       ),
                     HistoryLoaded(:final items) => _HistoryTabView(
-                        bookings: _filteredHistory(items),
+                        bookings: _filterHistory(items),
                         activeFilter: _historyFilter,
                         onFilterChanged: (f) =>
                             setState(() => _historyFilter = f),
@@ -132,6 +148,40 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
         ],
       ),
     );
+  }
+
+  Widget _buildUpcomingTab(BookingsState state) {
+    return switch (state) {
+      BookingsLoading() || BookingsCancelling() =>
+        const Center(child: CircularProgressIndicator()),
+      BookingsError(:final message) => _ErrorView(
+          message: message,
+          onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
+        ),
+      BookingsLoaded(:final bookings) => _UpcomingTabView(
+          bookings: _filterUpcoming(bookings),
+          rawBookings: bookings,
+          activeFilter: _upcomingFilter,
+          onFilterChanged: (f) => setState(() => _upcomingFilter = f),
+        ),
+    };
+  }
+
+  Widget _buildPendingTab(BookingsState state) {
+    return switch (state) {
+      BookingsLoading() || BookingsCancelling() =>
+        const Center(child: CircularProgressIndicator()),
+      BookingsError(:final message) => _ErrorView(
+          message: message,
+          onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
+        ),
+      BookingsLoaded(:final bookings) => _PendingTabView(
+          pending: bookings
+              .where((b) => b.status == 'pending')
+              .map((b) => b.toMockBooking())
+              .toList(),
+        ),
+    };
   }
 }
 
@@ -188,7 +238,8 @@ class _MyBookingsHeader extends StatelessWidget {
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               padding: EdgeInsets.zero,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              labelPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               indicatorColor: AppColors.primary,
               indicatorWeight: 2,
               indicatorSize: TabBarIndicatorSize.tab,
@@ -208,12 +259,18 @@ class _MyBookingsHeader extends StatelessWidget {
               tabs: [
                 Tab(
                   height: 40,
-                  child: Text('Sắp tới · $upcomingCount'),
+                  child: Text(
+                    upcomingCount > 0
+                        ? 'Sắp tới · $upcomingCount'
+                        : 'Sắp tới',
+                  ),
                 ),
                 Tab(
                   height: 40,
                   child: Text(
-                    pendingCount > 0 ? 'Đang chờ · $pendingCount' : 'Đang chờ',
+                    pendingCount > 0
+                        ? 'Đang chờ · $pendingCount'
+                        : 'Đang chờ',
                   ),
                 ),
                 const Tab(height: 40, child: Text('Lịch sử')),
@@ -265,8 +322,28 @@ class _NotifButton extends StatelessWidget {
 class _ProfileAvatar extends StatelessWidget {
   const _ProfileAvatar();
 
+  String _initialsFrom(User? user) {
+    if (user == null) return '?';
+    final metaName = user.userMetadata?['full_name'] as String?;
+    final source = (metaName?.trim().isNotEmpty ?? false)
+        ? metaName!.trim()
+        : (user.email?.trim() ?? '');
+    if (source.isEmpty) return '?';
+    final parts = source.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.length >= 2) {
+      return (parts.first[0] + parts.last[0]).toUpperCase();
+    }
+    return source.substring(0, source.length >= 2 ? 2 : 1).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    User? user;
+    try {
+      user = Supabase.instance.client.auth.currentSession?.user;
+    } catch (_) {
+      user = null;
+    }
     return Container(
       width: 38,
       height: 38,
@@ -286,10 +363,10 @@ class _ProfileAvatar extends StatelessWidget {
           ),
         ],
       ),
-      child: const Center(
+      child: Center(
         child: Text(
-          'TM',
-          style: TextStyle(
+          _initialsFrom(user),
+          style: const TextStyle(
             fontFamily: 'Sora',
             color: Colors.white,
             fontWeight: FontWeight.w800,
@@ -308,11 +385,13 @@ class _ProfileAvatar extends StatelessWidget {
 class _UpcomingTabView extends StatelessWidget {
   const _UpcomingTabView({
     required this.bookings,
+    required this.rawBookings,
     required this.activeFilter,
     required this.onFilterChanged,
   });
 
   final List<MockBooking> bookings;
+  final List<Booking> rawBookings;
   final String? activeFilter;
   final ValueChanged<String?> onFilterChanged;
 
@@ -328,19 +407,17 @@ class _UpcomingTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final groups = _groupByDate();
-    final all = mockUpcomingBookings;
+    final all = rawBookings.map((b) => b.toMockBooking()).toList();
     final oneOffCount = all.where((b) => b.type == BookingType.oneOff).length;
-    final recurringCount = all.where((b) => b.type == BookingType.recurring).length;
+    final recurringCount =
+        all.where((b) => b.type == BookingType.recurring).length;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         _FilterChipRow(
           chips: [
-            _ChipData(
-              label: 'Tất cả · ${all.length}',
-              value: null,
-            ),
+            _ChipData(label: 'Tất cả · ${all.length}', value: null),
             _ChipData(label: 'Một lần · $oneOffCount', value: 'one_off'),
             _ChipData(label: '🔁 Định kỳ · $recurringCount', value: 'recurring'),
             const _ChipData(label: 'Pickleball', value: 'pickleball'),
@@ -370,14 +447,6 @@ class _UpcomingTabView extends StatelessWidget {
             ],
             const SizedBox(height: 6),
           ],
-        if (mockJoinRequests.isNotEmpty) ...[
-          const _SectionHeader(label: 'YÊU CẦU CHƠI CÙNG'),
-          const SizedBox(height: 8),
-          for (final req in mockJoinRequests) ...[
-            _JoinRequestCard(request: req),
-            const SizedBox(height: 12),
-          ],
-        ],
       ],
     );
   }
@@ -407,15 +476,13 @@ String _dateSectionLabel(DateTime date) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _PendingTabView extends StatelessWidget {
-  const _PendingTabView();
+  const _PendingTabView({required this.pending});
+
+  final List<MockBooking> pending;
 
   @override
   Widget build(BuildContext context) {
-    final pending = mockUpcomingBookings
-        .where((b) => b.status == BookingStatus.pending)
-        .toList();
-
-    if (pending.isEmpty && mockJoinRequests.isEmpty) {
+    if (pending.isEmpty) {
       return const Center(
         child: Text(
           'Không có lịch đang chờ',
@@ -427,22 +494,11 @@ class _PendingTabView extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
-        if (pending.isNotEmpty) ...[
-          const _SectionHeader(label: 'ĐẶT SÂN CHỜ XÁC NHẬN'),
-          const SizedBox(height: 8),
-          for (final b in pending) ...[
-            _BookingCard(booking: b),
-            const SizedBox(height: 12),
-          ],
-          const SizedBox(height: 6),
-        ],
-        if (mockJoinRequests.isNotEmpty) ...[
-          const _SectionHeader(label: 'YÊU CẦU CHƠI CÙNG'),
-          const SizedBox(height: 8),
-          for (final req in mockJoinRequests) ...[
-            _JoinRequestCard(request: req),
-            const SizedBox(height: 12),
-          ],
+        const _SectionHeader(label: 'ĐẶT SÂN CHỜ XÁC NHẬN'),
+        const SizedBox(height: 8),
+        for (final b in pending) ...[
+          _BookingCard(booking: b),
+          const SizedBox(height: 12),
         ],
       ],
     );
@@ -500,6 +556,41 @@ class _HistoryTabView extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Error view (shared)
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: AppColors.neutral500),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Booking card
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -508,12 +599,39 @@ class _BookingCard extends StatelessWidget {
 
   final MockBooking booking;
 
+  Future<void> _confirmCancel(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Huỷ đặt sân này?'),
+        content: const Text('Hành động này không thể hoàn tác.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Không'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text(
+              'Xác nhận',
+              style: TextStyle(color: AppColors.danger),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      context.read<BookingsCubit>().cancelBooking(booking.id);
+    }
+  }
+
   VoidCallback _actionTap(BuildContext context) {
     return switch (booking.action) {
       'Đặt lại' when booking.courtId != null =>
         () => context.push('/court/${booking.courtId}'),
-      'Chi tiết' =>
-        () => context.push('/booking/confirmed-mock', extra: booking),
+      'Chi tiết' => () => context.push('/bookings/${booking.id}'),
+      'Huỷ' => () => _confirmCancel(context),
       _ => () {},
     };
   }
@@ -562,7 +680,8 @@ class _BookingCard extends StatelessWidget {
                                 children: [
                                   Wrap(
                                     spacing: 6,
-                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
                                     children: [
                                       Text(
                                         booking.courtName,
@@ -897,108 +1016,6 @@ class _ActionButton extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Join request card
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _JoinRequestCard extends StatelessWidget {
-  const _JoinRequestCard({required this.request});
-
-  final MockJoinRequest request;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neutral300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      request.courtName,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutral900,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      request.detail,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.neutral500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              _PendingStatusBadge(),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Bạn đã gửi yêu cầu tham gia · ${request.timeAgo}',
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppColors.neutral500,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PendingStatusBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-        color: AppColors.warningBg,
-        borderRadius: BorderRadius.circular(99),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: AppColors.warning,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'Chờ duyệt',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF92670B),
-            ),
-          ),
-        ],
       ),
     );
   }

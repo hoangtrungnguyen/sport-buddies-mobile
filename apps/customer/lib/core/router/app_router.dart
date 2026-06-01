@@ -25,12 +25,10 @@ import 'package:customer/features/booking/state/awaiting_confirmation_cubit.dart
 import 'package:customer/features/booking/awaiting_confirmation_screen.dart';
 import 'package:customer/features/booking/state/booking_cubit.dart';
 import 'package:customer/features/booking/state/payment_cubit.dart';
-import 'package:customer/features/booking/state/payment_state.dart';
 import 'package:customer/features/booking/payment_screen.dart';
 import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/booking_history_screen.dart';
-import 'package:customer/features/bookings/mock_booking.dart';
 import 'package:customer/features/bookings/my_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/schedule/court_schedule_overview_screen.dart';
@@ -290,34 +288,6 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/booking/recurring',
         builder: (context, state) => const RecurringBookingScreen(),
-      ),
-      // Mock-data confirmed detail (no Supabase call) — used from My Bookings.
-      GoRoute(
-        path: '/booking/confirmed-mock',
-        builder: (context, state) {
-          final booking = state.extra! as MockBooking;
-          // Build a synthetic PaymentLoaded from mock fields.
-          final now = booking.date;
-          final parts = booking.time.split(' – ');
-          DateTime parseTime(String hhmm) {
-            final tp = hhmm.trim().split(':');
-            return DateTime(now.year, now.month, now.day,
-                int.parse(tp[0]), int.parse(tp[1]));
-          }
-          final slotStart = parseTime(parts[0]);
-          final slotEnd = parseTime(parts[1]);
-          final priceNum = double.tryParse(
-                booking.price.replaceAll(RegExp(r'[^\d.]'), '')) ??
-            0.0;
-          final loaded = PaymentLoaded(
-            bookingId: booking.id,
-            courtName: booking.courtName,
-            slotStart: slotStart,
-            slotEnd: slotEnd,
-            totalPrice: priceNum * (booking.price.contains('k') ? 1000 : 1),
-          );
-          return PaymentLoadedScreen(state: loaded);
-        },
       ),
     ],
   );

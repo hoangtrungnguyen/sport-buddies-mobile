@@ -8,15 +8,18 @@
 //     "id": "...",
 //     "user_id": "...",
 //     "status": "confirmed",
+//     "total_price": 150000,
 //     "session_number": 3,
 //     "total_sessions": 10,
 //     "slots": {
 //       "id": "...",
-//       "start_time": "2026-06-15T10:00:00+07:00",
-//       "end_time":   "2026-06-15T11:00:00+07:00",
-//       "courts": { "id": "...", "name": "Sân A" }
+//       "start_at": "2026-06-15T10:00:00+07:00",
+//       "end_at":   "2026-06-15T11:00:00+07:00",
+//       "courts": { "id": "...", "name": "Sân A", "sport_types": ["pickleball"] }
 //     }
 //   }
+
+// ignore_for_file: invalid_annotation_target
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -28,6 +31,7 @@ abstract class Court with _$Court {
   const factory Court({
     required String id,
     required String name,
+    @JsonKey(name: 'sport_types') @Default(<String>[]) List<String> sportTypes,
   }) = _Court;
 
   factory Court.fromJson(Map<String, dynamic> json) => _$CourtFromJson(json);
@@ -35,11 +39,10 @@ abstract class Court with _$Court {
 
 @freezed
 abstract class Slot with _$Slot {
-  @JsonSerializable(fieldRename: FieldRename.snake)
   const factory Slot({
     required String id,
-    required DateTime startTime,
-    required DateTime endTime,
+    @JsonKey(name: 'start_at') required DateTime startTime,
+    @JsonKey(name: 'end_at') required DateTime endTime,
     @JsonKey(name: 'courts') required Court court,
   }) = _Slot;
 
@@ -57,6 +60,7 @@ abstract class Booking with _$Booking {
     @Default('one_off') String bookingType,
     int? sessionNumber,
     int? totalSessions,
+    double? totalPrice,
   }) = _Booking;
 
   factory Booking.fromJson(Map<String, dynamic> json) => _$BookingFromJson(json);

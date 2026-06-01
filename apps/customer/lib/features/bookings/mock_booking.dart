@@ -2,6 +2,9 @@
 // Replace with real BLoC/Supabase calls when backend is ready.
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import 'booking_model.dart';
 
 enum BookingStatus { confirmed, pending, completed, cancelled }
 
@@ -77,6 +80,69 @@ String bookingStatusLabel(BookingStatus status) => switch (status) {
       BookingStatus.completed => 'Đã hoàn thành',
       BookingStatus.cancelled => 'Đã huỷ',
     };
+
+// ---------------------------------------------------------------------------
+// Booking → MockBooking display mapper
+// ---------------------------------------------------------------------------
+
+SportType _parseSport(String raw) => switch (raw.toLowerCase().trim()) {
+      'football' || 'soccer' || 'bóng đá' => SportType.football,
+      'badminton' || 'cầu lông' => SportType.badminton,
+      'tennis' => SportType.tennis,
+      _ => SportType.pickleball,
+    };
+
+BookingStatus _parseStatus(String raw) => switch (raw) {
+      'pending' => BookingStatus.pending,
+      'confirmed' => BookingStatus.confirmed,
+      'completed' => BookingStatus.completed,
+      'cancelled' => BookingStatus.cancelled,
+      _ => BookingStatus.pending,
+    };
+
+final _bookingDateFmt = DateFormat('dd/MM');
+final _bookingTimeFmt = DateFormat('HH:mm');
+final _bookingPriceFmt =
+    NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+
+extension BookingDisplay on Booking {
+  MockBooking toMockBooking() {
+    final start = slot.startTime.toLocal();
+    final end = slot.endTime.toLocal();
+    final sport = _parseSport(
+      slot.court.sportTypes.isNotEmpty ? slot.court.sportTypes.first : '',
+    );
+    final type = bookingType == 'recurring'
+        ? BookingType.recurring
+        : BookingType.oneOff;
+    final mappedStatus = _parseStatus(status);
+    final priceLabel = totalPrice != null && totalPrice! > 0
+        ? '${_bookingPriceFmt.format(totalPrice).trim()}đ'
+        : '—';
+    final action = switch (mappedStatus) {
+      BookingStatus.pending => 'Huỷ',
+      BookingStatus.confirmed => 'Chi tiết',
+      BookingStatus.completed || BookingStatus.cancelled => 'Đặt lại',
+    };
+    final danger = mappedStatus == BookingStatus.pending;
+
+    return MockBooking(
+      id: id,
+      courtId: slot.court.id,
+      courtName: slot.court.name,
+      sport: sport,
+      detail: _bookingDateFmt.format(start),
+      time:
+          '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
+      price: priceLabel,
+      status: mappedStatus,
+      type: type,
+      date: start,
+      action: action,
+      actionDanger: danger,
+    );
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Mock data

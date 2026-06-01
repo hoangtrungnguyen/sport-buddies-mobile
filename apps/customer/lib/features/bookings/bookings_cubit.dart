@@ -3,12 +3,16 @@
 // Fetches upcoming bookings for the current authenticated user from Supabase
 // and allows cancelling a pending booking.
 //
+// "Upcoming" = bookings whose slot start_at is in the future AND whose status
+// is not completed/cancelled (i.e. pending or confirmed).
+//
 // Load query:
 //   supabase.from('bookings')
-//     .select('*, slots(*, courts(*))')
+//     .select('*, slots!inner(*, courts(*))')
 //     .eq('user_id', userId)
-//     .gte('slots.start_time', now())
-//     .order('slots.start_time')
+//     .inFilter('status', ['pending', 'confirmed'])
+//     .gte('slots.start_at', now())
+//     .order('slots.start_at')
 //
 // Cancel query (only for status == 'pending'):
 //   supabase.from('bookings')
@@ -55,14 +59,15 @@ class BookingsCubit extends Cubit<BookingsState> {
         return;
       }
 
-      final now = DateTime.now().toIso8601String();
+      final now = DateTime.now().toUtc().toIso8601String();
 
       final response = await client
           .from('bookings')
-          .select('*, slots(*, courts(*))')
+          .select('*, slots!inner(*, courts(*))')
           .eq('user_id', userId)
-          .gte('slots.start_time', now)
-          .order('slots.start_time', referencedTable: 'slots') as List<dynamic>;
+          .inFilter('status', ['pending', 'confirmed'])
+          .gte('slots.start_at', now)
+          .order('start_at', referencedTable: 'slots') as List<dynamic>;
 
       final bookings = response
           .cast<Map<String, dynamic>>()

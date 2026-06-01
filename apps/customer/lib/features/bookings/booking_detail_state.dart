@@ -34,15 +34,15 @@ class JoinRequest {
   final String createdAt;
 
   factory JoinRequest.fromJson(Map<String, dynamic> json) {
-    final profile = json['profiles'] as Map<String, dynamic>?;
+    final customer = (json['customers'] ?? json['profiles']) as Map<String, dynamic>?;
     return JoinRequest(
       id: json['id'] as String,
       slotId: json['slot_id'] as String,
       userId: json['user_id'] as String,
       status: json['status'] as String,
-      createdAt: json['created_at'] as String,
-      userName: profile?['full_name'] as String? ?? '',
-      avatarUrl: profile?['avatar_url'] as String?,
+      createdAt: (json['requested_at'] ?? json['created_at']) as String,
+      userName: customer?['full_name'] as String? ?? '',
+      avatarUrl: customer?['avatar_url'] as String?,
     );
   }
 

@@ -11,9 +11,9 @@
 //
 //   Join requests:
 //     supabase.from('slot_join_requests')
-//       .select('*, profiles(*)')
+//       .select('*, customers(*)')
 //       .eq('slot_id', slotId)
-//       .order('created_at')
+//       .order('requested_at')
 //
 // States emitted:
 //   BookingDetailLoading  — on initial load
@@ -91,9 +91,9 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
 
       final response = await client
           .from('slot_join_requests')
-          .select('*, profiles(*)')
+          .select('*, customers(*)')
           .eq('slot_id', slotId)
-          .order('created_at') as List<dynamic>;
+          .order('requested_at') as List<dynamic>;
 
       final requests = response
           .cast<Map<String, dynamic>>()

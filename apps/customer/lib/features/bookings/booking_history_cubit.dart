@@ -5,10 +5,10 @@
 //
 // Query:
 //   supabase.from('bookings')
-//     .select('*, slots(*), courts(*)')
+//     .select('*, slots!inner(*, courts(*))')
 //     .eq('user_id', userId)
-//     .in_('status', ['completed', 'cancelled'])
-//     .order('start_time', ascending: false)
+//     .inFilter('status', ['completed', 'cancelled'])
+//     .order('start_at', ascending: false, referencedTable: 'slots')
 //
 // States emitted:
 //   BookingsLoading  — on loadHistory() call start
@@ -51,10 +51,11 @@ class BookingHistoryCubit extends Cubit<BookingsState> {
 
       final response = await client
           .from('bookings')
-          .select('*, slots(*), courts(*)')
+          .select('*, slots!inner(*, courts(*))')
           .eq('user_id', userId)
           .inFilter('status', ['completed', 'cancelled'])
-          .order('start_time', ascending: false) as List<dynamic>;
+          .order('start_at', ascending: false, referencedTable: 'slots')
+          as List<dynamic>;
 
       final bookings = response
           .cast<Map<String, dynamic>>()

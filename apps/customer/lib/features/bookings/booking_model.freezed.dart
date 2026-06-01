@@ -16,6 +16,8 @@ T _$identity<T>(T value) => value;
 mixin _$Court {
   String get id;
   String get name;
+  @JsonKey(name: 'sport_types')
+  List<String> get sportTypes;
 
   /// Create a copy of Court
   /// with the given fields replaced by the non-null parameter values.
@@ -33,16 +35,19 @@ mixin _$Court {
         (other.runtimeType == runtimeType &&
             other is Court &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            const DeepCollectionEquality()
+                .equals(other.sportTypes, sportTypes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name);
+  int get hashCode => Object.hash(
+      runtimeType, id, name, const DeepCollectionEquality().hash(sportTypes));
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name)';
+    return 'Court(id: $id, name: $name, sportTypes: $sportTypes)';
   }
 }
 
@@ -51,7 +56,10 @@ abstract mixin class $CourtCopyWith<$Res> {
   factory $CourtCopyWith(Court value, $Res Function(Court) _then) =
       _$CourtCopyWithImpl;
   @useResult
-  $Res call({String id, String name});
+  $Res call(
+      {String id,
+      String name,
+      @JsonKey(name: 'sport_types') List<String> sportTypes});
 }
 
 /// @nodoc
@@ -68,6 +76,7 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? sportTypes = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -78,6 +87,10 @@ class _$CourtCopyWithImpl<$Res> implements $CourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      sportTypes: null == sportTypes
+          ? _self.sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -175,13 +188,15 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, String name)? $default, {
+    TResult Function(String id, String name,
+            @JsonKey(name: 'sport_types') List<String> sportTypes)?
+        $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _Court() when $default != null:
-        return $default(_that.id, _that.name);
+        return $default(_that.id, _that.name, _that.sportTypes);
       case _:
         return orElse();
     }
@@ -202,12 +217,14 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, String name) $default,
+    TResult Function(String id, String name,
+            @JsonKey(name: 'sport_types') List<String> sportTypes)
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Court():
-        return $default(_that.id, _that.name);
+        return $default(_that.id, _that.name, _that.sportTypes);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -227,12 +244,14 @@ extension CourtPatterns on Court {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, String name)? $default,
+    TResult? Function(String id, String name,
+            @JsonKey(name: 'sport_types') List<String> sportTypes)?
+        $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Court() when $default != null:
-        return $default(_that.id, _that.name);
+        return $default(_that.id, _that.name, _that.sportTypes);
       case _:
         return null;
     }
@@ -242,13 +261,26 @@ extension CourtPatterns on Court {
 /// @nodoc
 @JsonSerializable()
 class _Court implements Court {
-  const _Court({required this.id, required this.name});
+  const _Court(
+      {required this.id,
+      required this.name,
+      @JsonKey(name: 'sport_types')
+      final List<String> sportTypes = const <String>[]})
+      : _sportTypes = sportTypes;
   factory _Court.fromJson(Map<String, dynamic> json) => _$CourtFromJson(json);
 
   @override
   final String id;
   @override
   final String name;
+  final List<String> _sportTypes;
+  @override
+  @JsonKey(name: 'sport_types')
+  List<String> get sportTypes {
+    if (_sportTypes is EqualUnmodifiableListView) return _sportTypes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_sportTypes);
+  }
 
   /// Create a copy of Court
   /// with the given fields replaced by the non-null parameter values.
@@ -271,16 +303,19 @@ class _Court implements Court {
         (other.runtimeType == runtimeType &&
             other is _Court &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name));
+            (identical(other.name, name) || other.name == name) &&
+            const DeepCollectionEquality()
+                .equals(other._sportTypes, _sportTypes));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name);
+  int get hashCode => Object.hash(
+      runtimeType, id, name, const DeepCollectionEquality().hash(_sportTypes));
 
   @override
   String toString() {
-    return 'Court(id: $id, name: $name)';
+    return 'Court(id: $id, name: $name, sportTypes: $sportTypes)';
   }
 }
 
@@ -290,7 +325,10 @@ abstract mixin class _$CourtCopyWith<$Res> implements $CourtCopyWith<$Res> {
       __$CourtCopyWithImpl;
   @override
   @useResult
-  $Res call({String id, String name});
+  $Res call(
+      {String id,
+      String name,
+      @JsonKey(name: 'sport_types') List<String> sportTypes});
 }
 
 /// @nodoc
@@ -307,6 +345,7 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
+    Object? sportTypes = null,
   }) {
     return _then(_Court(
       id: null == id
@@ -317,6 +356,10 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
+      sportTypes: null == sportTypes
+          ? _self._sportTypes
+          : sportTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
     ));
   }
 }
@@ -324,7 +367,9 @@ class __$CourtCopyWithImpl<$Res> implements _$CourtCopyWith<$Res> {
 /// @nodoc
 mixin _$Slot {
   String get id;
+  @JsonKey(name: 'start_at')
   DateTime get startTime;
+  @JsonKey(name: 'end_at')
   DateTime get endTime;
   @JsonKey(name: 'courts')
   Court get court;
@@ -368,8 +413,8 @@ abstract mixin class $SlotCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      DateTime startTime,
-      DateTime endTime,
+      @JsonKey(name: 'start_at') DateTime startTime,
+      @JsonKey(name: 'end_at') DateTime endTime,
       @JsonKey(name: 'courts') Court court});
 
   $CourtCopyWith<$Res> get court;
@@ -516,7 +561,10 @@ extension SlotPatterns on Slot {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, DateTime startTime, DateTime endTime,
+    TResult Function(
+            String id,
+            @JsonKey(name: 'start_at') DateTime startTime,
+            @JsonKey(name: 'end_at') DateTime endTime,
             @JsonKey(name: 'courts') Court court)?
         $default, {
     required TResult orElse(),
@@ -545,7 +593,10 @@ extension SlotPatterns on Slot {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, DateTime startTime, DateTime endTime,
+    TResult Function(
+            String id,
+            @JsonKey(name: 'start_at') DateTime startTime,
+            @JsonKey(name: 'end_at') DateTime endTime,
             @JsonKey(name: 'courts') Court court)
         $default,
   ) {
@@ -572,7 +623,10 @@ extension SlotPatterns on Slot {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, DateTime startTime, DateTime endTime,
+    TResult? Function(
+            String id,
+            @JsonKey(name: 'start_at') DateTime startTime,
+            @JsonKey(name: 'end_at') DateTime endTime,
             @JsonKey(name: 'courts') Court court)?
         $default,
   ) {
@@ -587,21 +641,22 @@ extension SlotPatterns on Slot {
 }
 
 /// @nodoc
-
-@JsonSerializable(fieldRename: FieldRename.snake)
+@JsonSerializable()
 class _Slot implements Slot {
   const _Slot(
       {required this.id,
-      required this.startTime,
-      required this.endTime,
+      @JsonKey(name: 'start_at') required this.startTime,
+      @JsonKey(name: 'end_at') required this.endTime,
       @JsonKey(name: 'courts') required this.court});
   factory _Slot.fromJson(Map<String, dynamic> json) => _$SlotFromJson(json);
 
   @override
   final String id;
   @override
+  @JsonKey(name: 'start_at')
   final DateTime startTime;
   @override
+  @JsonKey(name: 'end_at')
   final DateTime endTime;
   @override
   @JsonKey(name: 'courts')
@@ -652,8 +707,8 @@ abstract mixin class _$SlotCopyWith<$Res> implements $SlotCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      DateTime startTime,
-      DateTime endTime,
+      @JsonKey(name: 'start_at') DateTime startTime,
+      @JsonKey(name: 'end_at') DateTime endTime,
       @JsonKey(name: 'courts') Court court});
 
   @override
@@ -718,6 +773,7 @@ mixin _$Booking {
   String get bookingType;
   int? get sessionNumber;
   int? get totalSessions;
+  double? get totalPrice;
 
   /// Create a copy of Booking
   /// with the given fields replaced by the non-null parameter values.
@@ -743,17 +799,19 @@ mixin _$Booking {
             (identical(other.sessionNumber, sessionNumber) ||
                 other.sessionNumber == sessionNumber) &&
             (identical(other.totalSessions, totalSessions) ||
-                other.totalSessions == totalSessions));
+                other.totalSessions == totalSessions) &&
+            (identical(other.totalPrice, totalPrice) ||
+                other.totalPrice == totalPrice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, status, slot,
-      bookingType, sessionNumber, totalSessions);
+      bookingType, sessionNumber, totalSessions, totalPrice);
 
   @override
   String toString() {
-    return 'Booking(id: $id, userId: $userId, status: $status, slot: $slot, bookingType: $bookingType, sessionNumber: $sessionNumber, totalSessions: $totalSessions)';
+    return 'Booking(id: $id, userId: $userId, status: $status, slot: $slot, bookingType: $bookingType, sessionNumber: $sessionNumber, totalSessions: $totalSessions, totalPrice: $totalPrice)';
   }
 }
 
@@ -769,7 +827,8 @@ abstract mixin class $BookingCopyWith<$Res> {
       @JsonKey(name: 'slots') Slot slot,
       String bookingType,
       int? sessionNumber,
-      int? totalSessions});
+      int? totalSessions,
+      double? totalPrice});
 
   $SlotCopyWith<$Res> get slot;
 }
@@ -793,6 +852,7 @@ class _$BookingCopyWithImpl<$Res> implements $BookingCopyWith<$Res> {
     Object? bookingType = null,
     Object? sessionNumber = freezed,
     Object? totalSessions = freezed,
+    Object? totalPrice = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -823,6 +883,10 @@ class _$BookingCopyWithImpl<$Res> implements $BookingCopyWith<$Res> {
           ? _self.totalSessions
           : totalSessions // ignore: cast_nullable_to_non_nullable
               as int?,
+      totalPrice: freezed == totalPrice
+          ? _self.totalPrice
+          : totalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
     ));
   }
 
@@ -937,15 +1001,23 @@ extension BookingPatterns on Booking {
             @JsonKey(name: 'slots') Slot slot,
             String bookingType,
             int? sessionNumber,
-            int? totalSessions)?
+            int? totalSessions,
+            double? totalPrice)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _Booking() when $default != null:
-        return $default(_that.id, _that.userId, _that.status, _that.slot,
-            _that.bookingType, _that.sessionNumber, _that.totalSessions);
+        return $default(
+            _that.id,
+            _that.userId,
+            _that.status,
+            _that.slot,
+            _that.bookingType,
+            _that.sessionNumber,
+            _that.totalSessions,
+            _that.totalPrice);
       case _:
         return orElse();
     }
@@ -973,14 +1045,22 @@ extension BookingPatterns on Booking {
             @JsonKey(name: 'slots') Slot slot,
             String bookingType,
             int? sessionNumber,
-            int? totalSessions)
+            int? totalSessions,
+            double? totalPrice)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Booking():
-        return $default(_that.id, _that.userId, _that.status, _that.slot,
-            _that.bookingType, _that.sessionNumber, _that.totalSessions);
+        return $default(
+            _that.id,
+            _that.userId,
+            _that.status,
+            _that.slot,
+            _that.bookingType,
+            _that.sessionNumber,
+            _that.totalSessions,
+            _that.totalPrice);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -1007,14 +1087,22 @@ extension BookingPatterns on Booking {
             @JsonKey(name: 'slots') Slot slot,
             String bookingType,
             int? sessionNumber,
-            int? totalSessions)?
+            int? totalSessions,
+            double? totalPrice)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Booking() when $default != null:
-        return $default(_that.id, _that.userId, _that.status, _that.slot,
-            _that.bookingType, _that.sessionNumber, _that.totalSessions);
+        return $default(
+            _that.id,
+            _that.userId,
+            _that.status,
+            _that.slot,
+            _that.bookingType,
+            _that.sessionNumber,
+            _that.totalSessions,
+            _that.totalPrice);
       case _:
         return null;
     }
@@ -1032,7 +1120,8 @@ class _Booking implements Booking {
       @JsonKey(name: 'slots') required this.slot,
       this.bookingType = 'one_off',
       this.sessionNumber,
-      this.totalSessions});
+      this.totalSessions,
+      this.totalPrice});
   factory _Booking.fromJson(Map<String, dynamic> json) =>
       _$BookingFromJson(json);
 
@@ -1052,6 +1141,8 @@ class _Booking implements Booking {
   final int? sessionNumber;
   @override
   final int? totalSessions;
+  @override
+  final double? totalPrice;
 
   /// Create a copy of Booking
   /// with the given fields replaced by the non-null parameter values.
@@ -1082,17 +1173,19 @@ class _Booking implements Booking {
             (identical(other.sessionNumber, sessionNumber) ||
                 other.sessionNumber == sessionNumber) &&
             (identical(other.totalSessions, totalSessions) ||
-                other.totalSessions == totalSessions));
+                other.totalSessions == totalSessions) &&
+            (identical(other.totalPrice, totalPrice) ||
+                other.totalPrice == totalPrice));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, userId, status, slot,
-      bookingType, sessionNumber, totalSessions);
+      bookingType, sessionNumber, totalSessions, totalPrice);
 
   @override
   String toString() {
-    return 'Booking(id: $id, userId: $userId, status: $status, slot: $slot, bookingType: $bookingType, sessionNumber: $sessionNumber, totalSessions: $totalSessions)';
+    return 'Booking(id: $id, userId: $userId, status: $status, slot: $slot, bookingType: $bookingType, sessionNumber: $sessionNumber, totalSessions: $totalSessions, totalPrice: $totalPrice)';
   }
 }
 
@@ -1109,7 +1202,8 @@ abstract mixin class _$BookingCopyWith<$Res> implements $BookingCopyWith<$Res> {
       @JsonKey(name: 'slots') Slot slot,
       String bookingType,
       int? sessionNumber,
-      int? totalSessions});
+      int? totalSessions,
+      double? totalPrice});
 
   @override
   $SlotCopyWith<$Res> get slot;
@@ -1134,6 +1228,7 @@ class __$BookingCopyWithImpl<$Res> implements _$BookingCopyWith<$Res> {
     Object? bookingType = null,
     Object? sessionNumber = freezed,
     Object? totalSessions = freezed,
+    Object? totalPrice = freezed,
   }) {
     return _then(_Booking(
       id: null == id
@@ -1164,6 +1259,10 @@ class __$BookingCopyWithImpl<$Res> implements _$BookingCopyWith<$Res> {
           ? _self.totalSessions
           : totalSessions // ignore: cast_nullable_to_non_nullable
               as int?,
+      totalPrice: freezed == totalPrice
+          ? _self.totalPrice
+          : totalPrice // ignore: cast_nullable_to_non_nullable
+              as double?,
     ));
   }
 
