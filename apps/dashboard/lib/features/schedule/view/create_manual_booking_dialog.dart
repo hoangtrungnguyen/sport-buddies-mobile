@@ -465,7 +465,7 @@ class _CreateManualBookingDialogState
   }
 
   Widget _sportField(OwnerCourt court) {
-    final sport = court.primarySport.isNotEmpty ? court.primarySport : '—';
+    const sport = '—';
     return Container(
       height: 48,
       alignment: Alignment.centerLeft,

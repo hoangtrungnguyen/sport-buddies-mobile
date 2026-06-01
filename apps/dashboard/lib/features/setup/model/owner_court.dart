@@ -32,17 +32,9 @@ abstract class OwnerCourt with _$OwnerCourt {
     required String id,
     required String name,
 
-    /// `courts.sport_types  text[]`
-    required List<String> sportTypes,
-
-    required int capacity,
-
     /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
     required int openHour,
     required int closeHour,
-
-    /// `courts.price_per_hour  numeric`
-    required int pricePerHour,
 
     /// `courts.status != 'inactive'`
     required bool isActive,
@@ -65,10 +57,6 @@ abstract class OwnerCourt with _$OwnerCourt {
   }) = _OwnerCourt;
 
   factory OwnerCourt.fromJson(Map<String, dynamic> json) {
-    final sports = (json['sport_types'] as List?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
     final amenities = (json['amenities'] as List?)
             ?.map((e) => e as String)
             .toList() ??
@@ -77,11 +65,8 @@ abstract class OwnerCourt with _$OwnerCourt {
     return OwnerCourt(
       id: json['id'] as String,
       name: json['name'] as String,
-      sportTypes: sports,
-      capacity: (json['capacity'] as num?)?.toInt() ?? 2,
       openHour: (hours?['open'] as num?)?.toInt() ?? 6,
       closeHour: (hours?['close'] as num?)?.toInt() ?? 22,
-      pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
       isActive: (json['status'] as String?) != 'inactive',
       address: json['address'] as String?,
       description: json['description'] as String?,
@@ -91,6 +76,4 @@ abstract class OwnerCourt with _$OwnerCourt {
       autoApproveSingle: (json['auto_approve_single'] as bool?) ?? false,
     );
   }
-
-  String get primarySport => sportTypes.isNotEmpty ? sportTypes.first : '';
 }

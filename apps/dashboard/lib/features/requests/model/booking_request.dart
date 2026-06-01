@@ -83,6 +83,9 @@ abstract class BookingRequest with _$BookingRequest {
     /// Whether this booking was auto-approved by the system (OWNER-45).
     /// Shown as a "Tự động" chip on confirmed cards.
     @Default(false) bool isAutoApproved,
+
+    /// Sport type from the venue (OWNER-213). Empty string when unavailable.
+    @Default('') String sportType,
   }) = _BookingRequest;
 
   bool get isCancelled => status == BookingStatus.cancelled;
@@ -131,16 +134,19 @@ abstract class BookingRequest with _$BookingRequest {
   /// scopes `bookings` to `courts.owner_id = auth.uid()`.
   factory BookingRequest.fromRow(Map<String, dynamic> row) {
     final slot = _asMap(row['slots']);
-    final court = _asMap(slot['courts']);
+    // After backend migration: slots join venues, venues join courts.
+    // Fallback: direct courts join for backward compat during transition.
+    final venue = _asMap(slot['venues']);
+    final court = venue.isNotEmpty ? _asMap(venue['courts']) : _asMap(slot['courts']);
 
     final start = _parseDate(slot['start_at']) ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     final end = _parseDate(slot['end_at']) ?? start;
 
-    final pricePerHour = _asInt(court['price_per_hour']);
+    // Revenue: explicit total wins; fallback to venue price × duration.
+    final pricePerHour =
+        _asInt(venue['price_per_hour']) ?? _asInt(court['price_per_hour']);
     final durationHours = end.difference(start).inMinutes / 60.0;
-    // A positive explicit total is authoritative; a 0/absent total is treated
-    // as "unset" and falls back to court price × duration.
     final explicitTotal =
         _asInt(row['total_price'] ?? row['price'] ?? row['amount']);
     final revenue = (explicitTotal != null && explicitTotal > 0)
@@ -161,6 +167,7 @@ abstract class BookingRequest with _$BookingRequest {
       status: bookingStatusFromRaw(row['status'] as String?),
       revenue: revenue,
       isAutoApproved: (row['is_auto_approved'] as bool?) ?? false,
+      sportType: (venue['sport_type'] as String?) ?? '',
     );
   }
 

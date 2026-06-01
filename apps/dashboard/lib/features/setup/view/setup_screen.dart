@@ -1,26 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../bloc/court_bloc.dart';
 import '../bloc/court_event.dart';
 import '../bloc/court_state.dart';
 import '../model/owner_court.dart';
-import '../repository/owner_court_repository.dart';
-import 'court_form_dialog.dart';
 
-const _kSportColors = <String, Color>{
-  'Bóng đá 5v5': Color(0xFF16A34A),
-  'Bóng đá 7v7': Color(0xFF15803D),
-  'Bóng đá 11v11': Color(0xFF14532D),
-  'Pickleball': Color(0xFFF97316),
-  'Tennis': Color(0xFFEC4899),
-  'Cầu lông': Color(0xFFA855F7),
-  'Bóng rổ': Color(0xFFEF4444),
-  'Đa năng': Color(0xFF0EA5E9),
-};
 
 String _fmtHour(int h) => '${h.toString().padLeft(2, '0')}:00';
 
@@ -109,14 +97,14 @@ class _CourtList extends StatelessWidget {
                   textStyle: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w600, fontSize: 14),
                 ),
-                onPressed: () => _openForm(context, null),
+                onPressed: () => context.push('/courts/new'),
               ),
             ],
           ),
           const SizedBox(height: 24),
 
           if (courts.isEmpty)
-            _EmptyState(onAdd: () => _openForm(context, null))
+            _EmptyState(onAdd: () => context.push('/courts/new'))
           else
             Wrap(
               spacing: 16,
@@ -126,7 +114,7 @@ class _CourtList extends StatelessWidget {
                         width: 360,
                         child: _CourtCard(
                           court: c,
-                          onEdit: () => _openForm(context, c),
+                          onEdit: () => context.push('/courts/${c.id}/edit', extra: c),
                           onToggleActive: () => c.isActive
                               ? _confirmDeactivate(context, c)
                               : context.read<CourtBloc>().add(
@@ -138,19 +126,6 @@ class _CourtList extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _openForm(BuildContext context, OwnerCourt? court) async {
-    final bloc = context.read<CourtBloc>();
-    final repo = context.read<OwnerCourtRepository>();
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => CourtFormDialog(repository: repo, court: court),
-    );
-    if (result == true) {
-      bloc.add(const CourtEvent.loadRequested());
-    }
   }
 
   Future<void> _confirmDeactivate(
@@ -203,12 +178,8 @@ class _CourtCard extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onToggleActive;
 
-  Color get _color =>
-      _kSportColors[court.primarySport] ?? AppColors.primary;
-
   @override
   Widget build(BuildContext context) {
-    final vnd = NumberFormat('#,###', 'vi_VN');
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -228,7 +199,7 @@ class _CourtCard extends StatelessWidget {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: court.isActive ? _color : AppColors.neutral300,
+                    color: court.isActive ? AppColors.primary : AppColors.neutral300,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -248,13 +219,15 @@ class _CourtCard extends StatelessWidget {
                           letterSpacing: -0.2,
                         ),
                       ),
-                      Text(
-                        court.primarySport,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          color: AppColors.neutral500,
+                      if (court.address != null && court.address!.isNotEmpty)
+                        Text(
+                          court.address!,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            color: AppColors.neutral500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -290,14 +263,6 @@ class _CourtCard extends StatelessWidget {
                   icon: Icons.access_time_rounded,
                   label:
                       '${_fmtHour(court.openHour)} – ${_fmtHour(court.closeHour)}',
-                ),
-                _Chip(
-                  icon: Icons.people_outline_rounded,
-                  label: '${court.capacity} người',
-                ),
-                _Chip(
-                  icon: Icons.payments_outlined,
-                  label: '${vnd.format(court.pricePerHour)}đ/giờ',
                 ),
               ],
             ),

@@ -6,7 +6,7 @@ class OwnerCourtRepository {
   final SupabaseClient _client;
 
   static const _cols =
-      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, description, amenities, lat, lng, status, auto_approve_single';
+      'id, name, operating_hours, address, description, amenities, lat, lng, status, auto_approve_single';
 
   Future<List<OwnerCourt>> getCourts() async {
     final uid = _client.auth.currentUser?.id;
@@ -24,11 +24,8 @@ class OwnerCourtRepository {
 
   Future<OwnerCourt> createCourt({
     required String name,
-    required List<String> sportTypes,
-    required int capacity,
     required int openHour,
     required int closeHour,
-    required int pricePerHour,
     String? address,
     String? description,
     List<String> amenities = const [],
@@ -42,9 +39,6 @@ class OwnerCourtRepository {
         .insert({
           'name': name,
           'slug': slug,
-          'sport_types': sportTypes,
-          'capacity': capacity,
-          'price_per_hour': pricePerHour,
           'operating_hours': {'open': openHour, 'close': closeHour},
           'address': address,
           'description': description,
@@ -62,11 +56,8 @@ class OwnerCourtRepository {
   Future<OwnerCourt> updateCourt(
     String id, {
     required String name,
-    required List<String> sportTypes,
-    required int capacity,
     required int openHour,
     required int closeHour,
-    required int pricePerHour,
     String? address,
     String? description,
     List<String> amenities = const [],
@@ -77,9 +68,6 @@ class OwnerCourtRepository {
         .from('courts')
         .update({
           'name': name,
-          'sport_types': sportTypes,
-          'capacity': capacity,
-          'price_per_hour': pricePerHour,
           'operating_hours': {'open': openHour, 'close': closeHour},
           'address': address,
           'description': description,

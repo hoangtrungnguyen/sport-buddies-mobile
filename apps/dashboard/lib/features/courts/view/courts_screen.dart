@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../../setup/bloc/court_bloc.dart';
@@ -10,16 +9,7 @@ import '../../setup/bloc/court_event.dart';
 import '../../setup/bloc/court_state.dart';
 import '../../setup/model/owner_court.dart';
 
-const _kSportColors = <String, Color>{
-  'Bóng đá 5v5': Color(0xFF16A34A),
-  'Bóng đá 7v7': Color(0xFF15803D),
-  'Bóng đá 11v11': Color(0xFF14532D),
-  'Pickleball': Color(0xFFF97316),
-  'Tennis': Color(0xFFEC4899),
-  'Cầu lông': Color(0xFFA855F7),
-  'Bóng rổ': Color(0xFFEF4444),
-  'Đa năng': Color(0xFF0EA5E9),
-};
+String _fmtHour(int h) => h.toString().padLeft(2, '0');
 
 class CourtsScreen extends StatelessWidget {
   const CourtsScreen({super.key});
@@ -134,8 +124,7 @@ class _CourtCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vnd = NumberFormat('#,###', 'vi_VN');
-    final color = _kSportColors[court.primarySport] ?? AppColors.primary;
+    final color = AppColors.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -198,7 +187,7 @@ class _CourtCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${court.primarySport} · ${vnd.format(court.pricePerHour)}đ/giờ · ${court.capacity} người',
+                  '${_fmtHour(court.openHour)}:00 – ${_fmtHour(court.closeHour)}:00',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     color: AppColors.neutral500,

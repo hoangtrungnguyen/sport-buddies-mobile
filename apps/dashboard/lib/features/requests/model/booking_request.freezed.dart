@@ -49,6 +49,9 @@ mixin _$BookingRequest {
   /// Shown as a "Tự động" chip on confirmed cards.
   bool get isAutoApproved;
 
+  /// Sport type from the venue (OWNER-213). Empty string when unavailable.
+  String get sportType;
+
   /// Create a copy of BookingRequest
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -76,7 +79,9 @@ mixin _$BookingRequest {
             (identical(other.customerPhone, customerPhone) ||
                 other.customerPhone == customerPhone) &&
             (identical(other.isAutoApproved, isAutoApproved) ||
-                other.isAutoApproved == isAutoApproved));
+                other.isAutoApproved == isAutoApproved) &&
+            (identical(other.sportType, sportType) ||
+                other.sportType == sportType));
   }
 
   @override
@@ -92,11 +97,12 @@ mixin _$BookingRequest {
       revenue,
       slotId,
       customerPhone,
-      isAutoApproved);
+      isAutoApproved,
+      sportType);
 
   @override
   String toString() {
-    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved)';
+    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved, sportType: $sportType)';
   }
 }
 
@@ -117,7 +123,8 @@ abstract mixin class $BookingRequestCopyWith<$Res> {
       int revenue,
       String? slotId,
       String? customerPhone,
-      bool isAutoApproved});
+      bool isAutoApproved,
+      String sportType});
 }
 
 /// @nodoc
@@ -144,6 +151,7 @@ class _$BookingRequestCopyWithImpl<$Res>
     Object? slotId = freezed,
     Object? customerPhone = freezed,
     Object? isAutoApproved = null,
+    Object? sportType = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -190,6 +198,10 @@ class _$BookingRequestCopyWithImpl<$Res>
           ? _self.isAutoApproved
           : isAutoApproved // ignore: cast_nullable_to_non_nullable
               as bool,
+      sportType: null == sportType
+          ? _self.sportType
+          : sportType // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -298,7 +310,8 @@ extension BookingRequestPatterns on BookingRequest {
             int revenue,
             String? slotId,
             String? customerPhone,
-            bool isAutoApproved)?
+            bool isAutoApproved,
+            String sportType)?
         $default, {
     required TResult orElse(),
   }) {
@@ -316,7 +329,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.revenue,
             _that.slotId,
             _that.customerPhone,
-            _that.isAutoApproved);
+            _that.isAutoApproved,
+            _that.sportType);
       case _:
         return orElse();
     }
@@ -348,7 +362,8 @@ extension BookingRequestPatterns on BookingRequest {
             int revenue,
             String? slotId,
             String? customerPhone,
-            bool isAutoApproved)
+            bool isAutoApproved,
+            String sportType)
         $default,
   ) {
     final _that = this;
@@ -365,7 +380,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.revenue,
             _that.slotId,
             _that.customerPhone,
-            _that.isAutoApproved);
+            _that.isAutoApproved,
+            _that.sportType);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -396,7 +412,8 @@ extension BookingRequestPatterns on BookingRequest {
             int revenue,
             String? slotId,
             String? customerPhone,
-            bool isAutoApproved)?
+            bool isAutoApproved,
+            String sportType)?
         $default,
   ) {
     final _that = this;
@@ -413,7 +430,8 @@ extension BookingRequestPatterns on BookingRequest {
             _that.revenue,
             _that.slotId,
             _that.customerPhone,
-            _that.isAutoApproved);
+            _that.isAutoApproved,
+            _that.sportType);
       case _:
         return null;
     }
@@ -434,7 +452,8 @@ class _BookingRequest extends BookingRequest {
       required this.revenue,
       this.slotId,
       this.customerPhone,
-      this.isAutoApproved = false})
+      this.isAutoApproved = false,
+      this.sportType = ''})
       : super._();
 
   /// Raw `bookings.id` (UUID) — the stable key.
@@ -484,6 +503,11 @@ class _BookingRequest extends BookingRequest {
   @JsonKey()
   final bool isAutoApproved;
 
+  /// Sport type from the venue (OWNER-213). Empty string when unavailable.
+  @override
+  @JsonKey()
+  final String sportType;
+
   /// Create a copy of BookingRequest
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -511,7 +535,9 @@ class _BookingRequest extends BookingRequest {
             (identical(other.customerPhone, customerPhone) ||
                 other.customerPhone == customerPhone) &&
             (identical(other.isAutoApproved, isAutoApproved) ||
-                other.isAutoApproved == isAutoApproved));
+                other.isAutoApproved == isAutoApproved) &&
+            (identical(other.sportType, sportType) ||
+                other.sportType == sportType));
   }
 
   @override
@@ -527,11 +553,12 @@ class _BookingRequest extends BookingRequest {
       revenue,
       slotId,
       customerPhone,
-      isAutoApproved);
+      isAutoApproved,
+      sportType);
 
   @override
   String toString() {
-    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved)';
+    return 'BookingRequest(id: $id, code: $code, customerName: $customerName, courtName: $courtName, startAt: $startAt, endAt: $endAt, status: $status, revenue: $revenue, slotId: $slotId, customerPhone: $customerPhone, isAutoApproved: $isAutoApproved, sportType: $sportType)';
   }
 }
 
@@ -554,7 +581,8 @@ abstract mixin class _$BookingRequestCopyWith<$Res>
       int revenue,
       String? slotId,
       String? customerPhone,
-      bool isAutoApproved});
+      bool isAutoApproved,
+      String sportType});
 }
 
 /// @nodoc
@@ -581,6 +609,7 @@ class __$BookingRequestCopyWithImpl<$Res>
     Object? slotId = freezed,
     Object? customerPhone = freezed,
     Object? isAutoApproved = null,
+    Object? sportType = null,
   }) {
     return _then(_BookingRequest(
       id: null == id
@@ -627,6 +656,10 @@ class __$BookingRequestCopyWithImpl<$Res>
           ? _self.isAutoApproved
           : isAutoApproved // ignore: cast_nullable_to_non_nullable
               as bool,
+      sportType: null == sportType
+          ? _self.sportType
+          : sportType // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }

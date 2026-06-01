@@ -17,16 +17,9 @@ mixin _$OwnerCourt {
   String get id;
   String get name;
 
-  /// `courts.sport_types  text[]`
-  List<String> get sportTypes;
-  int get capacity;
-
   /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
   int get openHour;
   int get closeHour;
-
-  /// `courts.price_per_hour  numeric`
-  int get pricePerHour;
 
   /// `courts.status != 'inactive'`
   bool get isActive;
@@ -61,16 +54,10 @@ mixin _$OwnerCourt {
             other is OwnerCourt &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            const DeepCollectionEquality()
-                .equals(other.sportTypes, sportTypes) &&
-            (identical(other.capacity, capacity) ||
-                other.capacity == capacity) &&
             (identical(other.openHour, openHour) ||
                 other.openHour == openHour) &&
             (identical(other.closeHour, closeHour) ||
                 other.closeHour == closeHour) &&
-            (identical(other.pricePerHour, pricePerHour) ||
-                other.pricePerHour == pricePerHour) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.address, address) || other.address == address) &&
@@ -88,11 +75,8 @@ mixin _$OwnerCourt {
       runtimeType,
       id,
       name,
-      const DeepCollectionEquality().hash(sportTypes),
-      capacity,
       openHour,
       closeHour,
-      pricePerHour,
       isActive,
       address,
       description,
@@ -103,7 +87,7 @@ mixin _$OwnerCourt {
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, sportTypes: $sportTypes, capacity: $capacity, openHour: $openHour, closeHour: $closeHour, pricePerHour: $pricePerHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, openHour: $openHour, closeHour: $closeHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
   }
 }
 
@@ -116,11 +100,8 @@ abstract mixin class $OwnerCourtCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
-      List<String> sportTypes,
-      int capacity,
       int openHour,
       int closeHour,
-      int pricePerHour,
       bool isActive,
       String? address,
       String? description,
@@ -144,11 +125,8 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? sportTypes = null,
-    Object? capacity = null,
     Object? openHour = null,
     Object? closeHour = null,
-    Object? pricePerHour = null,
     Object? isActive = null,
     Object? address = freezed,
     Object? description = freezed,
@@ -166,14 +144,6 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      sportTypes: null == sportTypes
-          ? _self.sportTypes
-          : sportTypes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      capacity: null == capacity
-          ? _self.capacity
-          : capacity // ignore: cast_nullable_to_non_nullable
-              as int,
       openHour: null == openHour
           ? _self.openHour
           : openHour // ignore: cast_nullable_to_non_nullable
@@ -181,10 +151,6 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
       closeHour: null == closeHour
           ? _self.closeHour
           : closeHour // ignore: cast_nullable_to_non_nullable
-              as int,
-      pricePerHour: null == pricePerHour
-          ? _self.pricePerHour
-          : pricePerHour // ignore: cast_nullable_to_non_nullable
               as int,
       isActive: null == isActive
           ? _self.isActive
@@ -314,11 +280,8 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult Function(
             String id,
             String name,
-            List<String> sportTypes,
-            int capacity,
             int openHour,
             int closeHour,
-            int pricePerHour,
             bool isActive,
             String? address,
             String? description,
@@ -335,11 +298,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.sportTypes,
-            _that.capacity,
             _that.openHour,
             _that.closeHour,
-            _that.pricePerHour,
             _that.isActive,
             _that.address,
             _that.description,
@@ -370,11 +330,8 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult Function(
             String id,
             String name,
-            List<String> sportTypes,
-            int capacity,
             int openHour,
             int closeHour,
-            int pricePerHour,
             bool isActive,
             String? address,
             String? description,
@@ -390,11 +347,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.sportTypes,
-            _that.capacity,
             _that.openHour,
             _that.closeHour,
-            _that.pricePerHour,
             _that.isActive,
             _that.address,
             _that.description,
@@ -424,11 +378,8 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult? Function(
             String id,
             String name,
-            List<String> sportTypes,
-            int capacity,
             int openHour,
             int closeHour,
-            int pricePerHour,
             bool isActive,
             String? address,
             String? description,
@@ -444,11 +395,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.sportTypes,
-            _that.capacity,
             _that.openHour,
             _that.closeHour,
-            _that.pricePerHour,
             _that.isActive,
             _that.address,
             _that.description,
@@ -468,11 +416,8 @@ class _OwnerCourt extends OwnerCourt {
   const _OwnerCourt(
       {required this.id,
       required this.name,
-      required final List<String> sportTypes,
-      required this.capacity,
       required this.openHour,
       required this.closeHour,
-      required this.pricePerHour,
       required this.isActive,
       this.address,
       this.description,
@@ -480,8 +425,7 @@ class _OwnerCourt extends OwnerCourt {
       this.lat,
       this.lng,
       this.autoApproveSingle = false})
-      : _sportTypes = sportTypes,
-        _amenities = amenities,
+      : _amenities = amenities,
         super._();
 
   @override
@@ -489,29 +433,11 @@ class _OwnerCourt extends OwnerCourt {
   @override
   final String name;
 
-  /// `courts.sport_types  text[]`
-  final List<String> _sportTypes;
-
-  /// `courts.sport_types  text[]`
-  @override
-  List<String> get sportTypes {
-    if (_sportTypes is EqualUnmodifiableListView) return _sportTypes;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_sportTypes);
-  }
-
-  @override
-  final int capacity;
-
   /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
   @override
   final int openHour;
   @override
   final int closeHour;
-
-  /// `courts.price_per_hour  numeric`
-  @override
-  final int pricePerHour;
 
   /// `courts.status != 'inactive'`
   @override
@@ -563,16 +489,10 @@ class _OwnerCourt extends OwnerCourt {
             other is _OwnerCourt &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            const DeepCollectionEquality()
-                .equals(other._sportTypes, _sportTypes) &&
-            (identical(other.capacity, capacity) ||
-                other.capacity == capacity) &&
             (identical(other.openHour, openHour) ||
                 other.openHour == openHour) &&
             (identical(other.closeHour, closeHour) ||
                 other.closeHour == closeHour) &&
-            (identical(other.pricePerHour, pricePerHour) ||
-                other.pricePerHour == pricePerHour) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
             (identical(other.address, address) || other.address == address) &&
@@ -591,11 +511,8 @@ class _OwnerCourt extends OwnerCourt {
       runtimeType,
       id,
       name,
-      const DeepCollectionEquality().hash(_sportTypes),
-      capacity,
       openHour,
       closeHour,
-      pricePerHour,
       isActive,
       address,
       description,
@@ -606,7 +523,7 @@ class _OwnerCourt extends OwnerCourt {
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, sportTypes: $sportTypes, capacity: $capacity, openHour: $openHour, closeHour: $closeHour, pricePerHour: $pricePerHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, openHour: $openHour, closeHour: $closeHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
   }
 }
 
@@ -621,11 +538,8 @@ abstract mixin class _$OwnerCourtCopyWith<$Res>
   $Res call(
       {String id,
       String name,
-      List<String> sportTypes,
-      int capacity,
       int openHour,
       int closeHour,
-      int pricePerHour,
       bool isActive,
       String? address,
       String? description,
@@ -649,11 +563,8 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? sportTypes = null,
-    Object? capacity = null,
     Object? openHour = null,
     Object? closeHour = null,
-    Object? pricePerHour = null,
     Object? isActive = null,
     Object? address = freezed,
     Object? description = freezed,
@@ -671,14 +582,6 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      sportTypes: null == sportTypes
-          ? _self._sportTypes
-          : sportTypes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      capacity: null == capacity
-          ? _self.capacity
-          : capacity // ignore: cast_nullable_to_non_nullable
-              as int,
       openHour: null == openHour
           ? _self.openHour
           : openHour // ignore: cast_nullable_to_non_nullable
@@ -686,10 +589,6 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
       closeHour: null == closeHour
           ? _self.closeHour
           : closeHour // ignore: cast_nullable_to_non_nullable
-              as int,
-      pricePerHour: null == pricePerHour
-          ? _self.pricePerHour
-          : pricePerHour // ignore: cast_nullable_to_non_nullable
               as int,
       isActive: null == isActive
           ? _self.isActive

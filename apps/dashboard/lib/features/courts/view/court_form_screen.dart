@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,9 +26,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
   late final TextEditingController _descCtrl;
-  late final TextEditingController _capacityCtrl;
-  late final TextEditingController _priceCtrl;
-  late Set<String> _selectedSports;
   late Set<String> _selectedAmenities;
   late int _openHour;
   late int _closeHour;
@@ -50,13 +46,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _lngCtrl = TextEditingController(
         text: c?.lng != null ? c!.lng!.toStringAsFixed(6) : '');
     _descCtrl = TextEditingController(text: c?.description ?? '');
-    _capacityCtrl =
-        TextEditingController(text: c?.capacity.toString() ?? '4');
-    _priceCtrl = TextEditingController(
-        text: (c?.pricePerHour ?? 0) != 0
-            ? c!.pricePerHour.toString()
-            : '');
-    _selectedSports = Set<String>.from(c?.sportTypes ?? []);
     _selectedAmenities = Set<String>.from(c?.amenities ?? []);
     _openHour = c?.openHour ?? 6;
     _closeHour = c?.closeHour ?? 22;
@@ -70,18 +59,12 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _latCtrl.dispose();
     _lngCtrl.dispose();
     _descCtrl.dispose();
-    _capacityCtrl.dispose();
-    _priceCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     setState(() => _error = null);
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    if (_selectedSports.isEmpty) {
-      setState(() => _error = 'Vui lòng chọn ít nhất một môn thể thao.');
-      return;
-    }
     if (_closeHour <= _openHour) {
       setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
       return;
@@ -100,11 +83,8 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
         saved = await repo.updateCourt(
           widget.court!.id,
           name: _nameCtrl.text.trim(),
-          sportTypes: _selectedSports.toList(),
-          capacity: int.parse(_capacityCtrl.text),
           openHour: _openHour,
           closeHour: _closeHour,
-          pricePerHour: int.parse(_priceCtrl.text),
           address: address.isEmpty ? null : address,
           description: desc.isEmpty ? null : desc,
           amenities: _selectedAmenities.toList(),
@@ -121,11 +101,8 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       } else {
         saved = await repo.createCourt(
           name: _nameCtrl.text.trim(),
-          sportTypes: _selectedSports.toList(),
-          capacity: int.parse(_capacityCtrl.text),
           openHour: _openHour,
           closeHour: _closeHour,
-          pricePerHour: int.parse(_priceCtrl.text),
           address: address.isEmpty ? null : address,
           description: desc.isEmpty ? null : desc,
           amenities: _selectedAmenities.toList(),
@@ -315,16 +292,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   ),
                   const SizedBox(height: 18),
 
-                  _Label('Môn thể thao'),
-                  const SizedBox(height: 8),
-                  _ChipSelector(
-                    options: kSportTypes,
-                    selected: _selectedSports,
-                    semanticsPrefix: 'sport-chip',
-                    onChanged: (v) => setState(() => _selectedSports = v),
-                  ),
-                  const SizedBox(height: 18),
-
                   _Label('Tiện ích'),
                   const SizedBox(height: 8),
                   _ChipSelector(
@@ -333,64 +300,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                     semanticsPrefix: 'amenity-chip',
                     onChanged: (v) =>
                         setState(() => _selectedAmenities = v),
-                  ),
-                  const SizedBox(height: 18),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label('Sức chứa (người)'),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _capacityCtrl,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
-                              style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                              decoration:
-                                  const InputDecoration(hintText: '4'),
-                              validator: (v) {
-                                final n = int.tryParse(v ?? '');
-                                return (n == null || n < 1)
-                                    ? 'Tối thiểu 1'
-                                    : null;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label('Giá / giờ (đồng)'),
-                            const SizedBox(height: 6),
-                            TextFormField(
-                              controller: _priceCtrl,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
-                              style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                              decoration: const InputDecoration(
-                                  hintText: '350000'),
-                              validator: (v) {
-                                final n = int.tryParse(v ?? '');
-                                return (n == null || n < 0)
-                                    ? 'Vui lòng nhập giá hợp lệ'
-                                    : null;
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
                   const SizedBox(height: 18),
 

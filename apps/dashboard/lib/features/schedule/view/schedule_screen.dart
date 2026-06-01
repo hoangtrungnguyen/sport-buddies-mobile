@@ -373,19 +373,6 @@ class _CourtTabs extends StatelessWidget {
                         color: active ? Colors.white : AppColors.neutral700,
                       ),
                     ),
-                    if (c.primarySport.isNotEmpty) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '· ${c.primarySport}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: active
-                              ? Colors.white.withValues(alpha: 0.7)
-                              : AppColors.neutral500,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
               ),
