@@ -120,6 +120,12 @@ class _MapBodyState extends State<_MapBody> {
   }
 
   @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
