@@ -17,12 +17,15 @@ mixin _$OwnerCourt {
   String get id;
   String get name;
 
-  /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
-  int get openHour;
-  int get closeHour;
-
-  /// `courts.status != 'inactive'`
+  /// `courts.status` mapped to a bool — 'inactive' → false, anything else → true.
+  @JsonKey(
+      name: 'status', fromJson: _activeFromStatus, toJson: _statusFromActive)
   bool get isActive;
+
+  /// `courts.operating_hours  jsonb` — `{"open": 6, "close": 22}`.
+  /// Use [openHour] / [closeHour] getters for typed access.
+  @JsonKey(name: 'operating_hours')
+  Map<String, dynamic>? get operatingHours;
 
   /// `courts.address`
   String? get address;
@@ -38,6 +41,7 @@ mixin _$OwnerCourt {
   double? get lng;
 
   /// `courts.auto_approve_single` — OWNER-44/45
+  @JsonKey(name: 'auto_approve_single')
   bool get autoApproveSingle;
 
   /// Create a copy of OwnerCourt
@@ -47,6 +51,9 @@ mixin _$OwnerCourt {
   $OwnerCourtCopyWith<OwnerCourt> get copyWith =>
       _$OwnerCourtCopyWithImpl<OwnerCourt>(this as OwnerCourt, _$identity);
 
+  /// Serializes this OwnerCourt to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
@@ -54,12 +61,10 @@ mixin _$OwnerCourt {
             other is OwnerCourt &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.openHour, openHour) ||
-                other.openHour == openHour) &&
-            (identical(other.closeHour, closeHour) ||
-                other.closeHour == closeHour) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            const DeepCollectionEquality()
+                .equals(other.operatingHours, operatingHours) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -70,14 +75,14 @@ mixin _$OwnerCourt {
                 other.autoApproveSingle == autoApproveSingle));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
       id,
       name,
-      openHour,
-      closeHour,
       isActive,
+      const DeepCollectionEquality().hash(operatingHours),
       address,
       description,
       const DeepCollectionEquality().hash(amenities),
@@ -87,7 +92,7 @@ mixin _$OwnerCourt {
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, openHour: $openHour, closeHour: $closeHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
   }
 }
 
@@ -100,15 +105,18 @@ abstract mixin class $OwnerCourtCopyWith<$Res> {
   $Res call(
       {String id,
       String name,
-      int openHour,
-      int closeHour,
+      @JsonKey(
+          name: 'status',
+          fromJson: _activeFromStatus,
+          toJson: _statusFromActive)
       bool isActive,
+      @JsonKey(name: 'operating_hours') Map<String, dynamic>? operatingHours,
       String? address,
       String? description,
       List<String> amenities,
       double? lat,
       double? lng,
-      bool autoApproveSingle});
+      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle});
 }
 
 /// @nodoc
@@ -125,9 +133,8 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? openHour = null,
-    Object? closeHour = null,
     Object? isActive = null,
+    Object? operatingHours = freezed,
     Object? address = freezed,
     Object? description = freezed,
     Object? amenities = null,
@@ -144,18 +151,14 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      openHour: null == openHour
-          ? _self.openHour
-          : openHour // ignore: cast_nullable_to_non_nullable
-              as int,
-      closeHour: null == closeHour
-          ? _self.closeHour
-          : closeHour // ignore: cast_nullable_to_non_nullable
-              as int,
       isActive: null == isActive
           ? _self.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      operatingHours: freezed == operatingHours
+          ? _self.operatingHours
+          : operatingHours // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       address: freezed == address
           ? _self.address
           : address // ignore: cast_nullable_to_non_nullable
@@ -280,15 +283,19 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult Function(
             String id,
             String name,
-            int openHour,
-            int closeHour,
+            @JsonKey(
+                name: 'status',
+                fromJson: _activeFromStatus,
+                toJson: _statusFromActive)
             bool isActive,
+            @JsonKey(name: 'operating_hours')
+            Map<String, dynamic>? operatingHours,
             String? address,
             String? description,
             List<String> amenities,
             double? lat,
             double? lng,
-            bool autoApproveSingle)?
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)?
         $default, {
     required TResult orElse(),
   }) {
@@ -298,9 +305,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.openHour,
-            _that.closeHour,
             _that.isActive,
+            _that.operatingHours,
             _that.address,
             _that.description,
             _that.amenities,
@@ -330,15 +336,19 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult Function(
             String id,
             String name,
-            int openHour,
-            int closeHour,
+            @JsonKey(
+                name: 'status',
+                fromJson: _activeFromStatus,
+                toJson: _statusFromActive)
             bool isActive,
+            @JsonKey(name: 'operating_hours')
+            Map<String, dynamic>? operatingHours,
             String? address,
             String? description,
             List<String> amenities,
             double? lat,
             double? lng,
-            bool autoApproveSingle)
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)
         $default,
   ) {
     final _that = this;
@@ -347,9 +357,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.openHour,
-            _that.closeHour,
             _that.isActive,
+            _that.operatingHours,
             _that.address,
             _that.description,
             _that.amenities,
@@ -378,15 +387,19 @@ extension OwnerCourtPatterns on OwnerCourt {
     TResult? Function(
             String id,
             String name,
-            int openHour,
-            int closeHour,
+            @JsonKey(
+                name: 'status',
+                fromJson: _activeFromStatus,
+                toJson: _statusFromActive)
             bool isActive,
+            @JsonKey(name: 'operating_hours')
+            Map<String, dynamic>? operatingHours,
             String? address,
             String? description,
             List<String> amenities,
             double? lat,
             double? lng,
-            bool autoApproveSingle)?
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)?
         $default,
   ) {
     final _that = this;
@@ -395,9 +408,8 @@ extension OwnerCourtPatterns on OwnerCourt {
         return $default(
             _that.id,
             _that.name,
-            _that.openHour,
-            _that.closeHour,
             _that.isActive,
+            _that.operatingHours,
             _that.address,
             _that.description,
             _that.amenities,
@@ -411,37 +423,56 @@ extension OwnerCourtPatterns on OwnerCourt {
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _OwnerCourt extends OwnerCourt {
   const _OwnerCourt(
       {required this.id,
       required this.name,
-      required this.openHour,
-      required this.closeHour,
+      @JsonKey(
+          name: 'status',
+          fromJson: _activeFromStatus,
+          toJson: _statusFromActive)
       required this.isActive,
+      @JsonKey(name: 'operating_hours')
+      final Map<String, dynamic>? operatingHours,
       this.address,
       this.description,
       final List<String> amenities = const [],
       this.lat,
       this.lng,
-      this.autoApproveSingle = false})
-      : _amenities = amenities,
+      @JsonKey(name: 'auto_approve_single') this.autoApproveSingle = false})
+      : _operatingHours = operatingHours,
+        _amenities = amenities,
         super._();
+  factory _OwnerCourt.fromJson(Map<String, dynamic> json) =>
+      _$OwnerCourtFromJson(json);
 
   @override
   final String id;
   @override
   final String name;
 
-  /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
+  /// `courts.status` mapped to a bool — 'inactive' → false, anything else → true.
   @override
-  final int openHour;
-  @override
-  final int closeHour;
-
-  /// `courts.status != 'inactive'`
-  @override
+  @JsonKey(
+      name: 'status', fromJson: _activeFromStatus, toJson: _statusFromActive)
   final bool isActive;
+
+  /// `courts.operating_hours  jsonb` — `{"open": 6, "close": 22}`.
+  /// Use [openHour] / [closeHour] getters for typed access.
+  final Map<String, dynamic>? _operatingHours;
+
+  /// `courts.operating_hours  jsonb` — `{"open": 6, "close": 22}`.
+  /// Use [openHour] / [closeHour] getters for typed access.
+  @override
+  @JsonKey(name: 'operating_hours')
+  Map<String, dynamic>? get operatingHours {
+    final value = _operatingHours;
+    if (value == null) return null;
+    if (_operatingHours is EqualUnmodifiableMapView) return _operatingHours;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   /// `courts.address`
   @override
@@ -471,7 +502,7 @@ class _OwnerCourt extends OwnerCourt {
 
   /// `courts.auto_approve_single` — OWNER-44/45
   @override
-  @JsonKey()
+  @JsonKey(name: 'auto_approve_single')
   final bool autoApproveSingle;
 
   /// Create a copy of OwnerCourt
@@ -483,18 +514,23 @@ class _OwnerCourt extends OwnerCourt {
       __$OwnerCourtCopyWithImpl<_OwnerCourt>(this, _$identity);
 
   @override
+  Map<String, dynamic> toJson() {
+    return _$OwnerCourtToJson(
+      this,
+    );
+  }
+
+  @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _OwnerCourt &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.name, name) || other.name == name) &&
-            (identical(other.openHour, openHour) ||
-                other.openHour == openHour) &&
-            (identical(other.closeHour, closeHour) ||
-                other.closeHour == closeHour) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            const DeepCollectionEquality()
+                .equals(other._operatingHours, _operatingHours) &&
             (identical(other.address, address) || other.address == address) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -506,14 +542,14 @@ class _OwnerCourt extends OwnerCourt {
                 other.autoApproveSingle == autoApproveSingle));
   }
 
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
       id,
       name,
-      openHour,
-      closeHour,
       isActive,
+      const DeepCollectionEquality().hash(_operatingHours),
       address,
       description,
       const DeepCollectionEquality().hash(_amenities),
@@ -523,7 +559,7 @@ class _OwnerCourt extends OwnerCourt {
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, openHour: $openHour, closeHour: $closeHour, isActive: $isActive, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
   }
 }
 
@@ -538,15 +574,18 @@ abstract mixin class _$OwnerCourtCopyWith<$Res>
   $Res call(
       {String id,
       String name,
-      int openHour,
-      int closeHour,
+      @JsonKey(
+          name: 'status',
+          fromJson: _activeFromStatus,
+          toJson: _statusFromActive)
       bool isActive,
+      @JsonKey(name: 'operating_hours') Map<String, dynamic>? operatingHours,
       String? address,
       String? description,
       List<String> amenities,
       double? lat,
       double? lng,
-      bool autoApproveSingle});
+      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle});
 }
 
 /// @nodoc
@@ -563,9 +602,8 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? openHour = null,
-    Object? closeHour = null,
     Object? isActive = null,
+    Object? operatingHours = freezed,
     Object? address = freezed,
     Object? description = freezed,
     Object? amenities = null,
@@ -582,18 +620,14 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      openHour: null == openHour
-          ? _self.openHour
-          : openHour // ignore: cast_nullable_to_non_nullable
-              as int,
-      closeHour: null == closeHour
-          ? _self.closeHour
-          : closeHour // ignore: cast_nullable_to_non_nullable
-              as int,
       isActive: null == isActive
           ? _self.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      operatingHours: freezed == operatingHours
+          ? _self._operatingHours
+          : operatingHours // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
       address: freezed == address
           ? _self.address
           : address // ignore: cast_nullable_to_non_nullable

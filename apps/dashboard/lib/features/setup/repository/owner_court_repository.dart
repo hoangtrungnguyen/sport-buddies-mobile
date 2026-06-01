@@ -34,22 +34,18 @@ class OwnerCourtRepository {
   }) async {
     final uid = _client.auth.currentUser!.id;
     final slug = _slugify('$name-${DateTime.now().millisecondsSinceEpoch}');
-    final row = await _client
-        .from('courts')
-        .insert({
-          'name': name,
-          'slug': slug,
-          'operating_hours': {'open': openHour, 'close': closeHour},
-          'address': address,
-          'description': description,
-          'amenities': amenities,
-          'lat': lat,
-          'lng': lng,
-          'owner_id': uid,
-          'status': 'approved',
-        })
-        .select(_cols)
-        .single();
+    final row = await _client.from('courts').insert({
+      'name': name,
+      'slug': slug,
+      'operating_hours': {'open': openHour, 'close': closeHour},
+      'address': address,
+      'description': description,
+      'amenities': amenities,
+      'lat': lat,
+      'lng': lng,
+      'owner_id': uid,
+      'status': 'approved',
+    }).select(_cols).single();
     return OwnerCourt.fromJson(row);
   }
 
@@ -64,20 +60,15 @@ class OwnerCourtRepository {
     double? lat,
     double? lng,
   }) async {
-    final row = await _client
-        .from('courts')
-        .update({
-          'name': name,
-          'operating_hours': {'open': openHour, 'close': closeHour},
-          'address': address,
-          'description': description,
-          'amenities': amenities,
-          'lat': lat,
-          'lng': lng,
-        })
-        .eq('id', id)
-        .select(_cols)
-        .single();
+    final row = await _client.from('courts').update({
+      'name': name,
+      'operating_hours': {'open': openHour, 'close': closeHour},
+      'address': address,
+      'description': description,
+      'amenities': amenities,
+      'lat': lat,
+      'lng': lng,
+    }).eq('id', id).select(_cols).single();
     return OwnerCourt.fromJson(row);
   }
 

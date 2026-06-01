@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'owner_court.freezed.dart';
+part 'owner_court.g.dart';
 
 const kSportTypes = [
   'Bóng đá 5v5',
@@ -24,6 +25,9 @@ const kAmenities = [
   'Mái che',
 ];
 
+bool _activeFromStatus(String? s) => s != 'inactive';
+String _statusFromActive(bool a) => a ? 'approved' : 'inactive';
+
 @freezed
 abstract class OwnerCourt with _$OwnerCourt {
   const OwnerCourt._();
@@ -32,12 +36,14 @@ abstract class OwnerCourt with _$OwnerCourt {
     required String id,
     required String name,
 
-    /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
-    required int openHour,
-    required int closeHour,
-
-    /// `courts.status != 'inactive'`
+    /// `courts.status` mapped to a bool — 'inactive' → false, anything else → true.
+    @JsonKey(name: 'status', fromJson: _activeFromStatus, toJson: _statusFromActive)
     required bool isActive,
+
+    /// `courts.operating_hours  jsonb` — `{"open": 6, "close": 22}`.
+    /// Use [openHour] / [closeHour] getters for typed access.
+    @JsonKey(name: 'operating_hours')
+    Map<String, dynamic>? operatingHours,
 
     /// `courts.address`
     String? address,
@@ -53,27 +59,17 @@ abstract class OwnerCourt with _$OwnerCourt {
     double? lng,
 
     /// `courts.auto_approve_single` — OWNER-44/45
-    @Default(false) bool autoApproveSingle,
+    @Default(false)
+    @JsonKey(name: 'auto_approve_single')
+    bool autoApproveSingle,
   }) = _OwnerCourt;
 
-  factory OwnerCourt.fromJson(Map<String, dynamic> json) {
-    final amenities = (json['amenities'] as List?)
-            ?.map((e) => e as String)
-            .toList() ??
-        [];
-    final hours = json['operating_hours'] as Map<String, dynamic>?;
-    return OwnerCourt(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      openHour: (hours?['open'] as num?)?.toInt() ?? 6,
-      closeHour: (hours?['close'] as num?)?.toInt() ?? 22,
-      isActive: (json['status'] as String?) != 'inactive',
-      address: json['address'] as String?,
-      description: json['description'] as String?,
-      amenities: amenities,
-      lat: (json['lat'] as num?)?.toDouble(),
-      lng: (json['lng'] as num?)?.toDouble(),
-      autoApproveSingle: (json['auto_approve_single'] as bool?) ?? false,
-    );
-  }
+  factory OwnerCourt.fromJson(Map<String, dynamic> json) =>
+      _$OwnerCourtFromJson(json);
+
+  /// Opening hour extracted from [operatingHours].
+  int get openHour => (operatingHours?['open'] as num?)?.toInt() ?? 6;
+
+  /// Closing hour extracted from [operatingHours].
+  int get closeHour => (operatingHours?['close'] as num?)?.toInt() ?? 22;
 }
