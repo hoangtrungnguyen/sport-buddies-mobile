@@ -636,11 +636,24 @@ class _BookingCard extends StatelessWidget {
     };
   }
 
+  VoidCallback? _cardTap(BuildContext context) {
+    return switch (booking.status) {
+      BookingStatus.pending =>
+        () => context.push('/booking/awaiting/${booking.id}'),
+      BookingStatus.confirmed =>
+        () => context.push('/bookings/${booking.id}'),
+      BookingStatus.completed || BookingStatus.cancelled => null,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final isRecurring = booking.type == BookingType.recurring;
 
-    return Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _cardTap(context),
+      child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -801,6 +814,7 @@ class _BookingCard extends StatelessWidget {
               ),
           ],
         ),
+      ),
       ),
     );
   }
