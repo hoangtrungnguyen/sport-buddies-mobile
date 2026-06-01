@@ -2,6 +2,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'owner_court.freezed.dart';
 
+const kSportTypes = [
+  'Bóng đá 5v5',
+  'Bóng đá 7v7',
+  'Bóng đá 11v11',
+  'Pickleball',
+  'Tennis',
+  'Cầu lông',
+  'Bóng rổ',
+  'Đa năng',
+];
+
 const kAmenities = [
   'Bãi đậu xe',
   'Phòng thay đồ',

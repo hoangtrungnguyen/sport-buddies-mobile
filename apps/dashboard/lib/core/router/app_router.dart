@@ -15,10 +15,13 @@ import 'package:dashboard/features/notifications/repository/notification_reposit
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
+import 'package:dashboard/features/courts/view/court_form_screen.dart';
+import 'package:dashboard/features/courts/view/courts_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_event.dart';
+import 'package:dashboard/features/setup/model/owner_court.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
 import 'package:dashboard/shell/app_shell.dart';
 import 'package:flutter/material.dart';
@@ -107,6 +110,11 @@ GoRouter buildRouter() {
                   actionRepository: sl<BookingActionRepository>(),
                 )..add(const RequestsEvent.started()),
               ),
+              BlocProvider<CourtBloc>(
+                create: (_) =>
+                    CourtBloc(sl<OwnerCourtRepository>())
+                      ..add(const CourtEvent.loadRequested()),
+              ),
             ],
             child: AppShell(child: child),
           ),
@@ -153,13 +161,22 @@ GoRouter buildRouter() {
                 'Thông báo', Icons.notifications_outlined),
           ),
           GoRoute(
-            path: '/settings',
-            builder: (context, state) => BlocProvider(
-              create: (_) =>
-                  CourtBloc(sl<OwnerCourtRepository>())
-                    ..add(const CourtEvent.loadRequested()),
-              child: const SettingsScreen(),
+            path: '/courts',
+            builder: (_, __) => const CourtsScreen(),
+          ),
+          GoRoute(
+            path: '/courts/new',
+            builder: (_, __) => const CourtFormScreen(),
+          ),
+          GoRoute(
+            path: '/courts/:id/edit',
+            builder: (_, state) => CourtFormScreen(
+              court: state.extra as OwnerCourt?,
             ),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (_, __) => const SettingsScreen(),
           ),
           GoRoute(
             path: '/support',

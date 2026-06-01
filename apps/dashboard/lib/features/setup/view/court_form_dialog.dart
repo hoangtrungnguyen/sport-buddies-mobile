@@ -6,16 +6,6 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import '../model/owner_court.dart';
 import '../repository/owner_court_repository.dart';
 
-const kSportTypes = [
-  'Bóng đá 5v5',
-  'Bóng đá 7v7',
-  'Bóng đá 11v11',
-  'Pickleball',
-  'Tennis',
-  'Cầu lông',
-  'Bóng rổ',
-  'Đa năng',
-];
 
 class CourtFormDialog extends StatefulWidget {
   const CourtFormDialog({

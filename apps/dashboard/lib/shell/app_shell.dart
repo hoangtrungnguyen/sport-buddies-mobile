@@ -59,6 +59,11 @@ const _mainNav = <_NavEntry>[
     route: '/analytics',
   ),
   _NavEntry(
+    icon: Icons.stadium_outlined,
+    label: 'Sân của tôi',
+    route: '/courts',
+  ),
+  _NavEntry(
     icon: Icons.people_outlined,
     label: 'Khách hàng',
     route: '/players',
@@ -91,6 +96,8 @@ const _routeTitle = <String, String>{
   '/schedule': 'Lịch sân',
   '/fixed': 'Lịch cố định',
   '/analytics': 'Thống kê',
+  '/courts': 'Sân của tôi',
+  '/courts/new': 'Thêm sân mới',
   '/players': 'Khách hàng',
   '/notifications': 'Thông báo',
   '/settings': 'Cài đặt sân',

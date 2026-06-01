@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
@@ -8,8 +9,6 @@ import '../../setup/bloc/court_bloc.dart';
 import '../../setup/bloc/court_event.dart';
 import '../../setup/bloc/court_state.dart';
 import '../../setup/model/owner_court.dart';
-import '../../setup/repository/owner_court_repository.dart';
-import '../../setup/view/court_form_dialog.dart';
 
 const _kSportColors = <String, Color>{
   'Bóng đá 5v5': Color(0xFF16A34A),
@@ -726,12 +725,15 @@ class _CourtSection extends StatelessWidget {
               ),
             CourtLoaded(:final courts) when courts.isEmpty =>
               _EmptyCourtState(
-                  onAdd: () => _openForm(context, null)),
+                  onAdd: () => context.push('/courts/new')),
             CourtLoaded(:final courts) => Column(
                 children: courts
                     .map((c) => _CourtRow(
                           court: c,
-                          onEdit: () => _openForm(context, c),
+                          onEdit: () => context.push(
+                            '/courts/${c.id}/edit',
+                            extra: c,
+                          ),
                         ))
                     .toList(),
               ),
@@ -762,7 +764,7 @@ class _CourtSection extends StatelessWidget {
                 textStyle: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w600, fontSize: 13),
               ),
-              onPressed: () => _openForm(context, null),
+              onPressed: () => context.push('/courts/new'),
               ),
             ),
           ),
@@ -771,18 +773,6 @@ class _CourtSection extends StatelessWidget {
     );
   }
 
-  Future<void> _openForm(BuildContext context, OwnerCourt? court) async {
-    final bloc = context.read<CourtBloc>();
-    final repo = context.read<OwnerCourtRepository>();
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => CourtFormDialog(repository: repo, court: court),
-    );
-    if (result == true) {
-      bloc.add(const CourtEvent.loadRequested());
-    }
-  }
 }
 
 // ---------------------------------------------------------------------------
