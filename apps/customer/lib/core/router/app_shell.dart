@@ -97,18 +97,21 @@ class _ExpandingTabBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 60,
-          child: Row(
-            children: [
-              for (int i = 0; i < items.length; i++)
-                Expanded(
-                  child: _ExpandingNavButton(
-                    item: items[i],
-                    active: i == currentIndex,
-                    onTap: () => onTap(i),
+          height: 68,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                for (int i = 0; i < items.length; i++)
+                  Expanded(
+                    child: _ExpandingNavButton(
+                      item: items[i],
+                      active: i == currentIndex,
+                      onTap: () => onTap(i),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

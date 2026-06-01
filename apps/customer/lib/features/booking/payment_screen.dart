@@ -27,6 +27,17 @@ class PaymentScreen extends StatelessWidget {
   }
 }
 
+/// Public variant — used by the mock confirmed-detail route in the My Bookings
+/// flow to render step-4 UI without a Supabase call.
+class PaymentLoadedScreen extends StatelessWidget {
+  const PaymentLoadedScreen({super.key, required this.state});
+
+  final PaymentLoaded state;
+
+  @override
+  Widget build(BuildContext context) => _LoadedScreen(state: state);
+}
+
 class _LoadedScreen extends StatelessWidget {
   const _LoadedScreen({required this.state});
 
