@@ -46,6 +46,7 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
   }
 
   void _subscribeRealtime(String bookingId, String slotId) {
+    _channel?.unsubscribe();
     _channel = _client
         .channel('booking_watch_$bookingId')
         .onPostgresChanges(
