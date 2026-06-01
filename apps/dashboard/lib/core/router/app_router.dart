@@ -15,8 +15,13 @@ import 'package:dashboard/features/notifications/repository/notification_reposit
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
+import 'package:dashboard/features/courts/bloc/venue_bloc.dart';
+import 'package:dashboard/features/courts/model/venue.dart';
+import 'package:dashboard/features/courts/repository/venue_repository.dart';
+import 'package:dashboard/features/courts/view/court_detail_screen.dart';
 import 'package:dashboard/features/courts/view/court_form_screen.dart';
 import 'package:dashboard/features/courts/view/courts_screen.dart';
+import 'package:dashboard/features/courts/view/venue_form_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
@@ -96,6 +101,8 @@ GoRouter buildRouter() {
                 value: sl<OwnerCourtRepository>()),
             RepositoryProvider<NotificationRepository>.value(
                 value: sl<NotificationRepository>()),
+            RepositoryProvider<VenueRepository>.value(
+                value: sl<VenueRepository>()),
           ],
           child: MultiBlocProvider(
             providers: [
@@ -167,6 +174,31 @@ GoRouter buildRouter() {
           GoRoute(
             path: '/courts/new',
             builder: (_, __) => const CourtFormScreen(),
+          ),
+          GoRoute(
+            path: '/courts/:id',
+            builder: (_, state) => BlocProvider(
+              create: (_) => VenueBloc(sl<VenueRepository>())
+                ..add(VenueEvent.loadRequested(
+                    state.pathParameters['id']!)),
+              child: CourtDetailScreen(
+                  courtId: state.pathParameters['id']!),
+            ),
+            routes: [
+              GoRoute(
+                path: 'venues/new',
+                builder: (_, state) => VenueFormScreen(
+                  courtId: state.pathParameters['id']!,
+                ),
+              ),
+              GoRoute(
+                path: 'venues/:venueId/edit',
+                builder: (_, state) => VenueFormScreen(
+                  courtId: state.pathParameters['id']!,
+                  venue: state.extra as Venue?,
+                ),
+              ),
+            ],
           ),
           GoRoute(
             path: '/courts/:id/edit',

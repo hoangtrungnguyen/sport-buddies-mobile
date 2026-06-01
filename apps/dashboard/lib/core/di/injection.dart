@@ -6,6 +6,7 @@ import 'package:dashboard/features/requests/repository/booking_request_repositor
 import 'package:dashboard/features/schedule/repository/manual_booking_repository.dart';
 import 'package:dashboard/features/schedule/repository/owner_slot_repository.dart';
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
+import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,10 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<OwnerCourtRepository>(
     () => OwnerCourtRepository(Supabase.instance.client),
+  );
+
+  sl.registerLazySingleton<VenueRepository>(
+    () => VenueRepository(Supabase.instance.client),
   );
 
   sl.registerLazySingleton<OwnerSlotRepository>(

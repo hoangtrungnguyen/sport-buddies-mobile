@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../../setup/bloc/court_bloc.dart';
@@ -10,23 +9,11 @@ import '../../setup/bloc/court_event.dart';
 import '../../setup/bloc/court_state.dart';
 import '../../setup/model/owner_court.dart';
 
-const _kSportColors = <String, Color>{
-  'Bóng đá 5v5': Color(0xFF16A34A),
-  'Bóng đá 7v7': Color(0xFF15803D),
-  'Bóng đá 11v11': Color(0xFF14532D),
-  'Pickleball': Color(0xFFF97316),
-  'Tennis': Color(0xFFEC4899),
-  'Cầu lông': Color(0xFFA855F7),
-  'Bóng rổ': Color(0xFFEF4444),
-  'Đa năng': Color(0xFF0EA5E9),
-};
-
 // Section anchor keys
 final _autoApproveKey = GlobalKey();
 final _fixedKey = GlobalKey();
 final _responseKey = GlobalKey();
 final _notifyKey = GlobalKey();
-final _courtKey = GlobalKey();
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -37,7 +24,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final _scrollCtrl = ScrollController();
-  int _activeToc = 4; // default to "Sân & Giá"
+  int _activeToc = 0;
 
   @override
   void dispose() {
@@ -212,11 +199,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               _scrollTo(_notifyKey, 3),
                         ),
                         _TocItem(
-                          icon: Icons.location_on_outlined,
-                          label: 'Sân & Giá',
-                          active: _activeToc == 4,
-                          onTap: () =>
-                              _scrollTo(_courtKey, 4),
+                          icon: Icons.stadium_outlined,
+                          label: 'Sân & Khu sân',
+                          active: false,
+                          onTap: () => context.go('/courts'),
                         ),
                       ],
                     ),
@@ -259,10 +245,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           comingSoon: true,
                         ),
                         const SizedBox(height: 16),
-                        _CourtSection(
-                          key: _courtKey,
-                          state: state,
-                        ),
+                        _CourtsLinkCard(),
                       ],
                     ),
                   ),
@@ -654,13 +637,10 @@ class _PlaceholderSection extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Sân & Giá section (OWNER-2 content)
+// Courts link card — navigates to /courts
 // ---------------------------------------------------------------------------
 
-class _CourtSection extends StatelessWidget {
-  const _CourtSection({super.key, required this.state});
-  final CourtState state;
-
+class _CourtsLinkCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -669,305 +649,51 @@ class _CourtSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.neutral200),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.location_on_outlined,
-                      size: 18, color: AppColors.primary),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => context.go('/courts'),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Sân & Giá',
-                        style: GoogleFonts.sora(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.neutral900,
-                        ),
+                child: const Icon(Icons.stadium_outlined,
+                    size: 18, color: AppColors.primary),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sân & Khu sân',
+                      style: GoogleFonts.sora(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neutral900,
                       ),
-                      Text(
-                        'Quản lý loại sân, giờ hoạt động, giá theo khung giờ.',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: AppColors.neutral500,
-                        ),
+                    ),
+                    Text(
+                      'Quản lý sân, khu sân, giờ hoạt động và giá.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: AppColors.neutral500,
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1, color: AppColors.neutral100),
-
-          // Court list
-          switch (state) {
-            CourtInitial() || CourtLoading() => const Padding(
-                padding: EdgeInsets.all(40),
-                child: Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.primary)),
-              ),
-            CourtLoaded(:final courts) when courts.isEmpty =>
-              _EmptyCourtState(
-                  onAdd: () => context.push('/courts/new')),
-            CourtLoaded(:final courts) => Column(
-                children: courts
-                    .map((c) => _CourtRow(
-                          court: c,
-                          onEdit: () => context.push(
-                            '/courts/${c.id}/edit',
-                            extra: c,
-                          ),
-                        ))
-                    .toList(),
-              ),
-            CourtFailure(:final message) => Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(message,
-                    style: GoogleFonts.plusJakartaSans(
-                        color: AppColors.danger, fontSize: 13)),
-              ),
-          },
-
-          // Add button
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Semantics(
-              label: 'add-court-btn',
-              button: true,
-              child: OutlinedButton.icon(
-              icon: const Icon(Icons.add_rounded, size: 15),
-              label: const Text('Thêm sân mới'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.neutral700,
-                side: const BorderSide(color: AppColors.neutral200),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 9),
-                textStyle: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600, fontSize: 13),
-              ),
-              onPressed: () => context.push('/courts/new'),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-}
-
-// ---------------------------------------------------------------------------
-// Court row (compact design style)
-// ---------------------------------------------------------------------------
-
-class _CourtRow extends StatelessWidget {
-  const _CourtRow({required this.court, required this.onEdit});
-  final OwnerCourt court;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final vnd = NumberFormat('#,###', 'vi_VN');
-    final color =
-        _kSportColors[court.primarySport] ?? AppColors.primary;
-
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-      decoration: const BoxDecoration(
-        border:
-            Border(bottom: BorderSide(color: AppColors.neutral100)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: court.isActive ? color : AppColors.neutral300,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  court.name,
-                  style: GoogleFonts.sora(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: court.isActive
-                        ? AppColors.neutral900
-                        : AppColors.neutral400,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  '${court.primarySport} · ${vnd.format(court.pricePerHour)}đ/giờ',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: AppColors.neutral500,
-                  ),
-                ),
-                if (court.address != null && court.address!.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 11, color: AppColors.neutral400),
-                      const SizedBox(width: 3),
-                      Flexible(
-                        child: Text(
-                          court.address!,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            color: AppColors.neutral400,
-                          ),
-                        ),
-                      ),
-                      if (court.lat != null && court.lng != null) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            color: AppColors.neutral300,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ] else if (court.lat != null && court.lng != null) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.my_location_outlined,
-                          size: 11, color: AppColors.neutral400),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11.5,
-                          color: AppColors.neutral400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-          if (!court.isActive) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 7, vertical: 2),
-              margin: const EdgeInsets.only(right: 10),
-              decoration: BoxDecoration(
-                color: AppColors.neutral100,
-                borderRadius: BorderRadius.circular(99),
-              ),
-              child: Text(
-                'Ngưng',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutral500,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
-          OutlinedButton(
-            onPressed: onEdit,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 6),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: AppColors.neutral700,
-              side: const BorderSide(color: AppColors.neutral200),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6)),
-              textStyle: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600, fontSize: 12.5),
-            ),
-            child: const Text('Sửa'),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 14, color: AppColors.neutral400),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyCourtState extends StatelessWidget {
-  const _EmptyCourtState({required this.onAdd});
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-      child: Column(
-        children: [
-          const Icon(Icons.sports_soccer_outlined,
-              size: 32, color: AppColors.neutral300),
-          const SizedBox(height: 12),
-          Text(
-            'Chưa có sân nào',
-            style: GoogleFonts.sora(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutral600,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Tạo sân đầu tiên để bắt đầu nhận booking.',
-            style: GoogleFonts.plusJakartaSans(
-                fontSize: 13, color: AppColors.neutral400),
-          ),
-          const SizedBox(height: 16),
-          Semantics(
-            label: 'create-first-court-btn',
-            button: true,
-            child: FilledButton.icon(
-            icon: const Icon(Icons.add_rounded, size: 16),
-            label: const Text('Tạo sân đầu tiên'),
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              textStyle: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-            onPressed: onAdd,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
