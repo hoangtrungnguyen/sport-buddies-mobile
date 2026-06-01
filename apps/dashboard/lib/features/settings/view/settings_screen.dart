@@ -314,15 +314,18 @@ class _TocItem extends StatelessWidget {
                         ? AppColors.primaryDark
                         : AppColors.neutral500),
                 const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight:
-                        active ? FontWeight.w600 : FontWeight.w500,
-                    color: active
-                        ? AppColors.primaryDark
-                        : AppColors.neutral700,
+                Flexible(
+                  child: Text(
+                    label,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight:
+                          active ? FontWeight.w600 : FontWeight.w500,
+                      color: active
+                          ? AppColors.primaryDark
+                          : AppColors.neutral700,
+                    ),
                   ),
                 ),
               ],
@@ -379,7 +382,6 @@ class _AutoApproveSectionState extends State<_AutoApproveSection> {
           );
 
     return Container(
-      key: widget.key,
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
@@ -480,11 +482,7 @@ class _AutoApproveSectionState extends State<_AutoApproveSection> {
                       );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        value
-                            ? 'Đã bật tự động duyệt cho ${court.name}.'
-                            : 'Đã tắt tự động duyệt cho ${court.name}.',
-                      ),
+                      content: const Text('Đã lưu cài đặt'),
                       backgroundColor: AppColors.neutral800,
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 2),
