@@ -4,10 +4,14 @@
 // Design reference: EPIC-6 My Bookings.html
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'history_cubit.dart';
+import 'history_state.dart';
 import 'mock_booking.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -18,7 +22,11 @@ class MyBookingsPage extends StatelessWidget {
   const MyBookingsPage({super.key});
 
   @override
-  Widget build(BuildContext context) => const MyBookingsScreen();
+  Widget build(BuildContext context) => BlocProvider(
+        create: (_) =>
+            HistoryCubit(Supabase.instance.client)..loadHistory(),
+        child: const MyBookingsScreen(),
+      );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,12 +70,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     };
   }
 
-  List<MockBooking> get _filteredHistory {
-    final all = mockHistoryBookings;
+  List<MockBooking> _filteredHistory(List<HistoryBookingItem> items) {
+    final all = items.map((i) => i.toMockBooking()).toList();
     if (_historyFilter == null) return all;
     return switch (_historyFilter!) {
-      'completed' => all.where((b) => b.status == BookingStatus.completed).toList(),
-      'cancelled' => all.where((b) => b.status == BookingStatus.cancelled).toList(),
+      'completed' =>
+        items.where((i) => i.dbStatus == 'completed').map((i) => i.toMockBooking()).toList(),
+      'cancelled' =>
+        items.where((i) => i.dbStatus == 'cancelled').map((i) => i.toMockBooking()).toList(),
       _ => all,
     };
   }
@@ -93,10 +103,28 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                   onFilterChanged: (f) => setState(() => _upcomingFilter = f),
                 ),
                 const _PendingTabView(),
-                _HistoryTabView(
-                  bookings: _filteredHistory,
-                  activeFilter: _historyFilter,
-                  onFilterChanged: (f) => setState(() => _historyFilter = f),
+                BlocBuilder<HistoryCubit, HistoryState>(
+                  builder: (context, historyState) => switch (historyState) {
+                    HistoryLoading() => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    HistoryError(:final message) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Text(
+                            message,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: AppColors.neutral500),
+                          ),
+                        ),
+                      ),
+                    HistoryLoaded(:final items) => _HistoryTabView(
+                        bookings: _filteredHistory(items),
+                        activeFilter: _historyFilter,
+                        onFilterChanged: (f) =>
+                            setState(() => _historyFilter = f),
+                      ),
+                  },
                 ),
               ],
             ),
