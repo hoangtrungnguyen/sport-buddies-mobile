@@ -841,6 +841,53 @@ class _CourtRow extends StatelessWidget {
                     color: AppColors.neutral500,
                   ),
                 ),
+                if (court.address != null && court.address!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined,
+                          size: 11, color: AppColors.neutral400),
+                      const SizedBox(width: 3),
+                      Flexible(
+                        child: Text(
+                          court.address!,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11.5,
+                            color: AppColors.neutral400,
+                          ),
+                        ),
+                      ),
+                      if (court.lat != null && court.lng != null) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: AppColors.neutral300,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ] else if (court.lat != null && court.lng != null) ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      const Icon(Icons.my_location_outlined,
+                          size: 11, color: AppColors.neutral400),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppColors.neutral400,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

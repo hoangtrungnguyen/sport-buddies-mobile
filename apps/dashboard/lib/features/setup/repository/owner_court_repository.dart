@@ -6,7 +6,7 @@ class OwnerCourtRepository {
   final SupabaseClient _client;
 
   static const _cols =
-      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, status, auto_approve_single';
+      'id, name, sport_types, capacity, price_per_hour, operating_hours, address, description, amenities, lat, lng, status, auto_approve_single';
 
   Future<List<OwnerCourt>> getCourts() async {
     final uid = _client.auth.currentUser?.id;
@@ -29,6 +29,11 @@ class OwnerCourtRepository {
     required int openHour,
     required int closeHour,
     required int pricePerHour,
+    String? address,
+    String? description,
+    List<String> amenities = const [],
+    double? lat,
+    double? lng,
   }) async {
     final uid = _client.auth.currentUser!.id;
     final slug = _slugify('$name-${DateTime.now().millisecondsSinceEpoch}');
@@ -41,6 +46,11 @@ class OwnerCourtRepository {
           'capacity': capacity,
           'price_per_hour': pricePerHour,
           'operating_hours': {'open': openHour, 'close': closeHour},
+          'address': address,
+          'description': description,
+          'amenities': amenities,
+          'lat': lat,
+          'lng': lng,
           'owner_id': uid,
           'status': 'approved',
         })
@@ -57,6 +67,11 @@ class OwnerCourtRepository {
     required int openHour,
     required int closeHour,
     required int pricePerHour,
+    String? address,
+    String? description,
+    List<String> amenities = const [],
+    double? lat,
+    double? lng,
   }) async {
     final row = await _client
         .from('courts')
@@ -66,6 +81,11 @@ class OwnerCourtRepository {
           'capacity': capacity,
           'price_per_hour': pricePerHour,
           'operating_hours': {'open': openHour, 'close': closeHour},
+          'address': address,
+          'description': description,
+          'amenities': amenities,
+          'lat': lat,
+          'lng': lng,
         })
         .eq('id', id)
         .select(_cols)

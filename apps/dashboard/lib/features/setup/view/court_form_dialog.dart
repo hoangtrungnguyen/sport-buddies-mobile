@@ -36,9 +36,15 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
   late final TextEditingController _nameCtrl;
   late final TextEditingController _capacityCtrl;
   late final TextEditingController _priceCtrl;
+  late final TextEditingController _addressCtrl;
+  late final TextEditingController _latCtrl;
+  late final TextEditingController _lngCtrl;
+  late final TextEditingController _descCtrl;
   late Set<String> _selectedSports;
+  late Set<String> _selectedAmenities;
   late int _openHour;
   late int _closeHour;
+  late bool _isActive;
   bool _saving = false;
   String? _error;
 
@@ -53,9 +59,17 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
         TextEditingController(text: c?.capacity.toString() ?? '4');
     _priceCtrl = TextEditingController(
         text: c?.pricePerHour != 0 ? c?.pricePerHour.toString() ?? '' : '');
+    _addressCtrl = TextEditingController(text: c?.address ?? '');
+    _latCtrl = TextEditingController(
+        text: c?.lat != null ? c!.lat!.toStringAsFixed(6) : '');
+    _lngCtrl = TextEditingController(
+        text: c?.lng != null ? c!.lng!.toStringAsFixed(6) : '');
+    _descCtrl = TextEditingController(text: c?.description ?? '');
     _selectedSports = Set<String>.from(c?.sportTypes ?? []);
+    _selectedAmenities = Set<String>.from(c?.amenities ?? []);
     _openHour = c?.openHour ?? 6;
     _closeHour = c?.closeHour ?? 22;
+    _isActive = c?.isActive ?? true;
   }
 
   @override
@@ -63,6 +77,10 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
     _nameCtrl.dispose();
     _capacityCtrl.dispose();
     _priceCtrl.dispose();
+    _addressCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    _descCtrl.dispose();
     super.dispose();
   }
 
@@ -74,13 +92,17 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
       return;
     }
     if (_closeHour <= _openHour) {
-      setState(
-          () => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
+      setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
       return;
     }
 
     setState(() => _saving = true);
     try {
+      final address = _addressCtrl.text.trim();
+      final desc = _descCtrl.text.trim();
+      final lat = double.tryParse(_latCtrl.text.trim());
+      final lng = double.tryParse(_lngCtrl.text.trim());
+
       if (_isEdit) {
         await widget.repository.updateCourt(
           widget.court!.id,
@@ -90,7 +112,20 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
           openHour: _openHour,
           closeHour: _closeHour,
           pricePerHour: int.parse(_priceCtrl.text),
+          address: address.isEmpty ? null : address,
+          description: desc.isEmpty ? null : desc,
+          amenities: _selectedAmenities.toList(),
+          lat: lat,
+          lng: lng,
         );
+        // Handle active/inactive status change
+        if (_isActive != widget.court!.isActive) {
+          if (_isActive) {
+            await widget.repository.reactivateCourt(widget.court!.id);
+          } else {
+            await widget.repository.deactivateCourt(widget.court!.id);
+          }
+        }
       } else {
         await widget.repository.createCourt(
           name: _nameCtrl.text.trim(),
@@ -99,6 +134,11 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
           openHour: _openHour,
           closeHour: _closeHour,
           pricePerHour: int.parse(_priceCtrl.text),
+          address: address.isEmpty ? null : address,
+          description: desc.isEmpty ? null : desc,
+          amenities: _selectedAmenities.toList(),
+          lat: lat,
+          lng: lng,
         );
       }
       if (mounted) Navigator.of(context).pop(true);
@@ -138,8 +178,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon:
-                          const Icon(Icons.close_rounded, size: 20),
+                      icon: const Icon(Icons.close_rounded, size: 20),
                       color: AppColors.neutral500,
                       onPressed: _saving
                           ? null
@@ -158,8 +197,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       color: AppColors.dangerBg,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                          color:
-                              AppColors.danger.withValues(alpha: 0.3)),
+                          color: AppColors.danger.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,19 +227,118 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                   label: 'court-name-field',
                   textField: true,
                   child: TextFormField(
-                  controller: _nameCtrl,
-                  style:
-                      GoogleFonts.plusJakartaSans(fontSize: 14),
-                  decoration: const InputDecoration(
-                      hintText: 'Ví dụ: Sân 1, Pickleball A'),
-                  validator: (v) => (v?.trim().isEmpty ?? true)
-                      ? 'Vui lòng nhập tên sân.'
-                      : null,
+                    controller: _nameCtrl,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                    decoration:
+                        const InputDecoration(hintText: 'Ví dụ: Sân 1, Pickleball A'),
+                    validator: (v) => (v?.trim().isEmpty ?? true)
+                        ? 'Vui lòng nhập tên sân.'
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 18),
 
-                // Môn thể thao (multi-select chips)
+                // Địa chỉ
+                _Label('Địa chỉ'),
+                const SizedBox(height: 6),
+                Semantics(
+                  label: 'court-address-field',
+                  textField: true,
+                  child: TextFormField(
+                    controller: _addressCtrl,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                    decoration: const InputDecoration(
+                        hintText: 'Ví dụ: 123 Nguyễn Văn Linh, Q7, TP.HCM'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Vĩ độ + Kinh độ
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _Label('Vĩ độ (lat)'),
+                          const SizedBox(height: 6),
+                          Semantics(
+                            label: 'court-lat-field',
+                            textField: true,
+                            child: TextFormField(
+                              controller: _latCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true, signed: true),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                              decoration: const InputDecoration(
+                                  hintText: '10.762622'),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                final n = double.tryParse(v.trim());
+                                if (n == null || n < -90 || n > 90) {
+                                  return '-90 đến 90';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _Label('Kinh độ (lng)'),
+                          const SizedBox(height: 6),
+                          Semantics(
+                            label: 'court-lng-field',
+                            textField: true,
+                            child: TextFormField(
+                              controller: _lngCtrl,
+                              keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true, signed: true),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                              decoration: const InputDecoration(
+                                  hintText: '106.660172'),
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return null;
+                                final n = double.tryParse(v.trim());
+                                if (n == null || n < -180 || n > 180) {
+                                  return '-180 đến 180';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+
+                // Mô tả
+                _Label('Mô tả'),
+                const SizedBox(height: 6),
+                Semantics(
+                  label: 'court-description-field',
+                  textField: true,
+                  child: TextFormField(
+                    controller: _descCtrl,
+                    style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      hintText:
+                          'Mô tả ngắn về sân, tiện ích, lưu ý cho khách...',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+
+                // Môn thể thao
                 _Label('Môn thể thao'),
                 const SizedBox(height: 8),
                 Wrap(
@@ -213,35 +350,80 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       label: 'sport-chip-$sport',
                       button: true,
                       child: FilterChip(
-                      label: Text(sport),
-                      selected: selected,
-                      onSelected: (v) => setState(() {
-                        if (v) {
-                          _selectedSports.add(sport);
-                        } else {
-                          _selectedSports.remove(sport);
-                        }
-                      }),
-                      labelStyle: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: selected
-                            ? FontWeight.w600
-                            : FontWeight.w400,
-                        color: selected
-                            ? AppColors.primaryDark
-                            : AppColors.neutral700,
+                        label: Text(sport),
+                        selected: selected,
+                        onSelected: (v) => setState(() {
+                          if (v) {
+                            _selectedSports.add(sport);
+                          } else {
+                            _selectedSports.remove(sport);
+                          }
+                        }),
+                        labelStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w400,
+                          color: selected
+                              ? AppColors.primaryDark
+                              : AppColors.neutral700,
+                        ),
+                        selectedColor: AppColors.primaryLight,
+                        backgroundColor: AppColors.neutral100,
+                        checkmarkColor: AppColors.primary,
+                        side: BorderSide(
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.neutral200,
+                        ),
+                        showCheckmark: true,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
                       ),
-                      selectedColor: AppColors.primaryLight,
-                      backgroundColor: AppColors.neutral100,
-                      checkmarkColor: AppColors.primary,
-                      side: BorderSide(
-                        color: selected
-                            ? AppColors.primary
-                            : AppColors.neutral200,
-                      ),
-                      showCheckmark: true,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 2),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 18),
+
+                // Tiện ích
+                _Label('Tiện ích'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: kAmenities.map((amenity) {
+                    final selected = _selectedAmenities.contains(amenity);
+                    return Semantics(
+                      label: 'amenity-chip-$amenity',
+                      button: true,
+                      child: FilterChip(
+                        label: Text(amenity),
+                        selected: selected,
+                        onSelected: (v) => setState(() {
+                          if (v) {
+                            _selectedAmenities.add(amenity);
+                          } else {
+                            _selectedAmenities.remove(amenity);
+                          }
+                        }),
+                        labelStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w400,
+                          color: selected
+                              ? AppColors.primaryDark
+                              : AppColors.neutral700,
+                        ),
+                        selectedColor: AppColors.primaryLight,
+                        backgroundColor: AppColors.neutral100,
+                        checkmarkColor: AppColors.primary,
+                        side: BorderSide(
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.neutral200,
+                        ),
+                        showCheckmark: true,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
                       ),
                     );
                   }).toList(),
@@ -254,8 +436,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                   children: [
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _Label('Sức chứa (người)'),
                           const SizedBox(height: 6),
@@ -265,15 +446,13 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
                             ],
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14),
-                            decoration: const InputDecoration(
-                                hintText: '4'),
+                            style:
+                                GoogleFonts.plusJakartaSans(fontSize: 14),
+                            decoration:
+                                const InputDecoration(hintText: '4'),
                             validator: (v) {
                               final n = int.tryParse(v ?? '');
-                              if (n == null || n < 1) {
-                                return 'Tối thiểu 1';
-                              }
+                              if (n == null || n < 1) return 'Tối thiểu 1';
                               return null;
                             },
                           ),
@@ -283,8 +462,7 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _Label('Giá / giờ (đồng)'),
                           const SizedBox(height: 6),
@@ -294,8 +472,8 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly
                             ],
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 14),
+                            style:
+                                GoogleFonts.plusJakartaSans(fontSize: 14),
                             decoration: const InputDecoration(
                                 hintText: '350000'),
                             validator: (v) {
@@ -322,28 +500,87 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       child: _HourDropdown(
                         label: 'Mở cửa',
                         value: _openHour,
-                        onChanged: (v) =>
-                            setState(() => _openHour = v),
+                        onChanged: (v) => setState(() => _openHour = v),
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12),
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 12),
                       child: Text('–',
                           style: GoogleFonts.sora(
-                              fontSize: 16,
-                              color: AppColors.neutral400)),
+                              fontSize: 16, color: AppColors.neutral400)),
                     ),
                     Expanded(
                       child: _HourDropdown(
                         label: 'Đóng cửa',
                         value: _closeHour,
-                        onChanged: (v) =>
-                            setState(() => _closeHour = v),
+                        onChanged: (v) => setState(() => _closeHour = v),
                       ),
                     ),
                   ],
                 ),
+
+                // Active toggle (edit only)
+                if (_isEdit) ...[
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _isActive
+                          ? AppColors.neutral50
+                          : AppColors.dangerBg,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _isActive
+                            ? AppColors.neutral200
+                            : AppColors.danger.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Trạng thái hoạt động',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.neutral700,
+                                ),
+                              ),
+                              Text(
+                                _isActive
+                                    ? 'Sân đang hoạt động — khách có thể đặt.'
+                                    : 'Sân đang tạm ngưng — khách không thể đặt.',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: _isActive
+                                      ? AppColors.neutral500
+                                      : AppColors.danger,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Semantics(
+                          label: 'court-active-toggle',
+                          toggled: _isActive,
+                          child: Switch(
+                            value: _isActive,
+                            onChanged: _saving
+                                ? null
+                                : (v) => setState(() => _isActive = v),
+                            activeTrackColor: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 28),
 
                 // Actions
@@ -353,20 +590,16 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                       child: OutlinedButton(
                         onPressed: _saving
                             ? null
-                            : () =>
-                                Navigator.of(context).pop(false),
+                            : () => Navigator.of(context).pop(false),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.neutral700,
                           side: const BorderSide(
                               color: AppColors.neutral200),
                           shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
+                              borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           textStyle: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14),
+                              fontWeight: FontWeight.w600, fontSize: 14),
                         ),
                         child: const Text('Huỷ'),
                       ),
@@ -378,29 +611,25 @@ class _CourtFormDialogState extends State<CourtFormDialog> {
                         label: 'court-form-submit-btn',
                         button: true,
                         child: FilledButton(
-                        onPressed: _saving ? null : _submit,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(10)),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
-                          textStyle: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14),
-                        ),
-                        child: _saving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white),
-                              )
-                            : Text(
-                                _isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
+                          onPressed: _saving ? null : _submit,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 14),
+                            textStyle: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w600, fontSize: 14),
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: Colors.white),
+                                )
+                              : Text(_isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
                         ),
                       ),
                     ),
@@ -459,8 +688,7 @@ class _HourDropdown extends StatelessWidget {
         items: List.generate(17, (i) => i + 6)
             .map((h) => DropdownMenuItem(
                   value: h,
-                  child:
-                      Text('${h.toString().padLeft(2, '0')}:00'),
+                  child: Text('${h.toString().padLeft(2, '0')}:00'),
                 ))
             .toList(),
         onChanged: (v) {

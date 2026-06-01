@@ -1,47 +1,64 @@
-class OwnerCourt {
-  const OwnerCourt({
-    required this.id,
-    required this.name,
-    required this.sportTypes,
-    required this.capacity,
-    required this.openHour,
-    required this.closeHour,
-    required this.pricePerHour,
-    required this.isActive,
-    this.address,
-    this.autoApproveSingle = false,
-  });
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  final String id;
-  final String name;
+part 'owner_court.freezed.dart';
 
-  /// Matches `courts.sport_types  text[]`
-  final List<String> sportTypes;
+const kAmenities = [
+  'Bãi đậu xe',
+  'Phòng thay đồ',
+  'Nhà vệ sinh',
+  'Căng tin',
+  'Thuê thiết bị',
+  'WiFi',
+  'Đèn chiếu sáng',
+  'Mái che',
+];
 
-  final int capacity;
+@freezed
+abstract class OwnerCourt with _$OwnerCourt {
+  const OwnerCourt._();
 
-  /// Stored in `courts.operating_hours  jsonb` as {"open":6,"close":22}
-  final int openHour;
-  final int closeHour;
+  const factory OwnerCourt({
+    required String id,
+    required String name,
 
-  /// Matches `courts.price_per_hour  numeric`
-  final int pricePerHour;
+    /// `courts.sport_types  text[]`
+    required List<String> sportTypes,
 
-  /// `courts.status != 'inactive'`
-  final bool isActive;
+    required int capacity,
 
-  final String? address;
+    /// From `courts.operating_hours  jsonb` as {"open":6,"close":22}
+    required int openHour,
+    required int closeHour,
 
-  /// Whether single-time booking requests are auto-approved for this court
-  /// (`courts.auto_approve_single`). OWNER-44/45.
-  final bool autoApproveSingle;
+    /// `courts.price_per_hour  numeric`
+    required int pricePerHour,
 
-  /// First sport type for display convenience.
-  String get primarySport =>
-      sportTypes.isNotEmpty ? sportTypes.first : '';
+    /// `courts.status != 'inactive'`
+    required bool isActive,
+
+    /// `courts.address`
+    String? address,
+
+    /// `courts.description`
+    String? description,
+
+    /// `courts.amenities  text[]`
+    @Default([]) List<String> amenities,
+
+    /// `courts.lat` / `courts.lng`
+    double? lat,
+    double? lng,
+
+    /// `courts.auto_approve_single` — OWNER-44/45
+    @Default(false) bool autoApproveSingle,
+  }) = _OwnerCourt;
 
   factory OwnerCourt.fromJson(Map<String, dynamic> json) {
     final sports = (json['sport_types'] as List?)
+            ?.map((e) => e as String)
+            .toList() ??
+        [];
+    final amenities = (json['amenities'] as List?)
             ?.map((e) => e as String)
             .toList() ??
         [];
@@ -56,31 +73,13 @@ class OwnerCourt {
       pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
       isActive: (json['status'] as String?) != 'inactive',
       address: json['address'] as String?,
-      autoApproveSingle:
-          (json['auto_approve_single'] as bool?) ?? false,
+      description: json['description'] as String?,
+      amenities: amenities,
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
+      autoApproveSingle: (json['auto_approve_single'] as bool?) ?? false,
     );
   }
 
-  OwnerCourt copyWith({
-    String? name,
-    List<String>? sportTypes,
-    int? capacity,
-    int? openHour,
-    int? closeHour,
-    int? pricePerHour,
-    bool? isActive,
-    bool? autoApproveSingle,
-  }) =>
-      OwnerCourt(
-        id: id,
-        name: name ?? this.name,
-        sportTypes: sportTypes ?? this.sportTypes,
-        capacity: capacity ?? this.capacity,
-        openHour: openHour ?? this.openHour,
-        closeHour: closeHour ?? this.closeHour,
-        pricePerHour: pricePerHour ?? this.pricePerHour,
-        isActive: isActive ?? this.isActive,
-        address: address,
-        autoApproveSingle: autoApproveSingle ?? this.autoApproveSingle,
-      );
+  String get primarySport => sportTypes.isNotEmpty ? sportTypes.first : '';
 }
