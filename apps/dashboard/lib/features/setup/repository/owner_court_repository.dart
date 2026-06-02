@@ -6,7 +6,7 @@ class OwnerCourtRepository {
   final SupabaseClient _client;
 
   static const _cols =
-      'id, name, operating_hours, address, description, amenities, lat, lng, status, auto_approve_single';
+      'id, name, operating_hours, address, description, amenities, lat, lng, status, auto_approve_single, additional_info';
 
   Future<List<OwnerCourt>> getCourts() async {
     final uid = _client.auth.currentUser?.id;
@@ -31,6 +31,7 @@ class OwnerCourtRepository {
     List<String> amenities = const [],
     double? lat,
     double? lng,
+    Map<String, dynamic> additionalInfo = const {},
   }) async {
     final uid = _client.auth.currentUser!.id;
     final slug = _slugify('$name-${DateTime.now().millisecondsSinceEpoch}');
@@ -43,6 +44,7 @@ class OwnerCourtRepository {
       'amenities': amenities,
       'lat': lat,
       'lng': lng,
+      'additional_info': additionalInfo,
       'owner_id': uid,
       'status': 'approved',
     }).select(_cols).single();
@@ -59,6 +61,7 @@ class OwnerCourtRepository {
     List<String> amenities = const [],
     double? lat,
     double? lng,
+    Map<String, dynamic> additionalInfo = const {},
   }) async {
     final row = await _client.from('courts').update({
       'name': name,
@@ -68,8 +71,21 @@ class OwnerCourtRepository {
       'amenities': amenities,
       'lat': lat,
       'lng': lng,
+      'additional_info': additionalInfo,
     }).eq('id', id).select(_cols).single();
     return OwnerCourt.fromJson(row);
+  }
+
+  /// Replaces `courts.additional_info` for [courtId].
+  /// Caller is responsible for merging existing keys before calling.
+  Future<void> updateAdditionalInfo(
+    String courtId,
+    Map<String, dynamic> additionalInfo,
+  ) async {
+    await _client
+        .from('courts')
+        .update({'additional_info': additionalInfo})
+        .eq('id', courtId);
   }
 
   /// Persists `courts.auto_approve_single` for [courtId] (OWNER-44/45).

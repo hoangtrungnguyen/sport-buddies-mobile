@@ -126,7 +126,9 @@ class _CourtCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = AppColors.primary;
 
-    return Container(
+    return GestureDetector(
+      onTap: () => context.push('/courts/${court.id}'),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -235,6 +237,7 @@ class _CourtCard extends StatelessWidget {
             child: const Text('Sửa'),
           ),
         ],
+      ),
       ),
     );
   }

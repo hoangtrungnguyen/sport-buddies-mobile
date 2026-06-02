@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../../setup/bloc/court_bloc.dart';
+import '../../setup/bloc/court_event.dart';
 import '../../setup/bloc/court_state.dart';
 import '../../setup/model/owner_court.dart';
+import '../../setup/repository/owner_court_repository.dart';
 import '../bloc/venue_bloc.dart';
 import '../model/venue.dart';
 
@@ -93,12 +95,76 @@ class CourtDetailScreen extends StatelessWidget {
 // Court info card (left panel)
 // ---------------------------------------------------------------------------
 
-class _CourtInfoCard extends StatelessWidget {
+class _CourtInfoCard extends StatefulWidget {
   const _CourtInfoCard({required this.court});
   final OwnerCourt court;
 
   @override
+  State<_CourtInfoCard> createState() => _CourtInfoCardState();
+}
+
+class _CourtInfoCardState extends State<_CourtInfoCard> {
+  bool _editingMaps = false;
+  bool _savingMaps = false;
+  late final TextEditingController _mapsCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapsCtrl = TextEditingController(
+        text: widget.court.googleMapsUrl ?? '');
+  }
+
+  @override
+  void didUpdateWidget(_CourtInfoCard old) {
+    super.didUpdateWidget(old);
+    if (!_editingMaps &&
+        old.court.googleMapsUrl != widget.court.googleMapsUrl) {
+      _mapsCtrl.text = widget.court.googleMapsUrl ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapsCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveMapsUrl() async {
+    setState(() => _savingMaps = true);
+    try {
+      final url = _mapsCtrl.text.trim();
+      final merged = Map<String, dynamic>.from(widget.court.additionalInfo)
+        ..['google_maps_url'] = url.isEmpty ? null : url;
+      await context
+          .read<OwnerCourtRepository>()
+          .updateAdditionalInfo(widget.court.id, merged);
+      if (!mounted) return;
+      context.read<CourtBloc>().add(const CourtEvent.loadRequested());
+      setState(() => _editingMaps = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã lưu liên kết Google Maps'),
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không thể lưu. Vui lòng thử lại.'),
+          backgroundColor: AppColors.danger,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _savingMaps = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final court = widget.court;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -157,12 +223,9 @@ class _CourtInfoCard extends StatelessWidget {
           const Divider(height: 1, color: AppColors.neutral100),
           const SizedBox(height: 16),
 
-          // Fields
+          // Static info rows
           if (court.address != null && court.address!.isNotEmpty)
-            _InfoRow(
-              icon: Icons.location_on_outlined,
-              text: court.address!,
-            ),
+            _InfoRow(icon: Icons.location_on_outlined, text: court.address!),
           if (court.lat != null && court.lng != null)
             _InfoRow(
               icon: Icons.my_location_outlined,
@@ -187,12 +250,10 @@ class _CourtInfoCard extends StatelessWidget {
                           color: AppColors.neutral100,
                           borderRadius: BorderRadius.circular(99),
                         ),
-                        child: Text(
-                          a,
-                          style: GoogleFonts.plusJakartaSans(
-                              fontSize: 11.5,
-                              color: AppColors.neutral600),
-                        ),
+                        child: Text(a,
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                color: AppColors.neutral600)),
                       ))
                   .toList(),
             ),
@@ -203,12 +264,136 @@ class _CourtInfoCard extends StatelessWidget {
             Text(
               court.description!,
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                color: AppColors.neutral500,
-                height: 1.5,
-              ),
+                  fontSize: 13,
+                  color: AppColors.neutral500,
+                  height: 1.5),
             ),
           ],
+
+          // Google Maps URL
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.neutral100),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              const Icon(Icons.map_outlined,
+                  size: 14, color: AppColors.neutral500),
+              const SizedBox(width: 6),
+              Text(
+                'Google Maps',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral600,
+                ),
+              ),
+              const Spacer(),
+              if (!_editingMaps)
+                GestureDetector(
+                  onTap: () => setState(() => _editingMaps = true),
+                  child: const Icon(Icons.edit_outlined,
+                      size: 14, color: AppColors.neutral400),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (_editingMaps) ...[
+            TextField(
+              controller: _mapsCtrl,
+              style: GoogleFonts.plusJakartaSans(fontSize: 13),
+              decoration: InputDecoration(
+                hintText:
+                    'https://maps.google.com/?q=...',
+                hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 13, color: AppColors.neutral400),
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 9),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(color: AppColors.neutral200)),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(color: AppColors.neutral200)),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _savingMaps
+                        ? null
+                        : () {
+                            _mapsCtrl.text =
+                                court.googleMapsUrl ?? '';
+                            setState(() => _editingMaps = false);
+                          },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.neutral600,
+                      side: const BorderSide(
+                          color: AppColors.neutral200),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 8),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    child: const Text('Huỷ'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 2,
+                  child: FilledButton(
+                    onPressed: _savingMaps ? null : _saveMapsUrl,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 8),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600),
+                    ),
+                    child: _savingMaps
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white))
+                        : const Text('Lưu'),
+                  ),
+                ),
+              ],
+            ),
+          ] else if (court.googleMapsUrl != null &&
+              court.googleMapsUrl!.isNotEmpty) ...[
+            Text(
+              court.googleMapsUrl!,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12.5,
+                color: AppColors.primary,
+                decoration: TextDecoration.underline,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ] else ...[
+            Text(
+              'Chưa có liên kết — nhấn ✏ để thêm',
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5, color: AppColors.neutral400),
+            ),
+          ],
+
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,

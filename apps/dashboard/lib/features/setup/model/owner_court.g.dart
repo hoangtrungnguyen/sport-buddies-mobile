@@ -20,6 +20,8 @@ _OwnerCourt _$OwnerCourtFromJson(Map<String, dynamic> json) => _OwnerCourt(
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
       autoApproveSingle: json['auto_approve_single'] as bool? ?? false,
+      additionalInfo:
+          json['additional_info'] as Map<String, dynamic>? ?? const {},
     );
 
 Map<String, dynamic> _$OwnerCourtToJson(_OwnerCourt instance) =>
@@ -34,4 +36,5 @@ Map<String, dynamic> _$OwnerCourtToJson(_OwnerCourt instance) =>
       'lat': instance.lat,
       'lng': instance.lng,
       'auto_approve_single': instance.autoApproveSingle,
+      'additional_info': instance.additionalInfo,
     };

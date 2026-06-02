@@ -44,6 +44,11 @@ mixin _$OwnerCourt {
   @JsonKey(name: 'auto_approve_single')
   bool get autoApproveSingle;
 
+  /// `courts.additional_info  jsonb` — arbitrary key/value metadata.
+  /// Known keys: `google_maps_url`.
+  @JsonKey(name: 'additional_info')
+  Map<String, dynamic> get additionalInfo;
+
   /// Create a copy of OwnerCourt
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -72,7 +77,9 @@ mixin _$OwnerCourt {
             (identical(other.lat, lat) || other.lat == lat) &&
             (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.autoApproveSingle, autoApproveSingle) ||
-                other.autoApproveSingle == autoApproveSingle));
+                other.autoApproveSingle == autoApproveSingle) &&
+            const DeepCollectionEquality()
+                .equals(other.additionalInfo, additionalInfo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -88,11 +95,12 @@ mixin _$OwnerCourt {
       const DeepCollectionEquality().hash(amenities),
       lat,
       lng,
-      autoApproveSingle);
+      autoApproveSingle,
+      const DeepCollectionEquality().hash(additionalInfo));
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle, additionalInfo: $additionalInfo)';
   }
 }
 
@@ -116,7 +124,8 @@ abstract mixin class $OwnerCourtCopyWith<$Res> {
       List<String> amenities,
       double? lat,
       double? lng,
-      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle});
+      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle,
+      @JsonKey(name: 'additional_info') Map<String, dynamic> additionalInfo});
 }
 
 /// @nodoc
@@ -141,6 +150,7 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
     Object? lat = freezed,
     Object? lng = freezed,
     Object? autoApproveSingle = null,
+    Object? additionalInfo = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -183,6 +193,10 @@ class _$OwnerCourtCopyWithImpl<$Res> implements $OwnerCourtCopyWith<$Res> {
           ? _self.autoApproveSingle
           : autoApproveSingle // ignore: cast_nullable_to_non_nullable
               as bool,
+      additionalInfo: null == additionalInfo
+          ? _self.additionalInfo
+          : additionalInfo // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }
@@ -295,7 +309,9 @@ extension OwnerCourtPatterns on OwnerCourt {
             List<String> amenities,
             double? lat,
             double? lng,
-            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)?
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle,
+            @JsonKey(name: 'additional_info')
+            Map<String, dynamic> additionalInfo)?
         $default, {
     required TResult orElse(),
   }) {
@@ -312,7 +328,8 @@ extension OwnerCourtPatterns on OwnerCourt {
             _that.amenities,
             _that.lat,
             _that.lng,
-            _that.autoApproveSingle);
+            _that.autoApproveSingle,
+            _that.additionalInfo);
       case _:
         return orElse();
     }
@@ -348,7 +365,9 @@ extension OwnerCourtPatterns on OwnerCourt {
             List<String> amenities,
             double? lat,
             double? lng,
-            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle,
+            @JsonKey(name: 'additional_info')
+            Map<String, dynamic> additionalInfo)
         $default,
   ) {
     final _that = this;
@@ -364,7 +383,8 @@ extension OwnerCourtPatterns on OwnerCourt {
             _that.amenities,
             _that.lat,
             _that.lng,
-            _that.autoApproveSingle);
+            _that.autoApproveSingle,
+            _that.additionalInfo);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -399,7 +419,9 @@ extension OwnerCourtPatterns on OwnerCourt {
             List<String> amenities,
             double? lat,
             double? lng,
-            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle)?
+            @JsonKey(name: 'auto_approve_single') bool autoApproveSingle,
+            @JsonKey(name: 'additional_info')
+            Map<String, dynamic> additionalInfo)?
         $default,
   ) {
     final _that = this;
@@ -415,7 +437,8 @@ extension OwnerCourtPatterns on OwnerCourt {
             _that.amenities,
             _that.lat,
             _that.lng,
-            _that.autoApproveSingle);
+            _that.autoApproveSingle,
+            _that.additionalInfo);
       case _:
         return null;
     }
@@ -440,9 +463,12 @@ class _OwnerCourt extends OwnerCourt {
       final List<String> amenities = const [],
       this.lat,
       this.lng,
-      @JsonKey(name: 'auto_approve_single') this.autoApproveSingle = false})
+      @JsonKey(name: 'auto_approve_single') this.autoApproveSingle = false,
+      @JsonKey(name: 'additional_info')
+      final Map<String, dynamic> additionalInfo = const {}})
       : _operatingHours = operatingHours,
         _amenities = amenities,
+        _additionalInfo = additionalInfo,
         super._();
   factory _OwnerCourt.fromJson(Map<String, dynamic> json) =>
       _$OwnerCourtFromJson(json);
@@ -505,6 +531,20 @@ class _OwnerCourt extends OwnerCourt {
   @JsonKey(name: 'auto_approve_single')
   final bool autoApproveSingle;
 
+  /// `courts.additional_info  jsonb` — arbitrary key/value metadata.
+  /// Known keys: `google_maps_url`.
+  final Map<String, dynamic> _additionalInfo;
+
+  /// `courts.additional_info  jsonb` — arbitrary key/value metadata.
+  /// Known keys: `google_maps_url`.
+  @override
+  @JsonKey(name: 'additional_info')
+  Map<String, dynamic> get additionalInfo {
+    if (_additionalInfo is EqualUnmodifiableMapView) return _additionalInfo;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_additionalInfo);
+  }
+
   /// Create a copy of OwnerCourt
   /// with the given fields replaced by the non-null parameter values.
   @override
@@ -539,7 +579,9 @@ class _OwnerCourt extends OwnerCourt {
             (identical(other.lat, lat) || other.lat == lat) &&
             (identical(other.lng, lng) || other.lng == lng) &&
             (identical(other.autoApproveSingle, autoApproveSingle) ||
-                other.autoApproveSingle == autoApproveSingle));
+                other.autoApproveSingle == autoApproveSingle) &&
+            const DeepCollectionEquality()
+                .equals(other._additionalInfo, _additionalInfo));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -555,11 +597,12 @@ class _OwnerCourt extends OwnerCourt {
       const DeepCollectionEquality().hash(_amenities),
       lat,
       lng,
-      autoApproveSingle);
+      autoApproveSingle,
+      const DeepCollectionEquality().hash(_additionalInfo));
 
   @override
   String toString() {
-    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle)';
+    return 'OwnerCourt(id: $id, name: $name, isActive: $isActive, operatingHours: $operatingHours, address: $address, description: $description, amenities: $amenities, lat: $lat, lng: $lng, autoApproveSingle: $autoApproveSingle, additionalInfo: $additionalInfo)';
   }
 }
 
@@ -585,7 +628,8 @@ abstract mixin class _$OwnerCourtCopyWith<$Res>
       List<String> amenities,
       double? lat,
       double? lng,
-      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle});
+      @JsonKey(name: 'auto_approve_single') bool autoApproveSingle,
+      @JsonKey(name: 'additional_info') Map<String, dynamic> additionalInfo});
 }
 
 /// @nodoc
@@ -610,6 +654,7 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
     Object? lat = freezed,
     Object? lng = freezed,
     Object? autoApproveSingle = null,
+    Object? additionalInfo = null,
   }) {
     return _then(_OwnerCourt(
       id: null == id
@@ -652,6 +697,10 @@ class __$OwnerCourtCopyWithImpl<$Res> implements _$OwnerCourtCopyWith<$Res> {
           ? _self.autoApproveSingle
           : autoApproveSingle // ignore: cast_nullable_to_non_nullable
               as bool,
+      additionalInfo: null == additionalInfo
+          ? _self._additionalInfo
+          : additionalInfo // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>,
     ));
   }
 }

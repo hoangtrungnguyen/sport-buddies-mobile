@@ -62,14 +62,21 @@ abstract class OwnerCourt with _$OwnerCourt {
     @Default(false)
     @JsonKey(name: 'auto_approve_single')
     bool autoApproveSingle,
+
+    /// `courts.additional_info  jsonb` — arbitrary key/value metadata.
+    /// Known keys: `google_maps_url`.
+    @Default({})
+    @JsonKey(name: 'additional_info')
+    Map<String, dynamic> additionalInfo,
   }) = _OwnerCourt;
 
   factory OwnerCourt.fromJson(Map<String, dynamic> json) =>
       _$OwnerCourtFromJson(json);
 
-  /// Opening hour extracted from [operatingHours].
   int get openHour => (operatingHours?['open'] as num?)?.toInt() ?? 6;
-
-  /// Closing hour extracted from [operatingHours].
   int get closeHour => (operatingHours?['close'] as num?)?.toInt() ?? 22;
+
+  /// Shortcut for `additional_info.google_maps_url`.
+  String? get googleMapsUrl =>
+      additionalInfo['google_maps_url'] as String?;
 }
