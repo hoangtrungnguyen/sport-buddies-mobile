@@ -120,7 +120,10 @@ abstract class BookingRequest with _$BookingRequest {
   ///     "id": "uuid",
   ///     "start_at": "2026-05-29T11:00:00Z",
   ///     "end_at":   "2026-05-29T12:30:00Z",
-  ///     "courts": { "name": "Sân 1", "price_per_hour": 200000 }
+  ///     "courts": {
+  ///       "name": "Sân 1", "price_per_hour": 200000,
+  ///       "venues": { "sport_type": "football", "price_per_hour": 250000 }
+  ///     }
   ///   }
   /// }
   /// ```
@@ -134,10 +137,9 @@ abstract class BookingRequest with _$BookingRequest {
   /// scopes `bookings` to `courts.owner_id = auth.uid()`.
   factory BookingRequest.fromRow(Map<String, dynamic> row) {
     final slot = _asMap(row['slots']);
-    // After backend migration: slots join venues, venues join courts.
-    // Fallback: direct courts join for backward compat during transition.
-    final venue = _asMap(slot['venues']);
-    final court = venue.isNotEmpty ? _asMap(venue['courts']) : _asMap(slot['courts']);
+    // Schema: slots → courts → venues (venues.court_id FK, traversed in reverse).
+    final court = _asMap(slot['courts']);
+    final venue = _asMap(court['venues']);
 
     final start = _parseDate(slot['start_at']) ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);

@@ -35,10 +35,10 @@ class SupabaseBookingRequestRepository implements BookingRequestRepository {
 
   final SupabaseClient _client;
 
-  // After migration: slots → venues → courts. venues join included for
-  // sport_type and price fallback; courts join kept for court name.
+  // Schema: slots.court_id → courts ← venues.court_id (reverse FK).
+  // venues is reached via courts, not directly from slots.
   static const _select =
-      '*, slots!inner(id, start_at, end_at, venues(sport_type, price_per_hour, courts(name)), courts(name, price_per_hour))';
+      '*, slots!inner(id, start_at, end_at, courts(name, price_per_hour, venues(sport_type, price_per_hour)))';
 
   @override
   Future<List<BookingRequest>> fetchForDay({required DateTime day}) async {
