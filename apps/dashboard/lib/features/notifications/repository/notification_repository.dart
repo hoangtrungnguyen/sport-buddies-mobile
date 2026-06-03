@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/app_notification.dart';
@@ -9,27 +10,39 @@ class NotificationRepository {
   String? get currentUserId => _client.auth.currentUser?.id;
 
   Future<List<AppNotification>> getNotifications({int limit = 50}) async {
-    final uid = _client.auth.currentUser?.id;
-    if (uid == null) return [];
-    final rows = await _client
-        .from('notifications')
-        .select()
-        .eq('owner_id', uid)
-        .order('created_at', ascending: false)
-        .limit(limit);
-    return (rows as List)
-        .map((r) => AppNotification.fromJson(r as Map<String, dynamic>))
-        .toList();
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) return [];
+      final rows = await _client
+          .from('notifications')
+          .select()
+          .eq('owner_id', uid)
+          .order('created_at', ascending: false)
+          .limit(limit);
+      return (rows as List)
+          .map((r) => AppNotification.fromJson(r as Map<String, dynamic>))
+          .toList();
+    } catch (e, st) {
+      appLogger.e('NotificationRepository.getNotifications',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   Future<void> markAllRead() async {
-    final uid = _client.auth.currentUser?.id;
-    if (uid == null) return;
-    await _client
-        .from('notifications')
-        .update({'is_read': true})
-        .eq('owner_id', uid)
-        .eq('is_read', false);
+    try {
+      final uid = _client.auth.currentUser?.id;
+      if (uid == null) return;
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('owner_id', uid)
+          .eq('is_read', false);
+    } catch (e, st) {
+      appLogger.e('NotificationRepository.markAllRead',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   RealtimeChannel subscribeToNewNotifications(

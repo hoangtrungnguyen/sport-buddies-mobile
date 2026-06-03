@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -107,7 +108,8 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
         ),
       );
       context.pop(true);
-    } catch (e) {
+    } catch (e, st) {
+      appLogger.e('VenueForm save failed', error: e, stackTrace: st);
       setState(() {
         _saving = false;
         _error = 'Không thể lưu khu sân. Vui lòng thử lại.';

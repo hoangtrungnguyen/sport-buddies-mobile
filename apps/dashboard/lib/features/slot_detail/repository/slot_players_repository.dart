@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/slot_player.dart';
@@ -32,19 +33,25 @@ class SupabaseSlotPlayersRepository implements SlotPlayersRepository {
 
   @override
   Future<List<SlotPlayer>> fetchPlayers({required String slotId}) async {
-    final participants = await _client
-        .from('slot_participants')
-        .select('id, user_id, payment_status, payment_method, joined_at')
-        .eq('slot_id', slotId)
-        .order('joined_at');
-    final bookings = await _client
-        .from('bookings')
-        .select('id, user_id, status, customer_name, is_walk_in, total_price')
-        .eq('slot_id', slotId)
-        .neq('status', 'cancelled');
-    return mergeSlotRoster(
-      participants: (participants as List).cast<Map<String, dynamic>>(),
-      bookings: (bookings as List).cast<Map<String, dynamic>>(),
-    );
+    try {
+      final participants = await _client
+          .from('slot_participants')
+          .select('id, user_id, payment_status, payment_method, joined_at')
+          .eq('slot_id', slotId)
+          .order('joined_at');
+      final bookings = await _client
+          .from('bookings')
+          .select('id, user_id, status, customer_name, is_walk_in, total_price')
+          .eq('slot_id', slotId)
+          .neq('status', 'cancelled');
+      return mergeSlotRoster(
+        participants: (participants as List).cast<Map<String, dynamic>>(),
+        bookings: (bookings as List).cast<Map<String, dynamic>>(),
+      );
+    } catch (e, st) {
+      appLogger.e('SlotPlayersRepository.fetchPlayers',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 }

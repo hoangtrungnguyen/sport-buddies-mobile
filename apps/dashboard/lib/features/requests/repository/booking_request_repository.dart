@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/booking_request.dart';
@@ -42,22 +43,28 @@ class SupabaseBookingRequestRepository implements BookingRequestRepository {
 
   @override
   Future<List<BookingRequest>> fetchForDay({required DateTime day}) async {
-    final start = dayStartLocal(day);
-    final end = start.add(const Duration(days: 1));
-    // No server-side ordering: PostgREST's `order` on an embedded resource only
-    // reorders the nested object, not the parent `bookings` rows. The bloc owns
-    // the sort (sortByStartAsc), so ordering here would be a no-op.
-    final rows = await _client
-        .from('bookings')
-        .select(_select)
-        .gte('slots.start_at', start.toUtc().toIso8601String())
-        .lt('slots.start_at', end.toUtc().toIso8601String());
-    return (rows as List)
-        .cast<Map<String, dynamic>>()
-        // Defensive: skip any row whose slot join came back null (e.g. RLS
-        // hid the referenced slot) so it never crashes the mapper.
-        .where((r) => r['slots'] != null)
-        .map(BookingRequest.fromRow)
-        .toList();
+    try {
+      final start = dayStartLocal(day);
+      final end = start.add(const Duration(days: 1));
+      // No server-side ordering: PostgREST's `order` on an embedded resource only
+      // reorders the nested object, not the parent `bookings` rows. The bloc owns
+      // the sort (sortByStartAsc), so ordering here would be a no-op.
+      final rows = await _client
+          .from('bookings')
+          .select(_select)
+          .gte('slots.start_at', start.toUtc().toIso8601String())
+          .lt('slots.start_at', end.toUtc().toIso8601String());
+      return (rows as List)
+          .cast<Map<String, dynamic>>()
+          // Defensive: skip any row whose slot join came back null (e.g. RLS
+          // hid the referenced slot) so it never crashes the mapper.
+          .where((r) => r['slots'] != null)
+          .map(BookingRequest.fromRow)
+          .toList();
+    } catch (e, st) {
+      appLogger.e('BookingRequestRepository.fetchForDay',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 }

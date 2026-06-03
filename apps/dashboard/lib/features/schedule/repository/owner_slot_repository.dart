@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/owner_slot.dart';
@@ -76,18 +77,24 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
     required String courtId,
     required DateTime weekStart,
   }) async {
-    final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
-    final end = start.add(const Duration(days: 7));
-    final rows = await _client
-        .from('slots')
-        .select(_cols)
-        .eq('court_id', courtId)
-        .gte('start_at', start.toUtc().toIso8601String())
-        .lt('start_at', end.toUtc().toIso8601String())
-        .order('start_at');
-    return (rows as List)
-        .map((r) => OwnerSlot.fromRow(r as Map<String, dynamic>))
-        .toList();
+    try {
+      final start = DateTime(weekStart.year, weekStart.month, weekStart.day);
+      final end = start.add(const Duration(days: 7));
+      final rows = await _client
+          .from('slots')
+          .select(_cols)
+          .eq('court_id', courtId)
+          .gte('start_at', start.toUtc().toIso8601String())
+          .lt('start_at', end.toUtc().toIso8601String())
+          .order('start_at');
+      return (rows as List)
+          .map((r) => OwnerSlot.fromRow(r as Map<String, dynamic>))
+          .toList();
+    } catch (e, st) {
+      appLogger.e('OwnerSlotRepository.fetchWeekSlots',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   @override
@@ -96,47 +103,63 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
     required DateTime startAt,
     required DateTime endAt,
   }) async {
-    final row = await _client
-        .from('slots')
-        .insert({
-          'court_id': courtId,
-          'start_at': startAt.toUtc().toIso8601String(),
-          'end_at': endAt.toUtc().toIso8601String(),
-          'status': SlotStatus.owner,
-        })
-        .select(_cols)
-        .single();
-    return OwnerSlot.fromRow(row);
+    try {
+      final row = await _client
+          .from('slots')
+          .insert({
+            'court_id': courtId,
+            'start_at': startAt.toUtc().toIso8601String(),
+            'end_at': endAt.toUtc().toIso8601String(),
+            'status': SlotStatus.owner,
+          })
+          .select(_cols)
+          .single();
+      return OwnerSlot.fromRow(row);
+    } catch (e, st) {
+      appLogger.e('OwnerSlotRepository.createOwnerSlot',
+          error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   @override
   Future<void> blockSlot({required String slotId, String? reason}) async {
-    final trimmed = reason?.trim();
-    final rows = await _client
-        .from('slots')
-        .update({
-          'status': SlotStatus.blocked,
-          'blocked_reason':
-              (trimmed != null && trimmed.isNotEmpty) ? trimmed : null,
-        })
-        .eq('id', slotId)
-        .eq('status', SlotStatus.open) // never block a booked/owner/etc. slot
-        .select('id');
-    if ((rows as List).isEmpty) {
-      throw const OwnerSlotException('not_open');
+    try {
+      final trimmed = reason?.trim();
+      final rows = await _client
+          .from('slots')
+          .update({
+            'status': SlotStatus.blocked,
+            'blocked_reason':
+                (trimmed != null && trimmed.isNotEmpty) ? trimmed : null,
+          })
+          .eq('id', slotId)
+          .eq('status', SlotStatus.open) // never block a booked/owner/etc. slot
+          .select('id');
+      if ((rows as List).isEmpty) {
+        throw const OwnerSlotException('not_open');
+      }
+    } catch (e, st) {
+      appLogger.e('OwnerSlotRepository.blockSlot', error: e, stackTrace: st);
+      rethrow;
     }
   }
 
   @override
   Future<void> unblockSlot({required String slotId}) async {
-    final rows = await _client
-        .from('slots')
-        .update({'status': SlotStatus.open, 'blocked_reason': null})
-        .eq('id', slotId)
-        .eq('status', SlotStatus.blocked)
-        .select('id');
-    if ((rows as List).isEmpty) {
-      throw const OwnerSlotException('not_blocked');
+    try {
+      final rows = await _client
+          .from('slots')
+          .update({'status': SlotStatus.open, 'blocked_reason': null})
+          .eq('id', slotId)
+          .eq('status', SlotStatus.blocked)
+          .select('id');
+      if ((rows as List).isEmpty) {
+        throw const OwnerSlotException('not_blocked');
+      }
+    } catch (e, st) {
+      appLogger.e('OwnerSlotRepository.unblockSlot', error: e, stackTrace: st);
+      rethrow;
     }
   }
 }

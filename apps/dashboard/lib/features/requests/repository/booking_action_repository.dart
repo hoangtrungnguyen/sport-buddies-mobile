@@ -1,3 +1,4 @@
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Predictable failure of an owner action (approve/reject/undo). [code] is a
@@ -68,21 +69,31 @@ class SupabaseBookingActionRepository implements BookingActionRepository {
 
   @override
   Future<void> approve({required String bookingId}) async {
-    await _guardedBookingUpdate(
-      bookingId: bookingId,
-      to: _BookingStatus.confirmed,
-      from: _BookingStatus.pending,
-    );
+    try {
+      await _guardedBookingUpdate(
+        bookingId: bookingId,
+        to: _BookingStatus.confirmed,
+        from: _BookingStatus.pending,
+      );
+    } catch (e, st) {
+      appLogger.e('BookingActionRepository.approve', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   @override
   Future<void> reject({required String bookingId, String? reason}) async {
-    await _guardedBookingUpdate(
-      bookingId: bookingId,
-      to: _BookingStatus.cancelled,
-      from: _BookingStatus.pending,
-    );
-    // Slot is freed by the DB trigger (booked → open); no explicit slot write.
+    try {
+      await _guardedBookingUpdate(
+        bookingId: bookingId,
+        to: _BookingStatus.cancelled,
+        from: _BookingStatus.pending,
+      );
+      // Slot is freed by the DB trigger (booked → open); no explicit slot write.
+    } catch (e, st) {
+      appLogger.e('BookingActionRepository.reject', error: e, stackTrace: st);
+      rethrow;
+    }
   }
 
   @override
@@ -90,18 +101,24 @@ class SupabaseBookingActionRepository implements BookingActionRepository {
     required String bookingId,
     String? slotId,
   }) async {
-    await _client
-        .from('bookings')
-        .update({'status': _BookingStatus.pending})
-        .eq('id', bookingId);
-    if (slotId != null) {
-      // Re-book only a slot the reject actually freed; a no-op when the slot is
-      // still `booked` (approve-undo) or has been taken by another booking.
+    try {
       await _client
-          .from('slots')
-          .update({'status': _SlotStatus.booked})
-          .eq('id', slotId)
-          .eq('status', _SlotStatus.open);
+          .from('bookings')
+          .update({'status': _BookingStatus.pending})
+          .eq('id', bookingId);
+      if (slotId != null) {
+        // Re-book only a slot the reject actually freed; a no-op when the slot is
+        // still `booked` (approve-undo) or has been taken by another booking.
+        await _client
+            .from('slots')
+            .update({'status': _SlotStatus.booked})
+            .eq('id', slotId)
+            .eq('status', _SlotStatus.open);
+      }
+    } catch (e, st) {
+      appLogger.e('BookingActionRepository.restorePending',
+          error: e, stackTrace: st);
+      rethrow;
     }
   }
 
