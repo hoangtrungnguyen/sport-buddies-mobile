@@ -395,6 +395,11 @@ class _CourtInfoCardState extends State<_CourtInfoCard> {
             ),
           ],
 
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.neutral100),
+          const SizedBox(height: 12),
+          _AutoApproveRow(court: court),
+
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
@@ -445,6 +450,91 @@ class _InfoRow extends StatelessWidget {
           ],
         ),
       );
+}
+
+// ---------------------------------------------------------------------------
+// Auto-approve toggle row (inside CourtInfoCard)
+// ---------------------------------------------------------------------------
+
+class _AutoApproveRow extends StatelessWidget {
+  const _AutoApproveRow({required this.court});
+  final OwnerCourt court;
+
+  @override
+  Widget build(BuildContext context) {
+    final loading = context.select<CourtBloc, bool>(
+      (b) => b.state is CourtLoading,
+    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: court.autoApproveSingle
+            ? AppColors.primaryLight
+            : AppColors.neutral50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: court.autoApproveSingle
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.neutral200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tự động duyệt đặt sân',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: court.autoApproveSingle
+                        ? AppColors.primaryDark
+                        : AppColors.neutral700,
+                  ),
+                ),
+                Text(
+                  court.autoApproveSingle
+                      ? 'Đặt sân một lần được duyệt tự động.'
+                      : 'Cần duyệt thủ công từng yêu cầu.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: court.autoApproveSingle
+                        ? AppColors.primary
+                        : AppColors.neutral500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Semantics(
+            label: 'court-auto-approve-toggle',
+            toggled: court.autoApproveSingle,
+            child: Switch(
+              value: court.autoApproveSingle,
+              onChanged: loading
+                  ? null
+                  : (value) {
+                      context.read<CourtBloc>().add(
+                            CourtEvent.autoApproveToggled(court.id,
+                                value: value),
+                          );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Đã lưu cài đặt'),
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+              activeTrackColor: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
