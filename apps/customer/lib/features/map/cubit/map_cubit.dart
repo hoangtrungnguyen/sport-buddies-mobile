@@ -1,4 +1,4 @@
-// MapCubit — grava-c9ca.2.1.
+// MapCubit
 //
 // Fetches courts enriched with slot-availability data from
 // [CourtAvailabilityRepository] and emits the appropriate [MapState].
@@ -7,6 +7,7 @@
 // provided to the widget tree via BlocProvider in the router builder (§6.2).
 
 import 'package:customer/features/map/cubit/map_state.dart';
+export 'package:customer/features/map/cubit/map_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -35,9 +36,7 @@ class MapCubit extends Cubit<MapState> {
 
   void _setupRealtime(SupabaseClient? client) {
     if (client == null) return;
-    _channel = client
-        .channel('map_slots_availability')
-        .onPostgresChanges(
+    _channel = client.channel('map_slots_availability').onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'slots',

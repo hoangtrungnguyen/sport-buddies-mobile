@@ -49,3 +49,6 @@ lib/core/env/env.g.dart
 .local.env
 .dev.env
 .prod.env
+
+# FVM Version Cache
+.fvm/

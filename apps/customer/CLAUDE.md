@@ -113,3 +113,37 @@ final navigatorKey = GlobalKey<NavigatorState>();
 GetIt.instance.registerSingleton<GlobalKey<NavigatorState>>(navigatorKey);
 Bloc.observer = AppBlocObserver(navigatorKey: navigatorKey);
 ```
+
+
+## Folder Structure
+```text
+lib/
+├─ core/
+│  ├─ debug/          # AppBlocObserver, AppExceptionDialog, app_logger.dart
+│  ├─ env/            # env.dart, app_env.dart
+│  ├─ geo/            # Services for location & maps
+│  ├─ mixins/         # AppExceptionMixin
+│  ├─ services/       # Repository interfaces & API clients
+│  ├─ router/         # Router configuration
+│  ├─ di/             # Dependency injection configuration
+│  ├─ ui/             # Global UI components (dialogs, providers)
+│  └─ utils/          # General utilities & extensions
+├─ features/
+│  ├─ auth/
+│  │  ├─ data/          # Repositories & API
+│  │  ├─ domain/        # State, events, DTOs, usecases
+│  │  └─ presentation/ # UI & widgets
+│  ├─ slot/
+│  │  ├─ ...           # Follow same pattern
+│  ├─ profile/
+│  ├─ main/
+│  └─ other-feature/
+│
+├─ app.dart           # Root widget
+├─ main.dart          # DI setup + app bootstrap
+└─ l10n/              # Generated L10N
+```
+
+### Screen indexed
+- Home: home_screen.dart (id: 0)
+- Courts Overview: court_overview_screen.dart (id: 1)
