@@ -696,10 +696,14 @@ class _SelectedCourtPanel extends StatelessWidget {
   }
 
   static IconData _sportIcon(List<String> sportTypes) {
-    return switch (sportTypes.firstOrNull ?? '') {
-      'football' => Icons.sports_soccer,
+    final t = (sportTypes.firstOrNull ?? '').toLowerCase();
+    return switch (t) {
+      'football' || 'bóng đá' || 'bóng đá 5v5' => Icons.sports_soccer,
+      'basketball' || 'bóng rổ' => Icons.sports_basketball,
+      'volleyball' => Icons.sports_volleyball,
+      'pickleball' || 'badminton' || 'cầu lông' || 'tennis' => Icons.sports_tennis,
       'multi' => Icons.sports,
-      _ => Icons.sports_tennis,
+      _ => Icons.sports,
     };
   }
 
