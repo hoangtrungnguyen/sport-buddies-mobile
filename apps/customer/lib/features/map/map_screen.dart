@@ -32,6 +32,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart' as vm;
 
 const _hcmcLatLng = ll.LatLng(10.7769, 106.7009);
 const _defaultZoom = 13.0;
@@ -285,7 +286,7 @@ class _MapBodyState extends State<_MapBody> {
   /// Routes to the correct map implementation based on [Env.mapProvider].
   ///
   /// - `'google'`   → [ReactiveGoogleMapBody] (google_maps_flutter SDK)
-  /// - `'vietmap'`  → [FlutterMap] + VietMap raster tiles
+  /// - `'vietmap'`  → [_VietMapGLBody] (vietmap_flutter_gl vector SDK)
   /// - `'general'`  → [FlutterMap] + OpenStreetMap tiles
   /// - anything else → [FlutterMap] + OSM fallback
   static Widget _buildMapWidget({
@@ -301,6 +302,14 @@ class _MapBodyState extends State<_MapBody> {
         onMarkerTap: onMarkerTap,
       );
     }
+    if (_tileProvider case final VietMapGLProvider glProvider) {
+      return _VietMapGLBody(
+        provider: glProvider,
+        courts: courts,
+        onMarkerTap: onMarkerTap,
+        userCenter: userPos,
+      );
+    }
     return _buildFlutterMap(
       courts: courts,
       onMarkerTap: onMarkerTap,
@@ -309,7 +318,7 @@ class _MapBodyState extends State<_MapBody> {
     );
   }
 
-  /// Builds the flutter_map widget (VietMap / OSM raster tiles).
+  /// Builds the flutter_map widget (OSM / Google raster tiles).
   ///
   /// [userCenter] moves the initial camera to the user's GPS position
   /// when resolved; falls back to the HCMC default.
@@ -322,6 +331,10 @@ class _MapBodyState extends State<_MapBody> {
     final center = userCenter != null
         ? ll.LatLng(userCenter.lat, userCenter.lng)
         : _hcmcLatLng;
+    final urlTemplate = switch (_tileProvider) {
+      RasterTileProvider(:final urlTemplate) => urlTemplate,
+      _ => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    };
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
@@ -330,7 +343,7 @@ class _MapBodyState extends State<_MapBody> {
       ),
       children: [
         TileLayer(
-          urlTemplate: _tileProvider.urlTemplate,
+          urlTemplate: urlTemplate,
           userAgentPackageName: 'vn.sportbuddies.customer',
         ),
         MarkerLayer(
@@ -371,6 +384,118 @@ class _MapBodyState extends State<_MapBody> {
     } catch (_) {
       return null;
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// VietMap GL body (vietmap_flutter_gl vector SDK)
+// ---------------------------------------------------------------------------
+
+/// Renders courts as circle markers on a VietMap GL vector map.
+///
+/// Uses [VietMapGLProvider.styleUrl] for vector tiles. Circles are added via
+/// the [vm.VietMapController] after the map finishes loading, and refreshed
+/// whenever [courts] changes.
+class _VietMapGLBody extends StatefulWidget {
+  const _VietMapGLBody({
+    required this.provider,
+    required this.courts,
+    required this.onMarkerTap,
+    this.userCenter,
+  });
+
+  final VietMapGLProvider provider;
+  final List<CourtAvailability> courts;
+  final void Function(CourtAvailability) onMarkerTap;
+  final LatLng? userCenter;
+
+  @override
+  State<_VietMapGLBody> createState() => _VietMapGLBodyState();
+}
+
+class _VietMapGLBodyState extends State<_VietMapGLBody> {
+  vm.VietmapController? _controller;
+
+  // Stable mapping from added circles to court objects so tap events resolve
+  // back to the correct CourtAvailability.
+  final Map<vm.Circle, CourtAvailability> _circleMap = {};
+
+  @override
+  void didUpdateWidget(_VietMapGLBody old) {
+    super.didUpdateWidget(old);
+    if (old.courts != widget.courts) {
+      _refreshMarkers();
+    }
+  }
+
+  Future<void> _refreshMarkers() async {
+    final ctrl = _controller;
+    if (ctrl == null) return;
+    for (final circle in _circleMap.keys) {
+      await ctrl.removeCircle(circle);
+    }
+    _circleMap.clear();
+    await _addCourtCircles(ctrl);
+  }
+
+  Future<void> _addCourtCircles(vm.VietmapController ctrl) async {
+    for (final court in widget.courts) {
+      final circle = await ctrl.addCircle(
+        vm.CircleOptions(
+          geometry: vm.LatLng(court.lat, court.lng),
+          circleRadius: 12,
+          circleColor: court.markerColor,
+          circleStrokeWidth: 2,
+          circleStrokeColor: Colors.white,
+        ),
+      );
+      _circleMap[circle] = court;
+    }
+  }
+
+  // Hides all POI layers from the loaded style so only road/building/water
+  // context is shown — court markers are rendered as our own circle overlays.
+  Future<void> _hidePOILayers(vm.VietmapController ctrl) async {
+    final ids = (await ctrl.getLayerIds()).cast<String>();
+    final poiIds = ids.where((id) => id.contains('poi')).toList();
+    await Future.wait(
+      poiIds.map((id) => ctrl.setLayerVisibility(id, false)),
+    );
+  }
+
+  void _onCircleTapped(vm.Circle circle) {
+    final court = _circleMap[circle];
+    if (court != null) widget.onMarkerTap(court);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final center = widget.userCenter;
+    final initialPos = vm.CameraPosition(
+      target: center != null
+          ? vm.LatLng(center.lat, center.lng)
+          : const vm.LatLng(10.7769, 106.7009),
+      zoom: _defaultZoom,
+    );
+
+    return vm.VietmapGL(
+      styleString: widget.provider.styleUrl,
+      initialCameraPosition: initialPos,
+      myLocationEnabled: true,
+      myLocationRenderMode: vm.MyLocationRenderMode.compass,
+      myLocationTrackingMode: vm.MyLocationTrackingMode.none,
+      onMapCreated: (controller) {
+        _controller = controller;
+        controller.onCircleTapped.add(_onCircleTapped);
+      },
+      // Style must finish loading before annotations or layer visibility ops.
+      onStyleLoadedCallback: () async {
+        final ctrl = _controller;
+        if (ctrl == null) return;
+        await _hidePOILayers(ctrl);
+        await _addCourtCircles(ctrl);
+      },
+    );
   }
 }
 

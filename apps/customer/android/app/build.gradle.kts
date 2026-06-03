@@ -30,8 +30,8 @@ android {
         applicationId = "spb.customer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // google_maps_flutter requires minSdk >= 21.
-        minSdk = flutter.minSdkVersion
+        // vietmap_flutter_gl requires minSdk 24 (GL native renderer).
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
