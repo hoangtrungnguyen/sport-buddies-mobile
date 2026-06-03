@@ -508,8 +508,15 @@ class _VenuePanel extends StatelessWidget {
                         textStyle: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w600, fontSize: 12.5),
                       ),
-                      onPressed: () =>
-                          context.go('/courts/$courtId/venues/new'),
+                      onPressed: () => context
+                          .push('/courts/$courtId/venues/new')
+                          .then((ok) {
+                        if (ok == true && context.mounted) {
+                          context
+                              .read<VenueBloc>()
+                              .add(const VenueEvent.reloadRequested());
+                        }
+                      }),
                     ),
                   ],
                 ),
@@ -530,10 +537,17 @@ class _VenuePanel extends StatelessWidget {
                     children: venues
                         .map((v) => _VenueRow(
                               venue: v,
-                              onEdit: () => context.go(
-                                '/courts/$courtId/venues/${v.id}/edit',
-                                extra: v,
-                              ),
+                              onEdit: () => context
+                                  .push(
+                                    '/courts/$courtId/venues/${v.id}/edit',
+                                    extra: v,
+                                  )
+                                  .then((ok) {
+                                if (ok == true && context.mounted) {
+                                  context.read<VenueBloc>().add(
+                                      const VenueEvent.reloadRequested());
+                                }
+                              }),
                             ))
                         .toList(),
                   ),
@@ -683,8 +697,15 @@ class _EmptyVenueState extends StatelessWidget {
                 textStyle: GoogleFonts.plusJakartaSans(
                     fontWeight: FontWeight.w600, fontSize: 13),
               ),
-              onPressed: () =>
-                  context.go('/courts/$courtId/venues/new'),
+              onPressed: () => context
+                  .push('/courts/$courtId/venues/new')
+                  .then((ok) {
+                if (ok == true && context.mounted) {
+                  context
+                      .read<VenueBloc>()
+                      .add(const VenueEvent.reloadRequested());
+                }
+              }),
             ),
           ],
         ),

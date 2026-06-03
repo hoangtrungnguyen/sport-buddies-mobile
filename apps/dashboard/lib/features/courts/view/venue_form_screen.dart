@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../../setup/model/owner_court.dart';
-import '../bloc/venue_bloc.dart';
 import '../model/venue.dart';
 import '../repository/venue_repository.dart';
 
@@ -100,7 +99,6 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
       }
 
       if (!mounted) return;
-      context.read<VenueBloc>().add(const VenueEvent.reloadRequested());
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Đã lưu khu sân'),
@@ -108,7 +106,7 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
           duration: Duration(seconds: 2),
         ),
       );
-      context.pop();
+      context.pop(true);
     } catch (e) {
       setState(() {
         _saving = false;
