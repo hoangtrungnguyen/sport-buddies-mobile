@@ -150,6 +150,7 @@ class _CourtInfoCardState extends State<_CourtInfoCard> {
         ),
       );
     } catch (_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Không thể lưu. Vui lòng thử lại.'),
