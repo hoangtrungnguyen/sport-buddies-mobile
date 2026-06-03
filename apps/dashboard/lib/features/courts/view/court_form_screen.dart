@@ -25,6 +25,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   late final TextEditingController _addressCtrl;
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
+  late final TextEditingController _mapsCtrl;
   late final TextEditingController _descCtrl;
   late Set<String> _selectedAmenities;
   late int _openHour;
@@ -45,6 +46,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
         text: c?.lat != null ? c!.lat!.toStringAsFixed(6) : '');
     _lngCtrl = TextEditingController(
         text: c?.lng != null ? c!.lng!.toStringAsFixed(6) : '');
+    _mapsCtrl = TextEditingController(text: c?.googleMapsUrl ?? '');
     _descCtrl = TextEditingController(text: c?.description ?? '');
     _selectedAmenities = Set<String>.from(c?.amenities ?? []);
     _openHour = c?.openHour ?? 6;
@@ -58,6 +60,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _addressCtrl.dispose();
     _latCtrl.dispose();
     _lngCtrl.dispose();
+    _mapsCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
   }
@@ -77,9 +80,18 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       final desc = _descCtrl.text.trim();
       final lat = double.tryParse(_latCtrl.text.trim());
       final lng = double.tryParse(_lngCtrl.text.trim());
+      final mapsUrl = _mapsCtrl.text.trim();
 
       OwnerCourt saved;
       if (_isEdit) {
+        final additionalInfo = Map<String, dynamic>.from(
+          widget.court!.additionalInfo,
+        );
+        if (mapsUrl.isEmpty) {
+          additionalInfo.remove('google_maps_url');
+        } else {
+          additionalInfo['google_maps_url'] = mapsUrl;
+        }
         saved = await repo.updateCourt(
           widget.court!.id,
           name: _nameCtrl.text.trim(),
@@ -90,6 +102,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
           amenities: _selectedAmenities.toList(),
           lat: lat,
           lng: lng,
+          additionalInfo: additionalInfo,
         );
         if (_isActive != widget.court!.isActive) {
           if (_isActive) {
@@ -108,6 +121,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
           amenities: _selectedAmenities.toList(),
           lat: lat,
           lng: lng,
+          additionalInfo: mapsUrl.isEmpty ? {} : {'google_maps_url': mapsUrl},
         );
       }
 
@@ -273,6 +287,31 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  _Label('Google Maps URL'),
+                  const SizedBox(height: 6),
+                  Semantics(
+                    label: 'court-maps-url-field',
+                    textField: true,
+                    child: TextFormField(
+                      controller: _mapsCtrl,
+                      keyboardType: TextInputType.url,
+                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
+                      decoration: const InputDecoration(
+                        hintText: 'https://maps.google.com/?q=...',
+                        prefixIcon: Icon(Icons.map_outlined, size: 18),
+                      ),
+                      validator: (v) {
+                        final t = v?.trim() ?? '';
+                        if (t.isEmpty) return null;
+                        if (!t.startsWith('http')) {
+                          return 'URL phải bắt đầu bằng http';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 18),
 
