@@ -560,6 +560,32 @@ class _RequestCard extends StatelessWidget {
                         ),
                       ],
                     ),
+                    if (request.venueName.isNotEmpty ||
+                        request.sportType.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(Icons.sports_rounded,
+                              size: 13, color: AppColors.neutral400),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              [
+                                if (request.venueName.isNotEmpty)
+                                  request.venueName,
+                                if (request.sportType.isNotEmpty)
+                                  request.sportType,
+                              ].join(' · '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12.5,
+                                  color: AppColors.neutral500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

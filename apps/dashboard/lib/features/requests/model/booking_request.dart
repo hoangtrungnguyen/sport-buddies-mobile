@@ -86,6 +86,10 @@ abstract class BookingRequest with _$BookingRequest {
 
     /// Sport type from the venue (OWNER-213). Empty string when unavailable.
     @Default('') String sportType,
+
+    /// Name of the specific venue (playable area) within the court (OWNER-226).
+    /// Empty string when unavailable (e.g. court has no venues yet).
+    @Default('') String venueName,
   }) = _BookingRequest;
 
   bool get isCancelled => status == BookingStatus.cancelled;
@@ -122,7 +126,7 @@ abstract class BookingRequest with _$BookingRequest {
   ///     "end_at":   "2026-05-29T12:30:00Z",
   ///     "courts": {
   ///       "name": "Sân 1", "price_per_hour": 200000,
-  ///       "venues": { "sport_type": "football", "price_per_hour": 250000 }
+  ///       "venues": { "name": "Sân A", "sport_type": "football", "price_per_hour": 250000 }
   ///     }
   ///   }
   /// }
@@ -170,6 +174,7 @@ abstract class BookingRequest with _$BookingRequest {
       revenue: revenue,
       isAutoApproved: (row['is_auto_approved'] as bool?) ?? false,
       sportType: (venue['sport_type'] as String?) ?? '',
+      venueName: (venue['name'] as String?)?.trim() ?? '',
     );
   }
 
