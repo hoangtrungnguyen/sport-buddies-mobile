@@ -116,7 +116,8 @@ class _LoadedBody extends StatelessWidget {
                   ),
                 ),
               ),
-              Padding(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: _ScheduleGrid(
                   courts: state.courts,
