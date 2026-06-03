@@ -20,8 +20,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_driver/driver_extension.dart';
+import 'package:flutter_skill/flutter_skill.dart';
 
 Future<void> main() async {
+  if (kDebugMode) {
+    enableFlutterDriverExtension();
+    FlutterSkillBinding.ensureInitialized();
+  }
   // Step 1: ensure Flutter bindings are ready before any platform channel call.
   WidgetsFlutterBinding.ensureInitialized();
 
