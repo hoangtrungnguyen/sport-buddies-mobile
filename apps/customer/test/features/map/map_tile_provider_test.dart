@@ -31,22 +31,15 @@ void main() {
     });
   });
 
-  group('VietMapTileProvider', () {
-    test('urlTemplate contains vietmap host', () {
-      const provider = VietMapTileProvider(apiKey: 'vm_key');
-      expect(provider.urlTemplate, contains('vietmap.vn'));
+  group('VietMapGLProvider', () {
+    test('styleUrl contains vietmap host', () {
+      const provider = VietMapGLProvider(apiKey: 'vm_key');
+      expect(provider.styleUrl, contains('vietmap.vn'));
     });
 
-    test('urlTemplate contains {x}, {y}, {z} placeholders', () {
-      const provider = VietMapTileProvider(apiKey: 'vm_key');
-      expect(provider.urlTemplate, contains('{x}'));
-      expect(provider.urlTemplate, contains('{y}'));
-      expect(provider.urlTemplate, contains('{z}'));
-    });
-
-    test('urlTemplate embeds apiKey', () {
-      const provider = VietMapTileProvider(apiKey: 'vm_key');
-      expect(provider.urlTemplate, contains('vm_key'));
+    test('styleUrl embeds apiKey', () {
+      const provider = VietMapGLProvider(apiKey: 'vm_key');
+      expect(provider.styleUrl, contains('vm_key'));
     });
   });
 
