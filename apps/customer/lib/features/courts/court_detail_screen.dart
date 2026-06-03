@@ -156,6 +156,8 @@ class _PhotoCarousel extends StatelessWidget {
                   itemBuilder: (_, i) => Image.network(
                     photos[i],
                     fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : _PlaceholderHero(),
                     errorBuilder: (_, __, ___) => _PlaceholderHero(),
                   ),
                 ),
@@ -263,19 +265,27 @@ class _CourtInfoSection extends StatelessWidget {
 
   static const _sportColors = <String, Color>{
     'pickleball': Color(0xFF15803D),
-    'tennis': Color(0xFF374151),
+    'tennis': Color(0xFFDC2626),
     'badminton': Color(0xFF0369A1),
+    'cầu lông': Color(0xFF0369A1),
     'football': Color(0xFF374151),
+    'bóng đá': Color(0xFF374151),
+    'bóng đá 5v5': Color(0xFF374151),
     'basketball': Color(0xFF9A3412),
+    'bóng rổ': Color(0xFF9A3412),
     'volleyball': Color(0xFF6D28D9),
   };
 
   static const _sportBg = <String, Color>{
     'pickleball': Color(0xFFDCFCE7),
-    'tennis': Color(0xFFF3F4F6),
+    'tennis': Color(0xFFFEE2E2),
     'badminton': Color(0xFFE0F2FE),
+    'cầu lông': Color(0xFFE0F2FE),
     'football': Color(0xFFF3F4F6),
+    'bóng đá': Color(0xFFF3F4F6),
+    'bóng đá 5v5': Color(0xFFF3F4F6),
     'basketball': Color(0xFFFEF3C7),
+    'bóng rổ': Color(0xFFFEF3C7),
     'volleyball': Color(0xFFEDE9FE),
   };
 
@@ -292,11 +302,12 @@ class _CourtInfoSection extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: court.sportTypes.map((s) {
-                final label = s[0].toUpperCase() + s.substring(1);
+                final key = s.toLowerCase();
+                final label = s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : s;
                 return _SportBadge(
                   label: label,
-                  bg: _sportBg[s] ?? const Color(0xFFF3F4F6),
-                  textColor: _sportColors[s] ?? const Color(0xFF374151),
+                  bg: _sportBg[key] ?? const Color(0xFFF3F4F6),
+                  textColor: _sportColors[key] ?? const Color(0xFF374151),
                 );
               }).toList(),
             ),
@@ -836,15 +847,30 @@ class _GroupSlotCard extends StatelessWidget {
   static const _sportColors = <String, Color>{
     'pickleball': Color(0xFF0EA5E9),
     'badminton': Color(0xFF0369A1),
+    'cầu lông': Color(0xFF0369A1),
     'tennis': Color(0xFFEF4444),
     'football': Color(0xFF374151),
+    'bóng đá': Color(0xFF374151),
+    'bóng đá 5v5': Color(0xFF374151),
     'basketball': Color(0xFF9A3412),
+    'bóng rổ': Color(0xFF9A3412),
     'volleyball': Color(0xFF6D28D9),
+  };
+
+  static IconData _sportIcon(String sportType) => switch (sportType.toLowerCase()) {
+    'badminton' || 'cầu lông' => Icons.sports_tennis,
+    'tennis' => Icons.sports_tennis,
+    'football' || 'bóng đá' || 'bóng đá 5v5' => Icons.sports_soccer,
+    'basketball' || 'bóng rổ' => Icons.sports_basketball,
+    'volleyball' => Icons.sports_volleyball,
+    _ => Icons.sports,
   };
 
   @override
   Widget build(BuildContext context) {
-    final color = _sportColors[slot.sportType] ?? const Color(0xFF374151);
+    final key = slot.sportType.toLowerCase();
+    final color = _sportColors[key] ?? const Color(0xFF374151);
+    final icon = _sportIcon(slot.sportType);
     final left = slot.maxPlayers - slot.currentPlayers;
     final timeLabel = _buildTimeLabel(slot.startTime, slot.endTime);
 
@@ -864,7 +890,7 @@ class _GroupSlotCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.sports, color: color, size: 24),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
