@@ -90,6 +90,7 @@ class _MapContent extends StatefulWidget {
 
 class _MapContentState extends State<_MapContent> {
   final _mapController = MapController();
+  bool _searchOpen = false;
 
   @override
   void dispose() {
@@ -137,95 +138,111 @@ class _MapContentState extends State<_MapContent> {
                 filterState.maxDistanceKm != null ||
                 filterState.onlyWithOpenSlots;
 
-            return Column(
+            return Stack(
               children: [
-                _MapHeader(
-                  courtCount: filtered.length,
-                  openSlots: openSlots,
-                  isLoading: isLoading,
-                  isEmpty: isEmpty,
-                  filtersActive: filtersActive,
-                  selectedSports: filterState.selectedSports,
-                  onSearch: () {},
-                  onOpenFilter: () =>
-                      _showFilterSheet(context, allCourts, userPos),
-                  onSelectAll: () =>
-                      context.read<MapFilterCubit>().filterBySports([]),
-                  onToggleSport: (sport) {
-                    final cubit = context.read<MapFilterCubit>();
-                    final current = filterState.selectedSports;
-                    if (current.length == 1 && current.contains(sport)) {
-                      cubit.filterBySports([]);
-                    } else {
-                      cubit.filterBySports([sport]);
-                    }
-                  },
-                ),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      _buildMapWidget(
-                        context: context,
-                        courts: isEmpty ? [] : filtered,
-                        onMarkerTap: (c) =>
-                            context.read<MapCubit>().selectCourt(c),
-                        onMapTap: () =>
-                            context.read<MapCubit>().selectCourt(null),
-                        userPos: userPos,
-                        mapController: _mapController,
-                      ),
-                      if (isLoading)
-                        const Center(
-                          child: CircularProgressIndicator(color: _primary),
-                        ),
-                      if (isAllFull)
-                        Positioned(
-                          top: 12,
-                          left: 12,
-                          right: 12,
-                          child: _AllFullBanner(onSlots: () {}),
-                        ),
-                      Positioned(
-                        top: isAllFull ? 68 : 12,
-                        left: 12,
-                        child: const _MapLegend(),
-                      ),
-                      Positioned(
-                        top: 12,
-                        right: 16,
-                        child: _GpsRecenterFab(
-                          onTap: () => _recenter(context),
-                        ),
-                      ),
-                      if (isEmpty && !isLoading)
-                        _EmptyState(
-                          onlyOpen: filterState.onlyWithOpenSlots,
-                          onExpand: () {
-                            final cubit = context.read<MapFilterCubit>();
-                            cubit.filterByDistance(5.0);
-                            if (cubit.state.onlyWithOpenSlots) {
-                              cubit.toggleOnlyOpenSlots();
-                            }
-                          },
-                          onReset: () =>
-                              context.read<MapFilterCubit>().clearAll(),
-                        ),
-                      if (!isEmpty && selectedCourt != null)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          child: _PeekSheet(
-                            court: selectedCourt,
-                            onClose: () =>
+                // ── main map content ──────────────────────────────────────
+                Column(
+                  children: [
+                    _MapHeader(
+                      courtCount: filtered.length,
+                      openSlots: openSlots,
+                      isLoading: isLoading,
+                      isEmpty: isEmpty,
+                      filtersActive: filtersActive,
+                      selectedSports: filterState.selectedSports,
+                      onSearch: () => setState(() => _searchOpen = true),
+                      onOpenFilter: () =>
+                          _showFilterSheet(context, allCourts, userPos),
+                      onSelectAll: () =>
+                          context.read<MapFilterCubit>().filterBySports([]),
+                      onToggleSport: (sport) {
+                        final cubit = context.read<MapFilterCubit>();
+                        final current = filterState.selectedSports;
+                        if (current.length == 1 && current.contains(sport)) {
+                          cubit.filterBySports([]);
+                        } else {
+                          cubit.filterBySports([sport]);
+                        }
+                      },
+                    ),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          _buildMapWidget(
+                            context: context,
+                            courts: isEmpty ? [] : filtered,
+                            onMarkerTap: (c) =>
+                                context.read<MapCubit>().selectCourt(c),
+                            onMapTap: () =>
                                 context.read<MapCubit>().selectCourt(null),
-                            onOpenCourt: () =>
-                                context.push('/court/${selectedCourt.courtId}'),
+                            userPos: userPos,
+                            mapController: _mapController,
                           ),
-                        ),
-                    ],
-                  ),
+                          if (isLoading)
+                            const Center(
+                              child: CircularProgressIndicator(color: _primary),
+                            ),
+                          if (isAllFull)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              right: 12,
+                              child: _AllFullBanner(onSlots: () {}),
+                            ),
+                          Positioned(
+                            top: isAllFull ? 68 : 12,
+                            left: 12,
+                            child: const _MapLegend(),
+                          ),
+                          Positioned(
+                            top: 12,
+                            right: 16,
+                            child: _GpsRecenterFab(
+                              onTap: () => _recenter(context),
+                            ),
+                          ),
+                          if (isEmpty && !isLoading)
+                            _EmptyState(
+                              onlyOpen: filterState.onlyWithOpenSlots,
+                              onExpand: () {
+                                final cubit = context.read<MapFilterCubit>();
+                                cubit.filterByDistance(5.0);
+                                if (cubit.state.onlyWithOpenSlots) {
+                                  cubit.toggleOnlyOpenSlots();
+                                }
+                              },
+                              onReset: () =>
+                                  context.read<MapFilterCubit>().clearAll(),
+                            ),
+                          if (!isEmpty && selectedCourt != null)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: _PeekSheet(
+                                court: selectedCourt,
+                                onClose: () =>
+                                    context.read<MapCubit>().selectCourt(null),
+                                onOpenCourt: () => context
+                                    .push('/court/${selectedCourt.courtId}'),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
+                // ── search overlay (covers header + map) ──────────────────
+                if (_searchOpen)
+                  Positioned.fill(
+                    child: _SearchOverlay(
+                      onBack: () => setState(() => _searchOpen = false),
+                      onTapCourt: (court) {
+                        setState(() => _searchOpen = false);
+                        context.read<MapCubit>().selectCourt(court);
+                      },
+                    ),
+                  ),
               ],
             );
           },
@@ -1448,6 +1465,354 @@ class _SheetChip extends StatelessWidget {
           fontSize: 13,
           fontWeight: FontWeight.w600,
           color: active ? Colors.white : _n700,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _SearchOverlay — fullscreen search over header + map
+// ---------------------------------------------------------------------------
+
+class _SearchOverlay extends StatefulWidget {
+  const _SearchOverlay({
+    required this.onBack,
+    required this.onTapCourt,
+  });
+
+  final VoidCallback onBack;
+  final void Function(CourtAvailability) onTapCourt;
+
+  @override
+  State<_SearchOverlay> createState() => _SearchOverlayState();
+}
+
+class _SearchOverlayState extends State<_SearchOverlay> {
+  final _ctrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      child: BlocBuilder<MapCubit, MapState>(
+        builder: (context, mapState) {
+          final allCourts =
+              mapState is MapLoaded ? mapState.courts : <CourtAvailability>[];
+          final q = _query.trim().toLowerCase();
+          final results = q.isEmpty
+              ? allCourts
+              : allCourts
+                  .where((c) => c.name.toLowerCase().contains(q))
+                  .toList();
+
+          final topPad = MediaQuery.of(context).padding.top;
+
+          return Column(
+            children: [
+              // Search bar
+              Container(
+                padding: EdgeInsets.fromLTRB(12, topPad + 12, 12, 12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(bottom: BorderSide(color: _n200)),
+                ),
+                child: Row(
+                  children: [
+                    Semantics(
+                      label: 'Quay lại',
+                      child: GestureDetector(
+                        onTap: widget.onBack,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _n100,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            size: 20,
+                            color: _n700,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Container(
+                        height: 46,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: _primary, width: 1.5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            const Icon(Icons.search, size: 18, color: _n600),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _ctrl,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  hintText: 'Tìm sân, khu vực…',
+                                  hintStyle: TextStyle(
+                                    fontSize: 14,
+                                    color: _n600,
+                                  ),
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: _n900,
+                                ),
+                                onChanged: (v) => setState(() => _query = v),
+                              ),
+                            ),
+                            if (_query.isNotEmpty)
+                              GestureDetector(
+                                onTap: () {
+                                  _ctrl.clear();
+                                  setState(() => _query = '');
+                                },
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: const BoxDecoration(
+                                    color: _n200,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    size: 14,
+                                    color: _n700,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Result count line
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    q.isEmpty
+                        ? 'Tất cả ${allCourts.length} sân · gần nhất trước'
+                        : '${results.length} kết quả cho "$_query"',
+                    style: const TextStyle(fontSize: 12, color: _n600),
+                  ),
+                ),
+              ),
+              // Results list
+              Expanded(
+                child: results.isEmpty
+                    ? _SearchEmpty(query: _query)
+                    : ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                        itemCount: results.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, i) => _CourtListCard(
+                          court: results[i],
+                          onTap: () => widget.onTapCourt(results[i]),
+                        ),
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _SearchEmpty extends StatelessWidget {
+  const _SearchEmpty({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              color: _n100,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.search_off, size: 32, color: _n600),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Không tìm thấy "$query"',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: _n900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Thử tên sân hoặc khu vực khác.',
+            style: TextStyle(fontSize: 13, color: _n600),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CourtListCard extends StatelessWidget {
+  const _CourtListCard({required this.court, required this.onTap});
+  final CourtAvailability court;
+  final VoidCallback onTap;
+
+  static Color _sportColor(List<String> sportTypes) {
+    final t = (sportTypes.firstOrNull ?? '').toLowerCase();
+    return switch (t) {
+      'football' || 'bóng đá' || 'bóng đá 5v5' => const Color(0xFF16A34A),
+      'pickleball' => const Color(0xFF0EA5E9),
+      'badminton' || 'cầu lông' => const Color(0xFFEF4444),
+      'tennis' => const Color(0xFFEAB308),
+      _ => _n600,
+    };
+  }
+
+  static IconData _sportIcon(List<String> sportTypes) {
+    final t = (sportTypes.firstOrNull ?? '').toLowerCase();
+    return switch (t) {
+      'football' || 'bóng đá' || 'bóng đá 5v5' => Icons.sports_soccer,
+      _ => Icons.sports_tennis,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasSlots = court.openSlotCount > 0;
+    final sportColor = _sportColor(court.sportTypes);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: _n200),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 3,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Thumb
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [sportColor, sportColor.withAlpha(204)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                _sportIcon(court.sportTypes),
+                size: 28,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          court.name,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: _n900,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: hasSlots ? _successBg : _n100,
+                          borderRadius: BorderRadius.circular(99),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 5,
+                              height: 5,
+                              decoration: BoxDecoration(
+                                color: hasSlots ? _success : _n600,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              hasSlots
+                                  ? '${court.openSlotCount} slot trống'
+                                  : 'Hết slot',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: hasSlots ? _primaryDark : _n600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (court.sportTypes.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      court.sportTypes.first,
+                      style: const TextStyle(fontSize: 12, color: _n600),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
