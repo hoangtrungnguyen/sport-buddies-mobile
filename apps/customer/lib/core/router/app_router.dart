@@ -42,6 +42,7 @@ import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
 import 'package:customer/features/slots/data/supabase_slot_repository.dart';
+import 'package:customer/features/slots/open_slot_list_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
@@ -155,14 +156,16 @@ GoRouter buildRouter() {
               ),
             ],
           ),
-          // Tab 3 — Profile.
+          // Tab 3 — Slot trống (open group slots).
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
+                path: '/slots',
                 builder: (context, state) => BlocProvider(
-                  create: (_) => ProfileCubit(Supabase.instance.client),
-                  child: const ProfileScreen(),
+                  create: (_) => SlotListCubit(
+                    SupabaseSlotRepository(client: Supabase.instance.client),
+                  ),
+                  child: const OpenSlotListScreen(),
                 ),
               ),
             ],
@@ -170,6 +173,16 @@ GoRouter buildRouter() {
         ],
       ),
       // Full-screen routes (no bottom nav).
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => ProfileCubit(Supabase.instance.client),
+            child: const ProfileScreen(),
+          ),
+        ),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => BlocProvider(

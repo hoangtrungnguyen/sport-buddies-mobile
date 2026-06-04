@@ -1,9 +1,28 @@
+// M3 Slot detail screen — SPB-035 / SPB-054.
+// Design: EPIC-4 Slot Detail · Material 3 · slotDetailM3Base component.
+
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
+
+// ── MD3 tokens ────────────────────────────────────────────────────────────────
+const _mdSurface               = Color(0xFFF7FBF2);
+const _mdOnSurface             = Color(0xFF181D17);
+const _mdOnSurfaceVariant      = Color(0xFF42493F);
+const _mdSurfaceContainerLow   = Color(0xFFF1F6EC);
+const _mdSurfaceContainer      = Color(0xFFEBF0E6);
+const _mdSurfaceContainerHighest = Color(0xFFDFE4DA);
+const _mdPrimary                 = Color(0xFF15803D);
+const _mdPrimaryContainer        = Color(0xFFC9F2D2);
+const _mdOnPrimaryContainer      = Color(0xFF00210B);
+const _mdOutlineVariant          = Color(0xFFC2C8BB);
+const _mdCornerSm              = 8.0;
+const _mdCornerMd              = 12.0;
+const _mdCornerXl              = 28.0;
+const _mdCornerFull            = 9999.0;
 
 class SlotDetailScreen extends StatefulWidget {
   const SlotDetailScreen({super.key, required this.slotId});
@@ -24,38 +43,52 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SlotDetailCubit, SlotDetailState>(
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: const Color(0xFFF9FAFB),
-          appBar: AppBar(
-            title: const Text('Chi tiết slot'),
-            backgroundColor: const Color(0xFFF9FAFB),
-            elevation: 0,
-            leading: BackButton(onPressed: () => context.pop()),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.share_outlined),
-                onPressed: () {},
-              ),
-            ],
+      builder: (context, state) => Scaffold(
+        backgroundColor: _mdSurface,
+        appBar: AppBar(
+          backgroundColor: _mdSurface,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            color: _mdOnSurfaceVariant,
+            onPressed: () => context.pop(),
           ),
-          body: switch (state) {
-            SlotDetailLoading() || SlotDetailInitial() => const Center(
-                child: CircularProgressIndicator(),
+          centerTitle: true,
+          title: const Text(
+            'Chi tiết slot',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: _mdOnSurface,
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share_outlined),
+              color: _mdOnSurfaceVariant,
+              onPressed: () {},
+            ),
+          ],
+        ),
+        body: switch (state) {
+          SlotDetailLoading() || SlotDetailInitial() => const Center(
+              child: CircularProgressIndicator(),
+            ),
+          SlotDetailError(message: final msg) => Center(
+              child: Text(
+                msg,
+                style: const TextStyle(color: _mdOnSurfaceVariant),
               ),
-            SlotDetailError(message: final msg) => Center(
-                child: Text(
-                  msg,
-                  style: const TextStyle(color: Color(0xFF6B7280)),
-                ),
-              ),
-            SlotDetailLoaded(slot: final slot) => _Body(slot: slot),
-          },
-        );
-      },
+            ),
+          SlotDetailLoaded(slot: final slot) => _Body(slot: slot),
+        },
+      ),
     );
   }
 }
+
+// ── Body ──────────────────────────────────────────────────────────────────────
 
 class _Body extends StatelessWidget {
   const _Body({required this.slot});
@@ -64,10 +97,10 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final joined = slot.currentPlayers;
-    final max = slot.maxPlayers;
-    final full = slot.isFull;
-    final empties = full ? 0 : max - joined;
+    final joined  = slot.currentPlayers;
+    final max     = slot.maxPlayers;
+    final isFull  = slot.isFull;
+    final empties = isFull ? 0 : max - joined;
 
     return Stack(
       children: [
@@ -78,75 +111,73 @@ class _Body extends StatelessWidget {
             children: [
               _HeroSection(slot: slot),
               const SizedBox(height: 8),
-              _TimeCard(slot: slot),
-              const SizedBox(height: 12),
-              _FullnessCard(
-                joined: joined,
-                max: max,
-                full: full,
-                empties: empties,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _TimeCard(slot: slot),
               ),
-              const SizedBox(height: 12),
-              _HostMessageCard(),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _PlayersCard(
+                  joined: joined,
+                  max: max,
+                  isFull: isFull,
+                  empties: empties,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: const _HostMessageCard(),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
-        _StickyCtaBar(isFull: full, slot: slot),
+        _StickyCtaBar(isFull: isFull),
       ],
     );
   }
 }
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
 
 class _HeroSection extends StatelessWidget {
   const _HeroSection({required this.slot});
 
   final Slot slot;
 
-  static const _sportIcons = <String, IconData>{
-    'pickleball': Icons.sports_tennis,
-    'badminton': Icons.sports_tennis,
-    'tennis': Icons.sports_tennis,
-    'football': Icons.sports_soccer,
-    'basketball': Icons.sports_basketball,
-    'volleyball': Icons.sports_volleyball,
-  };
+  static IconData _sportIcon(String sport) => switch (sport) {
+        'football'   => Icons.sports_soccer,
+        'badminton'  => Icons.sports_tennis,
+        'pickleball' => Icons.sports_tennis,
+        'tennis'     => Icons.sports_tennis,
+        _            => Icons.sports,
+      };
 
   @override
   Widget build(BuildContext context) {
-    final icon = _sportIcons[slot.sportType] ?? Icons.sports;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF0EA5E9).withValues(alpha: 0.12),
-            const Color(0xFFF9FAFB),
-          ],
-        ),
-      ),
+      color: _mdSurfaceContainerLow,
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Primary-container sport icon
           Container(
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x1A000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
+              color: _mdPrimaryContainer,
+              borderRadius: BorderRadius.circular(_mdCornerXl),
             ),
-            child: Icon(icon, size: 28, color: const Color(0xFF0EA5E9)),
+            child: Icon(
+              _sportIcon(slot.sportType),
+              size: 28,
+              color: _mdOnPrimaryContainer,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,25 +187,22 @@ class _HeroSection extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                    color: _mdOnSurface,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
+                const SizedBox(height: 4),
+                const Text(
+                  'Xem bản đồ',
+                  style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
                   children: [
-                    if (slot.accessPolicy == 'open') ...[
-                      const _BadgePill(
-                        label: '🌐 Mở chơi ghép',
-                        bg: Colors.white,
-                        textColor: Color(0xFF374151),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    _BadgePill(
-                      label: slot.sportType,
-                      bg: Colors.white,
-                      textColor: const Color(0xFF374151),
-                    ),
+                    if (slot.accessPolicy == 'open')
+                      const _AssistChip(label: '🌐 Mở chơi ghép'),
+                    _AssistChip(label: slot.sportType),
                   ],
                 ),
               ],
@@ -186,6 +214,35 @@ class _HeroSection extends StatelessWidget {
   }
 }
 
+class _AssistChip extends StatelessWidget {
+  const _AssistChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: _mdOutlineVariant),
+        borderRadius: BorderRadius.circular(_mdCornerSm),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: _mdOnSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Time & price card ─────────────────────────────────────────────────────────
+
 class _TimeCard extends StatelessWidget {
   const _TimeCard({required this.slot});
 
@@ -193,59 +250,55 @@ class _TimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeFmt = DateFormat('HH:mm');
-    final dateFmt = DateFormat('EEE, dd/MM', 'vi');
-    final durationH = slot.endTime.difference(slot.startTime).inMinutes / 60;
-    final durationLabel = durationH == durationH.roundToDouble()
+    final timeFmt    = DateFormat('HH:mm');
+    final dateFmt    = DateFormat('EEE, dd/MM', 'vi');
+    final durationH  = slot.endTime.difference(slot.startTime).inMinutes / 60;
+    final durLabel   = durationH == durationH.roundToDouble()
         ? '${durationH.toInt()} giờ'
         : '${durationH.toStringAsFixed(1)} giờ';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
+    return Material(
+      color: const Color(0xFFFFFFFF),
+      borderRadius: BorderRadius.circular(_mdCornerMd),
+      elevation: 1,
+      shadowColor: const Color(0x1A000000),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'THỜI GIAN',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF6B7280),
-                    letterSpacing: 0.5,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'THỜI GIAN',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _mdOnSurfaceVariant,
+                      letterSpacing: 1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${timeFmt.format(slot.startTime)} – ${timeFmt.format(slot.endTime)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${timeFmt.format(slot.startTime)} – ${timeFmt.format(slot.endTime)}',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: _mdOnSurface,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${dateFmt.format(slot.startTime)} · $durationLabel',
-                  style: const TextStyle(
-                      fontSize: 13, color: Color(0xFF6B7280)),
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    '${dateFmt.format(slot.startTime)} · $durLabel',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: _mdOnSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -254,36 +307,30 @@ class _TimeCard extends StatelessWidget {
   }
 }
 
-class _FullnessCard extends StatelessWidget {
-  const _FullnessCard({
+// ── Players card ──────────────────────────────────────────────────────────────
+
+class _PlayersCard extends StatelessWidget {
+  const _PlayersCard({
     required this.joined,
     required this.max,
-    required this.full,
+    required this.isFull,
     required this.empties,
   });
 
   final int joined;
   final int max;
-  final bool full;
+  final bool isFull;
   final int empties;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
+    return Material(
+      color: const Color(0xFFFFFFFF),
+      borderRadius: BorderRadius.circular(_mdCornerMd),
+      elevation: 1,
+      shadowColor: const Color(0x1A000000),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -293,42 +340,49 @@ class _FullnessCard extends StatelessWidget {
                 const Text(
                   'Người chơi',
                   style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _mdOnSurface,
                   ),
                 ),
-                _FullnessPill(joined: joined, max: max, full: full),
+                _FullnessBadge(joined: joined, max: max, isFull: isFull),
               ],
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: List.generate(max, (i) {
-                return Expanded(
+            // Segmented fullness track
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                children: List.generate(max, (i) => Expanded(
                   child: Container(
-                    height: 6,
+                    height: 4,
                     margin: EdgeInsets.only(right: i < max - 1 ? 4 : 0),
                     decoration: BoxDecoration(
-                      color: i < joined
-                          ? const Color(0xFF16A34A)
-                          : const Color(0xFFE5E7EB),
-                      borderRadius: BorderRadius.circular(99),
+                      color: i < joined ? _mdPrimary : _mdSurfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(_mdCornerFull),
                     ),
                   ),
-                );
-              }),
+                )),
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              full
+              isFull
                   ? 'Slot đã đầy. Hãy thử slot khác cùng giờ ở khu vực của bạn.'
                   : 'Còn $empties chỗ trống · Cấp độ trung bình',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+              style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
             ),
-            const Divider(height: 28, color: Color(0xFFE5E7EB)),
-            ...List.generate(joined, (_) => const _EmptyPlayerRow(filled: true)),
-            if (!full)
-              ...List.generate(empties, (_) => const _EmptyPlayerRow(filled: false)),
+            Divider(height: 28, color: _mdOutlineVariant.withAlpha(128)),
+            // Filled player rows
+            ...List.generate(
+              joined,
+              (i) => _PlayerRow(index: i, filled: true),
+            ),
+            // Empty slots
+            if (!isFull)
+              ...List.generate(
+                empties,
+                (_) => const _EmptySlotRow(),
+              ),
           ],
         ),
       ),
@@ -336,134 +390,25 @@ class _FullnessCard extends StatelessWidget {
   }
 }
 
-class _HostMessageCard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x0D000000),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'LỜI NHẮN TỪ CHỦ SLOT',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF6B7280),
-                letterSpacing: 0.5,
-              ),
-            ),
-            SizedBox(height: 6),
-            Text(
-              '"Mình tìm bạn chơi ghép. Mang vợt + giày sạch nhé. Cảm ơn 🏓"',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFF374151),
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StickyCtaBar extends StatelessWidget {
-  const _StickyCtaBar({required this.isFull, required this.slot});
-
-  final bool isFull;
-  final Slot slot;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
-        ),
-        child: isFull
-            ? SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE5E7EB),
-                    disabledBackgroundColor: const Color(0xFFE5E7EB),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Đã đủ người',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF9CA3AF),
-                    ),
-                  ),
-                ),
-              )
-            : FilledButton(
-                onPressed: () {},
-                style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF16A34A),
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Đăng ký chơi cùng',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
-}
-
-class _FullnessPill extends StatelessWidget {
-  const _FullnessPill({
+class _FullnessBadge extends StatelessWidget {
+  const _FullnessBadge({
     required this.joined,
     required this.max,
-    required this.full,
+    required this.isFull,
   });
 
   final int joined;
   final int max;
-  final bool full;
+  final bool isFull;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: full ? const Color(0xFFF3F4F6) : const Color(0xFFDCFCE7),
-        borderRadius: BorderRadius.circular(99),
+        color: isFull ? _mdSurfaceContainerHighest : _mdPrimaryContainer,
+        borderRadius: BorderRadius.circular(_mdCornerFull),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -472,19 +417,17 @@ class _FullnessPill extends StatelessWidget {
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: full ? const Color(0xFF6B7280) : const Color(0xFF22C55E),
               shape: BoxShape.circle,
+              color: isFull ? const Color(0xFF72796C) : _mdPrimary,
             ),
           ),
           const SizedBox(width: 6),
           Text(
-            full ? 'Đã đủ người' : '$joined/$max người',
+            isFull ? 'Đã đủ người' : '$joined/$max người',
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
-              color: full
-                  ? const Color(0xFF6B7280)
-                  : const Color(0xFF15803D),
+              color: isFull ? _mdOnSurfaceVariant : _mdOnPrimaryContainer,
             ),
           ),
         ],
@@ -493,52 +436,126 @@ class _FullnessPill extends StatelessWidget {
   }
 }
 
-class _EmptyPlayerRow extends StatelessWidget {
-  const _EmptyPlayerRow({required this.filled});
+class _PlayerRow extends StatelessWidget {
+  const _PlayerRow({required this.index, required this.filled});
 
+  final int index;
   final bool filled;
+
+  static const _colors = [
+    Color(0xFF15803D),
+    Color(0xFF0369A1),
+    Color(0xFFEAB308),
+    Color(0xFFEF4444),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _colors[index % _colors.length];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: color,
+            child: Text(
+              '${index + 1}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Người chơi ${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _mdOnSurface,
+                      ),
+                    ),
+                    if (index == 0) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        height: 20,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: _mdPrimaryContainer,
+                          borderRadius: BorderRadius.circular(_mdCornerFull),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Chủ slot',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: _mdOnPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const Text(
+                  '⭐ 4.7 · đã tham gia',
+                  style: TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptySlotRow extends StatelessWidget {
+  const _EmptySlotRow();
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: filled ? const Color(0xFFDCFCE7) : const Color(0xFFF3F4F6),
+              color: _mdSurfaceContainer,
               shape: BoxShape.circle,
               border: Border.all(
-                color: filled
-                    ? const Color(0xFF86EFAC)
-                    : const Color(0xFFD1D5DB),
+                color: _mdOutlineVariant,
                 width: 1.5,
+                style: BorderStyle.solid,
               ),
             ),
-            child: Center(
+            child: const Center(
               child: Text(
-                filled ? '✓' : '+',
+                '+',
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: filled
-                      ? const Color(0xFF16A34A)
-                      : const Color(0xFF9CA3AF),
+                  fontSize: 20,
+                  color: _mdOnSurfaceVariant,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Text(
-            filled ? 'Đã có người' : 'Chỗ trống',
+          const SizedBox(width: 16),
+          const Text(
+            'Chỗ trống',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: filled
-                  ? const Color(0xFF374151)
-                  : const Color(0xFF9CA3AF),
+              fontSize: 14,
+              color: _mdOnSurfaceVariant,
             ),
           ),
         ],
@@ -547,33 +564,104 @@ class _EmptyPlayerRow extends StatelessWidget {
   }
 }
 
-class _BadgePill extends StatelessWidget {
-  const _BadgePill({
-    required this.label,
-    required this.bg,
-    required this.textColor,
-  });
+// ── Host message card ─────────────────────────────────────────────────────────
 
-  final String label;
-  final Color bg;
-  final Color textColor;
+class _HostMessageCard extends StatelessWidget {
+  const _HostMessageCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        borderRadius: BorderRadius.circular(99),
+        color: _mdSurfaceContainerLow,
+        borderRadius: BorderRadius.circular(_mdCornerMd),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: textColor,
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'LỜI NHẮN TỪ CHỦ SLOT',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: _mdOnSurfaceVariant,
+              letterSpacing: 1,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            '"Mình tìm bạn chơi ghép. Mang vợt + giày sạch nhé. Cảm ơn 🏓"',
+            style: TextStyle(
+              fontSize: 14,
+              color: _mdOnSurface,
+              fontStyle: FontStyle.italic,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Sticky CTA ────────────────────────────────────────────────────────────────
+
+class _StickyCtaBar extends StatelessWidget {
+  const _StickyCtaBar({required this.isFull});
+
+  final bool isFull;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _mdSurface,
+          border: Border(
+            top: BorderSide(color: _mdOutlineVariant.withAlpha(128)),
+          ),
         ),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
+        child: isFull
+            ? Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: const Color(0x1F181D17),
+                  borderRadius: BorderRadius.circular(_mdCornerFull),
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  'Đã đủ người',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0x61181D17),
+                  ),
+                ),
+              )
+            : FilledButton(
+                onPressed: () {},
+                style: FilledButton.styleFrom(
+                  backgroundColor: _mdPrimary,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(_mdCornerFull),
+                  ),
+                ),
+                child: const Text(
+                  'Đăng ký chơi cùng',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
       ),
     );
   }

@@ -487,6 +487,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Hồ sơ'**
   String get navProfile;
+
+  /// No description provided for @navSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot trống'**
+  String get navSlots;
 }
 
 class _AppLocalizationsDelegate

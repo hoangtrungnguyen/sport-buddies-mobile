@@ -125,9 +125,9 @@ class _AppShellState extends State<AppShell>
                 label: l10n.navBookings,
               ),
               NavigationDestination(
-                icon: const Icon(Icons.person_outline),
-                selectedIcon: const Icon(Icons.person),
-                label: l10n.navProfile,
+                icon: const Icon(Icons.group_outlined),
+                selectedIcon: const Icon(Icons.group),
+                label: l10n.navSlots,
               ),
             ],
           ),
