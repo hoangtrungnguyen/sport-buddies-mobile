@@ -47,4 +47,9 @@ class MapFilterCubit extends Cubit<MapFilterState> {
   void clearAll() {
     emit(const MapFilterState());
   }
+
+  /// Apply all filter values at once (used by the filter sheet draft pattern).
+  void setAll(MapFilterState newState) {
+    emit(newState);
+  }
 }
