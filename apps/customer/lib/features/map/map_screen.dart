@@ -31,21 +31,37 @@ import 'package:spb_core/spb_core.dart';
 import 'package:vietmap_flutter_gl/vietmap_flutter_gl.dart' as vm;
 
 // ---------------------------------------------------------------------------
-// Design tokens (local constants — not in ThemeData yet)
+// Design tokens — Material Design 3 surface/color scale
 // ---------------------------------------------------------------------------
-const _primary = Color(0xFF16A34A);
-const _primaryDark = Color(0xFF15803D);
-const _primaryLight = Color(0xFFDCFCE7);
-const _n100 = Color(0xFFF3F4F6);
-const _n200 = Color(0xFFE5E7EB);
-const _n300 = Color(0xFFD1D5DB);
-const _n600 = Color(0xFF6B7280);
-const _n700 = Color(0xFF374151);
-const _n900 = Color(0xFF111827);
-const _pinFull = Color(0xFF9AA3AF);
+// MD3 surface tokens
+const _mdSurface = Color(0xFFF7FBF2);               // header bg (greenish tinted)
+const _mdOnSurface = Color(0xFF181D17);              // primary text
+const _mdOnSurfaceVariant = Color(0xFF42493F);       // secondary text
+const _mdSurfaceContainerLowest = Color(0xFFFFFFFF); // peek sheet bg
+const _mdSurfaceContainerLow = Color(0xFFF1F6EC);    // filter sheet bg, cards
+const _mdSurfaceContainer = Color(0xFFEBF0E6);       // chip soft bg
+const _mdSurfaceContainerHigh = Color(0xFFE5EAE1);   // full badge bg
+const _mdSurfaceContainerHighest = Color(0xFFDFE4DA);// GPS FAB bg, search bar bg
+const _mdPrimary = Color(0xFF15803D);
+const _mdOnPrimary = Color(0xFFFFFFFF);
+const _mdPrimaryContainer = Color(0xFFC9F2D2);       // active chip bg, slot badge bg
+const _mdOnPrimaryContainer = Color(0xFF00210B);     // active chip text
+const _mdOutline = Color(0xFF72796C);
+const _mdOutlineVariant = Color(0xFFC2C8BB);         // chip border, drag handle
+
+// MD3 shape scale
+const _mdCornerSm = 8.0;     // chips, badges
+const _mdCornerMd = 12.0;    // GPS FAB, thumbnails, cards
+const _mdCornerLg = 16.0;    // larger cards
+const _mdCornerXl = 28.0;    // bottom sheets
+const double _mdCornerFull = 9999.0; // buttons, pills
+
+// Alias kept for map/marker code
+const _primary = _mdPrimary;
+
+// Kept for all-full warning banner
 const _mapCanvas = Color(0xFFEAF2EA);
-const _success = Color(0xFF22C55E);
-const _successBg = Color(0xFFDCFCE7);
+const _pinFull = Color(0xFF9AA3AF);
 const _warningBg = Color(0xFFFEF9C3);
 const _warningBorder = Color(0xFFFDE68A);
 const _warningText = Color(0xFF92670B);
@@ -162,13 +178,6 @@ class _MapContentState extends State<_MapContent>
             final isAllFull = mapState is MapLoaded &&
                 filtered.isNotEmpty &&
                 filtered.every((c) => c.openSlotCount == 0);
-            final selectedCourt =
-                mapState is MapLoaded ? mapState.selectedCourt : null;
-
-            final filtersActive = filterState.selectedSports.isNotEmpty ||
-                filterState.maxDistanceKm != null ||
-                filterState.onlyWithOpenSlots;
-
             return Stack(
               children: [
                 // ── main map content ──────────────────────────────────────
@@ -179,7 +188,6 @@ class _MapContentState extends State<_MapContent>
                       openSlots: openSlots,
                       isLoading: isLoading,
                       isEmpty: isEmpty,
-                      filtersActive: filtersActive,
                       selectedSports: filterState.selectedSports,
                       onSearch: () => setState(() => _searchOpen = true),
                       onOpenFilter: () =>
@@ -439,7 +447,6 @@ class _MapHeader extends StatelessWidget {
     required this.openSlots,
     required this.isLoading,
     required this.isEmpty,
-    required this.filtersActive,
     required this.selectedSports,
     required this.onSearch,
     required this.onOpenFilter,
@@ -451,7 +458,6 @@ class _MapHeader extends StatelessWidget {
   final int openSlots;
   final bool isLoading;
   final bool isEmpty;
-  final bool filtersActive;
   final Set<String> selectedSports;
   final VoidCallback onSearch;
   final VoidCallback onOpenFilter;
@@ -468,7 +474,7 @@ class _MapHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
     return Container(
-      color: Colors.white,
+      color: _mdSurface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -485,7 +491,7 @@ class _MapHeader extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: _n900,
+                          color: _mdOnSurface,
                           height: 1.2,
                         ),
                       ),
@@ -494,7 +500,7 @@ class _MapHeader extends StatelessWidget {
                         _subtitle,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: _n600,
+                          color: _mdOnSurfaceVariant,
                           height: 1.4,
                         ),
                         maxLines: 1,
@@ -503,6 +509,25 @@ class _MapHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Filter icon button
+                Semantics(
+                  label: 'Bộ lọc',
+                  child: InkWell(
+                    onTap: onOpenFilter,
+                    borderRadius: BorderRadius.circular(99),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _mdOutlineVariant),
+                        color: _mdSurface,
+                      ),
+                      child: const Icon(Icons.tune, size: 20, color: _mdOnSurfaceVariant),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 Semantics(
                   label: 'Tìm kiếm',
                   child: InkWell(
@@ -513,10 +538,10 @@ class _MapHeader extends StatelessWidget {
                       height: 40,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: _n200),
-                        color: Colors.white,
+                        border: Border.all(color: _mdOutlineVariant),
+                        color: _mdSurface,
                       ),
-                      child: const Icon(Icons.search, size: 20, color: _n700),
+                      child: const Icon(Icons.search, size: 20, color: _mdOnSurfaceVariant),
                     ),
                   ),
                 ),
@@ -525,13 +550,11 @@ class _MapHeader extends StatelessWidget {
             ),
           ),
           _ChipRow(
-            filtersActive: filtersActive,
             selectedSports: selectedSports,
-            onOpenFilter: onOpenFilter,
             onSelectAll: onSelectAll,
             onToggleSport: onToggleSport,
           ),
-          Container(height: 1, color: _n200),
+          Container(height: 1, color: _mdOutlineVariant),
         ],
       ),
     );
@@ -551,16 +574,12 @@ const _kQuickSports = [
 
 class _ChipRow extends StatelessWidget {
   const _ChipRow({
-    required this.filtersActive,
     required this.selectedSports,
-    required this.onOpenFilter,
     required this.onSelectAll,
     required this.onToggleSport,
   });
 
-  final bool filtersActive;
   final Set<String> selectedSports;
-  final VoidCallback onOpenFilter;
   final VoidCallback onSelectAll;
   final void Function(String) onToggleSport;
 
@@ -572,15 +591,6 @@ class _ChipRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
-          // Filter pill
-          _FilterPill(active: filtersActive, onTap: onOpenFilter),
-          // Divider
-          Container(
-            width: 1,
-            height: 20,
-            color: _n200,
-            margin: const EdgeInsets.symmetric(horizontal: 10),
-          ),
           // Tất cả chip
           _QuickChip(
             label: 'Tất cả',
@@ -602,68 +612,8 @@ class _ChipRow extends StatelessWidget {
               ),
             ),
           )),
-        ],
-      ),
-    );
-  }
-}
-
-class _FilterPill extends StatelessWidget {
-  const _FilterPill({required this.active, required this.onTap});
-
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-            decoration: BoxDecoration(
-              color: active ? _primaryLight : Colors.white,
-              border: Border.all(
-                color: active ? _primaryLight : _n200,
-              ),
-              borderRadius: BorderRadius.circular(99),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.tune,
-                  size: 14,
-                  color: active ? _primaryDark : _n700,
-                ),
-                const SizedBox(width: 5),
-                Text(
-                  'Bộ lọc',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: active ? _primaryDark : _n700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (active)
-            Positioned(
-              top: -2,
-              right: -2,
-              child: Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: _primary,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 1.5),
-                ),
-              ),
-            ),
+          // Distance soft chip
+          const _SoftChip(label: 'Trong 5 km'),
         ],
       ),
     );
@@ -690,18 +640,22 @@ class _QuickChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: active ? _primary : Colors.white,
-          border: Border.all(color: active ? _primary : _n200),
-          borderRadius: BorderRadius.circular(99),
+          color: active ? _mdPrimaryContainer : Colors.transparent,
+          border: active ? null : Border.all(color: _mdOutlineVariant),
+          borderRadius: BorderRadius.circular(_mdCornerSm),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (active) ...[
+              const Icon(Icons.check, size: 14, color: _mdOnPrimaryContainer),
+              const SizedBox(width: 4),
+            ],
             if (icon != null) ...[
               Icon(
                 icon,
                 size: 14,
-                color: active ? Colors.white : _n700,
+                color: active ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
               ),
               const SizedBox(width: 5),
             ],
@@ -710,11 +664,48 @@ class _QuickChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: active ? Colors.white : _n700,
+                color: active ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SoftChip extends StatelessWidget {
+  const _SoftChip({required this.label});
+  final String label;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: _mdSurfaceContainer,
+        borderRadius: BorderRadius.circular(_mdCornerSm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: _mdPrimary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          const Text(
+            'Trong 5 km',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: _mdOnSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -732,23 +723,22 @@ class _MapLegend extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(242),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _n200),
+        color: _mdSurfaceContainerLow.withAlpha(242),
+        borderRadius: BorderRadius.circular(_mdCornerMd),
+        border: Border.all(color: _mdOutlineVariant),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+            color: Color(0x14000000),
+            blurRadius: 4,
           ),
         ],
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           _LegendRow(color: _primary, label: 'Còn slot'),
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           _LegendRow(color: _pinFull, label: 'Hết slot'),
         ],
       ),
@@ -774,7 +764,7 @@ class _LegendRow extends StatelessWidget {
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: _n700,
+            color: _mdOnSurfaceVariant,
           ),
         ),
       ],
@@ -801,8 +791,8 @@ class _GpsRecenterFab extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+            color: _mdSurfaceContainerHighest,
+            borderRadius: BorderRadius.circular(_mdCornerMd),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x1A000000),
@@ -811,7 +801,7 @@ class _GpsRecenterFab extends StatelessWidget {
               ),
             ],
           ),
-          child: const Icon(Icons.gps_fixed, size: 20, color: _n700),
+          child: const Icon(Icons.gps_fixed, size: 20, color: _mdPrimary),
         ),
       ),
     );
@@ -907,7 +897,7 @@ class _PeekSheet extends StatelessWidget {
       'pickleball' => const Color(0xFF0EA5E9),
       'badminton' || 'cầu lông' => const Color(0xFFEF4444),
       'tennis' => const Color(0xFFEAB308),
-      _ => _n600,
+      _ => _mdOnSurfaceVariant,
     };
   }
 
@@ -918,13 +908,15 @@ class _PeekSheet extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        color: _mdSurfaceContainerLowest,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(_mdCornerXl),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Color(0x24000000),
-            blurRadius: 28,
-            offset: Offset(0, -10),
+            color: Color(0x1A000000),
+            blurRadius: 20,
+            offset: Offset(0, -4),
           ),
         ],
       ),
@@ -942,7 +934,7 @@ class _PeekSheet extends StatelessWidget {
                     width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: _n300,
+                      color: _mdOutlineVariant,
                       borderRadius: BorderRadius.circular(99),
                     ),
                   ),
@@ -955,11 +947,11 @@ class _PeekSheet extends StatelessWidget {
                     child: Container(
                       width: 28,
                       height: 28,
-                      decoration: BoxDecoration(
-                        color: _n100,
+                      decoration: const BoxDecoration(
+                        color: _mdSurfaceContainerHigh,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.close, size: 16, color: _n600),
+                      child: const Icon(Icons.close, size: 16, color: _mdOnSurfaceVariant),
                     ),
                   ),
                 ),
@@ -1004,7 +996,7 @@ class _PeekSheet extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: _n900,
+                              color: _mdOnSurface,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -1016,8 +1008,8 @@ class _PeekSheet extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: hasSlots ? _successBg : _n100,
-                            borderRadius: BorderRadius.circular(99),
+                            color: hasSlots ? _mdPrimaryContainer : _mdSurfaceContainerHigh,
+                            borderRadius: BorderRadius.circular(_mdCornerSm),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -1026,7 +1018,7 @@ class _PeekSheet extends StatelessWidget {
                                 width: 6,
                                 height: 6,
                                 decoration: BoxDecoration(
-                                  color: hasSlots ? _success : _n600,
+                                  color: hasSlots ? _mdPrimary : _mdOutline,
                                   shape: BoxShape.circle,
                                 ),
                               ),
@@ -1038,8 +1030,7 @@ class _PeekSheet extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color:
-                                      hasSlots ? _primaryDark : _n600,
+                                  color: hasSlots ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -1053,7 +1044,7 @@ class _PeekSheet extends StatelessWidget {
                         court.sportTypes.first,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: _n600,
+                          color: _mdOnSurfaceVariant,
                         ),
                       ),
                     ],
@@ -1070,9 +1061,9 @@ class _PeekSheet extends StatelessWidget {
             child: FilledButton(
               onPressed: onOpenCourt,
               style: FilledButton.styleFrom(
-                backgroundColor: _primary,
+                backgroundColor: _mdPrimary,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(_mdCornerFull),
                 ),
               ),
               child: const Text(
@@ -1080,7 +1071,7 @@ class _PeekSheet extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: _mdOnPrimary,
                 ),
               ),
             ),
@@ -1116,8 +1107,8 @@ class _EmptyState extends StatelessWidget {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 24),
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: _mdSurfaceContainerLowest,
+              borderRadius: BorderRadius.circular(_mdCornerLg),
               boxShadow: const [
                 BoxShadow(
                   color: Color(0x1E000000),
@@ -1133,13 +1124,13 @@ class _EmptyState extends StatelessWidget {
                   width: 72,
                   height: 72,
                   decoration: const BoxDecoration(
-                    color: _n100,
+                    color: _mdSurfaceContainerHigh,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.search_off,
                     size: 32,
-                    color: _n600,
+                    color: _mdOnSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1150,14 +1141,14 @@ class _EmptyState extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: _n900,
+                    color: _mdOnSurface,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Thử mở rộng khoảng cách hoặc bỏ bớt bộ lọc để xem thêm lựa chọn.',
-                  style: TextStyle(fontSize: 13, color: _n600, height: 1.4),
+                  style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant, height: 1.4),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -1167,9 +1158,9 @@ class _EmptyState extends StatelessWidget {
                       child: OutlinedButton(
                         onPressed: onExpand,
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: _n200),
+                          side: const BorderSide(color: _mdOutlineVariant),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(_mdCornerFull),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -1178,7 +1169,7 @@ class _EmptyState extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: _n700,
+                            color: _mdOnSurfaceVariant,
                           ),
                         ),
                       ),
@@ -1188,9 +1179,9 @@ class _EmptyState extends StatelessWidget {
                       child: FilledButton(
                         onPressed: onReset,
                         style: FilledButton.styleFrom(
-                          backgroundColor: _primary,
+                          backgroundColor: _mdPrimary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(_mdCornerFull),
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
@@ -1199,7 +1190,7 @@ class _EmptyState extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                            color: _mdOnPrimary,
                           ),
                         ),
                       ),
@@ -1289,8 +1280,8 @@ class _FilterSheetState extends State<_FilterSheet> {
     final count = _draftCount;
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        color: _mdSurfaceContainerLow,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(_mdCornerXl)),
       ),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       child: Column(
@@ -1303,7 +1294,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: _n300,
+                color: _mdOutlineVariant,
                 borderRadius: BorderRadius.circular(99),
               ),
             ),
@@ -1316,9 +1307,9 @@ class _FilterSheetState extends State<_FilterSheet> {
               const Text(
                 'Bộ lọc',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 22,
                   fontWeight: FontWeight.w600,
-                  color: _n900,
+                  color: _mdOnSurface,
                 ),
               ),
               TextButton(
@@ -1332,7 +1323,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: _primary,
+                    color: _mdPrimary,
                   ),
                 ),
               ),
@@ -1345,7 +1336,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _n700,
+              color: _mdOnSurfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
@@ -1378,7 +1369,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _n700,
+              color: _mdOnSurfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
@@ -1412,7 +1403,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: _n700,
+              color: _mdOnSurfaceVariant,
             ),
           ),
           const SizedBox(height: 10),
@@ -1424,9 +1415,9 @@ class _FilterSheetState extends State<_FilterSheet> {
                   width: 22,
                   height: 22,
                   decoration: BoxDecoration(
-                    color: _onlyOpen ? _primary : Colors.white,
+                    color: _onlyOpen ? _mdPrimary : Colors.white,
                     border: Border.all(
-                      color: _onlyOpen ? _primary : _n300,
+                      color: _onlyOpen ? _mdPrimary : _mdOutlineVariant,
                       width: 2,
                     ),
                     borderRadius: BorderRadius.circular(6),
@@ -1439,7 +1430,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 const Expanded(
                   child: Text(
                     'Chỉ hiển thị sân còn slot trống',
-                    style: TextStyle(fontSize: 14, color: _n700),
+                    style: TextStyle(fontSize: 14, color: _mdOnSurfaceVariant),
                   ),
                 ),
               ],
@@ -1453,9 +1444,9 @@ class _FilterSheetState extends State<_FilterSheet> {
             child: FilledButton(
               onPressed: _apply,
               style: FilledButton.styleFrom(
-                backgroundColor: count > 0 ? _primary : _n700,
+                backgroundColor: count > 0 ? _mdPrimary : _mdOutline,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_mdCornerFull),
                 ),
               ),
               child: Text(
@@ -1490,18 +1481,28 @@ class _SheetChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: active ? _primary : Colors.white,
-        border: Border.all(color: active ? _primary : _n200),
-        borderRadius: BorderRadius.circular(99),
+        color: active ? _mdPrimaryContainer : Colors.transparent,
+        border: active ? null : Border.all(color: _mdOutlineVariant),
+        borderRadius: BorderRadius.circular(_mdCornerSm),
       ),
-      child: Text(
-        label,
-        textAlign: centered ? TextAlign.center : TextAlign.start,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: active ? Colors.white : _n700,
-        ),
+      child: Row(
+        mainAxisSize: centered ? MainAxisSize.max : MainAxisSize.min,
+        mainAxisAlignment: centered ? MainAxisAlignment.center : MainAxisAlignment.start,
+        children: [
+          if (active) ...[
+            const Icon(Icons.check, size: 14, color: _mdOnPrimaryContainer),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            textAlign: centered ? TextAlign.center : TextAlign.start,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: active ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1537,7 +1538,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: Colors.white,
+      color: _mdSurface,
       child: BlocBuilder<MapCubit, MapState>(
         builder: (context, mapState) {
           final allCourts =
@@ -1557,8 +1558,8 @@ class _SearchOverlayState extends State<_SearchOverlay> {
               Container(
                 padding: EdgeInsets.fromLTRB(12, topPad + 12, 12, 12),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(bottom: BorderSide(color: _n200)),
+                  color: _mdSurface,
+                  border: Border(bottom: BorderSide(color: _mdOutlineVariant)),
                 ),
                 child: Row(
                   children: [
@@ -1571,12 +1572,12 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                           height: 40,
                           decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _n100,
+                            color: _mdSurfaceContainerHigh,
                           ),
                           child: const Icon(
                             Icons.arrow_back,
                             size: 20,
-                            color: _n700,
+                            color: _mdOnSurfaceVariant,
                           ),
                         ),
                       ),
@@ -1586,13 +1587,20 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                       child: Container(
                         height: 46,
                         decoration: BoxDecoration(
-                          border: Border.all(color: _primary, width: 1.5),
-                          borderRadius: BorderRadius.circular(10),
+                          color: _mdSurfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(_mdCornerFull),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x12000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Row(
                           children: [
                             const SizedBox(width: 12),
-                            const Icon(Icons.search, size: 18, color: _n600),
+                            const Icon(Icons.search, size: 18, color: _mdOnSurfaceVariant),
                             const SizedBox(width: 8),
                             Expanded(
                               child: TextField(
@@ -1603,14 +1611,14 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                                   hintText: 'Tìm sân, khu vực…',
                                   hintStyle: TextStyle(
                                     fontSize: 14,
-                                    color: _n600,
+                                    color: _mdOnSurfaceVariant,
                                   ),
                                   isDense: true,
                                   contentPadding: EdgeInsets.zero,
                                 ),
                                 style: const TextStyle(
                                   fontSize: 14,
-                                  color: _n900,
+                                  color: _mdOnSurface,
                                 ),
                                 onChanged: (v) => setState(() => _query = v),
                               ),
@@ -1626,13 +1634,13 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                                   height: 24,
                                   margin: const EdgeInsets.only(right: 8),
                                   decoration: const BoxDecoration(
-                                    color: _n200,
+                                    color: _mdSurfaceContainerHigh,
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(
                                     Icons.close,
                                     size: 14,
-                                    color: _n700,
+                                    color: _mdOnSurfaceVariant,
                                   ),
                                 ),
                               ),
@@ -1652,7 +1660,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                     q.isEmpty
                         ? 'Tất cả ${allCourts.length} sân · gần nhất trước'
                         : '${results.length} kết quả cho "$_query"',
-                    style: const TextStyle(fontSize: 12, color: _n600),
+                    style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
                   ),
                 ),
               ),
@@ -1693,10 +1701,10 @@ class _SearchEmpty extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: const BoxDecoration(
-              color: _n100,
+              color: _mdSurfaceContainerHigh,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.search_off, size: 32, color: _n600),
+            child: const Icon(Icons.search_off, size: 32, color: _mdOnSurfaceVariant),
           ),
           const SizedBox(height: 12),
           Text(
@@ -1704,13 +1712,13 @@ class _SearchEmpty extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: _n900,
+              color: _mdOnSurface,
             ),
           ),
           const SizedBox(height: 6),
           const Text(
             'Thử tên sân hoặc khu vực khác.',
-            style: TextStyle(fontSize: 13, color: _n600),
+            style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
           ),
         ],
       ),
@@ -1730,7 +1738,7 @@ class _CourtListCard extends StatelessWidget {
       'pickleball' => const Color(0xFF0EA5E9),
       'badminton' || 'cầu lông' => const Color(0xFFEF4444),
       'tennis' => const Color(0xFFEAB308),
-      _ => _n600,
+      _ => _mdOnSurfaceVariant,
     };
   }
 
@@ -1752,12 +1760,11 @@ class _CourtListCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: _n200),
-          borderRadius: BorderRadius.circular(16),
+          color: _mdSurfaceContainerLow,
+          borderRadius: BorderRadius.circular(_mdCornerMd),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x0A000000),
+              color: Color(0x0F000000),
               blurRadius: 3,
               offset: Offset(0, 1),
             ),
@@ -1775,7 +1782,7 @@ class _CourtListCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                   colors: [sportColor, sportColor.withAlpha(204)],
                 ),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(_mdCornerMd),
               ),
               child: Icon(
                 _sportIcon(court.sportTypes),
@@ -1797,7 +1804,7 @@ class _CourtListCard extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: _n900,
+                            color: _mdOnSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1808,8 +1815,8 @@ class _CourtListCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: hasSlots ? _successBg : _n100,
-                          borderRadius: BorderRadius.circular(99),
+                          color: hasSlots ? _mdPrimaryContainer : _mdSurfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(_mdCornerSm),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -1818,7 +1825,7 @@ class _CourtListCard extends StatelessWidget {
                               width: 5,
                               height: 5,
                               decoration: BoxDecoration(
-                                color: hasSlots ? _success : _n600,
+                                color: hasSlots ? _mdPrimary : _mdOutline,
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -1830,7 +1837,7 @@ class _CourtListCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
-                                color: hasSlots ? _primaryDark : _n600,
+                                color: hasSlots ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
                               ),
                             ),
                           ],
@@ -1842,7 +1849,7 @@ class _CourtListCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       court.sportTypes.first,
-                      style: const TextStyle(fontSize: 12, color: _n600),
+                      style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
                     ),
                   ],
                 ],
