@@ -1,21 +1,38 @@
-// Booking detail feature — BookingDetailScreen.
-//
-// Accessible via the '/bookings/:id' route.
-//
-// BLoC states handled:
-//   BookingDetailLoading  → CircularProgressIndicator
-//   BookingDetailLoaded   → Booking info + "Yêu cầu tham gia" section
-//   BookingDetailError    → error message
+// Booking detail — MD3 redesign.
+// Route: /bookings/:id  (full-screen, no bottom nav)
+// Design: EPIC-6 My Bookings.html → BookingDetail component
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'booking_detail_cubit.dart';
 import 'booking_detail_state.dart';
+import 'booking_model.dart';
 
-/// Route entry point — wraps the screen in a [BookingDetailCubit].
+// ─── MD3 tokens ──────────────────────────────────────────────────────────────
+const _mdSurface                 = Color(0xFFF7FBF2);
+const _mdOnSurface               = Color(0xFF181D18);
+const _mdOnSurfaceVariant        = Color(0xFF414941);
+const _mdSurfaceContainerLowest  = Color(0xFFFFFFFF);
+const _mdSurfaceContainer        = Color(0xFFEBEFE6);
+const _mdSurfaceContainerHighest = Color(0xFFDCE1D7);
+const _mdPrimary                 = Color(0xFF15803D);
+const _mdOnPrimary               = Color(0xFFFFFFFF);
+const _mdPrimaryContainer        = Color(0xFFBBF7D0);
+const _mdOnPrimaryContainer      = Color(0xFF002111);
+const _mdTertiary                = Color(0xFF3D6373);
+const _mdTertiaryContainer       = Color(0xFFC1E8FA);
+const _mdOnTertiaryContainer     = Color(0xFF001F2A);
+const _mdError                   = Color(0xFFBA1A1A);
+const _mdOutlineVariant          = Color(0xFFBFC9BA);
+const _mdCornerMd = BorderRadius.all(Radius.circular(12));
+const _mdCornerFull = BorderRadius.all(Radius.circular(9999));
+
+// ─── Page entry point ────────────────────────────────────────────────────────
+
 class BookingDetailPage extends StatelessWidget {
   const BookingDetailPage({super.key, required this.bookingId});
 
@@ -31,201 +48,641 @@ class BookingDetailPage extends StatelessWidget {
   }
 }
 
-/// The screen itself — reads from [BookingDetailCubit] via BlocBuilder.
+// ─── Screen ──────────────────────────────────────────────────────────────────
+
 class BookingDetailScreen extends StatelessWidget {
   const BookingDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _mdSurface,
       appBar: AppBar(
-        title: const Text('Chi tiết đặt sân'),
-        leading: BackButton(
+        backgroundColor: _mdSurface,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Chi tiết đặt sân',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _mdOnSurface),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: _mdOnSurface),
           onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            }
+            if (context.canPop()) context.pop();
           },
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_outlined, color: _mdOnSurface),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: BlocBuilder<BookingDetailCubit, BookingDetailState>(
-        builder: (context, state) {
-          return switch (state) {
-            BookingDetailLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
-            BookingDetailLoaded(:final booking, :final joinRequests) =>
-              _LoadedBody(booking: booking, joinRequests: joinRequests),
-            BookingDetailError(:final message) => _ErrorBody(message: message),
-          };
+        builder: (context, state) => switch (state) {
+          BookingDetailLoading() =>
+            const Center(child: CircularProgressIndicator()),
+          BookingDetailLoaded(:final booking, :final joinRequests) =>
+            _LoadedBody(booking: booking, joinRequests: joinRequests),
+          BookingDetailError(:final message) => _ErrorBody(message: message),
         },
       ),
     );
   }
 }
 
-class _LoadedBody extends StatelessWidget {
-  const _LoadedBody({
-    required this.booking,
-    required this.joinRequests,
-  });
+// ─── Loaded body ─────────────────────────────────────────────────────────────
 
-  final dynamic booking;
+class _LoadedBody extends StatelessWidget {
+  const _LoadedBody({required this.booking, required this.joinRequests});
+
+  final Booking? booking;
   final List<JoinRequest> joinRequests;
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Stack(
       children: [
-        if (booking != null) ...[
-          _BookingInfoCard(booking: booking),
-          const SizedBox(height: 24),
-        ],
-        _JoinRequestsSection(joinRequests: joinRequests),
+        ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+          children: [
+            if (booking != null) ...[
+              _BookingInfoCard(booking: booking!),
+              const SizedBox(height: 12),
+              _ParticipantsCard(joinRequests: joinRequests),
+              const SizedBox(height: 12),
+              _JoinRequestsCard(joinRequests: joinRequests),
+            ],
+          ],
+        ),
+        if (booking != null)
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _BottomActions(booking: booking!),
+          ),
       ],
     );
   }
 }
 
+// ─── Booking info card ────────────────────────────────────────────────────────
+
 class _BookingInfoCard extends StatelessWidget {
   const _BookingInfoCard({required this.booking});
 
-  final dynamic booking;
+  final Booking booking;
+
+  static final _timeFmt = DateFormat('HH:mm');
+  static final _dateFmt = DateFormat("EEEE, dd/MM", 'vi');
+  static final _priceFmt =
+      NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+
+  String _formatPrice(double? price) {
+    if (price == null || price == 0) return '—';
+    return '${_priceFmt.format(price).trim()} đ';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    final start = booking.slot.startTime.toLocal();
+    final end = booking.slot.endTime.toLocal();
+    final statusLabel = switch (booking.status) {
+      'confirmed' => 'Đã xác nhận',
+      'pending'   => 'Chờ xác nhận',
+      'cancelled' => 'Đã huỷ',
+      _           => booking.status,
+    };
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _mdSurfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _mdOutlineVariant),
+        boxShadow: const [
+          BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 2)),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _M3Badge(statusLabel: statusLabel),
+                Text(
+                  '#SPB-${booking.id.substring(0, booking.id.length.clamp(0, 8)).toUpperCase()}',
+                  style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             Text(
               booking.slot.court.name,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: _mdOnSurface),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 2),
             Text(
-              '${_formatDateTime(booking.slot.startTime)} — '
-              '${_formatTime(booking.slot.endTime)}',
-              style: Theme.of(context).textTheme.bodyMedium,
+              _dateFmt.format(start),
+              style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
             ),
-            const SizedBox(height: 4),
-            _StatusChip(status: booking.status),
+            const SizedBox(height: 12),
+            Container(height: 1, color: _mdOutlineVariant),
+            const SizedBox(height: 12),
+            // Slot time row
+            _BookedSlot(
+              time: '${_timeFmt.format(start)} – ${_timeFmt.format(end)}',
+            ),
+            const SizedBox(height: 12),
+            Container(height: 1, color: _mdOutlineVariant),
+            const SizedBox(height: 12),
+            _SummaryRow(label: 'Chế độ', value: '🌐 Mở chơi ghép'),
+            const SizedBox(height: 6),
+            _SummaryRow(
+              label: 'Tổng',
+              value: _formatPrice(booking.totalPrice),
+              bold: true,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.phone_outlined, size: 16),
+                    label: const Text('Gọi chủ sân'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _mdOnSurface,
+                      side: const BorderSide(color: _mdOutlineVariant),
+                      shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.map_outlined, size: 16),
+                    label: const Text('Chỉ đường'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _mdOnSurface,
+                      side: const BorderSide(color: _mdOutlineVariant),
+                      shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BookedSlot extends StatelessWidget {
+  const _BookedSlot({required this.time});
+
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: _mdSurfaceContainer,
+        borderRadius: _mdCornerMd,
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 4, height: 32,
+            decoration: BoxDecoration(color: _mdPrimary, borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(width: 10),
+          Text(time, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _mdOnSurface)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value, this.bold = false});
+
+  final String label;
+  final String value;
+  final bool bold;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant)),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+            color: bold ? _mdOnSurface : _mdOnSurfaceVariant,
+            fontFamily: bold ? 'Sora' : null,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Participants card ────────────────────────────────────────────────────────
+
+class _ParticipantsCard extends StatelessWidget {
+  const _ParticipantsCard({required this.joinRequests});
+
+  final List<JoinRequest> joinRequests;
+
+  @override
+  Widget build(BuildContext context) {
+    final approved = joinRequests.where((r) => r.status == 'approved').toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _mdSurfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _mdOutlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Người chơi',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '· ${approved.length + 1}/4',
+                      style: const TextStyle(fontSize: 16, color: _mdOnSurfaceVariant, fontWeight: FontWeight.w400),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    foregroundColor: _mdPrimary,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 32),
+                  ),
+                  child: const Text('+ Mời bạn', style: TextStyle(fontSize: 13)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Host row (placeholder - real data would come from booking)
+            _PlayerRow(
+              name: 'Bạn (chủ slot)',
+              sub: 'Chủ slot',
+              initials: 'TM',
+              color: _mdPrimary,
+              isHost: true,
+            ),
+            if (approved.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              for (final req in approved) ...[
+                _PlayerRow(
+                  name: req.userName,
+                  sub: 'Đã chấp nhận · ${req.createdAt}',
+                  initials: _initials(req.userName),
+                  color: _mdSurfaceContainerHighest,
+                ),
+              ],
+            ],
           ],
         ),
       ),
     );
   }
 
-  String _formatDateTime(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/'
-        '${dt.month.toString().padLeft(2, '0')}/'
-        '${dt.year} '
-        '${_formatTime(dt)}';
-  }
-
-  String _formatTime(DateTime dt) {
-    return '${dt.hour.toString().padLeft(2, '0')}:'
-        '${dt.minute.toString().padLeft(2, '0')}';
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return (parts.first[0] + parts.last[0]).toUpperCase();
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
+class _PlayerRow extends StatelessWidget {
+  const _PlayerRow({
+    required this.name,
+    required this.sub,
+    required this.initials,
+    required this.color,
+    this.isHost = false,
+  });
 
-  final String status;
+  final String name;
+  final String sub;
+  final String initials;
+  final Color color;
+  final bool isHost;
 
   @override
   Widget build(BuildContext context) {
-    return Chip(
-      label: Text(status),
-      backgroundColor: _chipColor(status),
-      labelStyle: const TextStyle(color: Colors.white, fontSize: 12),
+    return Row(
+      children: [
+        Container(
+          width: 40, height: 40,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              initials,
+              style: TextStyle(
+                color: isHost ? _mdOnPrimary : _mdOnSurface,
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _mdOnSurface)),
+                  if (isHost) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      height: 18,
+                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      decoration: BoxDecoration(color: _mdPrimaryContainer, borderRadius: _mdCornerFull),
+                      child: const Center(
+                        child: Text(
+                          'Chủ slot',
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _mdOnPrimaryContainer),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              Text(sub, style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant)),
+            ],
+          ),
+        ),
+      ],
     );
-  }
-
-  Color _chipColor(String status) {
-    return switch (status) {
-      'confirmed' => Colors.green,
-      'pending' => Colors.orange,
-      'cancelled' => Colors.red,
-      _ => Colors.grey,
-    };
   }
 }
 
-class _JoinRequestsSection extends StatelessWidget {
-  const _JoinRequestsSection({required this.joinRequests});
+// ─── Join requests card ───────────────────────────────────────────────────────
+
+class _JoinRequestsCard extends StatelessWidget {
+  const _JoinRequestsCard({required this.joinRequests});
 
   final List<JoinRequest> joinRequests;
+
+  @override
+  Widget build(BuildContext context) {
+    final pending = joinRequests.where((r) => r.status == 'pending').toList();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _mdSurfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _mdOutlineVariant),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Text(
+                  'Yêu cầu tham gia',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
+                ),
+                if (pending.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 20,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(color: _mdTertiaryContainer, borderRadius: _mdCornerFull),
+                    child: Center(
+                      child: Text(
+                        '${pending.length} mới',
+                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _mdOnTertiaryContainer),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (pending.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Chưa có yêu cầu tham gia',
+                  style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+                ),
+              )
+            else
+              for (int i = 0; i < pending.length; i++) ...[
+                if (i > 0) ...[
+                  const SizedBox(height: 12),
+                  Container(height: 1, color: _mdOutlineVariant),
+                  const SizedBox(height: 12),
+                ],
+                _RequestRow(request: pending[i]),
+              ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestRow extends StatelessWidget {
+  const _RequestRow({required this.request});
+
+  final JoinRequest request;
+
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.length >= 2) return (parts.first[0] + parts.last[0]).toUpperCase();
+    return name.isNotEmpty ? name[0].toUpperCase() : '?';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Yêu cầu tham gia',
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(color: _mdSurfaceContainerHighest, shape: BoxShape.circle),
+              child: Center(
+                child: Text(
+                  _initials(request.userName),
+                  style: const TextStyle(color: _mdOnSurface, fontWeight: FontWeight.w700, fontSize: 14),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(request.userName, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _mdOnSurface)),
+                  Text(request.status, style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant)),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-        if (joinRequests.isEmpty)
-          const _EmptyRequestsState()
-        else
-          ...joinRequests.map((req) => _JoinRequestTile(request: req)),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _mdError,
+                  side: const BorderSide(color: _mdOutlineVariant),
+                  shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text('Từ chối', style: TextStyle(fontSize: 13)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: FilledButton(
+                onPressed: () {},
+                style: FilledButton.styleFrom(
+                  backgroundColor: _mdPrimary,
+                  foregroundColor: _mdOnPrimary,
+                  shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text('Chấp nhận', style: TextStyle(fontSize: 13)),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 }
 
-class _EmptyRequestsState extends StatelessWidget {
-  const _EmptyRequestsState();
+// ─── Bottom actions ───────────────────────────────────────────────────────────
+
+class _BottomActions extends StatelessWidget {
+  const _BottomActions({required this.booking});
+
+  final Booking booking;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Text(
-          'Chưa có yêu cầu tham gia',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.grey),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      decoration: const BoxDecoration(
+        color: _mdSurface,
+        border: Border(top: BorderSide(color: _mdOutlineVariant)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _mdOnSurface,
+                side: const BorderSide(color: _mdOutlineVariant),
+                shape: const RoundedRectangleBorder(borderRadius: _mdCornerFull),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Quản lý người chơi'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.map_outlined, size: 18),
+              label: const Text('Chỉ đường'),
+              style: FilledButton.styleFrom(
+                backgroundColor: _mdPrimary,
+                foregroundColor: _mdOnPrimary,
+                shape: const RoundedRectangleBorder(borderRadius: _mdCornerFull),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── M3Badge ──────────────────────────────────────────────────────────────────
+
+class _M3Badge extends StatelessWidget {
+  const _M3Badge({required this.statusLabel});
+
+  final String statusLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final (bg, fg, dot) = switch (statusLabel) {
+      'Đã xác nhận' || 'Đã duyệt' => (
+          const Color(0xFFBBF7D0),
+          const Color(0xFF002111),
+          const Color(0xFF15803D),
         ),
+      'Chờ xác nhận' || 'Chờ duyệt' => (
+          _mdTertiaryContainer,
+          _mdOnTertiaryContainer,
+          _mdTertiary,
+        ),
+      _ => (
+          _mdSurfaceContainerHighest,
+          _mdOnSurfaceVariant,
+          _mdOnSurfaceVariant,
+        ),
+    };
+
+    return Container(
+      height: 24,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(color: bg, borderRadius: _mdCornerFull),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 6, height: 6, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+          const SizedBox(width: 5),
+          Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+        ],
       ),
     );
   }
 }
 
-class _JoinRequestTile extends StatelessWidget {
-  const _JoinRequestTile({required this.request});
-
-  final JoinRequest request;
-
-  @override
-  Widget build(BuildContext context) {
-    final initials = request.userName.isNotEmpty
-        ? request.userName[0].toUpperCase()
-        : '?';
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.blueAccent,
-        backgroundImage: request.avatarUrl != null
-            ? NetworkImage(request.avatarUrl!)
-            : null,
-        child: request.avatarUrl == null
-            ? Text(initials, style: const TextStyle(color: Colors.white))
-            : null,
-      ),
-      title: Text(request.userName),
-      subtitle: Text(request.status),
-    );
-  }
-}
+// ─── Error body ───────────────────────────────────────────────────────────────
 
 class _ErrorBody extends StatelessWidget {
   const _ErrorBody({required this.message});
@@ -237,7 +694,7 @@ class _ErrorBody extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(message, textAlign: TextAlign.center),
+        child: Text(message, textAlign: TextAlign.center, style: const TextStyle(color: _mdOnSurfaceVariant)),
       ),
     );
   }
