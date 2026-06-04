@@ -88,14 +88,44 @@ class _MapContent extends StatefulWidget {
   State<_MapContent> createState() => _MapContentState();
 }
 
-class _MapContentState extends State<_MapContent> {
+class _MapContentState extends State<_MapContent>
+    with SingleTickerProviderStateMixin {
   final _mapController = MapController();
   bool _searchOpen = false;
 
+  late final AnimationController _peekCtrl;
+  late final Animation<Offset> _peekSlide;
+  CourtAvailability? _displayedCourt; // retained during slide-out
+
+  @override
+  void initState() {
+    super.initState();
+    _peekCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _peekSlide = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _peekCtrl, curve: Curves.easeOut));
+  }
+
   @override
   void dispose() {
+    _peekCtrl.dispose();
     _mapController.dispose();
     super.dispose();
+  }
+
+  void _animatePeek(CourtAvailability? court) {
+    if (court != null) {
+      setState(() => _displayedCourt = court);
+      _peekCtrl.forward();
+    } else {
+      _peekCtrl.reverse().then((_) {
+        if (mounted) setState(() => _displayedCourt = null);
+      });
+    }
   }
 
   @override
@@ -107,6 +137,7 @@ class _MapContentState extends State<_MapContent> {
             SnackBar(content: Text(state.message)),
           );
         }
+        _animatePeek(state is MapLoaded ? state.selectedCourt : null);
       },
       builder: (context, mapState) {
         return BlocBuilder<MapFilterCubit, MapFilterState>(
@@ -214,24 +245,29 @@ class _MapContentState extends State<_MapContent> {
                               onReset: () =>
                                   context.read<MapFilterCubit>().clearAll(),
                             ),
-                          if (!isEmpty && selectedCourt != null)
-                            Positioned(
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              child: _PeekSheet(
-                                court: selectedCourt,
-                                onClose: () =>
-                                    context.read<MapCubit>().selectCourt(null),
-                                onOpenCourt: () => context
-                                    .push('/court/${selectedCourt.courtId}'),
-                              ),
-                            ),
+                          // PeekSheet moved to outer Stack for slide animation
                         ],
                       ),
                     ),
                   ],
                 ),
+                // ── peek sheet with slide-up animation ────────────────────
+                if (_displayedCourt != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: SlideTransition(
+                      position: _peekSlide,
+                      child: _PeekSheet(
+                        court: _displayedCourt!,
+                        onClose: () =>
+                            context.read<MapCubit>().selectCourt(null),
+                        onOpenCourt: () =>
+                            context.push('/court/${_displayedCourt!.courtId}'),
+                      ),
+                    ),
+                  ),
                 // ── search overlay (covers header + map) ──────────────────
                 if (_searchOpen)
                   Positioned.fill(
