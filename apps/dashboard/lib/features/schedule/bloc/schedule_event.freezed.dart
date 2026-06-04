@@ -55,6 +55,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult Function(ScheduleWeekChanged value)? weekChanged,
     TResult Function(ScheduleTodayPressed value)? todayPressed,
     TResult Function(ScheduleOwnerSlotCreated value)? ownerSlotCreated,
+    TResult Function(ScheduleOpenSlotCreated value)? openSlotCreated,
     TResult Function(ScheduleManualBookingCreated value)? manualBookingCreated,
     TResult Function(ScheduleBookingResultCleared value)? bookingResultCleared,
     TResult Function(ScheduleSlotBlocked value)? slotBlocked,
@@ -73,6 +74,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed(_that);
       case ScheduleOwnerSlotCreated() when ownerSlotCreated != null:
         return ownerSlotCreated(_that);
+      case ScheduleOpenSlotCreated() when openSlotCreated != null:
+        return openSlotCreated(_that);
       case ScheduleManualBookingCreated() when manualBookingCreated != null:
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
@@ -106,6 +109,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     required TResult Function(ScheduleWeekChanged value) weekChanged,
     required TResult Function(ScheduleTodayPressed value) todayPressed,
     required TResult Function(ScheduleOwnerSlotCreated value) ownerSlotCreated,
+    required TResult Function(ScheduleOpenSlotCreated value) openSlotCreated,
     required TResult Function(ScheduleManualBookingCreated value)
         manualBookingCreated,
     required TResult Function(ScheduleBookingResultCleared value)
@@ -125,6 +129,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed(_that);
       case ScheduleOwnerSlotCreated():
         return ownerSlotCreated(_that);
+      case ScheduleOpenSlotCreated():
+        return openSlotCreated(_that);
       case ScheduleManualBookingCreated():
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared():
@@ -155,6 +161,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult? Function(ScheduleWeekChanged value)? weekChanged,
     TResult? Function(ScheduleTodayPressed value)? todayPressed,
     TResult? Function(ScheduleOwnerSlotCreated value)? ownerSlotCreated,
+    TResult? Function(ScheduleOpenSlotCreated value)? openSlotCreated,
     TResult? Function(ScheduleManualBookingCreated value)? manualBookingCreated,
     TResult? Function(ScheduleBookingResultCleared value)? bookingResultCleared,
     TResult? Function(ScheduleSlotBlocked value)? slotBlocked,
@@ -172,6 +179,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed(_that);
       case ScheduleOwnerSlotCreated() when ownerSlotCreated != null:
         return ownerSlotCreated(_that);
+      case ScheduleOpenSlotCreated() when openSlotCreated != null:
+        return openSlotCreated(_that);
       case ScheduleManualBookingCreated() when manualBookingCreated != null:
         return manualBookingCreated(_that);
       case ScheduleBookingResultCleared() when bookingResultCleared != null:
@@ -204,6 +213,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult Function(DateTime weekStart)? weekChanged,
     TResult Function()? todayPressed,
     TResult Function(DateTime startAt, DateTime endAt)? ownerSlotCreated,
+    TResult Function(DateTime startAt, DateTime endAt)? openSlotCreated,
     TResult Function(DateTime startAt, DateTime endAt, String? customerName,
             String? customerPhone, String? notes, int? pricePerHourOverride)?
         manualBookingCreated,
@@ -224,6 +234,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed();
       case ScheduleOwnerSlotCreated() when ownerSlotCreated != null:
         return ownerSlotCreated(_that.startAt, _that.endAt);
+      case ScheduleOpenSlotCreated() when openSlotCreated != null:
+        return openSlotCreated(_that.startAt, _that.endAt);
       case ScheduleManualBookingCreated() when manualBookingCreated != null:
         return manualBookingCreated(
             _that.startAt,
@@ -264,6 +276,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     required TResult Function() todayPressed,
     required TResult Function(DateTime startAt, DateTime endAt)
         ownerSlotCreated,
+    required TResult Function(DateTime startAt, DateTime endAt) openSlotCreated,
     required TResult Function(
             DateTime startAt,
             DateTime endAt,
@@ -288,6 +301,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed();
       case ScheduleOwnerSlotCreated():
         return ownerSlotCreated(_that.startAt, _that.endAt);
+      case ScheduleOpenSlotCreated():
+        return openSlotCreated(_that.startAt, _that.endAt);
       case ScheduleManualBookingCreated():
         return manualBookingCreated(
             _that.startAt,
@@ -324,6 +339,7 @@ extension ScheduleEventPatterns on ScheduleEvent {
     TResult? Function(DateTime weekStart)? weekChanged,
     TResult? Function()? todayPressed,
     TResult? Function(DateTime startAt, DateTime endAt)? ownerSlotCreated,
+    TResult? Function(DateTime startAt, DateTime endAt)? openSlotCreated,
     TResult? Function(DateTime startAt, DateTime endAt, String? customerName,
             String? customerPhone, String? notes, int? pricePerHourOverride)?
         manualBookingCreated,
@@ -343,6 +359,8 @@ extension ScheduleEventPatterns on ScheduleEvent {
         return todayPressed();
       case ScheduleOwnerSlotCreated() when ownerSlotCreated != null:
         return ownerSlotCreated(_that.startAt, _that.endAt);
+      case ScheduleOpenSlotCreated() when openSlotCreated != null:
+        return openSlotCreated(_that.startAt, _that.endAt);
       case ScheduleManualBookingCreated() when manualBookingCreated != null:
         return manualBookingCreated(
             _that.startAt,
@@ -593,6 +611,78 @@ class _$ScheduleOwnerSlotCreatedCopyWithImpl<$Res>
     Object? endAt = null,
   }) {
     return _then(ScheduleOwnerSlotCreated(
+      startAt: null == startAt
+          ? _self.startAt
+          : startAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      endAt: null == endAt
+          ? _self.endAt
+          : endAt // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ScheduleOpenSlotCreated implements ScheduleEvent {
+  const ScheduleOpenSlotCreated({required this.startAt, required this.endAt});
+
+  final DateTime startAt;
+  final DateTime endAt;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ScheduleOpenSlotCreatedCopyWith<ScheduleOpenSlotCreated> get copyWith =>
+      _$ScheduleOpenSlotCreatedCopyWithImpl<ScheduleOpenSlotCreated>(
+          this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ScheduleOpenSlotCreated &&
+            (identical(other.startAt, startAt) || other.startAt == startAt) &&
+            (identical(other.endAt, endAt) || other.endAt == endAt));
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, startAt, endAt);
+
+  @override
+  String toString() {
+    return 'ScheduleEvent.openSlotCreated(startAt: $startAt, endAt: $endAt)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ScheduleOpenSlotCreatedCopyWith<$Res>
+    implements $ScheduleEventCopyWith<$Res> {
+  factory $ScheduleOpenSlotCreatedCopyWith(ScheduleOpenSlotCreated value,
+          $Res Function(ScheduleOpenSlotCreated) _then) =
+      _$ScheduleOpenSlotCreatedCopyWithImpl;
+  @useResult
+  $Res call({DateTime startAt, DateTime endAt});
+}
+
+/// @nodoc
+class _$ScheduleOpenSlotCreatedCopyWithImpl<$Res>
+    implements $ScheduleOpenSlotCreatedCopyWith<$Res> {
+  _$ScheduleOpenSlotCreatedCopyWithImpl(this._self, this._then);
+
+  final ScheduleOpenSlotCreated _self;
+  final $Res Function(ScheduleOpenSlotCreated) _then;
+
+  /// Create a copy of ScheduleEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? startAt = null,
+    Object? endAt = null,
+  }) {
+    return _then(ScheduleOpenSlotCreated(
       startAt: null == startAt
           ? _self.startAt
           : startAt // ignore: cast_nullable_to_non_nullable

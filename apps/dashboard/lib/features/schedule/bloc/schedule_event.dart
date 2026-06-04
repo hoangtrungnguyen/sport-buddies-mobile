@@ -24,6 +24,12 @@ sealed class ScheduleEvent with _$ScheduleEvent {
     required DateTime endAt,
   }) = ScheduleOwnerSlotCreated;
 
+  /// Persist a new open (customer-bookable) slot for the active court (OWNER-195).
+  const factory ScheduleEvent.openSlotCreated({
+    required DateTime startAt,
+    required DateTime endAt,
+  }) = ScheduleOpenSlotCreated;
+
   /// Record a manual walk-in booking for the active court (OWNER-20).
   /// [startAt]/[endAt] are local instants; [customerPhone] is already
   /// E.164-normalized (or null).

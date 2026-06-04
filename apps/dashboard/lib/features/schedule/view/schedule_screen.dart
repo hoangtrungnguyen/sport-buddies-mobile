@@ -13,6 +13,7 @@ import '../model/manual_booking_result.dart';
 import '../model/owner_slot.dart';
 import '../schedule_logic.dart';
 import 'create_manual_booking_dialog.dart';
+import 'create_open_slot_dialog.dart';
 import 'create_owner_slot_dialog.dart';
 import 'slot_actions_dialog.dart';
 
@@ -97,14 +98,26 @@ class _Loaded extends StatelessWidget {
       state.courts.firstWhere((c) => c.id == state.activeCourtId,
           orElse: () => state.courts.first);
 
+  /// Empty-cell tap or header "+" → create an open (customer-bookable) slot (OWNER-195).
   Future<void> _openCreate(BuildContext context, {DateTime? at}) async {
-    await showCreateOwnerSlotDialog(
+    await showCreateOpenSlotDialog(
       context,
       bloc: context.read<ScheduleBloc>(),
       court: _activeCourt,
       weekStart: state.weekStart,
       existing: state.slots,
       initial: at,
+    );
+  }
+
+  /// Secondary entry point for creating a personal owner reservation (OWNER-19).
+  Future<void> _openOwnerReservation(BuildContext context) async {
+    await showCreateOwnerSlotDialog(
+      context,
+      bloc: context.read<ScheduleBloc>(),
+      court: _activeCourt,
+      weekStart: state.weekStart,
+      existing: state.slots,
     );
   }
 
@@ -155,6 +168,7 @@ class _Loaded extends StatelessWidget {
             children: [
               _Header(
                 onCreate: () => _openCreate(context),
+                onOwnerReservation: () => _openOwnerReservation(context),
                 onManualBooking: () => _openManualBooking(context),
               ),
               const SizedBox(height: 22),
@@ -197,8 +211,13 @@ class _Loaded extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _Header extends StatelessWidget {
-  const _Header({required this.onCreate, required this.onManualBooking});
+  const _Header({
+    required this.onCreate,
+    required this.onOwnerReservation,
+    required this.onManualBooking,
+  });
   final VoidCallback onCreate;
+  final VoidCallback onOwnerReservation;
   final VoidCallback onManualBooking;
 
   void _soon(BuildContext context, String what) {
@@ -243,6 +262,11 @@ class _Header extends StatelessWidget {
           spacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
+            _SecondaryAction(
+              icon: Icons.person_outline_rounded,
+              label: 'Slot của tôi',
+              onTap: onOwnerReservation,
+            ),
             _SecondaryAction(
               icon: Icons.refresh_rounded,
               label: 'Lịch cố định',

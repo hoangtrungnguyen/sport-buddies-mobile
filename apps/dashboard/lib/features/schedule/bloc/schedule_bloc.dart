@@ -34,6 +34,7 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     on<ScheduleWeekChanged>(_onWeekChanged);
     on<ScheduleTodayPressed>(_onTodayPressed);
     on<ScheduleOwnerSlotCreated>(_onOwnerSlotCreated);
+    on<ScheduleOpenSlotCreated>(_onOpenSlotCreated);
     on<ScheduleManualBookingCreated>(_onManualBookingCreated);
     on<ScheduleBookingResultCleared>(_onBookingResultCleared);
     on<ScheduleSlotBlocked>(_onSlotBlocked);
@@ -120,6 +121,31 @@ class ScheduleBloc extends Bloc<ScheduleEvent, ScheduleState> {
     emit(s.copyWith(busy: true, bookingResult: null));
     try {
       await _slots.createOwnerSlot(
+        courtId: s.activeCourtId,
+        startAt: event.startAt,
+        endAt: event.endAt,
+      );
+      final slots = await _slots.fetchWeekSlots(
+        courtId: s.activeCourtId,
+        weekStart: s.weekStart,
+      );
+      emit(s.copyWith(slots: slots, busy: false, bookingResult: null));
+    } catch (e, st) {
+      emit(ScheduleFailure('Không thể tạo slot. Vui lòng thử lại.',
+          stackTrace: st));
+    }
+  }
+
+  Future<void> _onOpenSlotCreated(
+    ScheduleOpenSlotCreated event,
+    Emitter<ScheduleState> emit,
+  ) async {
+    final s = state;
+    if (s is! ScheduleLoaded || s.activeCourtId.isEmpty) return;
+    if (hasConflict(s.slots, event.startAt, event.endAt)) return;
+    emit(s.copyWith(busy: true, bookingResult: null));
+    try {
+      await _slots.createOpenSlot(
         courtId: s.activeCourtId,
         startAt: event.startAt,
         endAt: event.endAt,

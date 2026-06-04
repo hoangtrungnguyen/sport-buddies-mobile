@@ -37,6 +37,15 @@ abstract interface class OwnerSlotRepository {
     required DateTime endAt,
   });
 
+  /// Creates a customer-bookable slot (OWNER-195) for `[startAt, endAt)` on
+  /// [courtId]. Persisted with `status = 'open'` so it appears in the customer
+  /// slot picker immediately.
+  Future<OwnerSlot> createOpenSlot({
+    required String courtId,
+    required DateTime startAt,
+    required DateTime endAt,
+  });
+
   /// Blocks an **open** slot (OWNER-25): `status → blocked`, persisting an
   /// optional [reason] to `blocked_reason`. Guarded so a booked (or otherwise
   /// non-open) slot is never blocked — throws [OwnerSlotException]`('not_open')`
@@ -118,6 +127,30 @@ class SupabaseOwnerSlotRepository implements OwnerSlotRepository {
     } catch (e, st) {
       appLogger.e('OwnerSlotRepository.createOwnerSlot',
           error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<OwnerSlot> createOpenSlot({
+    required String courtId,
+    required DateTime startAt,
+    required DateTime endAt,
+  }) async {
+    try {
+      final row = await _client
+          .from('slots')
+          .insert({
+            'court_id': courtId,
+            'start_at': startAt.toUtc().toIso8601String(),
+            'end_at': endAt.toUtc().toIso8601String(),
+            'status': SlotStatus.open,
+          })
+          .select(_cols)
+          .single();
+      return OwnerSlot.fromRow(row);
+    } catch (e, st) {
+      appLogger.e('OwnerSlotRepository.createOpenSlot', error: e, stackTrace: st);
       rethrow;
     }
   }
