@@ -126,15 +126,15 @@ class _Body extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: const _HostMessageCard(),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: _HostMessageCard(),
               ),
               const SizedBox(height: 24),
             ],
           ),
         ),
-        _StickyCtaBar(isFull: isFull),
+        _StickyCtaBar(isFull: isFull, slotId: slot.id),
       ],
     );
   }
@@ -608,9 +608,10 @@ class _HostMessageCard extends StatelessWidget {
 // ── Sticky CTA ────────────────────────────────────────────────────────────────
 
 class _StickyCtaBar extends StatelessWidget {
-  const _StickyCtaBar({required this.isFull});
+  const _StickyCtaBar({required this.isFull, required this.slotId});
 
   final bool isFull;
+  final String slotId;
 
   @override
   Widget build(BuildContext context) {
@@ -627,41 +628,67 @@ class _StickyCtaBar extends StatelessWidget {
           ),
         ),
         padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + bottomPad),
-        child: isFull
-            ? Container(
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0x1F181D17),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Manage button (host only — shown as demo)
+            OutlinedButton(
+              onPressed: () => context.push('/slot/$slotId/manage'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                side: const BorderSide(color: _mdPrimary),
+                foregroundColor: _mdPrimary,
+                shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(_mdCornerFull),
                 ),
-                alignment: Alignment.center,
-                child: const Text(
-                  'Đã đủ người',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0x61181D17),
-                  ),
-                ),
-              )
-            : FilledButton(
-                onPressed: () {},
-                style: FilledButton.styleFrom(
-                  backgroundColor: _mdPrimary,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(_mdCornerFull),
-                  ),
-                ),
-                child: const Text(
-                  'Đăng ký chơi cùng',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+              ),
+              child: const Text(
+                'Quản lý người chơi',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
+            ),
+            const SizedBox(height: 8),
+            // Main CTA
+            isFull
+                ? Container(
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0x1F181D17),
+                      borderRadius: BorderRadius.circular(_mdCornerFull),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Đã đủ người',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0x61181D17),
+                      ),
+                    ),
+                  )
+                : FilledButton(
+                    onPressed: () {},
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _mdPrimary,
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(_mdCornerFull),
+                      ),
+                    ),
+                    child: const Text(
+                      'Đăng ký chơi cùng',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }
