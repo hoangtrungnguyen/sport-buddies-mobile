@@ -48,6 +48,7 @@ import 'package:customer/features/slots/participant_management_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
+import 'package:customer/features/notifications/notifications_screen.dart';
 import 'package:customer/features/recurring/recurring_booking_screen.dart';
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:customer/features/slots/slot_detail_screen.dart';
@@ -345,6 +346,11 @@ GoRouter buildRouter() {
             ),
           );
         },
+      ),
+      GoRoute(
+        path: '/notifications',
+        pageBuilder: (context, state) =>
+            _fadePage(state, const NotificationsScreen()),
       ),
       GoRoute(
         path: '/booking/recurring',

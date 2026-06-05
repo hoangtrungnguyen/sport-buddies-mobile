@@ -312,7 +312,7 @@ class _NotifButton extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.notifications_outlined, size: 24),
             color: _mdOnSurface,
-            onPressed: () {},
+            onPressed: () => context.push('/notifications'),
           ),
           Positioned(
             top: 7,
