@@ -82,8 +82,11 @@ class _OpenSlotListScreenState extends State<OpenSlotListScreen> {
                     child: CircularProgressIndicator(),
                   ),
                 SlotListError(message: final msg) => _ErrorView(message: msg),
-                SlotListLoaded(slots: final slots) => _SlotBody(
-                    slots: _filtered(slots),
+                SlotListLoaded(slots: final slots) => RefreshIndicator(
+                    color: _mdPrimary,
+                    onRefresh: () =>
+                        context.read<SlotListCubit>().loadAllGroupSlots(),
+                    child: _SlotBody(slots: _filtered(slots)),
                   ),
               },
             ),
@@ -230,9 +233,18 @@ class _SlotBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (slots.isEmpty) {
-      return const _EmptyView();
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: const _EmptyView(),
+          ),
+        ],
+      );
     }
     return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       itemCount: slots.length + 1,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
