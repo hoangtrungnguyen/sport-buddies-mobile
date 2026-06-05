@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ── MD3 tokens ────────────────────────────────────────────────────────────────
 const _mdSurface               = Color(0xFFF7FBF2);
@@ -101,6 +102,9 @@ class _Body extends StatelessWidget {
     final max     = slot.maxPlayers;
     final isFull  = slot.isFull;
     final empties = isFull ? 0 : max - joined;
+    final currentUserId =
+        Supabase.instance.client.auth.currentSession?.user.id;
+    final isOwner = slot.hostId != null && slot.hostId == currentUserId;
 
     return Stack(
       children: [
@@ -134,7 +138,7 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
-        _StickyCtaBar(isFull: isFull, slotId: slot.id),
+        _StickyCtaBar(isFull: isFull, slotId: slot.id, isOwner: isOwner),
       ],
     );
   }
@@ -608,10 +612,15 @@ class _HostMessageCard extends StatelessWidget {
 // ── Sticky CTA ────────────────────────────────────────────────────────────────
 
 class _StickyCtaBar extends StatelessWidget {
-  const _StickyCtaBar({required this.isFull, required this.slotId});
+  const _StickyCtaBar({
+    required this.isFull,
+    required this.slotId,
+    required this.isOwner,
+  });
 
   final bool isFull;
   final String slotId;
+  final bool isOwner;
 
   @override
   Widget build(BuildContext context) {
@@ -631,26 +640,27 @@ class _StickyCtaBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Manage button (host only — shown as demo)
-            OutlinedButton(
-              onPressed: () => context.push('/slot/$slotId/manage'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-                side: const BorderSide(color: _mdPrimary),
-                foregroundColor: _mdPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(_mdCornerFull),
+            if (isOwner) ...[
+              OutlinedButton(
+                onPressed: () => context.push('/slot/$slotId/manage'),
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                  side: const BorderSide(color: _mdPrimary),
+                  foregroundColor: _mdPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(_mdCornerFull),
+                  ),
+                ),
+                child: const Text(
+                  'Quản lý người chơi',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              child: const Text(
-                'Quản lý người chơi',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
+              const SizedBox(height: 8),
+            ],
             // Main CTA
             isFull
                 ? Container(

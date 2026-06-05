@@ -2,8 +2,12 @@
 // Used as fallback when Supabase returns an empty list.
 
 import 'package:spb_core/spb_core.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 final _now = DateTime.now();
+
+String? get _currentUserId =>
+    Supabase.instance.client.auth.currentSession?.user.id;
 
 List<Slot> get mockOpenSlots {
   final today = DateTime(_now.year, _now.month, _now.day);
@@ -20,6 +24,7 @@ List<Slot> get mockOpenSlots {
       accessPolicy: 'open',
       maxPlayers: 4,
       currentPlayers: 2,
+      hostId: _currentUserId,
     ),
     Slot(
       id: 'mock-slot-002',
