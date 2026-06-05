@@ -1,5 +1,6 @@
 // Mock open-slot data for "Slot trống" screen.
 // Used as fallback when Supabase returns an empty list.
+// TODO: remove fallback once slots are seeded in the dev/staging database
 
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -9,6 +10,7 @@ final _now = DateTime.now();
 String? get _currentUserId =>
     Supabase.instance.client.auth.currentSession?.user.id;
 
+// TODO: replace with SlotListCubit real data from Supabase (fetchAllGroupSlots)
 List<Slot> get mockOpenSlots {
   final today = DateTime(_now.year, _now.month, _now.day);
   final tomorrow = today.add(const Duration(days: 1));

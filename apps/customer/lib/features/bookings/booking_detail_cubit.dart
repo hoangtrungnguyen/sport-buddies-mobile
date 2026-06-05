@@ -47,8 +47,8 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
     emit(const BookingDetailLoading());
     try {
       final client = _client;
+      // TODO: remove mock fallback once booking IDs are real UUIDs from Supabase
       if (client == null || !_uuidRe.hasMatch(bookingId)) {
-        // Dev fallback: resolve from mock data when ID is not a real UUID.
         final all = [...mockUpcomingBookings, ...mockHistoryBookings];
         final mock = all.cast<MockBooking?>().firstWhere(
           (b) => b?.id == bookingId,

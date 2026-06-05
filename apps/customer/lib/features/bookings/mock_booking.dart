@@ -210,12 +210,14 @@ extension BookingDisplay on Booking {
 
 // ---------------------------------------------------------------------------
 // Mock data
+// TODO: replace with real BLoC/Supabase data when backend is ready
 // ---------------------------------------------------------------------------
 
 final _today = DateTime.now();
 final _tomorrow = _today.add(const Duration(days: 1));
 final _dayAfter = _today.add(const Duration(days: 2));
 
+// TODO: replace with BookingsCubit real data from Supabase
 final List<MockBooking> mockUpcomingBookings = [
   MockBooking(
     id: '1',
@@ -311,6 +313,7 @@ final List<MockBooking> mockUpcomingBookings = [
   ),
 ];
 
+// TODO: replace with real join-request data from Supabase
 final List<MockJoinRequest> mockJoinRequests = [
   const MockJoinRequest(
     id: 'jr1',
@@ -320,6 +323,7 @@ final List<MockJoinRequest> mockJoinRequests = [
   ),
 ];
 
+// TODO: replace with HistoryCubit real data from Supabase
 final List<MockBooking> mockHistoryBookings = [
   MockBooking(
     id: '101',

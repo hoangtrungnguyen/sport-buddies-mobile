@@ -21,6 +21,7 @@ class SlotListCubit extends Cubit<SlotListState> {
   Future<void> loadAllGroupSlots() async {
     emit(const SlotListLoading());
     final result = await _repository.fetchAllGroupSlots();
+    // TODO: remove mock fallback once slots are seeded in dev/staging DB
     result.when(
       success: (slots) => emit(SlotListLoaded(slots.isNotEmpty ? slots : mockOpenSlots)),
       failure: (_) => emit(SlotListLoaded(mockOpenSlots)),

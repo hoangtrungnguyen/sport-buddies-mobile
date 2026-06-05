@@ -22,6 +22,7 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
   Future<void> load(String bookingId) async {
     emit(const AwaitingState.loading());
 
+    // TODO: remove mock fallback once booking IDs are real UUIDs from Supabase
     if (!_uuidRe.hasMatch(bookingId)) {
       final all = [...mockUpcomingBookings, ...mockHistoryBookings];
       final mock = all.cast<MockBooking?>().firstWhere(

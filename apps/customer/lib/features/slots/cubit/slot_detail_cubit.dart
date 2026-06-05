@@ -18,6 +18,7 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
   Future<void> loadSlot(String slotId) async {
     emit(const SlotDetailLoading());
 
+    // TODO: remove mock fallback once slot IDs are real UUIDs from Supabase
     if (!_uuidRe.hasMatch(slotId)) {
       final mock = mockOpenSlots.cast<Slot?>().firstWhere(
         (s) => s?.id == slotId,
