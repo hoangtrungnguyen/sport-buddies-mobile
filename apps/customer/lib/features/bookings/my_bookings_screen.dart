@@ -293,8 +293,38 @@ class _MyBookingsHeader extends StatelessWidget {
   }
 }
 
-class _NotifButton extends StatelessWidget {
+class _NotifButton extends StatefulWidget {
   const _NotifButton();
+
+  @override
+  State<_NotifButton> createState() => _NotifButtonState();
+}
+
+class _NotifButtonState extends State<_NotifButton> {
+  int _unread = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnread();
+  }
+
+  /// Counts the current user's unread notifications to drive the badge.
+  Future<void> _loadUnread() async {
+    try {
+      final client = Supabase.instance.client;
+      final uid = client.auth.currentUser?.id;
+      if (uid == null) return;
+      final rows = await client
+          .from('notifications')
+          .select('id')
+          .eq('user_id', uid)
+          .eq('read', false) as List<dynamic>;
+      if (mounted) setState(() => _unread = rows.length);
+    } catch (_) {
+      // Non-critical — leave the badge hidden if the count can't be fetched.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -307,21 +337,35 @@ class _NotifButton extends StatelessWidget {
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.notifications_outlined, size: 24),
             color: _mdOnSurface,
-            onPressed: () => context.push('/notifications'),
+            onPressed: () async {
+              await context.push('/notifications');
+              _loadUnread(); // refresh the badge after returning
+            },
           ),
-          Positioned(
-            top: 7,
-            right: 8,
-            child: Container(
-              width: 9,
-              height: 9,
-              decoration: BoxDecoration(
-                color: _mdError,
-                shape: BoxShape.circle,
-                border: Border.all(color: _mdSurface, width: 2),
+          if (_unread > 0)
+            Positioned(
+              top: 3,
+              right: 1,
+              child: Container(
+                height: 16,
+                constraints: const BoxConstraints(minWidth: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: _mdError,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: _mdSurface, width: 1.5),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  _unread > 9 ? '9+' : '$_unread',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
