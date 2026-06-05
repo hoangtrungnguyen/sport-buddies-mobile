@@ -353,7 +353,7 @@ GoRouter buildRouter() {
         pageBuilder: (context, state) => _fadePage(
           state,
           BlocProvider(
-            create: (_) => NotificationsCubit()..load(),
+            create: (_) => NotificationsCubit(Supabase.instance.client)..load(),
             child: const NotificationsScreen(),
           ),
         ),
