@@ -6,7 +6,6 @@
 //   loadForCourt(id)    — single court, status=open (slot picker flow).
 
 import 'package:customer/core/mixins/app_exception_mixin.dart';
-import 'package:customer/features/slots/mock_slot.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 
@@ -21,10 +20,9 @@ class SlotListCubit extends Cubit<SlotListState> {
   Future<void> loadAllGroupSlots() async {
     emit(const SlotListLoading());
     final result = await _repository.fetchAllGroupSlots();
-    // TODO: remove mock fallback once slots are seeded in dev/staging DB
     result.when(
-      success: (slots) => emit(SlotListLoaded(slots.isNotEmpty ? slots : mockOpenSlots)),
-      failure: (_) => emit(SlotListLoaded(mockOpenSlots)),
+      success: (slots) => emit(SlotListLoaded(slots)),
+      failure: (f) => emit(SlotListError(_message(f))),
     );
   }
 

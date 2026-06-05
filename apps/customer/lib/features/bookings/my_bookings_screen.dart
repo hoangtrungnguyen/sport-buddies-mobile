@@ -112,7 +112,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           BlocBuilder<BookingsCubit, BookingsState>(
             builder: (context, state) {
               final all = state is BookingsLoaded ? state.bookings : const <Booking>[];
-              final source = all.isEmpty ? mockUpcomingBookings : all.map((b) => b.toMockBooking()).toList();
+              final source = all.map((b) => b.toMockBooking()).toList();
               final upcomingCount = source.length;
               final pendingCount = source.where((b) => b.status == BookingStatus.pending).length;
               return _MyBookingsHeader(
@@ -142,9 +142,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                       ),
                     HistoryLoaded(:final items) => _HistoryTabView(
                         bookings: _filterHistory(
-                          items.isEmpty
-                              ? mockHistoryBookings
-                              : items.map((i) => i.toMockBooking()).toList(),
+                          items.map((i) => i.toMockBooking()).toList(),
                         ),
                         activeFilter: _historyFilter,
                         onFilterChanged: (f) => setState(() => _historyFilter = f),
@@ -169,13 +167,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
         ),
       BookingsLoaded(:final bookings) => _UpcomingTabView(
           bookings: _filterUpcoming(
-            bookings.isEmpty
-                ? mockUpcomingBookings
-                : bookings.map((b) => b.toMockBooking()).toList(),
+            bookings.map((b) => b.toMockBooking()).toList(),
           ),
-          allBookings: bookings.isEmpty
-              ? mockUpcomingBookings
-              : bookings.map((b) => b.toMockBooking()).toList(),
+          allBookings: bookings.map((b) => b.toMockBooking()).toList(),
           activeFilter: _upcomingFilter,
           onFilterChanged: (f) => setState(() => _upcomingFilter = f),
         ),
@@ -191,9 +185,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
         ),
       BookingsLoaded(:final bookings) => _PendingTabView(
-          pending: bookings.isEmpty
-              ? mockUpcomingBookings.where((b) => b.status == BookingStatus.pending).toList()
-              : bookings.where((b) => b.status == 'pending').map((b) => b.toMockBooking()).toList(),
+          pending: bookings
+              .where((b) => b.status == 'pending')
+              .map((b) => b.toMockBooking())
+              .toList(),
         ),
     };
   }

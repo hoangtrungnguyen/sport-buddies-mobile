@@ -25,15 +25,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'booking_model.dart';
 import 'booking_detail_state.dart';
-import 'mock_booking.dart';
 
 class BookingDetailCubit extends Cubit<BookingDetailState> {
   BookingDetailCubit(this._client) : super(const BookingDetailLoading());
-
-  static final _uuidRe = RegExp(
-    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-    caseSensitive: false,
-  );
 
   /// Fake constructor for tests — allows starting from an arbitrary initial
   /// state without requiring a real [SupabaseClient].
@@ -47,17 +41,8 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
     emit(const BookingDetailLoading());
     try {
       final client = _client;
-      // TODO: remove mock fallback once booking IDs are real UUIDs from Supabase
-      if (client == null || !_uuidRe.hasMatch(bookingId)) {
-        final all = [...mockUpcomingBookings, ...mockHistoryBookings];
-        final mock = all.cast<MockBooking?>().firstWhere(
-          (b) => b?.id == bookingId,
-          orElse: () => all.isNotEmpty ? all.first : null,
-        );
-        emit(BookingDetailLoaded(
-          booking: mock != null ? mockBookingToDomain(mock) : null,
-          joinRequests: const [],
-        ));
+      if (client == null) {
+        emit(const BookingDetailLoaded(booking: null, joinRequests: []));
         return;
       }
 

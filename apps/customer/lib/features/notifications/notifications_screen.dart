@@ -1,4 +1,7 @@
+import 'package:customer/features/notifications/notification_model.dart';
+import 'package:customer/features/notifications/notifications_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 // ── Design tokens (MD3 green theme) ─────────────────────────────────────────
 
@@ -9,127 +12,6 @@ const _mdSurfaceVariant = Color(0xFFDDE5D9);
 const _mdBackground = Color(0xFFF7FBF2);
 const _mdError = Color(0xFFBA1A1A);
 const _mdOutlineVariant = Color(0xFFBDC9B4);
-
-// ── Mock data ────────────────────────────────────────────────────────────────
-
-// TODO: replace with real notification data from Supabase
-enum _NType {
-  bookingConfirmed,
-  joinRequest,
-  reminder,
-  playerJoined,
-  joinApproved,
-  joinRejected,
-  cancelled,
-  series,
-}
-
-/// Date bucket a notification falls into. Drives the section grouping so the
-/// display never depends on parsing the human-readable [_Notif.time] string.
-enum _Day { today, yesterday, older }
-
-class _Notif {
-  const _Notif({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.body,
-    required this.time,
-    required this.day,
-    this.unread = false,
-  });
-
-  final String id;
-  final _NType type;
-  final String title;
-  final String body;
-  final String time;
-  final _Day day;
-  final bool unread;
-}
-
-// ─── MOCK DATA — REMOVE BLOCK ───────────────────────────────────────────────
-// TODO(mock): delete `_mockNotifs` entirely once notifications come from the
-// backend (FCM + Supabase `notifications` table). Replace reads in
-// `_filtered` and `_unreadCount` with a NotificationsCubit state.
-final _mockNotifs = <_Notif>[
-  // HÔM NAY
-  const _Notif(
-    id: 'n1',
-    type: _NType.bookingConfirmed,
-    title: 'Pickle Hub Q1 xác nhận đặt sân',
-    body: '3 slots · 610.000đ · Chủ nhật 08:00 – 10:00',
-    time: '2 phút trước',
-    day: _Day.today,
-    unread: true,
-  ),
-  const _Notif(
-    id: 'n2',
-    type: _NType.joinRequest,
-    title: 'Phạm Thuỷ muốn tham gia slot',
-    body: 'Pickleball · Pickle Hub Q3 · Hôm nay 19:00',
-    time: '15 phút trước',
-    day: _Day.today,
-    unread: true,
-  ),
-  const _Notif(
-    id: 'n3',
-    type: _NType.reminder,
-    title: 'Buổi chơi bắt đầu sau 1 giờ',
-    body: 'Sân Tao Đàn · 20:00 – 21:30 · 120.000đ',
-    time: '30 phút trước',
-    day: _Day.today,
-    unread: true,
-  ),
-  // HÔM QUA
-  const _Notif(
-    id: 'n4',
-    type: _NType.playerJoined,
-    title: 'Nguyễn Hoàng đã tham gia slot',
-    body: 'Cầu lông · CLB Bình Thạnh · Hôm qua 18:00',
-    time: 'Hôm qua, 18:45',
-    day: _Day.yesterday,
-    unread: false,
-  ),
-  const _Notif(
-    id: 'n5',
-    type: _NType.joinApproved,
-    title: 'Minh Quân đã duyệt yêu cầu tham gia',
-    body: 'Pickleball · Pickle Hub Q1 · Hôm qua 19:30',
-    time: 'Hôm qua, 14:00',
-    day: _Day.yesterday,
-    unread: false,
-  ),
-  const _Notif(
-    id: 'n6',
-    type: _NType.series,
-    title: 'Lịch định kỳ: Buổi 2/7 sắp tới',
-    body: 'Tennis · Sân Phú Nhuận · Thứ Sáu 06:00',
-    time: 'Hôm qua, 09:00',
-    day: _Day.yesterday,
-    unread: false,
-  ),
-  // TRƯỚC ĐÓ
-  const _Notif(
-    id: 'n7',
-    type: _NType.cancelled,
-    title: 'Chủ sân huỷ buổi định kỳ lần 3',
-    body: 'Bóng đá · Sân Nguyễn Du · Thứ Tư 20:00',
-    time: '2 ngày trước',
-    day: _Day.older,
-    unread: false,
-  ),
-  const _Notif(
-    id: 'n8',
-    type: _NType.joinRejected,
-    title: 'Yêu cầu tham gia bị từ chối',
-    body: 'Cầu lông · CLB Bình Thạnh · Thứ Ba 18:00',
-    time: '3 ngày trước',
-    day: _Day.older,
-    unread: false,
-  ),
-];
-// ─── END MOCK DATA ──────────────────────────────────────────────────────────
 
 // ── Screen ───────────────────────────────────────────────────────────────────
 
@@ -142,105 +24,135 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   int _selectedFilter = 0;
-  // TODO: track dismissed join-requests from mock data; real state should come from cubit
+  // Locally-dismissed ids (e.g. a rejected join request). Reset on reload.
   final Set<String> _dismissed = {};
 
   static const _filters = ['Tất cả', 'Đặt sân', 'Chơi ghép', 'Nhắc nhở'];
 
-  List<_Notif> get _filtered {
-    // TODO(mock): source from NotificationsCubit instead of `_mockNotifs`.
-    final all = _mockNotifs.where((n) => !_dismissed.contains(n.id)).toList();
+  List<AppNotification> _filtered(List<AppNotification> items) {
+    final all = items.where((n) => !_dismissed.contains(n.id)).toList();
     switch (_selectedFilter) {
       case 1:
-        return all.where((n) => n.type == _NType.bookingConfirmed || n.type == _NType.cancelled || n.type == _NType.reminder).toList();
+        return all.where((n) => n.type == NotifType.bookingConfirmed || n.type == NotifType.cancelled || n.type == NotifType.reminder).toList();
       case 2:
-        return all.where((n) => [_NType.joinRequest, _NType.playerJoined, _NType.joinApproved, _NType.joinRejected].contains(n.type)).toList();
+        return all.where((n) => [NotifType.joinRequest, NotifType.playerJoined, NotifType.joinApproved, NotifType.joinRejected].contains(n.type)).toList();
       case 3:
-        return all.where((n) => n.type == _NType.reminder || n.type == _NType.series).toList();
+        return all.where((n) => n.type == NotifType.reminder || n.type == NotifType.series).toList();
       default:
         return all;
     }
   }
 
-  // TODO(mock): derive from NotificationsCubit state instead of `_mockNotifs`.
-  int get _unreadCount =>
-      _mockNotifs.where((n) => n.unread && !_dismissed.contains(n.id)).length;
+  int _unreadCount(List<AppNotification> items) =>
+      items.where((n) => n.unread && !_dismissed.contains(n.id)).length;
 
   @override
   Widget build(BuildContext context) {
-    final notifs = _filtered;
-
-    final today = notifs.where((n) => n.day == _Day.today).toList();
-    final yesterday = notifs.where((n) => n.day == _Day.yesterday).toList();
-    final older = notifs.where((n) => n.day == _Day.older).toList();
-
     return Scaffold(
       backgroundColor: _mdBackground,
-      appBar: AppBar(
-        backgroundColor: _mdBackground,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          color: _mdOnSurface,
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-        title: const Text(
-          'Thông báo',
-          style: TextStyle(
-            color: _mdOnSurface,
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          if (_unreadCount > 0)
-            TextButton(
-              onPressed: () {
-                // TODO: mark all read via cubit
-              },
-              child: const Text(
-                'Đọc tất cả',
-                style: TextStyle(color: _mdPrimary, fontSize: 14),
+      body: BlocBuilder<NotificationsCubit, NotificationsState>(
+        builder: (context, state) {
+          final items = switch (state) {
+            NotificationsLoaded(:final items) => items,
+            _ => const <AppNotification>[],
+          };
+          final unread = _unreadCount(items);
+          final notifs = _filtered(items);
+          final today = notifs.where((n) => n.day == NotifDay.today).toList();
+          final yesterday = notifs.where((n) => n.day == NotifDay.yesterday).toList();
+          final older = notifs.where((n) => n.day == NotifDay.older).toList();
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _TopBar(unreadCount: unread),
+              _FilterChips(
+                filters: _filters,
+                unreadCount: unread,
+                selected: _selectedFilter,
+                onSelected: (i) => setState(() => _selectedFilter = i),
+              ),
+              const Divider(height: 1, color: _mdOutlineVariant),
+              Expanded(
+                child: switch (state) {
+                  NotificationsLoading() =>
+                    const Center(child: CircularProgressIndicator()),
+                  NotificationsError(:final message) =>
+                    _ErrorState(message: message),
+                  NotificationsLoaded() when notifs.isEmpty =>
+                    _EmptyState(filter: _filters[_selectedFilter]),
+                  NotificationsLoaded() => ListView(
+                      padding: const EdgeInsets.only(bottom: 32),
+                      children: [
+                        if (today.isNotEmpty) ...[
+                          _SectionHeader(label: 'HÔM NAY', count: today.where((n) => n.unread).length),
+                          ...today.map((n) => _NotifTile(
+                                notif: n,
+                                onDismiss: () => setState(() => _dismissed.add(n.id)),
+                              )),
+                        ],
+                        if (yesterday.isNotEmpty) ...[
+                          const _SectionHeader(label: 'HÔM QUA'),
+                          ...yesterday.map((n) => _NotifTile(notif: n)),
+                        ],
+                        if (older.isNotEmpty) ...[
+                          const _SectionHeader(label: 'TRƯỚC ĐÓ'),
+                          ...older.map((n) => _NotifTile(notif: n)),
+                        ],
+                      ],
+                    ),
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Top bar ────────────────────────────────────────────────────────────────
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 4, 8, 0),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              color: _mdOnSurface,
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+            const Expanded(
+              child: Text(
+                'Thông báo',
+                style: TextStyle(
+                  color: _mdOnSurface,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _FilterChips(
-            filters: _filters,
-            unreadCount: _unreadCount,
-            selected: _selectedFilter,
-            onSelected: (i) => setState(() => _selectedFilter = i),
-          ),
-          const Divider(height: 1, color: _mdOutlineVariant),
-          Expanded(
-            child: notifs.isEmpty
-                ? _EmptyState(filter: _filters[_selectedFilter])
-                : ListView(
-                    padding: const EdgeInsets.only(bottom: 32),
-                    children: [
-                      if (today.isNotEmpty) ...[
-                        _SectionHeader(label: 'HÔM NAY', count: today.where((n) => n.unread).length),
-                        ...today.map((n) => _NotifTile(
-                              notif: n,
-                              onDismiss: () => setState(() => _dismissed.add(n.id)),
-                            )),
-                      ],
-                      if (yesterday.isNotEmpty) ...[
-                        const _SectionHeader(label: 'HÔM QUA'),
-                        ...yesterday.map((n) => _NotifTile(notif: n)),
-                      ],
-                      if (older.isNotEmpty) ...[
-                        const _SectionHeader(label: 'TRƯỚC ĐÓ'),
-                        ...older.map((n) => _NotifTile(notif: n)),
-                      ],
-                    ],
-                  ),
-          ),
-        ],
+            if (unreadCount > 0)
+              TextButton(
+                onPressed: () {
+                  // TODO: mark all read via cubit
+                },
+                child: const Text(
+                  'Đọc tất cả',
+                  style: TextStyle(color: _mdPrimary, fontSize: 14),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -349,7 +261,7 @@ class _SectionHeader extends StatelessWidget {
 class _NotifTile extends StatelessWidget {
   const _NotifTile({required this.notif, this.onDismiss});
 
-  final _Notif notif;
+  final AppNotification notif;
   final VoidCallback? onDismiss;
 
   @override
@@ -407,7 +319,7 @@ class _NotifTile extends StatelessWidget {
                       fontSize: 11,
                     ),
                   ),
-                  if (notif.type == _NType.joinRequest)
+                  if (notif.type == NotifType.joinRequest)
                     _JoinRequestActions(onDismiss: onDismiss),
                 ],
               ),
@@ -424,7 +336,7 @@ class _NotifTile extends StatelessWidget {
 class _NotifIcon extends StatelessWidget {
   const _NotifIcon({required this.type});
 
-  final _NType type;
+  final NotifType type;
 
   @override
   Widget build(BuildContext context) {
@@ -437,15 +349,15 @@ class _NotifIcon extends StatelessWidget {
     );
   }
 
-  static (IconData, Color, Color) _resolve(_NType t) => switch (t) {
-        _NType.bookingConfirmed => (Icons.check_circle_outline, const Color(0xFFDCFCE7), _mdPrimary),
-        _NType.joinRequest => (Icons.person_add_alt_1_outlined, const Color(0xFFE0F2FE), const Color(0xFF0369A1)),
-        _NType.reminder => (Icons.alarm_outlined, const Color(0xFFFFF7ED), const Color(0xFFC2410C)),
-        _NType.playerJoined => (Icons.group_outlined, const Color(0xFFDCFCE7), _mdPrimary),
-        _NType.joinApproved => (Icons.verified_outlined, const Color(0xFFDCFCE7), _mdPrimary),
-        _NType.joinRejected => (Icons.cancel_outlined, const Color(0xFFFEE2E2), _mdError),
-        _NType.cancelled => (Icons.event_busy_outlined, const Color(0xFFFEE2E2), _mdError),
-        _NType.series => (Icons.repeat_outlined, const Color(0xFFF3E8FF), const Color(0xFF7C3AED)),
+  static (IconData, Color, Color) _resolve(NotifType t) => switch (t) {
+        NotifType.bookingConfirmed => (Icons.check_circle_outline, const Color(0xFFDCFCE7), _mdPrimary),
+        NotifType.joinRequest => (Icons.person_add_alt_1_outlined, const Color(0xFFE0F2FE), const Color(0xFF0369A1)),
+        NotifType.reminder => (Icons.alarm_outlined, const Color(0xFFFFF7ED), const Color(0xFFC2410C)),
+        NotifType.playerJoined => (Icons.group_outlined, const Color(0xFFDCFCE7), _mdPrimary),
+        NotifType.joinApproved => (Icons.verified_outlined, const Color(0xFFDCFCE7), _mdPrimary),
+        NotifType.joinRejected => (Icons.cancel_outlined, const Color(0xFFFEE2E2), _mdError),
+        NotifType.cancelled => (Icons.event_busy_outlined, const Color(0xFFFEE2E2), _mdError),
+        NotifType.series => (Icons.repeat_outlined, const Color(0xFFF3E8FF), const Color(0xFF7C3AED)),
       };
 }
 
@@ -558,6 +470,35 @@ class _EmptyState extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ── Error state ───────────────────────────────────────────────────────────────
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 56, color: _mdError),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: _mdOnSurfaceVariant, fontSize: 14),
+            ),
+          ],
+        ),
       ),
     );
   }
