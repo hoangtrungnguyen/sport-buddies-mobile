@@ -21,11 +21,13 @@ class CourtDetailCubit extends Cubit<CourtDetailState> {
 
     courtResult.when(
       success: (court) {
-        final openCount = switch (slotsResult) {
-          Success(:final value) => value.length,
-          Failure() => 0,
+        final slots = switch (slotsResult) {
+          Success(:final value) => value,
+          Failure() => <Slot>[],
         };
-        emit(CourtDetailLoaded(court, openSlotCount: openCount));
+        final groupSlots = slots.where((s) => s.accessPolicy == 'open').toList();
+        emit(CourtDetailLoaded(court,
+            openSlotCount: slots.length, groupSlots: groupSlots));
       },
       failure: (f) => emit(CourtDetailError(_message(f))),
     );

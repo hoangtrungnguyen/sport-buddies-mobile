@@ -159,5 +159,7 @@
   "navBookings": "Bookings",
   "@navBookings": {},
   "navProfile": "Profile",
-  "@navProfile": {}
+  "@navProfile": {},
+  "navSlots": "Open Slots",
+  "@navSlots": {}
 }

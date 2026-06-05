@@ -29,13 +29,13 @@ abstract class Env {
   final String _supabaseAnonKey = _instance._supabaseAnonKey;
   static String get supabaseAnonKey => _instance._supabaseAnonKey;
 
-  /// VietMap / Goong tile + geocoding API key.
+  /// VietMap tile + geocoding API key.
   @EnviedField(varName: 'VIETMAP_API_KEY', defaultValue: '')
   final String _vietmapApiKey = _instance._vietmapApiKey;
   static String get vietmapApiKey => _instance._vietmapApiKey;
 
   /// Google Maps API key for map tiles.
-  /// Leave empty in dev — the provider falls back to the keyless endpoint.
+  /// Leave empty in dev — the proFvider falls back to the keyless endpoint.
   @EnviedField(varName: 'GOOGLE_MAP_API_KEY', defaultValue: '')
   final String _googleMapApiKey = _instance._googleMapApiKey;
   static String get googleMapApiKey => _instance._googleMapApiKey;

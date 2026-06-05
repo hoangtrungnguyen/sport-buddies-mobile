@@ -6,33 +6,28 @@
 // | MAP_PROVIDER  | Strategy                  | Key required          |
 // |---------------|---------------------------|-----------------------|
 // | google (dflt) | GoogleMapsTileProvider    | GOOGLE_MAP_API_KEY    |
-// | vietmap       | VietMapTileProvider       | VIETMAP_API_KEY       |
+// | vietmap       | VietMapGLProvider         | VIETMAP_API_KEY       |
 // | general       | OpenStreetMapTileProvider | none (flutter_map)    |
 // | (missing key) | OpenStreetMapTileProvider | none (dev fallback)   |
 
 import 'package:customer/core/env/env.dart';
 
-/// Supplies the tile URL template consumed by flutter_map's TileLayer.
+/// Discriminated union for the active map rendering backend.
 ///
-/// Concrete strategies implement [urlTemplate]. The active strategy is
-/// resolved once at startup via [MapTileProvider.fromEnv].
-abstract class MapTileProvider {
+/// - [RasterTileProvider] subtypes supply a [urlTemplate] for flutter_map's
+///   `TileLayer` (Google raster, OSM, VietMap raster).
+/// - [VietMapGLProvider] supplies a [styleUrl] for `vietmap_flutter_gl`'s
+///   `VietMapGL` widget (vector tiles, native GL renderer).
+sealed class MapTileProvider {
   const MapTileProvider();
 
   /// Selects the active provider from compile-time env vars.
-  ///
-  /// - `MAP_PROVIDER=google` (default) → [GoogleMapsTileProvider]
-  ///   Uses `GOOGLE_MAP_API_KEY`; falls back to keyless Google endpoint
-  ///   when the key is empty (dev/CI).
-  /// - `MAP_PROVIDER=vietmap` → [VietMapTileProvider]
-  ///   Requires `VIETMAP_API_KEY`; falls back to [OpenStreetMapTileProvider]
-  ///   when the key is empty.
   factory MapTileProvider.fromEnv() {
     switch (Env.mapProvider) {
       case 'vietmap':
         final key = Env.vietmapApiKey;
         if (key.isEmpty) return const OpenStreetMapTileProvider();
-        return VietMapTileProvider(apiKey: key);
+        return VietMapGLProvider(apiKey: key);
       case 'general':
         return const OpenStreetMapTileProvider();
       case 'google':
@@ -40,24 +35,27 @@ abstract class MapTileProvider {
         return GoogleMapsTileProvider(apiKey: Env.googleMapApiKey);
     }
   }
-
-  /// Tile URL template for flutter_map's [TileLayer].
-  ///
-  /// Must contain `{x}`, `{y}`, `{z}` placeholders — flutter_map substitutes
-  /// them per tile request.
-  String get urlTemplate;
 }
 
 // ---------------------------------------------------------------------------
-// Concrete strategies
+// Raster providers — used with flutter_map TileLayer
 // ---------------------------------------------------------------------------
+
+/// Base for all raster-tile providers.
+sealed class RasterTileProvider extends MapTileProvider {
+  const RasterTileProvider();
+
+  /// XYZ tile URL template with `{x}`, `{y}`, `{z}` placeholders consumed by
+  /// flutter_map's `TileLayer`.
+  String get urlTemplate;
+}
 
 /// Google Maps raster tile strategy.
 ///
 /// When [apiKey] is empty the unofficial `mt1.google.com` endpoint is used,
 /// which is suitable for development. Set `GOOGLE_MAP_API_KEY` in `.env` for
 /// production to avoid rate-limiting.
-class GoogleMapsTileProvider implements MapTileProvider {
+final class GoogleMapsTileProvider extends RasterTileProvider {
   const GoogleMapsTileProvider({this.apiKey = ''});
 
   final String apiKey;
@@ -70,27 +68,34 @@ class GoogleMapsTileProvider implements MapTileProvider {
       apiKey.isEmpty ? _baseUrl : '$_baseUrl&key=$apiKey';
 }
 
-/// VietMap raster tile strategy (production, Vietnam-focused).
-///
-/// Requires a valid [apiKey] obtained from the VietMap developer portal.
-/// Set `VIETMAP_API_KEY` in `.env`.
-class VietMapTileProvider implements MapTileProvider {
-  const VietMapTileProvider({required this.apiKey});
-
-  final String apiKey;
-
-  @override
-  String get urlTemplate =>
-      'https://maps.vietmap.vn/api/maps/raster/v1/{z}/{x}/{y}.png?apikey=$apiKey';
-}
-
 /// OpenStreetMap tile strategy — no API key required.
 ///
-/// Used automatically as a fallback when the active provider's key is
-/// missing (e.g. CI, local dev without a key).
-class OpenStreetMapTileProvider implements MapTileProvider {
+/// Used automatically as a fallback when the active provider's key is missing
+/// (e.g. CI, local dev without a key).
+final class OpenStreetMapTileProvider extends RasterTileProvider {
   const OpenStreetMapTileProvider();
 
   @override
   String get urlTemplate => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+}
+
+// ---------------------------------------------------------------------------
+// VietMap GL provider — used with vietmap_flutter_gl VietMapGL widget
+// ---------------------------------------------------------------------------
+
+/// VietMap vector tile strategy backed by the native GL SDK.
+///
+/// Requires a valid [apiKey] from the VietMap developer portal
+/// (https://maps.vietmap.vn/console-v2/). Set `VIETMAP_API_KEY` in `.env`.
+///
+/// Renders via `vietmap_flutter_gl`'s `VietMapGL` widget (Metal on iOS,
+/// OpenGL ES on Android) — NOT flutter_map's `TileLayer`.
+final class VietMapGLProvider extends MapTileProvider {
+  const VietMapGLProvider({required this.apiKey});
+
+  final String apiKey;
+
+  /// Mapbox-style `style.json` URL consumed by `VietMapGL(styleString: ...)`.
+  String get styleUrl =>
+      'https://maps.vietmap.vn/maps/styles/tm/style.json?apikey=$apiKey';
 }

@@ -72,14 +72,16 @@ class SupabaseCourtRepository implements CourtRepository {
   @override
   Future<Result<Court>> fetchCourtById(String courtId) async {
     try {
-      final row = await _client
+      final rows = await _client
           .from('courts')
           .select(
             'id, name, owner_id, lat, lng, sport_types, address, price_per_hour, description, amenities, photos',
           )
           .eq('id', courtId)
-          .single();
-      return Success(Court.fromJson(row));
+          .limit(1);
+      final list = (rows as List<dynamic>).cast<Map<String, dynamic>>();
+      if (list.isEmpty) return const Failure(ServerFailure(404));
+      return Success(Court.fromJson(list.first));
     } on PostgrestException catch (e) {
       final code = int.tryParse(e.code ?? '') ?? 500;
       return Failure(ServerFailure(code));

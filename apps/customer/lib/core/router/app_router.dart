@@ -41,10 +41,14 @@ import 'package:customer/features/map/data/supabase_court_availability_repositor
 import 'package:customer/features/map/location_cubit.dart';
 import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
+import 'package:customer/features/slots/cubit/participant_management_cubit.dart';
 import 'package:customer/features/slots/data/supabase_slot_repository.dart';
+import 'package:customer/features/slots/open_slot_list_screen.dart';
+import 'package:customer/features/slots/participant_management_screen.dart';
 import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
+import 'package:customer/features/notifications/notifications_screen.dart';
 import 'package:customer/features/recurring/recurring_booking_screen.dart';
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:customer/features/slots/slot_detail_screen.dart';
@@ -53,6 +57,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 220),
+    reverseTransitionDuration: const Duration(milliseconds: 180),
+    transitionsBuilder: (_, animation, __, child) =>
+        FadeTransition(opacity: animation, child: child),
+  );
+}
 
 GoRouter buildRouter() {
   const publicPaths = {'/login', '/signup', '/forgot-password'};
@@ -144,14 +159,16 @@ GoRouter buildRouter() {
               ),
             ],
           ),
-          // Tab 3 — Profile.
+          // Tab 3 — Slot trống (open group slots).
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
+                path: '/slots',
                 builder: (context, state) => BlocProvider(
-                  create: (_) => ProfileCubit(Supabase.instance.client),
-                  child: const ProfileScreen(),
+                  create: (_) => SlotListCubit(
+                    SupabaseSlotRepository(client: Supabase.instance.client),
+                  ),
+                  child: const OpenSlotListScreen(),
                 ),
               ),
             ],
@@ -159,6 +176,16 @@ GoRouter buildRouter() {
         ],
       ),
       // Full-screen routes (no bottom nav).
+      GoRoute(
+        path: '/profile',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => ProfileCubit(Supabase.instance.client),
+            child: const ProfileScreen(),
+          ),
+        ),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => BlocProvider(
@@ -188,106 +215,147 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/court/:id',
-        builder: (context, state) => BlocProvider(
-          create: (_) => CourtDetailCubit(
-            SupabaseCourtRepository(client: Supabase.instance.client),
-            slotRepository:
-                SupabaseSlotRepository(client: Supabase.instance.client),
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => CourtDetailCubit(
+              SupabaseCourtRepository(client: Supabase.instance.client),
+              slotRepository:
+                  SupabaseSlotRepository(client: Supabase.instance.client),
+            ),
+            child: CourtDetailScreen(courtId: state.pathParameters['id']!),
           ),
-          child: CourtDetailScreen(courtId: state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/court/:id/slots',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, String?>?;
-          return BlocProvider(
-            create: (_) => SlotPickerCubit(
-              slotRepository: SupabaseSlotRepository(client: Supabase.instance.client),
-              courtRepository: SupabaseCourtRepository(client: Supabase.instance.client),
-            ),
-            child: SlotPickerScreen(
-              courtId: state.pathParameters['id']!,
-              courtName: extra?['name'],
-              courtAddress: extra?['address'],
+          return _fadePage(
+            state,
+            BlocProvider(
+              create: (_) => SlotPickerCubit(
+                slotRepository:
+                    SupabaseSlotRepository(client: Supabase.instance.client),
+                courtRepository:
+                    SupabaseCourtRepository(client: Supabase.instance.client),
+              ),
+              child: SlotPickerScreen(
+                courtId: state.pathParameters['id']!,
+                courtName: extra?['name'],
+                courtAddress: extra?['address'],
+              ),
             ),
           );
         },
       ),
       GoRoute(
         path: '/court/:id/schedule',
-        builder: (context, state) => CourtScheduleOverviewScreen(
-          courtId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          CourtScheduleOverviewScreen(courtId: state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/booking',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final slotId = state.extra as String;
-          return BlocProvider(
-            create: (_) => BookingCubit(
-              slotRepository:
-                  SupabaseSlotRepository(client: Supabase.instance.client),
-              courtRepository:
-                  SupabaseCourtRepository(client: Supabase.instance.client),
-              client: Supabase.instance.client,
+          return _fadePage(
+            state,
+            BlocProvider(
+              create: (_) => BookingCubit(
+                slotRepository:
+                    SupabaseSlotRepository(client: Supabase.instance.client),
+                courtRepository:
+                    SupabaseCourtRepository(client: Supabase.instance.client),
+                client: Supabase.instance.client,
+              ),
+              child: BookingScreen(slotId: slotId),
             ),
-            child: BookingScreen(slotId: slotId),
           );
         },
       ),
       GoRoute(
         path: '/slot/:id',
-        builder: (context, state) => BlocProvider(
-          create: (_) => SlotDetailCubit(
-            SupabaseSlotRepository(client: Supabase.instance.client),
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => SlotDetailCubit(
+              SupabaseSlotRepository(client: Supabase.instance.client),
+            ),
+            child: SlotDetailScreen(slotId: state.pathParameters['id']!),
           ),
-          child: SlotDetailScreen(slotId: state.pathParameters['id']!),
+        ),
+      ),
+      GoRoute(
+        path: '/slot/:id/manage',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => ParticipantManagementCubit()
+              ..loadSeedData(state.pathParameters['id']!),
+            child: const ParticipantManagementScreen(),
+          ),
         ),
       ),
       GoRoute(
         path: '/booking/awaiting/:bookingId',
-        builder: (context, state) => BlocProvider(
-          create: (_) => AwaitingConfirmationCubit(
-            client: Supabase.instance.client,
-          ),
-          child: AwaitingConfirmationScreen(
-            bookingId: state.pathParameters['bookingId']!,
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => AwaitingConfirmationCubit(
+              client: Supabase.instance.client,
+            ),
+            child: AwaitingConfirmationScreen(
+              bookingId: state.pathParameters['bookingId']!,
+            ),
           ),
         ),
       ),
       GoRoute(
         path: '/booking/payment/:slotId',
-        builder: (context, state) => BlocProvider(
-          create: (_) => PaymentCubit(client: Supabase.instance.client)
-            ..load(state.pathParameters['slotId']!),
-          child: const PaymentScreen(),
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          BlocProvider(
+            create: (_) => PaymentCubit(client: Supabase.instance.client)
+              ..load(state.pathParameters['slotId']!),
+            child: const PaymentScreen(),
+          ),
         ),
       ),
       GoRoute(
         path: '/booking/access-control/:slotId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = (state.extra as Map<String, dynamic>?) ?? {};
-          return BlocProvider(
-            create: (_) => AccessControlCubit(
-              client: Supabase.instance.client,
-            ),
-            child: AccessControlScreen(
-              slotId: state.pathParameters['slotId']!,
-              name: extra['name'] as String? ?? '',
-              phone: extra['phone'] as String? ?? '',
-              notes: extra['notes'] as String?,
-              courtId: extra['courtId'] as String? ?? '',
-              pricePerHour: (extra['pricePerHour'] as num?)?.toDouble(),
-              durationMinutes: extra['durationMinutes'] as int? ?? 0,
-              totalPrice: (extra['totalPrice'] as num?)?.toDouble(),
+          return _fadePage(
+            state,
+            BlocProvider(
+              create: (_) => AccessControlCubit(
+                client: Supabase.instance.client,
+              ),
+              child: AccessControlScreen(
+                slotId: state.pathParameters['slotId']!,
+                name: extra['name'] as String? ?? '',
+                phone: extra['phone'] as String? ?? '',
+                notes: extra['notes'] as String?,
+                courtId: extra['courtId'] as String? ?? '',
+                pricePerHour: (extra['pricePerHour'] as num?)?.toDouble(),
+                durationMinutes: extra['durationMinutes'] as int? ?? 0,
+                totalPrice: (extra['totalPrice'] as num?)?.toDouble(),
+              ),
             ),
           );
         },
       ),
       GoRoute(
+        path: '/notifications',
+        pageBuilder: (context, state) =>
+            _fadePage(state, const NotificationsScreen()),
+      ),
+      GoRoute(
         path: '/booking/recurring',
-        builder: (context, state) => const RecurringBookingScreen(),
+        pageBuilder: (context, state) =>
+            _fadePage(state, const RecurringBookingScreen()),
       ),
     ],
   );

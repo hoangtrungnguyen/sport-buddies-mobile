@@ -5,9 +5,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "customer",
+            "name": "customer (local mode)",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "toolArgs": [
+                "--dart-define=ENVIRONMENT=local"
+            ]
+        },
+        {
+            "name": "customer (dev mode)",
+            "request": "launch",
+            "type": "dart",
+            "toolArgs": [
+                "--dart-define=ENVIRONMENT=dev"
+            ]
         },
         {
             "name": "customer (profile mode)",

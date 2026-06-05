@@ -218,4 +218,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navProfile => 'Profile';
+
+  @override
+  String get navSlots => 'Open Slots';
 }

@@ -14,6 +14,7 @@ class SupabaseSlotRepository implements SlotRepository {
     start_at,
     end_at,
     court_id,
+    host_id,
     courts!inner(name, sport_types),
     access_policy,
     max_players,
@@ -39,6 +40,7 @@ class SupabaseSlotRepository implements SlotRepository {
       'access_policy': row['access_policy'] as String? ?? 'open',
       'max_players': row['max_players'] as int? ?? 4,
       'current_players': currentPlayers,
+      'host_id': row['host_id'] as String?,
     };
   }
 

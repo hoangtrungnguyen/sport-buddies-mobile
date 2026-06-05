@@ -318,14 +318,23 @@ class _ProfileHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                AppLocalizations.of(context).profileTitle,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.22,
+              if (context.canPop())
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, size: 22),
+                  onPressed: () => context.pop(),
+                  color: const Color(0xFF374151),
+                  padding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                ),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).profileTitle,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.22,
+                  ),
                 ),
               ),
               IconButton(

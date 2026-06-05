@@ -13,10 +13,14 @@ final class CourtDetailLoading extends CourtDetailState {
 }
 
 final class CourtDetailLoaded extends CourtDetailState {
-  const CourtDetailLoaded(this.court, {this.openSlotCount = 0});
+  const CourtDetailLoaded(this.court, {
+    this.openSlotCount = 0,
+    this.groupSlots = const [],
+  });
 
   final Court court;
   final int openSlotCount;
+  final List<Slot> groupSlots;
 }
 
 final class CourtDetailError extends CourtDetailState with AppExceptionMixin {

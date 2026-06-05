@@ -23,10 +23,19 @@ class SlotPickerCubit extends Cubit<SlotPickerState> {
 
       final slots =
           slotsResult is Success<List<Slot>> ? slotsResult.value : <Slot>[];
-      final pricePerHour =
-          courtResult is Success<Court> ? courtResult.value.pricePerHour : null;
+      final court =
+          courtResult is Success<Court> ? courtResult.value : null;
+      final groupSlots =
+          slots.where((s) => s.accessPolicy == 'open').toList();
 
-      emit(SlotPickerLoaded(slots: slots, pricePerHour: pricePerHour));
+      emit(SlotPickerLoaded(
+        slots: slots,
+        pricePerHour: court?.pricePerHour,
+        photos: court?.photos ?? [],
+        groupSlots: groupSlots,
+        address: court?.address,
+        courtName: court?.name,
+      ));
     } catch (e, st) {
       appLogger.e('SlotPickerCubit.load', error: e, stackTrace: st);
       emit(SlotPickerError(e.toString()));

@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: ^3.8.0
   flutter: '>=3.10.0'
 
 dependencies:
@@ -16,7 +16,7 @@ dependencies:
     path: ../../packages/spb_core
 
   # State management
-  flutter_bloc: ^8.1.6
+  flutter_bloc: ^9.0.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
@@ -41,18 +41,22 @@ dependencies:
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   geolocator: ^12.0.0
+  vietmap_flutter_gl: ^4.1.0
   vietmap_flutter_plugin: ^0.5.2
   google_maps_flutter: ^2.6.0
   google_maps_flutter_web: ^0.5.4
 
   # i18n
   intl: ^0.20.2
+  flutter_skill: ^0.9.36
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_driver:
+    sdk: flutter
   flutter_lints: ^4.0.0
-  bloc_test: ^9.1.7
+  bloc_test: ^10.0.0
   mocktail: ^1.0.4
   build_runner: ^2.7.1
   freezed: ^3.2.3

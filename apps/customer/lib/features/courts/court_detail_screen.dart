@@ -2,6 +2,7 @@ import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
 
 class CourtDetailScreen extends StatefulWidget {
@@ -34,8 +35,11 @@ class _CourtDetailScreenState extends State<CourtDetailScreen> {
                 message: msg,
                 courtId: widget.courtId,
               ),
-            CourtDetailLoaded(court: final court, openSlotCount: final openSlotCount) =>
-              _Body(court: court, openSlotCount: openSlotCount),
+            CourtDetailLoaded(
+                    court: final court,
+                    openSlotCount: final openSlotCount,
+                    groupSlots: final groupSlots) =>
+              _Body(court: court, openSlotCount: openSlotCount, groupSlots: groupSlots),
           },
         );
       },
@@ -70,10 +74,11 @@ class _ErrorBody extends StatelessWidget {
 }
 
 class _Body extends StatefulWidget {
-  const _Body({required this.court, required this.openSlotCount});
+  const _Body({required this.court, required this.openSlotCount, required this.groupSlots});
 
   final Court court;
   final int openSlotCount;
+  final List<Slot> groupSlots;
 
   @override
   State<_Body> createState() => _BodyState();
@@ -95,7 +100,7 @@ class _BodyState extends State<_Body> {
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 100),
+          padding: const EdgeInsets.only(bottom: 80),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -105,7 +110,7 @@ class _BodyState extends State<_Body> {
                 currentPage: _currentPage,
                 onPageChanged: (i) => setState(() => _currentPage = i),
               ),
-              _CourtInfoSection(court: court, openSlotCount: widget.openSlotCount),
+              _CourtInfoSection(court: court, openSlotCount: widget.openSlotCount, groupSlots: widget.groupSlots),
             ],
           ),
         ),
@@ -151,6 +156,8 @@ class _PhotoCarousel extends StatelessWidget {
                   itemBuilder: (_, i) => Image.network(
                     photos[i],
                     fit: BoxFit.cover,
+                    loadingBuilder: (_, child, progress) =>
+                        progress == null ? child : _PlaceholderHero(),
                     errorBuilder: (_, __, ___) => _PlaceholderHero(),
                   ),
                 ),
@@ -246,26 +253,39 @@ class _OverlayIconBtn extends StatelessWidget {
 }
 
 class _CourtInfoSection extends StatelessWidget {
-  const _CourtInfoSection({required this.court, required this.openSlotCount});
+  const _CourtInfoSection({
+    required this.court,
+    required this.openSlotCount,
+    required this.groupSlots,
+  });
 
   final Court court;
   final int openSlotCount;
+  final List<Slot> groupSlots;
 
   static const _sportColors = <String, Color>{
     'pickleball': Color(0xFF15803D),
-    'tennis': Color(0xFF374151),
+    'tennis': Color(0xFFDC2626),
     'badminton': Color(0xFF0369A1),
+    'cầu lông': Color(0xFF0369A1),
     'football': Color(0xFF374151),
+    'bóng đá': Color(0xFF374151),
+    'bóng đá 5v5': Color(0xFF374151),
     'basketball': Color(0xFF9A3412),
+    'bóng rổ': Color(0xFF9A3412),
     'volleyball': Color(0xFF6D28D9),
   };
 
   static const _sportBg = <String, Color>{
     'pickleball': Color(0xFFDCFCE7),
-    'tennis': Color(0xFFF3F4F6),
+    'tennis': Color(0xFFFEE2E2),
     'badminton': Color(0xFFE0F2FE),
+    'cầu lông': Color(0xFFE0F2FE),
     'football': Color(0xFFF3F4F6),
+    'bóng đá': Color(0xFFF3F4F6),
+    'bóng đá 5v5': Color(0xFFF3F4F6),
     'basketball': Color(0xFFFEF3C7),
+    'bóng rổ': Color(0xFFFEF3C7),
     'volleyball': Color(0xFFEDE9FE),
   };
 
@@ -282,11 +302,12 @@ class _CourtInfoSection extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: court.sportTypes.map((s) {
-                final label = s[0].toUpperCase() + s.substring(1);
+                final key = s.toLowerCase();
+                final label = s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : s;
                 return _SportBadge(
                   label: label,
-                  bg: _sportBg[s] ?? const Color(0xFFF3F4F6),
-                  textColor: _sportColors[s] ?? const Color(0xFF374151),
+                  bg: _sportBg[key] ?? const Color(0xFFF3F4F6),
+                  textColor: _sportColors[key] ?? const Color(0xFF374151),
                 );
               }).toList(),
             ),
@@ -331,6 +352,7 @@ class _CourtInfoSection extends StatelessWidget {
                       : '–',
                   valueSuffix: court.pricePerHour != null ? ' đ' : null,
                   valueColor: const Color(0xFF111827),
+                  icon: Icons.attach_money,
                 ),
               ),
               const SizedBox(width: 8),
@@ -341,17 +363,20 @@ class _CourtInfoSection extends StatelessWidget {
                   valueColor: openSlotCount > 0
                       ? const Color(0xFF22C55E)
                       : const Color(0xFFEF4444),
+                  icon: Icons.schedule_outlined,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
           // Amenities
           if (court.amenities.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             const Text(
               'Tiện ích',
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
               ),
@@ -363,14 +388,16 @@ class _CourtInfoSection extends StatelessWidget {
               children:
                   court.amenities.map((a) => _AmenityChip(label: a)).toList(),
             ),
+            const SizedBox(height: 20),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
           ],
           // Description
           if (court.description != null && court.description!.isNotEmpty) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             const Text(
               'Giới thiệu',
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
               ),
@@ -384,13 +411,15 @@ class _CourtInfoSection extends StatelessWidget {
                 height: 1.6,
               ),
             ),
+            const SizedBox(height: 20),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
           ],
-          // Schedule overview link
-          const SizedBox(height: 24),
+          // Lịch tổng hợp
+          const SizedBox(height: 20),
           const Text(
-            'Thuộc cụm sân',
+            'Lịch tổng hợp',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
             ),
@@ -399,55 +428,115 @@ class _CourtInfoSection extends StatelessWidget {
           GestureDetector(
             onTap: () => context.push('/court/${court.id}/schedule'),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+                color: const Color(0xFFDCFCE7),
+                border: Border.all(color: const Color(0xFF16A34A)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF16A34A), Color(0xFF0EA5E9)],
-                      ),
+                      color: const Color(0xFF16A34A),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.calendar_month_outlined,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Xem lịch tổng hợp',
+                          'Xem lịch tất cả các sân',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827),
+                            color: Color(0xFF15803D),
                           ),
                         ),
                         SizedBox(height: 2),
                         Text(
-                          'So sánh khung giờ trống toàn bộ sân',
+                          'Chọn khung giờ & đặt sân',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF6B7280),
+                            color: Color(0xFF15803D),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Color(0xFF6B7280)),
+                  const Icon(Icons.chevron_right, color: Color(0xFF15803D)),
                 ],
               ),
             ),
           ),
+          // Slot mở chơi ghép
+          if (groupSlots.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Slot mở chơi ghép',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${groupSlots.length} slot',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF15803D),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Tham gia cùng người chơi khác tại sân này',
+              style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            ),
+            const SizedBox(height: 12),
+            ...groupSlots.map((s) => Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _GroupSlotCard(slot: s),
+                )),
+          ],
           const SizedBox(height: 24),
         ],
       ),
@@ -468,12 +557,14 @@ class _StatTile extends StatelessWidget {
     required this.value,
     this.valueSuffix,
     required this.valueColor,
+    this.icon,
   });
 
   final String label;
   final String value;
   final String? valueSuffix;
   final Color valueColor;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -487,10 +578,20 @@ class _StatTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style:
-                  const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
-          const SizedBox(height: 2),
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 12, color: const Color(0xFF9CA3AF)),
+                const SizedBox(width: 4),
+              ],
+              Flexible(
+                child: Text(label,
+                    style: const TextStyle(
+                        fontSize: 12, color: Color(0xFF6B7280))),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
           RichText(
             text: TextSpan(
               children: [
@@ -610,6 +711,7 @@ class _BottomCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final safeBottom = MediaQuery.of(context).padding.bottom;
     final priceLabel = pricePerHour != null
         ? '${(pricePerHour! / 1000).toStringAsFixed(pricePerHour! % 1000 == 0 ? 0 : 1)}k'
         : '–';
@@ -619,7 +721,7 @@ class _BottomCta extends StatelessWidget {
       right: 0,
       bottom: 0,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+        padding: EdgeInsets.fromLTRB(20, 10, 20, safeBottom + 4),
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
@@ -641,8 +743,8 @@ class _BottomCta extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text('Từ',
-                        style:
-                            TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                        style: TextStyle(
+                            fontSize: 12, color: Color(0xFF6B7280))),
                     const SizedBox(height: 2),
                     Text.rich(
                       TextSpan(
@@ -650,7 +752,7 @@ class _BottomCta extends StatelessWidget {
                           TextSpan(
                             text: priceLabel,
                             style: const TextStyle(
-                              fontSize: 20,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF111827),
                             ),
@@ -686,7 +788,7 @@ class _BottomCta extends StatelessWidget {
                           ? const Color(0xFF16A34A)
                           : const Color(0xFFD1D5DB),
                       disabledBackgroundColor: const Color(0xFFD1D5DB),
-                      minimumSize: const Size(double.infinity, 52),
+                      minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -694,7 +796,7 @@ class _BottomCta extends StatelessWidget {
                     child: Text(
                       openSlotCount > 0 ? 'Đặt sân ngay' : 'Hết slot hôm nay',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: openSlotCount > 0
                             ? Colors.white
@@ -706,7 +808,7 @@ class _BottomCta extends StatelessWidget {
               ],
             ),
             if (openSlotCount == 0) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               GestureDetector(
                 onTap: () => context.push('/court/$courtId/schedule'),
                 child: const Row(
@@ -734,6 +836,143 @@ class _BottomCta extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _GroupSlotCard extends StatelessWidget {
+  const _GroupSlotCard({required this.slot});
+
+  final Slot slot;
+
+  static const _sportColors = <String, Color>{
+    'pickleball': Color(0xFF0EA5E9),
+    'badminton': Color(0xFF0369A1),
+    'cầu lông': Color(0xFF0369A1),
+    'tennis': Color(0xFFEF4444),
+    'football': Color(0xFF374151),
+    'bóng đá': Color(0xFF374151),
+    'bóng đá 5v5': Color(0xFF374151),
+    'basketball': Color(0xFF9A3412),
+    'bóng rổ': Color(0xFF9A3412),
+    'volleyball': Color(0xFF6D28D9),
+  };
+
+  static IconData _sportIcon(String sportType) => switch (sportType.toLowerCase()) {
+    'badminton' || 'cầu lông' => Icons.sports_tennis,
+    'tennis' => Icons.sports_tennis,
+    'football' || 'bóng đá' || 'bóng đá 5v5' => Icons.sports_soccer,
+    'basketball' || 'bóng rổ' => Icons.sports_basketball,
+    'volleyball' => Icons.sports_volleyball,
+    _ => Icons.sports,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final key = slot.sportType.toLowerCase();
+    final color = _sportColors[key] ?? const Color(0xFF374151);
+    final icon = _sportIcon(slot.sportType);
+    final left = slot.maxPlayers - slot.currentPlayers;
+    final timeLabel = _buildTimeLabel(slot.startTime, slot.endTime);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  slot.courtName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  timeLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    const Icon(Icons.group_outlined,
+                        size: 14, color: Color(0xFF6B7280)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${slot.currentPlayers}/${slot.maxPlayers} người',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '· còn $left',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF22C55E),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          FilledButton(
+            onPressed: () {},
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF16A34A),
+              minimumSize: const Size(0, 36),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              textStyle: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w700),
+            ),
+            child: const Text('Tham gia'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _buildTimeLabel(DateTime start, DateTime end) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final slotDay = DateTime(start.year, start.month, start.day);
+    final diff = slotDay.difference(today).inDays;
+    final prefix = switch (diff) {
+      0 => 'Hôm nay',
+      1 => 'Mai',
+      _ => DateFormat('EEE', 'vi').format(start),
+    };
+    final fmt = DateFormat('HH:mm');
+    return '$prefix · ${fmt.format(start)} – ${fmt.format(end)}';
   }
 }
 

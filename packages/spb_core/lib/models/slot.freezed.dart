@@ -23,6 +23,7 @@ mixin _$Slot {
   String get accessPolicy;
   int get maxPlayers;
   int get currentPlayers;
+  String? get hostId;
 
   /// Create a copy of Slot
   /// with the given fields replaced by the non-null parameter values.
@@ -53,17 +54,18 @@ mixin _$Slot {
             (identical(other.maxPlayers, maxPlayers) ||
                 other.maxPlayers == maxPlayers) &&
             (identical(other.currentPlayers, currentPlayers) ||
-                other.currentPlayers == currentPlayers));
+                other.currentPlayers == currentPlayers) &&
+            (identical(other.hostId, hostId) || other.hostId == hostId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, startTime, endTime, courtId,
-      courtName, sportType, accessPolicy, maxPlayers, currentPlayers);
+      courtName, sportType, accessPolicy, maxPlayers, currentPlayers, hostId);
 
   @override
   String toString() {
-    return 'Slot(id: $id, startTime: $startTime, endTime: $endTime, courtId: $courtId, courtName: $courtName, sportType: $sportType, accessPolicy: $accessPolicy, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers)';
+    return 'Slot(id: $id, startTime: $startTime, endTime: $endTime, courtId: $courtId, courtName: $courtName, sportType: $sportType, accessPolicy: $accessPolicy, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers, hostId: $hostId)';
   }
 }
 
@@ -81,7 +83,8 @@ abstract mixin class $SlotCopyWith<$Res> {
       String sportType,
       String accessPolicy,
       int maxPlayers,
-      int currentPlayers});
+      int currentPlayers,
+      String? hostId});
 }
 
 /// @nodoc
@@ -105,6 +108,7 @@ class _$SlotCopyWithImpl<$Res> implements $SlotCopyWith<$Res> {
     Object? accessPolicy = null,
     Object? maxPlayers = null,
     Object? currentPlayers = null,
+    Object? hostId = freezed,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -143,6 +147,10 @@ class _$SlotCopyWithImpl<$Res> implements $SlotCopyWith<$Res> {
           ? _self.currentPlayers
           : currentPlayers // ignore: cast_nullable_to_non_nullable
               as int,
+      hostId: freezed == hostId
+          ? _self.hostId
+          : hostId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -249,7 +257,8 @@ extension SlotPatterns on Slot {
             String sportType,
             String accessPolicy,
             int maxPlayers,
-            int currentPlayers)?
+            int currentPlayers,
+            String? hostId)?
         $default, {
     required TResult orElse(),
   }) {
@@ -265,7 +274,8 @@ extension SlotPatterns on Slot {
             _that.sportType,
             _that.accessPolicy,
             _that.maxPlayers,
-            _that.currentPlayers);
+            _that.currentPlayers,
+            _that.hostId);
       case _:
         return orElse();
     }
@@ -295,7 +305,8 @@ extension SlotPatterns on Slot {
             String sportType,
             String accessPolicy,
             int maxPlayers,
-            int currentPlayers)
+            int currentPlayers,
+            String? hostId)
         $default,
   ) {
     final _that = this;
@@ -310,7 +321,8 @@ extension SlotPatterns on Slot {
             _that.sportType,
             _that.accessPolicy,
             _that.maxPlayers,
-            _that.currentPlayers);
+            _that.currentPlayers,
+            _that.hostId);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -339,7 +351,8 @@ extension SlotPatterns on Slot {
             String sportType,
             String accessPolicy,
             int maxPlayers,
-            int currentPlayers)?
+            int currentPlayers,
+            String? hostId)?
         $default,
   ) {
     final _that = this;
@@ -354,7 +367,8 @@ extension SlotPatterns on Slot {
             _that.sportType,
             _that.accessPolicy,
             _that.maxPlayers,
-            _that.currentPlayers);
+            _that.currentPlayers,
+            _that.hostId);
       case _:
         return null;
     }
@@ -374,7 +388,8 @@ class _Slot extends Slot {
       required this.sportType,
       this.accessPolicy = 'open',
       this.maxPlayers = 4,
-      this.currentPlayers = 0})
+      this.currentPlayers = 0,
+      this.hostId})
       : super._();
   factory _Slot.fromJson(Map<String, dynamic> json) => _$SlotFromJson(json);
 
@@ -399,6 +414,8 @@ class _Slot extends Slot {
   @override
   @JsonKey()
   final int currentPlayers;
+  @override
+  final String? hostId;
 
   /// Create a copy of Slot
   /// with the given fields replaced by the non-null parameter values.
@@ -434,17 +451,18 @@ class _Slot extends Slot {
             (identical(other.maxPlayers, maxPlayers) ||
                 other.maxPlayers == maxPlayers) &&
             (identical(other.currentPlayers, currentPlayers) ||
-                other.currentPlayers == currentPlayers));
+                other.currentPlayers == currentPlayers) &&
+            (identical(other.hostId, hostId) || other.hostId == hostId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, startTime, endTime, courtId,
-      courtName, sportType, accessPolicy, maxPlayers, currentPlayers);
+      courtName, sportType, accessPolicy, maxPlayers, currentPlayers, hostId);
 
   @override
   String toString() {
-    return 'Slot(id: $id, startTime: $startTime, endTime: $endTime, courtId: $courtId, courtName: $courtName, sportType: $sportType, accessPolicy: $accessPolicy, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers)';
+    return 'Slot(id: $id, startTime: $startTime, endTime: $endTime, courtId: $courtId, courtName: $courtName, sportType: $sportType, accessPolicy: $accessPolicy, maxPlayers: $maxPlayers, currentPlayers: $currentPlayers, hostId: $hostId)';
   }
 }
 
@@ -463,7 +481,8 @@ abstract mixin class _$SlotCopyWith<$Res> implements $SlotCopyWith<$Res> {
       String sportType,
       String accessPolicy,
       int maxPlayers,
-      int currentPlayers});
+      int currentPlayers,
+      String? hostId});
 }
 
 /// @nodoc
@@ -487,6 +506,7 @@ class __$SlotCopyWithImpl<$Res> implements _$SlotCopyWith<$Res> {
     Object? accessPolicy = null,
     Object? maxPlayers = null,
     Object? currentPlayers = null,
+    Object? hostId = freezed,
   }) {
     return _then(_Slot(
       id: null == id
@@ -525,6 +545,10 @@ class __$SlotCopyWithImpl<$Res> implements _$SlotCopyWith<$Res> {
           ? _self.currentPlayers
           : currentPlayers // ignore: cast_nullable_to_non_nullable
               as int,
+      hostId: freezed == hostId
+          ? _self.hostId
+          : hostId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }

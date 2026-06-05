@@ -19,6 +19,7 @@ abstract class Slot with _$Slot {
     @Default('open') String accessPolicy,
     @Default(4) int maxPlayers,
     @Default(0) int currentPlayers,
+    String? hostId,
   }) = _Slot;
 
   bool get isFull => currentPlayers >= maxPlayers;

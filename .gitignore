@@ -20,9 +20,6 @@ packages/*/pubspec.lock
 
 # FVM — keep .fvm/fvm_config.json and .fvmrc tracked; ignore the
 # locally-managed SDK symlink + cache.
-.fvm/flutter_sdk
-.fvm/versions/
-.fvm/release
 
 .env
 zai-run.sh
@@ -30,3 +27,6 @@ claude_code_zai_env.sh
 .mcp.json
 .claude/
 .claude/settings.json
+
+# FVM Version Cache
+.fvm/

@@ -56,6 +56,12 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
         foregroundColor: const Color(0xFF111827),
         elevation: 0,
         leading: BackButton(onPressed: () => context.pop()),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.ios_share_outlined, size: 22),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: BlocBuilder<SlotPickerCubit, SlotPickerState>(
         builder: (context, state) => switch (state) {
@@ -64,13 +70,21 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
               message: message,
               onRetry: () => context.read<SlotPickerCubit>().load(widget.courtId),
             ),
-          SlotPickerLoaded(:final slots, :final pricePerHour) =>
+          SlotPickerLoaded(
+                  :final slots,
+                  :final pricePerHour,
+                  :final photos,
+                  :final groupSlots,
+                  :final address,
+                  :final courtName) =>
             _LoadedBody(
               courtId: widget.courtId,
-              courtName: widget.courtName,
-              courtAddress: widget.courtAddress,
+              courtName: courtName ?? widget.courtName,
+              courtAddress: address ?? widget.courtAddress,
               slots: slots,
               pricePerHour: pricePerHour,
+              photos: photos,
+              groupSlots: groupSlots,
               selectedDateIndex: _selectedDateIndex,
               selectedSlotId: _selectedSlotId,
               onDateSelect: _onDateSelect,
@@ -91,6 +105,8 @@ class _LoadedBody extends StatelessWidget {
     required this.courtAddress,
     required this.slots,
     required this.pricePerHour,
+    required this.photos,
+    required this.groupSlots,
     required this.selectedDateIndex,
     required this.selectedSlotId,
     required this.onDateSelect,
@@ -102,6 +118,8 @@ class _LoadedBody extends StatelessWidget {
   final String? courtAddress;
   final List<Slot> slots;
   final double? pricePerHour;
+  final List<String> photos;
+  final List<Slot> groupSlots;
   final int selectedDateIndex;
   final String? selectedSlotId;
   final ValueChanged<int> onDateSelect;
@@ -153,6 +171,13 @@ class _LoadedBody extends StatelessWidget {
                 courtName: courtName,
                 courtAddress: courtAddress,
               ),
+              if (photos.isNotEmpty)
+                _VenuePhotosStrip(photos: photos),
+              if (courtAddress != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+                  child: _DirectionsCard(address: courtAddress!),
+                ),
               _DateTabRow(
                 dates: dates,
                 selectedIndex: selectedDateIndex,
@@ -205,6 +230,11 @@ class _LoadedBody extends StatelessWidget {
                     onTap: onToggle,
                   ),
                 ),
+              if (groupSlots.isNotEmpty)
+                _GroupSlotsSection(
+                  groupSlots: groupSlots,
+                  courtId: courtId,
+                ),
             ],
           ),
         ),
@@ -223,6 +253,357 @@ class _LoadedBody extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+// ── Venue photos strip ────────────────────────────────────────────────────────
+
+class _VenuePhotosStrip extends StatelessWidget {
+  const _VenuePhotosStrip({required this.photos});
+
+  final List<String> photos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
+      height: 130,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: photos.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final width = i == 0 ? 200.0 : 150.0;
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.network(
+              photos[i],
+              width: width,
+              height: 118,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: width,
+                height: 118,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF16A34A), Color(0xFF0EA5E9)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Directions card ───────────────────────────────────────────────────────────
+
+class _DirectionsCard extends StatelessWidget {
+  const _DirectionsCard({required this.address});
+
+  final String address;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {},
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(
+                width: 92,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFDCFCE7), Color(0xFFBFDBFE)],
+                  ),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.location_on,
+                    color: Color(0xFFEF4444),
+                    size: 28,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        address,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: const [
+                          Icon(
+                            Icons.navigation_outlined,
+                            size: 14,
+                            color: Color(0xFF15803D),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            'Chỉ đường',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Center(
+                  child: Icon(
+                    Icons.chevron_right,
+                    color: Color(0xFF9CA3AF),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Group slots section ───────────────────────────────────────────────────────
+
+class _GroupSlotsSection extends StatelessWidget {
+  const _GroupSlotsSection({
+    required this.groupSlots,
+    required this.courtId,
+  });
+
+  final List<Slot> groupSlots;
+  final String courtId;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Slot mở chơi ghép',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(99),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF22C55E),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${groupSlots.length} slot',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF15803D),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Chạm để xem chi tiết & xin chơi cùng',
+            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+          ),
+          const SizedBox(height: 12),
+          ...groupSlots.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _GroupSlotRow(slot: s),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupSlotRow extends StatelessWidget {
+  const _GroupSlotRow({required this.slot});
+
+  final Slot slot;
+
+  static const _sportColors = <String, Color>{
+    'pickleball': Color(0xFF0EA5E9),
+    'badminton': Color(0xFF0369A1),
+    'cầu lông': Color(0xFF0369A1),
+    'tennis': Color(0xFFEF4444),
+    'football': Color(0xFF374151),
+    'bóng đá': Color(0xFF374151),
+    'bóng đá 5v5': Color(0xFF374151),
+    'basketball': Color(0xFF9A3412),
+    'bóng rổ': Color(0xFF9A3412),
+    'volleyball': Color(0xFF6D28D9),
+  };
+
+  static IconData _sportIcon(String sportType) => switch (sportType.toLowerCase()) {
+    'badminton' || 'cầu lông' => Icons.sports_tennis,
+    'tennis' => Icons.sports_tennis,
+    'football' || 'bóng đá' || 'bóng đá 5v5' => Icons.sports_soccer,
+    'basketball' || 'bóng rổ' => Icons.sports_basketball,
+    'volleyball' => Icons.sports_volleyball,
+    _ => Icons.sports,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final key = slot.sportType.toLowerCase();
+    final color = _sportColors[key] ?? const Color(0xFF374151);
+    final left = slot.maxPlayers - slot.currentPlayers;
+    final timeLabel = _buildTimeLabel(slot.startTime, slot.endTime);
+
+    final icon = _sportIcon(slot.sportType);
+    return GestureDetector(
+      onTap: () => context.push('/slot/${slot.id}'),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    slot.courtName,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    timeLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.group_outlined,
+                          size: 14, color: Color(0xFF6B7280)),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${slot.currentPlayers}/${slot.maxPlayers} người',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF374151),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '· còn $left',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF22C55E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _buildTimeLabel(DateTime start, DateTime end) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final slotDay = DateTime(start.year, start.month, start.day);
+    final diff = slotDay.difference(today).inDays;
+    final prefix = switch (diff) {
+      0 => 'Hôm nay',
+      1 => 'Mai',
+      _ => DateFormat('EEE', 'vi').format(start),
+    };
+    final fmt = DateFormat('HH:mm');
+    return '$prefix · ${fmt.format(start)} – ${fmt.format(end)}';
   }
 }
 
@@ -288,19 +669,32 @@ class _CourtContextLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final parts = <String>[
-      if (courtAddress != null && courtAddress!.isNotEmpty) courtAddress!,
-      if (courtName != null && courtName!.isNotEmpty) courtName!,
-    ];
-    final label = parts.isEmpty ? 'Sân thể thao' : parts.join(' · ');
+    final name = courtName?.isNotEmpty == true ? courtName! : 'Sân thể thao';
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Text(
-        label,
-        style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
-        overflow: TextOverflow.ellipsis,
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            name,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (courtAddress != null && courtAddress!.isNotEmpty) ...[
+            const SizedBox(height: 2),
+            Text(
+              courtAddress!,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -517,10 +911,10 @@ class _SlotTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               priceLabel,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF111827),
+                color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF111827),
               ),
             ),
           ],

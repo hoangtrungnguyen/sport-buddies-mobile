@@ -220,4 +220,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get navProfile => 'Hồ sơ';
+
+  @override
+  String get navSlots => 'Slot trống';
 }

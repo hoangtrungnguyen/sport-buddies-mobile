@@ -159,5 +159,7 @@
   "navBookings": "Lịch đặt",
   "@navBookings": {},
   "navProfile": "Hồ sơ",
-  "@navProfile": {}
+  "@navProfile": {},
+  "navSlots": "Slot trống",
+  "@navSlots": {}
 }

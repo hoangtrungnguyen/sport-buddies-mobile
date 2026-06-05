@@ -9,10 +9,21 @@ class SlotPickerLoading extends SlotPickerState {
 }
 
 class SlotPickerLoaded extends SlotPickerState {
-  const SlotPickerLoaded({required this.slots, this.pricePerHour});
+  const SlotPickerLoaded({
+    required this.slots,
+    this.pricePerHour,
+    this.photos = const [],
+    this.groupSlots = const [],
+    this.address,
+    this.courtName,
+  });
 
   final List<Slot> slots;
   final double? pricePerHour;
+  final List<String> photos;
+  final List<Slot> groupSlots;
+  final String? address;
+  final String? courtName;
 }
 
 class SlotPickerError extends SlotPickerState {
