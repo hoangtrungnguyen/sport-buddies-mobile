@@ -9,13 +9,14 @@ class SupabaseSlotRepository implements SlotRepository {
 
   final SupabaseClient _client;
 
+  // Note: `slots` has no host column — a slot's host/owner is the court owner,
+  // read from the joined `courts.owner_id`.
   static const _slotSelect = '''
     id,
     start_at,
     end_at,
     court_id,
-    host_id,
-    courts!inner(name, sport_types),
+    courts!inner(name, sport_types, owner_id),
     access_policy,
     max_players,
     slot_participants(count)
@@ -40,7 +41,7 @@ class SupabaseSlotRepository implements SlotRepository {
       'access_policy': row['access_policy'] as String? ?? 'open',
       'max_players': row['max_players'] as int? ?? 4,
       'current_players': currentPlayers,
-      'host_id': row['host_id'] as String?,
+      'host_id': court?['owner_id'] as String?,
     };
   }
 
