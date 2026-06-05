@@ -140,12 +140,18 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                         message: message,
                         onRetry: () => context.read<HistoryCubit>().loadHistory(),
                       ),
-                    HistoryLoaded(:final items) => _HistoryTabView(
-                        bookings: _filterHistory(
-                          items.map((i) => i.toMockBooking()).toList(),
+                    HistoryLoaded(:final items) => RefreshIndicator(
+                        color: _mdPrimary,
+                        onRefresh: () =>
+                            context.read<HistoryCubit>().loadHistory(),
+                        child: _HistoryTabView(
+                          bookings: _filterHistory(
+                            items.map((i) => i.toMockBooking()).toList(),
+                          ),
+                          activeFilter: _historyFilter,
+                          onFilterChanged: (f) =>
+                              setState(() => _historyFilter = f),
                         ),
-                        activeFilter: _historyFilter,
-                        onFilterChanged: (f) => setState(() => _historyFilter = f),
                       ),
                   },
                 ),
@@ -165,13 +171,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           message: message,
           onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
         ),
-      BookingsLoaded(:final bookings) => _UpcomingTabView(
-          bookings: _filterUpcoming(
-            bookings.map((b) => b.toMockBooking()).toList(),
+      BookingsLoaded(:final bookings) => RefreshIndicator(
+          color: _mdPrimary,
+          onRefresh: () => context.read<BookingsCubit>().loadUpcoming(),
+          child: _UpcomingTabView(
+            bookings: _filterUpcoming(
+              bookings.map((b) => b.toMockBooking()).toList(),
+            ),
+            allBookings: bookings.map((b) => b.toMockBooking()).toList(),
+            activeFilter: _upcomingFilter,
+            onFilterChanged: (f) => setState(() => _upcomingFilter = f),
           ),
-          allBookings: bookings.map((b) => b.toMockBooking()).toList(),
-          activeFilter: _upcomingFilter,
-          onFilterChanged: (f) => setState(() => _upcomingFilter = f),
         ),
     };
   }
@@ -184,11 +194,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           message: message,
           onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
         ),
-      BookingsLoaded(:final bookings) => _PendingTabView(
-          pending: bookings
-              .where((b) => b.status == 'pending')
-              .map((b) => b.toMockBooking())
-              .toList(),
+      BookingsLoaded(:final bookings) => RefreshIndicator(
+          color: _mdPrimary,
+          onRefresh: () => context.read<BookingsCubit>().loadUpcoming(),
+          child: _PendingTabView(
+            pending: bookings
+                .where((b) => b.status == 'pending')
+                .map((b) => b.toMockBooking())
+                .toList(),
+          ),
         ),
     };
   }
@@ -455,6 +469,7 @@ class _UpcomingTabView extends StatelessWidget {
     final recurringCount = allBookings.where((b) => b.type == BookingType.recurring).length;
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         SizedBox(
@@ -549,12 +564,22 @@ class _PendingTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (pending.isEmpty) {
-      return const Center(
-        child: Text('Không có lịch đang chờ', style: TextStyle(color: _mdOnSurfaceVariant)),
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: const [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 80),
+            child: Center(
+              child: Text('Không có lịch đang chờ',
+                  style: TextStyle(color: _mdOnSurfaceVariant)),
+            ),
+          ),
+        ],
       );
     }
 
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         const _SectionHeader(label: 'ĐẶT SÂN CHỜ XÁC NHẬN'),
@@ -584,6 +609,7 @@ class _HistoryTabView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
         SizedBox(
