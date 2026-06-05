@@ -227,7 +227,10 @@ class _MyBookingsHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const _NotifButton(),
-                  _ProfileAvatar(),
+                  GestureDetector(
+                    onTap: () => context.push('/profile'),
+                    child: _ProfileAvatar(),
+                  ),
                 ],
               ),
             ),
