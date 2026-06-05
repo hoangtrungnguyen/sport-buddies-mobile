@@ -97,10 +97,14 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     final court = widget.court;
+    // Clear the sticky _BottomCta: its height is ~88 + safe-area inset when the
+    // court is full (extra "Xem lịch trống" link row), so reserve enough scroll
+    // padding that the last section ("Lịch tổng hợp") isn't hidden behind it.
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 80),
+          padding: EdgeInsets.only(bottom: 120 + bottomInset),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
