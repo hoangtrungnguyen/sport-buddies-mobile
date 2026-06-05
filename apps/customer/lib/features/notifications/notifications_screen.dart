@@ -79,27 +79,46 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     const Center(child: CircularProgressIndicator()),
                   NotificationsError(:final message) =>
                     _ErrorState(message: message),
-                  NotificationsLoaded() when notifs.isEmpty =>
-                    _EmptyState(filter: _filters[_selectedFilter]),
-                  NotificationsLoaded() => ListView(
-                      padding: const EdgeInsets.only(bottom: 32),
-                      children: [
-                        if (today.isNotEmpty) ...[
-                          _SectionHeader(label: 'HÔM NAY', count: today.where((n) => n.unread).length),
-                          ...today.map((n) => _NotifTile(
-                                notif: n,
-                                onDismiss: () => setState(() => _dismissed.add(n.id)),
-                              )),
+                  NotificationsLoaded() when notifs.isEmpty => RefreshIndicator(
+                      color: _mdPrimary,
+                      onRefresh: () =>
+                          context.read<NotificationsCubit>().load(),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _EmptyState(
+                                filter: _filters[_selectedFilter]),
+                          ),
                         ],
-                        if (yesterday.isNotEmpty) ...[
-                          const _SectionHeader(label: 'HÔM QUA'),
-                          ...yesterday.map((n) => _NotifTile(notif: n)),
+                      ),
+                    ),
+                  NotificationsLoaded() => RefreshIndicator(
+                      color: _mdPrimary,
+                      onRefresh: () =>
+                          context.read<NotificationsCubit>().load(),
+                      child: ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 32),
+                        children: [
+                          if (today.isNotEmpty) ...[
+                            _SectionHeader(label: 'HÔM NAY', count: today.where((n) => n.unread).length),
+                            ...today.map((n) => _NotifTile(
+                                  notif: n,
+                                  onDismiss: () => setState(() => _dismissed.add(n.id)),
+                                )),
+                          ],
+                          if (yesterday.isNotEmpty) ...[
+                            const _SectionHeader(label: 'HÔM QUA'),
+                            ...yesterday.map((n) => _NotifTile(notif: n)),
+                          ],
+                          if (older.isNotEmpty) ...[
+                            const _SectionHeader(label: 'TRƯỚC ĐÓ'),
+                            ...older.map((n) => _NotifTile(notif: n)),
+                          ],
                         ],
-                        if (older.isNotEmpty) ...[
-                          const _SectionHeader(label: 'TRƯỚC ĐÓ'),
-                          ...older.map((n) => _NotifTile(notif: n)),
-                        ],
-                      ],
+                      ),
                     ),
                 },
               ),
