@@ -609,7 +609,7 @@ class _BottomActions extends StatelessWidget {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => context.push('/slot/${booking.slot.id}/manage'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: _mdOnSurface,
                 side: const BorderSide(color: _mdOutlineVariant),
