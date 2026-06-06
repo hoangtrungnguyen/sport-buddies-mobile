@@ -162,9 +162,8 @@ class _TopBar extends StatelessWidget {
             ),
             if (unreadCount > 0)
               TextButton(
-                onPressed: () {
-                  // TODO: mark all read via cubit
-                },
+                onPressed: () =>
+                    context.read<NotificationsCubit>().markAllRead(),
                 child: const Text(
                   'Đọc tất cả',
                   style: TextStyle(color: _mdPrimary, fontSize: 14),
@@ -285,11 +284,16 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Material(
       color: notif.unread ? _mdPrimary.withValues(alpha: 0.05) : Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
+      child: InkWell(
+        // Tapping an unread notification marks it read.
+        onTap: notif.unread
+            ? () => context.read<NotificationsCubit>().markRead(notif.id)
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _NotifIcon(type: notif.type),
@@ -344,6 +348,7 @@ class _NotifTile extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

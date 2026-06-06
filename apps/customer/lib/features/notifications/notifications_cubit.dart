@@ -28,6 +28,43 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   /// Re-fetches without a loading flash — for pull-to-refresh and realtime.
   Future<void> refresh() => _fetch();
 
+  /// Marks every unread notification for the current user as read.
+  Future<void> markAllRead() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+    _applyRead((_) => true); // optimistic: clear all unread immediately
+    try {
+      await _client
+          .from('notifications')
+          .update({'read': true})
+          .eq('user_id', userId)
+          .eq('read', false);
+    } catch (_) {
+      await _fetch(); // revert to server truth on failure
+    }
+  }
+
+  /// Marks a single notification read.
+  Future<void> markRead(String id) async {
+    _applyRead((n) => n.id == id); // optimistic
+    try {
+      await _client.from('notifications').update({'read': true}).eq('id', id);
+    } catch (_) {
+      await _fetch();
+    }
+  }
+
+  /// Optimistically flips `unread` to false for notifications matching [match].
+  void _applyRead(bool Function(AppNotification) match) {
+    final s = state;
+    if (s is! NotificationsLoaded) return;
+    final updated = [
+      for (final n in s.items)
+        n.unread && match(n) ? n.copyAsRead() : n,
+    ];
+    emit(NotificationsLoaded(updated));
+  }
+
   Future<void> _fetch() async {
     try {
       final userId = _client.auth.currentUser?.id;
