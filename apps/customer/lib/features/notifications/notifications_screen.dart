@@ -82,7 +82,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   NotificationsLoaded() when notifs.isEmpty => RefreshIndicator(
                       color: _mdPrimary,
                       onRefresh: () =>
-                          context.read<NotificationsCubit>().load(),
+                          context.read<NotificationsCubit>().refresh(),
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         children: [
@@ -97,7 +97,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   NotificationsLoaded() => RefreshIndicator(
                       color: _mdPrimary,
                       onRefresh: () =>
-                          context.read<NotificationsCubit>().load(),
+                          context.read<NotificationsCubit>().refresh(),
                       child: ListView(
                         physics: const AlwaysScrollableScrollPhysics(),
                         padding: const EdgeInsets.only(bottom: 32),

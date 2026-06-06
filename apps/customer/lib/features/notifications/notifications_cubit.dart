@@ -16,10 +16,19 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   NotificationsCubit(this._client) : super(const NotificationsLoading());
 
   final SupabaseClient _client;
+  RealtimeChannel? _channel;
 
-  /// Loads notifications for the current user, newest first.
+  /// Initial load: shows a spinner, fetches, then subscribes to live updates.
   Future<void> load() async {
     emit(const NotificationsLoading());
+    await _fetch();
+    _subscribeRealtime();
+  }
+
+  /// Re-fetches without a loading flash — for pull-to-refresh and realtime.
+  Future<void> refresh() => _fetch();
+
+  Future<void> _fetch() async {
     try {
       final userId = _client.auth.currentUser?.id;
       if (userId == null) {
@@ -44,6 +53,34 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     } catch (e, st) {
       emit(NotificationsError(e.toString(), stackTrace: st));
     }
+  }
+
+  /// Subscribes to changes on the user's notifications and re-fetches on any
+  /// insert/update/delete so the inbox stays live. No-op if not signed in.
+  void _subscribeRealtime() {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) return;
+    _channel?.unsubscribe();
+    _channel = _client
+        .channel('notifications_$userId')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: userId,
+          ),
+          callback: (_) => _fetch(),
+        )
+        .subscribe();
+  }
+
+  @override
+  Future<void> close() {
+    _channel?.unsubscribe();
+    return super.close();
   }
 
   static AppNotification _mapRow(Map<String, dynamic> r, DateTime now) {
