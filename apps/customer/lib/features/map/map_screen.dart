@@ -226,7 +226,10 @@ class _MapContentState extends State<_MapContent>
                               top: 12,
                               left: 12,
                               right: 12,
-                              child: _AllFullBanner(onSlots: () {}),
+                              child: _AllFullBanner(
+                                courtCount: filtered.length,
+                                onSlots: () => context.go('/slots'),
+                              ),
                             ),
                           Positioned(
                             top: isAllFull ? 68 : 12,
@@ -813,8 +816,9 @@ class _GpsRecenterFab extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _AllFullBanner extends StatelessWidget {
-  const _AllFullBanner({required this.onSlots});
+  const _AllFullBanner({required this.courtCount, required this.onSlots});
 
+  final int courtCount;
   final VoidCallback onSlots;
 
   @override
@@ -837,10 +841,10 @@ class _AllFullBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Tất cả sân quanh đây đang kín chỗ.',
-              style: TextStyle(
+              'Tất cả $courtCount sân quanh đây đang kín chỗ.',
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: _warningText,
