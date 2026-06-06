@@ -316,11 +316,19 @@ class _NotifButton extends StatefulWidget {
 
 class _NotifButtonState extends State<_NotifButton> {
   int _unread = 0;
+  RealtimeChannel? _channel;
 
   @override
   void initState() {
     super.initState();
     _loadUnread();
+    _subscribeRealtime();
+  }
+
+  @override
+  void dispose() {
+    _channel?.unsubscribe();
+    super.dispose();
   }
 
   /// Counts the current user's unread notifications to drive the badge.
@@ -338,6 +346,27 @@ class _NotifButtonState extends State<_NotifButton> {
     } catch (_) {
       // Non-critical — leave the badge hidden if the count can't be fetched.
     }
+  }
+
+  /// Keeps the badge live: re-counts whenever the user's notifications change.
+  void _subscribeRealtime() {
+    final client = Supabase.instance.client;
+    final uid = client.auth.currentUser?.id;
+    if (uid == null) return;
+    _channel = client
+        .channel('notif_badge_$uid')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'notifications',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'user_id',
+            value: uid,
+          ),
+          callback: (_) => _loadUnread(),
+        )
+        .subscribe();
   }
 
   @override
