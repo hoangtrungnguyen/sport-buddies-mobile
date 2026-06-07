@@ -12,3 +12,7 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# fastlane runtime artifacts
+fastlane/report.xml
+fastlane/README.md

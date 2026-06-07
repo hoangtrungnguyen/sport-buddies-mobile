@@ -1,0 +1,78 @@
+# Fastlane pipeline for the SportBuddies customer app (Android).
+#
+# Lanes:
+#   fastlane android build       — flutter release APK (envied codegen must
+#                                  already be done; see deploy-customer-app.sh)
+#   fastlane android distribute  — build + upload to Firebase App Distribution
+#
+# Required env for :distribute
+#   FIREBASE_APP_ID                   1:<num>:android:<hash>  (Firebase console
+#                                     or `firebase apps:list`)
+#   FIREBASE_SERVICE_CREDENTIALS_FILE path to a service-account JSON with the
+#                                     "Firebase App Distribution Admin" role
+#                                     (GOOGLE_APPLICATION_CREDENTIALS also works)
+# Optional:
+#   ENVIRONMENT             dev|prod envied flavor      (default: dev)
+#   FIREBASE_TESTER_GROUPS  comma-separated group aliases
+#   FIREBASE_TESTERS        comma-separated tester emails
+#   RELEASE_NOTES           defaults to the last git commit (hash + subject)
+
+default_platform(:android)
+
+# fastlane normalises CWD to the directory containing fastlane/ (android/),
+# so the Flutter app root is one level up. (__dir__ is nil in an eval'd
+# Fastfile — don't use it here.)
+def app_root
+  File.expand_path("..", Dir.pwd)
+end
+
+platform :android do
+  desc "Build the Flutter release APK"
+  lane :build do
+    environment = ENV.fetch("ENVIRONMENT", "dev")
+    # Only dev and prod go through this pipeline — local is for `flutter run`.
+    unless %w[dev prod].include?(environment)
+      UI.user_error!("ENVIRONMENT must be dev or prod (got '#{environment}')")
+    end
+    UI.message("Building APK (ENVIRONMENT=#{environment})...")
+    Dir.chdir(app_root) do
+      sh("flutter", "build", "apk", "--release",
+         "--dart-define=ENVIRONMENT=#{environment}")
+    end
+  end
+
+  desc "Build and upload to Firebase App Distribution"
+  lane :distribute do
+    app_id = ENV["FIREBASE_APP_ID"].to_s
+    UI.user_error!("FIREBASE_APP_ID not set") if app_id.empty?
+
+    creds = ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s
+    creds = ENV["GOOGLE_APPLICATION_CREDENTIALS"].to_s if creds.empty?
+    UI.user_error!("FIREBASE_SERVICE_CREDENTIALS_FILE not set") if creds.empty?
+    UI.user_error!("Credentials file not found: #{creds}") unless File.exist?(creds)
+
+    build
+
+    notes = ENV["RELEASE_NOTES"].to_s
+    if notes.empty?
+      notes = Dir.chdir(app_root) do
+        sh("git", "log", "-1", "--pretty=%h %s", log: false).strip
+      end rescue "Manual build"
+    end
+
+    apk = File.join(app_root, "build/app/outputs/flutter-apk/app-release.apk")
+    UI.user_error!("APK not found at #{apk}") unless File.exist?(apk)
+
+    firebase_app_distribution(
+      app: app_id,
+      android_artifact_type: "APK",
+      android_artifact_path: apk,
+      service_credentials_file: creds,
+      groups: ENV["FIREBASE_TESTER_GROUPS"],
+      testers: ENV["FIREBASE_TESTERS"],
+      release_notes: notes,
+    )
+
+    UI.success("Uploaded #{File.basename(apk)} to Firebase App Distribution")
+  end
+end
