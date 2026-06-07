@@ -17,21 +17,18 @@ import 'package:injectable/injectable.dart' as _i526;
 import 'package:supabase_flutter/supabase_flutter.dart' as _i454;
 
 extension GetItInjectableX on _i174.GetIt {
-// initializes the registration of main-scope dependencies inside of GetIt
+  // initializes the registration of main-scope dependencies inside of GetIt
   _i174.GetIt init({
     String? environment,
     _i526.EnvironmentFilter? environmentFilter,
   }) {
-    final gh = _i526.GetItHelper(
-      this,
-      environment,
-      environmentFilter,
-    );
+    final gh = _i526.GetItHelper(this, environment, environmentFilter);
     final registerModule = _$RegisterModule();
     gh.singleton<_i454.SupabaseClient>(() => registerModule.supabaseClient);
     gh.singleton<_i583.GoRouter>(() => registerModule.goRouter);
     gh.factory<_i724.ProfileCubit>(
-        () => _i724.ProfileCubit(gh<_i454.SupabaseClient>()));
+      () => _i724.ProfileCubit(gh<_i454.SupabaseClient>()),
+    );
     return this;
   }
 }

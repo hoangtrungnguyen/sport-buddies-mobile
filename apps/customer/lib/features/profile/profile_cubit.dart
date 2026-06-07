@@ -32,8 +32,12 @@ typedef UpdateFullNameFn = Future<void> Function(
 
 @injectable
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit(this._client)
-      : _updateFn = null,
+  // Non-nullable parameter so injectable resolves the registered
+  // SupabaseClient (a `SupabaseClient?` dependency counts as a different,
+  // unregistered type). The field stays nullable for the fake constructor.
+  ProfileCubit(SupabaseClient client)
+      : _client = client,
+        _updateFn = null,
         super(const ProfileLoading());
 
   /// Convenience constructor for tests: allows starting from an arbitrary
