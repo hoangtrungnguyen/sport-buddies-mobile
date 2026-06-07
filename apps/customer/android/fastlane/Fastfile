@@ -19,11 +19,11 @@
 
 default_platform(:android)
 
-# fastlane normalises CWD to the directory containing fastlane/ (android/),
-# so the Flutter app root is one level up. (__dir__ is nil in an eval'd
-# Fastfile — don't use it here.)
+# Flutter app root (apps/customer). Anchored on the fastlane folder location
+# (android/fastlane) because Dir.pwd varies with how fastlane is launched and
+# __dir__ is nil in an eval'd Fastfile.
 def app_root
-  File.expand_path("..", Dir.pwd)
+  File.expand_path("../..", FastlaneCore::FastlaneFolder.path)
 end
 
 platform :android do
