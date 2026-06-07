@@ -59,10 +59,18 @@ Future<void> main() async {
   // login) to a plaintext endpoint. Refuse to boot rather than leak them.
   // Debug + localhost dev and non-web targets are unaffected. Thrown outside
   // the swallowing try above so it actually halts startup.
-  if (kIsWeb && !kDebugMode && !Env.apiBaseUrl.startsWith('https://')) {
+  //
+  // ALLOW_INSECURE_HTTP=true is an explicit opt-out for dev deployments on a
+  // bare IP (no TLS cert possible). Never set it for production builds.
+  const allowInsecureHttp = bool.fromEnvironment('ALLOW_INSECURE_HTTP');
+  if (kIsWeb &&
+      !kDebugMode &&
+      !allowInsecureHttp &&
+      !Env.apiBaseUrl.startsWith('https://')) {
     throw StateError(
       'Insecure API_BASE_URL "${Env.apiBaseUrl}" for a web release build. '
-      'Rebuild with --dart-define=API_BASE_URL=https://<your-api-host>.',
+      'Rebuild with --dart-define=API_BASE_URL=https://<your-api-host> '
+      '(or --dart-define=ALLOW_INSECURE_HTTP=true for dev-only deployments).',
     );
   }
 
