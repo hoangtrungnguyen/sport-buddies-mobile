@@ -46,10 +46,17 @@ platform :android do
     app_id = ENV["FIREBASE_APP_ID"].to_s
     UI.user_error!("FIREBASE_APP_ID not set") if app_id.empty?
 
+    # Credentials are OPTIONAL — when unset the plugin falls back to gcloud
+    # ADC and then the cached Firebase CLI login (`firebase login`). A
+    # service-account file is only required on CI machines.
     creds = ENV["FIREBASE_SERVICE_CREDENTIALS_FILE"].to_s
     creds = ENV["GOOGLE_APPLICATION_CREDENTIALS"].to_s if creds.empty?
-    UI.user_error!("FIREBASE_SERVICE_CREDENTIALS_FILE not set") if creds.empty?
-    UI.user_error!("Credentials file not found: #{creds}") unless File.exist?(creds)
+    if creds.empty?
+      UI.important("No service credentials file — using gcloud ADC / cached Firebase CLI login.")
+      creds = nil
+    elsif !File.exist?(creds)
+      UI.user_error!("Credentials file not found: #{creds}")
+    end
 
     build
 
