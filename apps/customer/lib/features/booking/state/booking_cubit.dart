@@ -1,5 +1,6 @@
 import 'package:customer/core/debug/app_logger.dart';
 import 'package:customer/core/mixins/app_exception_mixin.dart';
+import 'package:customer/core/services/booking_api_client.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,14 +12,17 @@ class BookingCubit extends Cubit<BookingState> {
     required SlotRepository slotRepository,
     required CourtRepository courtRepository,
     required SupabaseClient client,
+    required BookingApiClient apiClient,
   })  : _slotRepo = slotRepository,
         _courtRepo = courtRepository,
         _client = client,
+        _api = apiClient,
         super(const BookingInitial());
 
   final SlotRepository _slotRepo;
   final CourtRepository _courtRepo;
   final SupabaseClient _client;
+  final BookingApiClient _api;
 
   Future<void> load(String slotId) async {
     emit(const BookingLoading());
@@ -85,35 +89,21 @@ class BookingCubit extends Cubit<BookingState> {
         return;
       }
 
-      final slot = s.slot;
-      final durationMinutes =
-          slot.endTime.difference(slot.startTime).inMinutes;
-      final pricePerHour = s.pricePerHour;
-      final totalPrice =
-          pricePerHour != null ? pricePerHour * durationMinutes / 60 : null;
-      final notesVal = notes?.trim().isEmpty == true ? null : notes?.trim();
-
-      final bookingId = await _client.rpc('place_booking', params: {
-        'p_slot_id': slotId,
-        'p_user_id': userId,
-        'p_court_id': slot.courtId,
-        'p_customer_name': name.trim(),
-        'p_customer_phone': phone.trim(),
-        if (notesVal != null) 'p_notes': notesVal,
-        if (pricePerHour != null) 'p_price_per_hour': pricePerHour,
-        'p_duration_minutes': durationMinutes,
-        if (totalPrice != null) 'p_total_price': totalPrice,
-      }) as String;
+      // Server computes price/duration from the slot — only identity +
+      // contact details travel over the wire.
+      final bookingId = await _api.createBooking(
+        slotId: slotId,
+        customerName: name.trim(),
+        customerPhone: phone.trim(),
+        notes: notes?.trim(),
+      );
 
       emit(BookingSubmitted(bookingId: bookingId));
+    } on SlotUnavailableException {
+      emit(const BookingSlotTaken());
     } catch (e, st) {
       appLogger.e('BookingCubit.submit', error: e, stackTrace: st);
-      final msg = e.toString();
-      if (msg.contains('SLOT_TAKEN')) {
-        emit(const BookingSlotTaken());
-      } else {
-        emit(BookingError(msg, stackTrace: st));
-      }
+      emit(BookingError(e.toString(), stackTrace: st));
     }
   }
 }

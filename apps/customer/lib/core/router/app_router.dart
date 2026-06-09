@@ -14,7 +14,9 @@
 // DI: the router is a Singleton in RegisterModule so callers outside the
 // widget tree (e.g. FCM handlers) can call sl<GoRouter>().go(...).
 
+import 'package:customer/core/env/env.dart';
 import 'package:customer/core/router/app_shell.dart';
+import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
@@ -270,6 +272,10 @@ GoRouter buildRouter() {
                 courtRepository:
                     SupabaseCourtRepository(client: Supabase.instance.client),
                 client: Supabase.instance.client,
+                apiClient: BookingApiClient(
+                  supabase: Supabase.instance.client,
+                  baseUrl: Env.apiBaseUrl,
+                ),
               ),
               child: BookingScreen(slotId: slotId),
             ),
@@ -333,6 +339,10 @@ GoRouter buildRouter() {
             BlocProvider(
               create: (_) => AccessControlCubit(
                 client: Supabase.instance.client,
+                apiClient: BookingApiClient(
+                  supabase: Supabase.instance.client,
+                  baseUrl: Env.apiBaseUrl,
+                ),
               ),
               child: AccessControlScreen(
                 slotId: state.pathParameters['slotId']!,

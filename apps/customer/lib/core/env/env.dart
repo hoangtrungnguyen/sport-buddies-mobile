@@ -29,6 +29,11 @@ abstract class Env {
   final String _supabaseAnonKey = _instance._supabaseAnonKey;
   static String get supabaseAnonKey => _instance._supabaseAnonKey;
 
+  /// Core-engine REST API base URL (writes: bookings, slot access, …).
+  @EnviedField(varName: 'API_BASE_URL', defaultValue: '')
+  final String _apiBaseUrl = _instance._apiBaseUrl;
+  static String get apiBaseUrl => _instance._apiBaseUrl;
+
   /// VietMap tile + geocoding API key.
   @EnviedField(varName: 'VIETMAP_API_KEY', defaultValue: '')
   final String _vietmapApiKey = _instance._vietmapApiKey;
