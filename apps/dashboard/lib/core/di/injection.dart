@@ -8,6 +8,10 @@ import 'package:dashboard/features/schedule/repository/owner_slot_repository.dar
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
 import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
+import 'package:dashboard/features/venue_schedule/repository/schedule_api_client.dart';
+import 'package:dashboard/features/venue_schedule/repository/schedule_repository.dart';
+import 'package:dashboard/features/venue_schedule/repository/supabase_schedule_repository.dart';
+import 'package:dashboard/features/venue_schedule/service/schedule_service.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -49,6 +53,25 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<SlotPlayersRepository>(
     () => SupabaseSlotPlayersRepository(Supabase.instance.client),
+  );
+
+  // "Lịch sân" (venue_schedule) — reads stay direct-to-Supabase; every
+  // mutation (slot create/block/unblock, booking status) goes through the
+  // Django backend via this Dio client (same auth pattern as
+  // HttpManualBookingRepository).
+  sl.registerLazySingleton<ScheduleApiClient>(
+    () => ScheduleApiClient(),
+  );
+
+  sl.registerLazySingleton<ScheduleRepository>(
+    () => SupabaseScheduleRepository(
+      Supabase.instance.client,
+      sl<ScheduleApiClient>(),
+    ),
+  );
+
+  sl.registerLazySingleton<ScheduleService>(
+    () => ScheduleService(sl<ScheduleRepository>()),
   );
 
   // Router registered last so it can resolve other singletons.

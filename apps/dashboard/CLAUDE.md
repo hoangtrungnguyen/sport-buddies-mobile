@@ -1,3 +1,8 @@
+
+## Coding
+- do not write tests until I say so
+- do not change database schema without my permission  
+
 ## Plane Integration
 
 **Workspace:** sportbuddies · **Project:** OWNER (`84659a28-3596-42e8-b5bd-113d2ec226fe`)

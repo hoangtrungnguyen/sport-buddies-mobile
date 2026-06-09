@@ -18,6 +18,7 @@
 // (signup/login) are otherwise sent in plaintext.
 
 import 'package:dashboard/app.dart';
+import 'package:flutter_skill/flutter_skill.dart';
 import 'package:dashboard/core/debug/app_bloc_observer.dart';
 import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/core/env/env.dart';
@@ -35,6 +36,7 @@ SemanticsHandle? _semanticsHandle;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kDebugMode) FlutterSkillBinding.ensureInitialized();
   // Force-enable the semantics tree so automated agents (Puppeteer, Claude Code)
   // can interact with widgets via [aria-label] selectors without requiring
   // user to click "Enable accessibility".

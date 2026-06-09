@@ -24,6 +24,7 @@ import 'package:dashboard/features/courts/view/courts_screen.dart';
 import 'package:dashboard/features/courts/view/venue_form_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
+import 'package:dashboard/features/venue_schedule/view/venue_schedule_page.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_event.dart';
 import 'package:dashboard/features/setup/model/owner_court.dart';
@@ -60,7 +61,8 @@ GoRouter buildRouter() {
 
       final authed = session != null;
       final going = state.matchedLocation;
-      debugPrint('[Router] redirect — going=$going authed=$authed session=${session?.accessToken.substring(0, 20)}...');
+      debugPrint(
+          '[Router] redirect — going=$going authed=$authed session=${session?.accessToken.substring(0, 20)}...');
 
       if (!authed && !publicPaths.contains(going)) return '/login';
       if (authed && going == '/login') return '/';
@@ -70,8 +72,7 @@ GoRouter buildRouter() {
       GoRoute(
         path: '/login',
         builder: (context, state) => BlocProvider(
-          create: (_) =>
-              createAuthBloc()..add(const AuthEvent.appStarted()),
+          create: (_) => createAuthBloc()..add(const AuthEvent.appStarted()),
           child: const LoginScreen(),
         ),
       ),
@@ -107,9 +108,8 @@ GoRouter buildRouter() {
           child: MultiBlocProvider(
             providers: [
               BlocProvider<NotificationBloc>(
-                create: (_) =>
-                    NotificationBloc(sl<NotificationRepository>())
-                      ..add(const NotificationEvent.loadRequested()),
+                create: (_) => NotificationBloc(sl<NotificationRepository>())
+                  ..add(const NotificationEvent.loadRequested()),
               ),
               BlocProvider<RequestsBloc>(
                 create: (_) => RequestsBloc(
@@ -118,9 +118,8 @@ GoRouter buildRouter() {
                 )..add(const RequestsEvent.started()),
               ),
               BlocProvider<CourtBloc>(
-                create: (_) =>
-                    CourtBloc(sl<OwnerCourtRepository>())
-                      ..add(const CourtEvent.loadRequested()),
+                create: (_) => CourtBloc(sl<OwnerCourtRepository>())
+                  ..add(const CourtEvent.loadRequested()),
               ),
             ],
             child: AppShell(child: child),
@@ -129,8 +128,8 @@ GoRouter buildRouter() {
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Trang chủ', Icons.home_outlined),
+            builder: (_, __) =>
+                const _PlaceholderScreen('Trang chủ', Icons.home_outlined),
           ),
           GoRoute(
             path: '/requests',
@@ -138,6 +137,14 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/schedule',
+            // New Supabase-backed "Lịch sân" screen — provides its own
+            // VenueScheduleBloc internally.
+            builder: (_, __) => const VenueSchedulePage(),
+          ),
+          GoRoute(
+            // Old Syncfusion-based schedule screen, kept reachable while the
+            // new screen stabilises.
+            path: '/schedule/legacy',
             builder: (context, state) => BlocProvider(
               create: (_) => ScheduleBloc(
                 slotRepository: sl<OwnerSlotRepository>(),
@@ -154,13 +161,13 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/analytics',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Thống kê', Icons.bar_chart_outlined),
+            builder: (_, __) =>
+                const _PlaceholderScreen('Thống kê', Icons.bar_chart_outlined),
           ),
           GoRoute(
             path: '/players',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Khách hàng', Icons.people_outlined),
+            builder: (_, __) =>
+                const _PlaceholderScreen('Khách hàng', Icons.people_outlined),
           ),
           GoRoute(
             path: '/notifications',
@@ -179,10 +186,8 @@ GoRouter buildRouter() {
             path: '/courts/:id',
             builder: (_, state) => BlocProvider(
               create: (_) => VenueBloc(sl<VenueRepository>())
-                ..add(VenueEvent.loadRequested(
-                    state.pathParameters['id']!)),
-              child: CourtDetailScreen(
-                  courtId: state.pathParameters['id']!),
+                ..add(VenueEvent.loadRequested(state.pathParameters['id']!)),
+              child: CourtDetailScreen(courtId: state.pathParameters['id']!),
             ),
             routes: [
               GoRoute(
@@ -212,8 +217,8 @@ GoRouter buildRouter() {
           ),
           GoRoute(
             path: '/support',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Hỗ trợ', Icons.help_outline_rounded),
+            builder: (_, __) =>
+                const _PlaceholderScreen('Hỗ trợ', Icons.help_outline_rounded),
           ),
         ],
       ),
@@ -239,8 +244,7 @@ class _PlaceholderScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             '$title — đang được phát triển',
-            style: const TextStyle(
-                color: AppColors.neutral500, fontSize: 14),
+            style: const TextStyle(color: AppColors.neutral500, fontSize: 14),
           ),
         ],
       ),
