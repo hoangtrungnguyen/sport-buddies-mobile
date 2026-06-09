@@ -1,0 +1,1432 @@
+openapi: 3.0.3
+info:
+  title: SportBuddies Core Engine API
+  version: 1.0.0
+  description: Courts endpoints only. Backend API for the SportBuddies platform (court
+    owners + players). Optimized for developer integration and AI tool calling. All
+    authenticated endpoints expect a Supabase-issued JWT as a Bearer token. Every
+    error response carries a top-level `error` key (and often a `detail`).
+  x-group: Courts
+  x-examples: null
+paths:
+  /api/courts/:
+    get:
+      operationId: courts_list
+      description: Public, paginated, filterable list of courts. Returns approved
+        courts only. Supports pagination, sport-type filtering, and status filtering.
+      summary: List courts
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number (default 1).
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Items per page (default 20).
+      - in: query
+        name: sport
+        schema:
+          type: string
+        description: Filter by sport type (e.g., 'badminton').
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Filter by court status (pending|approved|suspended).
+      tags:
+      - Courts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtList'
+              examples:
+                ListBadmintonCourts:
+                  value:
+                    count: 42
+                    results:
+                    - id: 550e8400-e29b-41d4-a716-446655440000
+                      name: Court A
+                      sport_types:
+                      - badminton
+                  summary: List badminton courts
+          description: Matching courts.
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+    post:
+      operationId: api_courts_create
+      description: Create a court. Owner role required.
+      summary: Create court
+      tags:
+      - Courts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCourtRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateCourtRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateCourtRequest'
+        required: true
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: Court created.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid JSON body or missing/invalid fields.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Missing or invalid Bearer token. Error: `invalid_token` or
+            `token_expired`.'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Authenticated user lacks the required role (e.g., not an owner).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+  /api/courts/{court_id}/:
+    get:
+      operationId: court_retrieve
+      description: Public court detail by id.
+      summary: Get court detail
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Courts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: Court detail.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+    patch:
+      operationId: api_courts_partial_update
+      description: Update a court. Owner only.
+      summary: Update court
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Courts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCourtRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCourtRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUpdateCourtRequest'
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: Updated court.
+        '207':
+          description: Partial success (multi-status).
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid JSON body or missing/invalid fields.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Missing or invalid Bearer token. Error: `invalid_token` or
+            `token_expired`.'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Authenticated user lacks the required role (e.g., not an owner).
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Conflict — resource state prevents the operation.
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+    delete:
+      operationId: api_courts_destroy
+      description: Soft-delete a court. Owner only.
+      summary: Delete court
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Courts
+      security:
+      - BearerAuth: []
+      - {}
+      responses:
+        '200':
+          description: Court soft-deleted.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Missing or invalid Bearer token. Error: `invalid_token` or
+            `token_expired`.'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Authenticated user lacks the required role (e.g., not an owner).
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+  /api/courts/{court_id}/settings:
+    patch:
+      operationId: api_courts_settings_partial_update
+      description: Toggle the `auto_approve_single` flag. Owner only.
+      summary: Update court settings
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - Courts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCourtSettingsRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCourtSettingsRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCourtSettingsRequest'
+      security:
+      - BearerAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtSettingsResult'
+          description: Updated settings.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid JSON body or missing/invalid fields.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: 'Missing or invalid Bearer token. Error: `invalid_token` or
+            `token_expired`.'
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Authenticated user lacks the required role (e.g., not an owner).
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+  /api/courts/{court_id}/slots:
+    get:
+      operationId: api_courts_slots_retrieve
+      description: All slots for a court within an inclusive date range. Public.
+      summary: Court slots in date range
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: from
+        schema:
+          type: string
+          format: date
+        description: Inclusive start date `YYYY-MM-DD`.
+        required: true
+      - in: query
+        name: to
+        schema:
+          type: string
+          format: date
+        description: End date boundary `YYYY-MM-DD`.
+        required: true
+      tags:
+      - Courts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SlotList'
+          description: Slots in range.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid JSON body or missing/invalid fields.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+  /api/courts/by-slug/{slug}:
+    get:
+      operationId: api_courts_by_slug_retrieve
+      description: Resolve a court slug to full detail. Case-insensitive; only `approved`
+        courts match.
+      summary: Look up court by slug
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - Courts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: Court detail.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found (wrong ID or already deleted).
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+  /api/courts/nearby:
+    get:
+      operationId: api_courts_nearby_retrieve
+      description: Courts sorted by distance from a location (Haversine).
+      summary: Nearby courts
+      parameters:
+      - in: query
+        name: lat
+        schema:
+          type: number
+        description: Caller latitude.
+        required: true
+      - in: query
+        name: lng
+        schema:
+          type: number
+        description: Caller longitude.
+        required: true
+      - in: query
+        name: price_max
+        schema:
+          type: number
+        description: Maximum price_per_hour.
+      - in: query
+        name: price_min
+        schema:
+          type: number
+        description: Minimum price_per_hour.
+      - in: query
+        name: radius_km
+        schema:
+          type: integer
+        description: 'Search radius: 1 | 3 | 5 (default 5).'
+      - in: query
+        name: sport
+        schema:
+          type: string
+        description: Filter by sport type.
+      - in: query
+        name: time_of_day
+        schema:
+          type: string
+        description: morning | afternoon | evening | night.
+      tags:
+      - Courts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtList'
+          description: Nearby courts.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Invalid JSON body or missing/invalid fields.
+        '503':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Upstream service unavailable (Supabase auth, email service,
+            etc.).
+components:
+  schemas:
+    AccessPolicyEnum:
+      enum:
+      - open
+      - private
+      type: string
+      description: |-
+        * `open` - open
+        * `private` - private
+    AvatarResult:
+      type: object
+      properties:
+        avatar_url:
+          type: string
+          format: uri
+          description: Public URL of the uploaded avatar.
+      required:
+      - avatar_url
+    AvatarUploadRequest:
+      type: object
+      properties:
+        avatar:
+          type: string
+          format: binary
+          description: JPEG or PNG image, max 2 MB. Sent as multipart/form-data.
+      required:
+      - avatar
+    Booking:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slot_id:
+          type: string
+          format: uuid
+          nullable: true
+        court_id:
+          type: string
+          format: uuid
+          nullable: true
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/BookingStatusEnum'
+        customer_name:
+          type: string
+          nullable: true
+        customer_phone:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        booking_series_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - status
+    BookingList:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Booking'
+      required:
+      - results
+    BookingStatusEnum:
+      enum:
+      - pending
+      - confirmed
+      - cancelled
+      - completed
+      type: string
+      description: |-
+        * `pending` - pending
+        * `confirmed` - confirmed
+        * `cancelled` - cancelled
+        * `completed` - completed
+    BookingStatusTransitionEnum:
+      enum:
+      - confirmed
+      - cancelled
+      - completed
+      type: string
+      description: |-
+        * `confirmed` - confirmed
+        * `cancelled` - cancelled
+        * `completed` - completed
+    Court:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Court id (UUID).
+        name:
+          type: string
+          description: Court display name.
+        slug:
+          type: string
+          description: URL-safe slug (used for QR deep-links).
+        status:
+          type: string
+          description: Lifecycle status, e.g. `approved`, `pending`.
+        sport_types:
+          type: array
+          items:
+            type: string
+          description: Supported sports, e.g. `["tennis"]`.
+        price_per_hour:
+          type: number
+          format: double
+          description: Base hourly price.
+        address:
+          type: string
+          nullable: true
+          description: Street address.
+        capacity:
+          type: integer
+          nullable: true
+          description: Max players.
+        description:
+          type: string
+          nullable: true
+        amenities:
+          type: array
+          items:
+            type: string
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        operating_hours:
+          description: Weekly opening hours object.
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - price_per_hour
+      - slug
+      - sport_types
+      - status
+    CourtList:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: Total matching courts.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Court'
+      required:
+      - results
+    CourtSettingsResult:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+        auto_approve_single:
+          type: boolean
+      required:
+      - auto_approve_single
+      - court_id
+    CreateBookingRequest:
+      type: object
+      properties:
+        slot_id:
+          type: string
+          format: uuid
+          description: Slot to book (required). Must be `open`.
+        booking_series_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: If present, booking is always created `pending`.
+        customer_name:
+          type: string
+          minLength: 1
+        customer_phone:
+          type: string
+          minLength: 1
+        notes:
+          type: string
+          minLength: 1
+      required:
+      - slot_id
+    CreateCourtRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: Court display name (required).
+        sport_types:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          description: Supported sports.
+        price_per_hour:
+          type: number
+          format: double
+          minimum: 0
+          description: Base hourly price.
+        address:
+          type: string
+          minLength: 1
+        capacity:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          minLength: 1
+        amenities:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+            minLength: 1
+        operating_hours:
+          description: Weekly opening hours object.
+      required:
+      - name
+      - price_per_hour
+      - sport_types
+    CreateSlotRequest:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+          description: Court the slot belongs to.
+        start_at:
+          type: string
+          format: date-time
+          description: Slot start (ISO 8601). Must be within operating hours.
+        end_at:
+          type: string
+          format: date-time
+          description: Slot end (ISO 8601). Must be within operating hours.
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SlotStatusEnum'
+          description: |-
+            Defaults to `open`.
+
+            * `open` - open
+            * `booked` - booked
+            * `blocked` - blocked
+            * `maintenance` - maintenance
+        is_owner_slot:
+          type: boolean
+          description: If true, status is forced to `blocked` (no payment flow).
+      required:
+      - court_id
+      - end_at
+      - start_at
+    CredentialsRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: Account email address.
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+          description: Account password. Min 8 chars, ≥1 letter, ≥1 digit on signup.
+      required:
+      - email
+      - password
+    DaysOfWeekEnum:
+      enum:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+      - sat
+      - sun
+      type: string
+      description: |-
+        * `mon` - mon
+        * `tue` - tue
+        * `wed` - wed
+        * `thu` - thu
+        * `fri` - fri
+        * `sat` - sat
+        * `sun` - sun
+    EmailOnlyRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: Account email address.
+      required:
+      - email
+    Error:
+      type: object
+      description: Standard error envelope returned by every failing endpoint.
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code, e.g. `invalid_credentials`.
+        detail:
+          type: string
+          description: Optional human-readable explanation of the error.
+      required:
+      - error
+    FcmTokenRequest:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: Firebase Cloud Messaging device token. Non-empty string.
+      required:
+      - token
+    Health:
+      type: object
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/HealthStatusEnum'
+          description: |-
+            Overall health: `ok` (200) or `error` (503).
+
+            * `ok` - ok
+            * `error` - error
+        db:
+          allOf:
+          - $ref: '#/components/schemas/HealthStatusEnum'
+          description: |-
+            Database connectivity.
+
+            * `ok` - ok
+            * `error` - error
+        realtime:
+          allOf:
+          - $ref: '#/components/schemas/HealthStatusEnum'
+          description: |-
+            Supabase Realtime status.
+
+            * `ok` - ok
+            * `error` - error
+      required:
+      - db
+      - realtime
+      - status
+    HealthStatusEnum:
+      enum:
+      - ok
+      - error
+      type: string
+      description: |-
+        * `ok` - ok
+        * `error` - error
+    JoinRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slot_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/JoinRequestStatusEnum'
+        requested_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - requested_at
+      - slot_id
+      - status
+      - user_id
+    JoinRequestStatusEnum:
+      enum:
+      - pending
+      - approved
+      - rejected
+      type: string
+      description: |-
+        * `pending` - pending
+        * `approved` - approved
+        * `rejected` - rejected
+    JoinStatusEnum:
+      enum:
+      - pending
+      - approved
+      - rejected
+      - none
+      type: string
+      description: |-
+        * `pending` - pending
+        * `approved` - approved
+        * `rejected` - rejected
+        * `none` - none
+    JoinStatusResult:
+      type: object
+      properties:
+        slot_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        status:
+          allOf:
+          - $ref: '#/components/schemas/JoinStatusEnum'
+          description: |-
+            `none` when the user has no request for this slot.
+
+            * `pending` - pending
+            * `approved` - approved
+            * `rejected` - rejected
+            * `none` - none
+      required:
+      - slot_id
+      - status
+      - user_id
+    LocationResult:
+      type: object
+      properties:
+        last_lat:
+          type: number
+          format: double
+          description: Stored latitude.
+        last_lng:
+          type: number
+          format: double
+          description: Stored longitude.
+      required:
+      - last_lat
+      - last_lng
+    ManualBookingRequest:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+          description: Court to book (owner must own it).
+        date:
+          type: string
+          format: date
+          description: Booking date `YYYY-MM-DD`.
+        start_time:
+          type: string
+          minLength: 1
+          description: Start time `HH:MM`.
+        end_time:
+          type: string
+          minLength: 1
+          description: End time `HH:MM` (must be after start).
+        customer_name:
+          type: string
+          minLength: 1
+          description: Walk-in customer name.
+        customer_phone:
+          type: string
+          minLength: 1
+          description: E.164 phone number.
+        price_per_hour_override:
+          type: number
+          format: double
+          minimum: 0
+          description: Override the court's default hourly price.
+        notes:
+          type: string
+          minLength: 1
+      required:
+      - court_id
+      - date
+      - end_time
+      - start_time
+    Message:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable status message.
+      required:
+      - message
+    MinimalUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Supabase auth user id (UUID).
+        email:
+          type: string
+          format: email
+          description: User email address.
+      required:
+      - email
+      - id
+    Participant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slot_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        joined_at:
+          type: string
+          format: date-time
+        payment_status:
+          type: string
+          nullable: true
+        payment_method:
+          type: string
+          nullable: true
+      required:
+      - id
+      - joined_at
+      - slot_id
+      - user_id
+    PatchedBlockSlotRequest:
+      type: object
+      properties:
+        blocked_reason:
+          type: string
+          minLength: 1
+          description: Optional human-readable reason.
+    PatchedBookingStatusRequest:
+      type: object
+      properties:
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BookingStatusTransitionEnum'
+          description: |-
+            Target status. Allowed transitions depend on caller role and current status.
+
+            * `confirmed` - confirmed
+            * `cancelled` - cancelled
+            * `completed` - completed
+    PatchedCourtSettingsRequest:
+      type: object
+      properties:
+        auto_approve_single:
+          type: boolean
+          description: When true, single bookings are auto-confirmed instead of pending.
+    PatchedLocationRequest:
+      type: object
+      properties:
+        lat:
+          type: number
+          format: double
+          maximum: 90.0
+          minimum: -90.0
+          description: Latitude in degrees [-90, 90].
+        lng:
+          type: number
+          format: double
+          maximum: 180.0
+          minimum: -180.0
+          description: Longitude in degrees [-180, 180].
+    PatchedSlotAccessRequest:
+      type: object
+      properties:
+        access_policy:
+          allOf:
+          - $ref: '#/components/schemas/AccessPolicyEnum'
+          description: |-
+            `open` or `private` (required).
+
+            * `open` - open
+            * `private` - private
+        max_players:
+          type: integer
+          nullable: true
+    PatchedUpdateCourtRequest:
+      type: object
+      description: All fields optional — PATCH semantics.
+      properties:
+        name:
+          type: string
+          minLength: 1
+        sport_types:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        price_per_hour:
+          type: number
+          format: double
+          minimum: 0
+        address:
+          type: string
+          minLength: 1
+        capacity:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          minLength: 1
+        amenities:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+            minLength: 1
+        operating_hours:
+          description: Weekly opening hours object.
+    PatchedUpdateNameRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+          minLength: 1
+          description: New display name. Must be a non-empty string.
+          maxLength: 255
+    PlayerProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Player user id (UUID).
+        email:
+          type: string
+          format: email
+          description: Player email address.
+        name:
+          type: string
+          nullable: true
+          description: Player display name.
+        phone:
+          type: string
+          nullable: true
+          description: Player phone number.
+        role:
+          type: string
+          description: Always `player` for this endpoint.
+      required:
+      - email
+      - id
+      - name
+      - phone
+      - role
+    PriceEstimate:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        duration_minutes:
+          type: integer
+        price_per_hour:
+          type: number
+          format: double
+        total_price:
+          type: number
+          format: double
+          description: Computed price for the window.
+      required:
+      - court_id
+      - duration_minutes
+      - end_at
+      - price_per_hour
+      - start_at
+      - total_price
+    RateLimited:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Always `rate_limited`.
+        retry_after:
+          type: integer
+          description: 'Seconds to wait before retrying (rate limit: 1 request/minute).'
+      required:
+      - error
+      - retry_after
+    RecurrenceRequest:
+      type: object
+      properties:
+        days_of_week:
+          type: array
+          items:
+            $ref: '#/components/schemas/DaysOfWeekEnum'
+          description: Weekdays to create slots on.
+        start_time:
+          type: string
+          minLength: 1
+          description: Slot start time `HH:MM` (UTC).
+        end_time:
+          type: string
+          minLength: 1
+          description: Slot end time `HH:MM` (UTC).
+        from_date:
+          type: string
+          format: date
+          description: First day of recurrence `YYYY-MM-DD`.
+        until_date:
+          type: string
+          format: date
+          description: Last day of recurrence `YYYY-MM-DD`.
+      required:
+      - days_of_week
+      - end_time
+      - from_date
+      - start_time
+      - until_date
+    RecurrenceResult:
+      type: object
+      properties:
+        created:
+          type: integer
+          description: Number of slots created.
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+      required:
+      - created
+    RefreshRequestRequest:
+      type: object
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          description: A valid refresh token previously issued by login.
+      required:
+      - refresh_token
+    ResendVerificationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          description: Email to resend the verification link to.
+      required:
+      - email
+    SignupResult:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Status message.
+        user:
+          $ref: '#/components/schemas/MinimalUser'
+      required:
+      - message
+      - user
+    Slot:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Slot id (UUID).
+        court_id:
+          type: string
+          format: uuid
+        court_name:
+          type: string
+          description: Denormalized court name.
+        start_at:
+          type: string
+          format: date-time
+          description: Slot start (ISO 8601).
+        end_at:
+          type: string
+          format: date-time
+          description: Slot end (ISO 8601).
+        duration_minutes:
+          type: integer
+        status:
+          allOf:
+          - $ref: '#/components/schemas/SlotStatusEnum'
+          description: |-
+            Slot availability status.
+
+            * `open` - open
+            * `booked` - booked
+            * `blocked` - blocked
+            * `maintenance` - maintenance
+        access_policy:
+          allOf:
+          - $ref: '#/components/schemas/AccessPolicyEnum'
+          description: |-
+            Play-together visibility.
+
+            * `open` - open
+            * `private` - private
+        max_players:
+          type: integer
+          nullable: true
+        blocked_reason:
+          type: string
+          nullable: true
+        booking_id:
+          type: string
+          format: uuid
+          nullable: true
+        is_last_minute:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+      required:
+      - court_id
+      - end_at
+      - id
+      - start_at
+      - status
+    SlotList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Slot'
+      required:
+      - results
+    SlotParticipantsResult:
+      type: object
+      properties:
+        slot_id:
+          type: string
+          format: uuid
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Participant'
+        join_requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/JoinRequest'
+      required:
+      - join_requests
+      - participants
+      - slot_id
+    SlotStatusEnum:
+      enum:
+      - open
+      - booked
+      - blocked
+      - maintenance
+      type: string
+      description: |-
+        * `open` - open
+        * `booked` - booked
+        * `blocked` - blocked
+        * `maintenance` - maintenance
+    SportsCenterSchedule:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        courts:
+          type: array
+          items: {}
+          description: Courts, each with an embedded `slots` array.
+      required:
+      - courts
+      - date
+    TokenPair:
+      type: object
+      description: Successful login / refresh response — Supabase-issued JWTs.
+      properties:
+        access_token:
+          type: string
+          description: Short-lived JWT access token.
+        refresh_token:
+          type: string
+          description: Long-lived token used at `POST /auth/refresh`.
+        user:
+          description: Raw Supabase user object (id, email, app_metadata, …).
+      required:
+      - access_token
+      - refresh_token
+      - user
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Auth — Owner
+  description: Court owner authentication.
+- name: Auth — Player
+  description: Player authentication & OAuth.
+- name: Players
+  description: Authenticated player profile & devices.
+- name: Courts
+  description: Court catalog, detail, settings & discovery.
+- name: Slots
+  description: Availability slots, blocking, recurrence & play-together joins.
+- name: Bookings
+  description: Single, manual & recurring bookings + pricing.
+- name: System
+  description: Health & operational endpoints.
