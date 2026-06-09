@@ -42,6 +42,28 @@ class _BookingScreenState extends State<BookingScreen> {
     _populated = true;
   }
 
+  /// Name + phone are required so the court owner can reach the player.
+  /// Phone must look like a VN number (9–11 digits, optional +).
+  bool _validateContact(BuildContext context) {
+    final name = _nameCtrl.text.trim();
+    final phone = _phoneCtrl.text.trim();
+    String? error;
+    if (name.isEmpty) {
+      error = 'Vui lòng nhập họ tên';
+    } else if (phone.isEmpty) {
+      error = 'Vui lòng nhập số điện thoại';
+    } else if (!RegExp(r'^\+?\d{9,11}$').hasMatch(phone)) {
+      error = 'Số điện thoại không hợp lệ';
+    }
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error), backgroundColor: Colors.red),
+      );
+      return false;
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<BookingCubit, BookingState>(
@@ -96,6 +118,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         _BottomConfirmBtn(
                           submitting: false,
                           onConfirm: () {
+                            if (!_validateContact(context)) return;
                             final durationMinutes = slot.endTime
                                 .difference(slot.startTime)
                                 .inMinutes;
@@ -229,8 +252,8 @@ class _Step1Content extends StatelessWidget {
           const SizedBox(height: 10),
           _SlotLine(
             time:
-                '${_timeFmt.format(slot.startTime)} – ${_timeFmt.format(slot.endTime)}',
-            date: _dateFmt.format(slot.startTime),
+                '${_timeFmt.format(slot.startTime.toLocal())} – ${_timeFmt.format(slot.endTime.toLocal())}',
+            date: _dateFmt.format(slot.startTime.toLocal()),
             sub: durationLabel,
             price: pricePerHour != null
                 ? _priceFmt.format(pricePerHour! * durationH)
