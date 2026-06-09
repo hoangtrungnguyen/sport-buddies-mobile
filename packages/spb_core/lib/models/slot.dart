@@ -20,9 +20,15 @@ abstract class Slot with _$Slot {
     @Default(4) int maxPlayers,
     @Default(0) int currentPlayers,
     String? hostId,
+
+    /// Availability status: `open` | `booked` | `blocked` | `maintenance`.
+    @Default('open') String status,
   }) = _Slot;
 
   bool get isFull => currentPlayers >= maxPlayers;
+
+  /// Only `open` slots can be selected for booking.
+  bool get isAvailable => status == 'open';
 
   factory Slot.fromJson(Map<String, dynamic> json) => _$SlotFromJson(json);
 }

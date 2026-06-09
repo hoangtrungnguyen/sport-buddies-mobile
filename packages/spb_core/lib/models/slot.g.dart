@@ -17,6 +17,7 @@ _Slot _$SlotFromJson(Map<String, dynamic> json) => _Slot(
       maxPlayers: (json['max_players'] as num?)?.toInt() ?? 4,
       currentPlayers: (json['current_players'] as num?)?.toInt() ?? 0,
       hostId: json['host_id'] as String?,
+      status: json['status'] as String? ?? 'open',
     );
 
 Map<String, dynamic> _$SlotToJson(_Slot instance) => <String, dynamic>{
@@ -30,4 +31,5 @@ Map<String, dynamic> _$SlotToJson(_Slot instance) => <String, dynamic>{
       'max_players': instance.maxPlayers,
       'current_players': instance.currentPlayers,
       'host_id': instance.hostId,
+      'status': instance.status,
     };

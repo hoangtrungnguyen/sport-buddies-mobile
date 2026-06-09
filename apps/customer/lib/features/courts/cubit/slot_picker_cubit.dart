@@ -18,15 +18,18 @@ class SlotPickerCubit extends Cubit<SlotPickerState> {
   Future<void> load(String courtId) async {
     emit(const SlotPickerLoading());
     try {
-      final slotsResult = await _slotRepo.fetchSlots(courtId);
+      final slotsResult = await _slotRepo.fetchCourtSlots(courtId);
       final courtResult = await _courtRepo.fetchCourtById(courtId);
 
       final slots =
           slotsResult is Success<List<Slot>> ? slotsResult.value : <Slot>[];
       final court =
           courtResult is Success<Court> ? courtResult.value : null;
-      final groupSlots =
-          slots.where((s) => s.accessPolicy == 'open').toList();
+      // Joinable group slots: booked but open to extra players —
+      // same semantics as SupabaseSlotRepository.fetchAllGroupSlots.
+      final groupSlots = slots
+          .where((s) => s.status == 'booked' && s.accessPolicy == 'open')
+          .toList();
 
       emit(SlotPickerLoaded(
         slots: slots,

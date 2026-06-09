@@ -19,6 +19,7 @@ class SupabaseSlotRepository implements SlotRepository {
     courts!inner(name, sport_types, owner_id),
     access_policy,
     max_players,
+    status,
     slot_participants(count)
   ''';
 
@@ -42,6 +43,7 @@ class SupabaseSlotRepository implements SlotRepository {
       'max_players': row['max_players'] as int? ?? 4,
       'current_players': currentPlayers,
       'host_id': court?['owner_id'] as String?,
+      'status': row['status'] as String? ?? 'open',
     };
   }
 
@@ -67,6 +69,30 @@ class SupabaseSlotRepository implements SlotRepository {
     try {
       final rows = await fetchRows(courtId);
       final slots = rows.map(Slot.fromJson).toList();
+      return Success(slots);
+    } on PostgrestException catch (e) {
+      final code = int.tryParse(e.code ?? '') ?? 500;
+      return Failure(ServerFailure(code));
+    } catch (_) {
+      return const Failure(NetworkFailure());
+    }
+  }
+
+  @override
+  Future<Result<List<Slot>>> fetchCourtSlots(String courtId) async {
+    try {
+      final now = DateTime.now().toUtc().toIso8601String();
+
+      final rows = await _client
+          .from('slots')
+          .select(_slotSelect)
+          .eq('court_id', courtId)
+          .gte('start_at', now)
+          .order('start_at', ascending: true);
+
+      final slots = (rows as List<dynamic>)
+          .map<Slot>((row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)))
+          .toList();
       return Success(slots);
     } on PostgrestException catch (e) {
       final code = int.tryParse(e.code ?? '') ?? 500;

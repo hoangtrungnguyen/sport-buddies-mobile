@@ -211,7 +211,7 @@ class _LoadedBody extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
                 child: Text(
-                  '${daySlots.length} slot trống',
+                  '${daySlots.where((s) => s.isAvailable).length} slot trống',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -861,8 +861,17 @@ class _SlotTile extends StatelessWidget {
 
   static final _timeFmt = DateFormat('HH:mm');
 
+  /// Label shown instead of price on non-open slots.
+  static String _statusLabel(String status) => switch (status) {
+        'booked' => 'Đã đặt',
+        'blocked' => 'Đã khoá',
+        'maintenance' => 'Bảo trì',
+        _ => '',
+      };
+
   @override
   Widget build(BuildContext context) {
+    final available = slot.isAvailable;
     final timeLabel =
         '${_timeFmt.format(slot.startTime.toLocal())} – ${_timeFmt.format(slot.endTime.toLocal())}';
     final durationMinutes =
@@ -873,11 +882,15 @@ class _SlotTile extends StatelessWidget {
     final priceLabel = price != null ? '${(price / 1000).round()}k' : '—';
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: available ? onTap : null,
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFDCFCE7) : Colors.white,
+          color: !available
+              ? const Color(0xFFF3F4F6)
+              : isSelected
+                  ? const Color(0xFFDCFCE7)
+                  : Colors.white,
           border: Border.all(
             color: isSelected ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
             width: isSelected ? 1.5 : 1.0,
@@ -898,10 +911,14 @@ class _SlotTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     timeLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
+                      color: available
+                          ? const Color(0xFF111827)
+                          : const Color(0xFF9CA3AF),
+                      decoration:
+                          available ? null : TextDecoration.lineThrough,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -910,11 +927,15 @@ class _SlotTile extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              priceLabel,
+              available ? priceLabel : _statusLabel(slot.status),
               style: TextStyle(
-                fontSize: 15,
+                fontSize: available ? 15 : 12,
                 fontWeight: FontWeight.w800,
-                color: isSelected ? const Color(0xFF16A34A) : const Color(0xFF111827),
+                color: !available
+                    ? const Color(0xFF9CA3AF)
+                    : isSelected
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFF111827),
               ),
             ),
           ],
