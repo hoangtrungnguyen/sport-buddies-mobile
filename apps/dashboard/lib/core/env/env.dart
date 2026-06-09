@@ -45,6 +45,10 @@ abstract class Env {
   final String _apiBaseUrl = _instance._apiBaseUrl;
   static String get apiBaseUrl => _instance._apiBaseUrl;
 
+  @EnviedField(varName: 'GEMINI_API_KEY', defaultValue: '')
+  final String _geminiApiKey = _instance._geminiApiKey;
+  static String get geminiApiKey => _instance._geminiApiKey;
+
   /// Throws [StateError] when required vars are missing.
   static void assertConfigured() {
     final missing = <String>[

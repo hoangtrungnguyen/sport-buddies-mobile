@@ -8,6 +8,7 @@ import '../../setup/bloc/court_bloc.dart';
 import '../../setup/bloc/court_event.dart';
 import '../../setup/model/owner_court.dart';
 import '../../setup/repository/owner_court_repository.dart';
+import '../service/court_info_parser_service.dart';
 
 class CourtFormScreen extends StatefulWidget {
   const CourtFormScreen({super.key, this.court});
@@ -33,6 +34,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   late bool _isActive;
   bool _saving = false;
   String? _error;
+  final _parserService = CourtInfoParserService();
 
   bool get _isEdit => widget.court != null;
 
@@ -63,6 +65,42 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _mapsCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
+  }
+
+  void _applyParseResult(CourtParseResult r) {
+    setState(() {
+      if (r.name != null) _nameCtrl.text = r.name!;
+      if (r.address != null) _addressCtrl.text = r.address!;
+      if (r.lat != null) _latCtrl.text = r.lat!.toStringAsFixed(6);
+      if (r.lng != null) _lngCtrl.text = r.lng!.toStringAsFixed(6);
+      if (r.googleMapsUrl != null) _mapsCtrl.text = r.googleMapsUrl!;
+      if (r.description != null) _descCtrl.text = r.description!;
+      if (r.amenities.isNotEmpty) _selectedAmenities = Set.from(r.amenities);
+      if (r.openHour != null) _openHour = r.openHour!;
+      if (r.closeHour != null) _closeHour = r.closeHour!;
+    });
+  }
+
+  void _openParseSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _ParseSheet(
+        parserService: _parserService,
+        onResult: (r) {
+          _applyParseResult(r);
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Đã điền thông tin từ văn bản'),
+              behavior: SnackBarBehavior.floating,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -168,6 +206,20 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
             color: AppColors.neutral900,
           ),
         ),
+        actions: [
+          Semantics(
+            label: 'court-form-ai-parse-btn',
+            button: true,
+            child: Tooltip(
+              message: 'Nhập từ văn bản (AI)',
+              child: IconButton(
+                icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+                color: AppColors.primary,
+                onPressed: _saving ? null : _openParseSheet,
+              ),
+            ),
+          ),
+        ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
           child: Divider(height: 1, color: AppColors.neutral200),
@@ -609,6 +661,153 @@ class _ActiveToggle extends StatelessWidget {
           ],
         ),
       );
+}
+
+class _ParseSheet extends StatefulWidget {
+  const _ParseSheet({required this.parserService, required this.onResult});
+
+  final CourtInfoParserService parserService;
+  final ValueChanged<CourtParseResult> onResult;
+
+  @override
+  State<_ParseSheet> createState() => _ParseSheetState();
+}
+
+class _ParseSheetState extends State<_ParseSheet> {
+  final _ctrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final text = _ctrl.text.trim();
+    if (text.isEmpty) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final result = await widget.parserService.parse(text);
+      if (!mounted) return;
+      widget.onResult(result);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'Không thể phân tích văn bản. Vui lòng thử lại.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.neutral200,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome_rounded,
+                  size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Nhập từ văn bản',
+                style: GoogleFonts.sora(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutral900,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Dán thông tin sân (tên, địa chỉ, giờ mở cửa, tiện ích…) — AI sẽ tự điền vào form.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              color: AppColors.neutral500,
+            ),
+          ),
+          const SizedBox(height: 12),
+          if (_error != null) ...[
+            _ErrorBanner(_error!),
+            const SizedBox(height: 10),
+          ],
+          TextField(
+            controller: _ctrl,
+            maxLines: 6,
+            autofocus: true,
+            style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
+            decoration: InputDecoration(
+              hintText:
+                  'Ví dụ: Sân Pickleball ABC, 123 Nguyễn Trãi Q1, mở 6h-22h, có WiFi và bãi đậu xe...',
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppColors.neutral400,
+              ),
+              filled: true,
+              fillColor: AppColors.neutral50,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: AppColors.neutral200),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _loading ? null : _submit,
+              icon: _loading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.auto_awesome_rounded, size: 16),
+              label: Text(_loading ? 'Đang phân tích…' : 'Phân tích'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                textStyle: GoogleFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600, fontSize: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _HourDropdown extends StatelessWidget {
