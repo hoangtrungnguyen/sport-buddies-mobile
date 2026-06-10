@@ -124,7 +124,8 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouterState.of(context).matchedLocation;
+    final state = GoRouterState.of(context);
+    final location = state.matchedLocation;
     final isWide = MediaQuery.sizeOf(context).width >= 1024;
     final showFab = location == '/' || location == '/requests';
 

@@ -36,6 +36,21 @@ import 'package:go_router/go_router.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Wraps [child] in a [CustomTransitionPage] that cross-fades instead of the
+/// platform-default slide. `key: state.pageKey` is REQUIRED — without it the
+/// inner ShellRoute Navigator can't tell the page changed and skips the
+/// transition entirely (the cause of the earlier "still sliding" behaviour).
+CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 250),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+        FadeTransition(opacity: animation, child: child),
+    child: child,
+  );
+}
+
 GoRouter buildRouter() {
   const publicPaths = {'/login', '/signup', '/forgot-password'};
 
@@ -128,97 +143,124 @@ GoRouter buildRouter() {
         routes: [
           GoRoute(
             path: '/',
-            builder: (_, __) =>
-                const _PlaceholderScreen('Trang chủ', Icons.home_outlined),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen('Trang chủ', Icons.home_outlined)),
           ),
           GoRoute(
             path: '/requests',
-            builder: (_, __) => const RequestsScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(state, const RequestsScreen()),
           ),
           GoRoute(
             path: '/schedule',
             // New Supabase-backed "Lịch sân" screen — provides its own
             // VenueScheduleBloc internally.
-            builder: (_, __) => const VenueSchedulePage(),
+            pageBuilder: (context, state) =>
+                _fadePage(state, const VenueSchedulePage()),
           ),
           GoRoute(
             // Old Syncfusion-based schedule screen, kept reachable while the
             // new screen stabilises.
             path: '/schedule/legacy',
-            builder: (context, state) => BlocProvider(
-              create: (_) => ScheduleBloc(
-                slotRepository: sl<OwnerSlotRepository>(),
-                bookingRepository: sl<ManualBookingRepository>(),
-                loadCourts: () => sl<OwnerCourtRepository>().getCourts(),
-              )..add(const ScheduleEvent.started()),
-              child: const ScheduleScreen(),
+            pageBuilder: (context, state) => _fadePage(
+              state,
+              BlocProvider(
+                create: (_) => ScheduleBloc(
+                  slotRepository: sl<OwnerSlotRepository>(),
+                  bookingRepository: sl<ManualBookingRepository>(),
+                  loadCourts: () => sl<OwnerCourtRepository>().getCourts(),
+                )..add(const ScheduleEvent.started()),
+                child: const ScheduleScreen(),
+              ),
             ),
           ),
           GoRoute(
             path: '/fixed',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Lịch cố định', Icons.refresh_outlined),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen(
+                    'Lịch cố định', Icons.refresh_outlined)),
           ),
           GoRoute(
             path: '/analytics',
-            builder: (_, __) =>
-                const _PlaceholderScreen('Thống kê', Icons.bar_chart_outlined),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen(
+                    'Thống kê', Icons.bar_chart_outlined)),
           ),
           GoRoute(
             path: '/players',
-            builder: (_, __) =>
-                const _PlaceholderScreen('Khách hàng', Icons.people_outlined),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen(
+                    'Khách hàng', Icons.people_outlined)),
           ),
           GoRoute(
             path: '/notifications',
-            builder: (_, __) => const _PlaceholderScreen(
-                'Thông báo', Icons.notifications_outlined),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen(
+                    'Thông báo', Icons.notifications_outlined)),
           ),
           GoRoute(
             path: '/courts',
-            builder: (_, __) => const CourtsScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(state, const CourtsScreen()),
           ),
           GoRoute(
             path: '/courts/new',
-            builder: (_, __) => const CourtFormScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(state, const CourtFormScreen()),
           ),
           GoRoute(
             path: '/courts/:id',
-            builder: (_, state) => BlocProvider(
-              create: (_) => VenueBloc(sl<VenueRepository>())
-                ..add(VenueEvent.loadRequested(state.pathParameters['id']!)),
-              child: CourtDetailScreen(courtId: state.pathParameters['id']!),
+            pageBuilder: (context, state) => _fadePage(
+              state,
+              BlocProvider(
+                create: (_) => VenueBloc(sl<VenueRepository>())
+                  ..add(VenueEvent.loadRequested(state.pathParameters['id']!)),
+                child: CourtDetailScreen(courtId: state.pathParameters['id']!),
+              ),
             ),
             routes: [
               GoRoute(
                 path: 'venues/new',
-                builder: (_, state) => VenueFormScreen(
-                  courtId: state.pathParameters['id']!,
+                pageBuilder: (context, state) => _fadePage(
+                  state,
+                  VenueFormScreen(courtId: state.pathParameters['id']!),
                 ),
               ),
               GoRoute(
                 path: 'venues/:venueId/edit',
-                builder: (_, state) => VenueFormScreen(
-                  courtId: state.pathParameters['id']!,
-                  venue: state.extra as Venue?,
+                pageBuilder: (context, state) => _fadePage(
+                  state,
+                  VenueFormScreen(
+                    courtId: state.pathParameters['id']!,
+                    venue: state.extra as Venue?,
+                  ),
                 ),
               ),
             ],
           ),
           GoRoute(
             path: '/courts/:id/edit',
-            builder: (_, state) => CourtFormScreen(
-              court: state.extra as OwnerCourt?,
+            pageBuilder: (context, state) => _fadePage(
+              state,
+              CourtFormScreen(court: state.extra as OwnerCourt?),
             ),
           ),
           GoRoute(
             path: '/settings',
-            builder: (_, __) => const SettingsScreen(),
+            pageBuilder: (context, state) =>
+                _fadePage(state, const SettingsScreen()),
           ),
           GoRoute(
             path: '/support',
-            builder: (_, __) =>
-                const _PlaceholderScreen('Hỗ trợ', Icons.help_outline_rounded),
+            pageBuilder: (context, state) => _fadePage(
+                state,
+                const _PlaceholderScreen(
+                    'Hỗ trợ', Icons.help_outline_rounded)),
           ),
         ],
       ),
