@@ -2,6 +2,8 @@
 // Route: /bookings/:id  (full-screen, no bottom nav)
 // Design: EPIC-6 My Bookings.html → BookingDetail component
 
+import 'package:customer/core/env/env.dart';
+import 'package:customer/core/services/booking_api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -41,8 +43,13 @@ class BookingDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => BookingDetailCubit(Supabase.instance.client)
-        ..loadBookingDetail(bookingId),
+      create: (_) => BookingDetailCubit(
+        Supabase.instance.client,
+        apiClient: BookingApiClient(
+          supabase: Supabase.instance.client,
+          baseUrl: Env.apiBaseUrl,
+        ),
+      )..loadBookingDetail(bookingId),
       child: const BookingDetailScreen(),
     );
   }
@@ -78,12 +85,28 @@ class BookingDetailScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<BookingDetailCubit, BookingDetailState>(
+      body: BlocConsumer<BookingDetailCubit, BookingDetailState>(
+        listenWhen: (prev, curr) =>
+            curr is BookingDetailLoaded && curr.actionError != null,
+        listener: (context, state) {
+          final msg = (state as BookingDetailLoaded).actionError!;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(msg), backgroundColor: _mdError),
+          );
+        },
         builder: (context, state) => switch (state) {
           BookingDetailLoading() =>
             const Center(child: CircularProgressIndicator()),
-          BookingDetailLoaded(:final booking, :final joinRequests) =>
-            _LoadedBody(booking: booking, joinRequests: joinRequests),
+          BookingDetailLoaded(
+            :final booking,
+            :final joinRequests,
+            :final processing,
+          ) =>
+            _LoadedBody(
+              booking: booking,
+              joinRequests: joinRequests,
+              processing: processing,
+            ),
           BookingDetailError(:final message) => _ErrorBody(message: message),
         },
       ),
@@ -94,10 +117,15 @@ class BookingDetailScreen extends StatelessWidget {
 // ─── Loaded body ─────────────────────────────────────────────────────────────
 
 class _LoadedBody extends StatelessWidget {
-  const _LoadedBody({required this.booking, required this.joinRequests});
+  const _LoadedBody({
+    required this.booking,
+    required this.joinRequests,
+    required this.processing,
+  });
 
   final Booking? booking;
   final List<JoinRequest> joinRequests;
+  final Set<String> processing;
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +139,11 @@ class _LoadedBody extends StatelessWidget {
               const SizedBox(height: 12),
               _ParticipantsCard(joinRequests: joinRequests),
               const SizedBox(height: 12),
-              _JoinRequestsCard(joinRequests: joinRequests),
+              _JoinRequestsCard(
+                joinRequests: joinRequests,
+                slotId: booking!.slot.id,
+                processing: processing,
+              ),
             ],
           ],
         ),
@@ -448,9 +480,15 @@ class _PlayerRow extends StatelessWidget {
 // ─── Join requests card ───────────────────────────────────────────────────────
 
 class _JoinRequestsCard extends StatelessWidget {
-  const _JoinRequestsCard({required this.joinRequests});
+  const _JoinRequestsCard({
+    required this.joinRequests,
+    required this.slotId,
+    required this.processing,
+  });
 
   final List<JoinRequest> joinRequests;
+  final String slotId;
+  final Set<String> processing;
 
   @override
   Widget build(BuildContext context) {
@@ -505,7 +543,11 @@ class _JoinRequestsCard extends StatelessWidget {
                   Container(height: 1, color: _mdOutlineVariant),
                   const SizedBox(height: 12),
                 ],
-                _RequestRow(request: pending[i]),
+                _RequestRow(
+                  request: pending[i],
+                  slotId: slotId,
+                  busy: processing.contains(pending[i].id),
+                ),
               ],
           ],
         ),
@@ -515,9 +557,17 @@ class _JoinRequestsCard extends StatelessWidget {
 }
 
 class _RequestRow extends StatelessWidget {
-  const _RequestRow({required this.request});
+  const _RequestRow({
+    required this.request,
+    required this.slotId,
+    required this.busy,
+  });
 
   final JoinRequest request;
+  final String slotId;
+
+  /// An approve/reject call for this request is in flight.
+  final bool busy;
 
   String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -560,7 +610,11 @@ class _RequestRow extends StatelessWidget {
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: busy
+                    ? null
+                    : () => context
+                        .read<BookingDetailCubit>()
+                        .reject(request.id, slotId),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: _mdError,
                   side: const BorderSide(color: _mdOutlineVariant),
@@ -573,14 +627,28 @@ class _RequestRow extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: FilledButton(
-                onPressed: () {},
+                onPressed: busy
+                    ? null
+                    : () => context
+                        .read<BookingDetailCubit>()
+                        .approve(request.id, slotId),
                 style: FilledButton.styleFrom(
                   backgroundColor: _mdPrimary,
                   foregroundColor: _mdOnPrimary,
+                  disabledBackgroundColor: _mdSurfaceContainerHighest,
                   shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
                   padding: const EdgeInsets.symmetric(vertical: 8),
                 ),
-                child: const Text('Chấp nhận', style: TextStyle(fontSize: 13)),
+                child: busy
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: _mdOnPrimary,
+                        ),
+                      )
+                    : const Text('Chấp nhận', style: TextStyle(fontSize: 13)),
               ),
             ),
           ],

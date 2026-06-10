@@ -20,6 +20,8 @@
 //   BookingDetailLoaded   — on success (joinRequests may be empty)
 //   BookingDetailError    — on any exception
 
+import 'package:customer/core/debug/app_logger.dart';
+import 'package:customer/core/services/booking_api_client.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,14 +29,19 @@ import 'booking_model.dart';
 import 'booking_detail_state.dart';
 
 class BookingDetailCubit extends Cubit<BookingDetailState> {
-  BookingDetailCubit(this._client) : super(const BookingDetailLoading());
+  BookingDetailCubit(this._client, {BookingApiClient? apiClient})
+      : _api = apiClient,
+        super(const BookingDetailLoading());
 
   /// Fake constructor for tests — allows starting from an arbitrary initial
   /// state without requiring a real [SupabaseClient].
-  BookingDetailCubit.fake(super.initial) : _client = null;
+  BookingDetailCubit.fake(super.initial)
+      : _client = null,
+        _api = null;
 
   // Nullable so the fake constructor can leave it unset.
   final SupabaseClient? _client;
+  final BookingApiClient? _api;
 
   /// Loads the booking detail for [bookingId] and its slot's join requests.
   Future<void> loadBookingDetail(String bookingId) async {
@@ -106,6 +113,51 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
       ));
     } catch (e, st) {
       emit(BookingDetailError(e.toString(), stackTrace: st));
+    }
+  }
+
+  /// Owner approves a pending join request via the REST API, then refreshes
+  /// the list (the server adds the `slot_participants` row).
+  Future<void> approve(String joinRequestId, String slotId) =>
+      _processRequest(joinRequestId, slotId, approve: true);
+
+  /// Owner rejects a pending join request via the REST API, then refreshes.
+  Future<void> reject(String joinRequestId, String slotId) =>
+      _processRequest(joinRequestId, slotId, approve: false);
+
+  Future<void> _processRequest(
+    String joinRequestId,
+    String slotId, {
+    required bool approve,
+  }) async {
+    final s = state;
+    if (s is! BookingDetailLoaded || s.processing.contains(joinRequestId)) {
+      return;
+    }
+    final api = _api;
+    if (api == null) return; // fake/test path
+
+    emit(s.copyWith(processing: {...s.processing, joinRequestId}));
+    try {
+      if (approve) {
+        await api.approveJoinRequest(joinRequestId);
+      } else {
+        await api.rejectJoinRequest(joinRequestId);
+      }
+      // Reload silently (keep the booking, no full-screen spinner) so the
+      // request moves out of "pending" into the participant list.
+      await loadJoinRequests(slotId, existingBooking: s.booking);
+    } on NoConnectionException {
+      emit(s.copyWith(
+        processing: s.processing.difference({joinRequestId}),
+        actionError: 'Không có kết nối mạng. Vui lòng thử lại.',
+      ));
+    } catch (e, st) {
+      appLogger.e('BookingDetailCubit._processRequest', error: e, stackTrace: st);
+      emit(s.copyWith(
+        processing: s.processing.difference({joinRequestId}),
+        actionError: 'Không xử lý được yêu cầu, thử lại sau.',
+      ));
     }
   }
 }

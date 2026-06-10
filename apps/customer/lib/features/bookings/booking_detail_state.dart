@@ -80,11 +80,31 @@ class BookingDetailLoaded extends BookingDetailState {
   const BookingDetailLoaded({
     required this.booking,
     required this.joinRequests,
+    this.processing = const {},
+    this.actionError,
   });
 
   /// The booking, or null if only join requests context is needed.
   final Booking? booking;
   final List<JoinRequest> joinRequests;
+
+  /// Join-request ids with an approve/reject call in flight (controls
+  /// per-row button spinners).
+  final Set<String> processing;
+
+  /// Transient error surfaced via snackbar (cleared on next reload).
+  final String? actionError;
+
+  BookingDetailLoaded copyWith({
+    Set<String>? processing,
+    String? actionError,
+  }) =>
+      BookingDetailLoaded(
+        booking: booking,
+        joinRequests: joinRequests,
+        processing: processing ?? this.processing,
+        actionError: actionError,
+      );
 
   @override
   bool operator ==(Object other) =>
@@ -92,10 +112,17 @@ class BookingDetailLoaded extends BookingDetailState {
       other is BookingDetailLoaded &&
           runtimeType == other.runtimeType &&
           booking == other.booking &&
+          actionError == other.actionError &&
+          setEquals(processing, other.processing) &&
           _listEquals(joinRequests, other.joinRequests);
 
   @override
-  int get hashCode => Object.hash(booking, Object.hashAll(joinRequests));
+  int get hashCode => Object.hash(
+        booking,
+        Object.hashAll(joinRequests),
+        Object.hashAllUnordered(processing),
+        actionError,
+      );
 
   static bool _listEquals(List<JoinRequest> a, List<JoinRequest> b) {
     if (a.length != b.length) return false;

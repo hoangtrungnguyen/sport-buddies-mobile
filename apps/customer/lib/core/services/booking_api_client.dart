@@ -152,6 +152,31 @@ class BookingApiClient {
     );
   }
 
+  /// `PATCH /api/slot-join-requests/{id}/approve` — slot owner approves a
+  /// pending join request; the server adds a `slot_participants` row.
+  Future<void> approveJoinRequest(String joinRequestId) =>
+      _patchJoinRequest(joinRequestId, 'approve');
+
+  /// `PATCH /api/slot-join-requests/{id}/reject` — slot owner rejects a
+  /// pending join request.
+  Future<void> rejectJoinRequest(String joinRequestId) =>
+      _patchJoinRequest(joinRequestId, 'reject');
+
+  Future<void> _patchJoinRequest(String id, String action) async {
+    final response = await _send(() => _http.patch(
+          Uri.parse('$_baseUrl/api/slot-join-requests/$id/$action'),
+          headers: _headers(),
+        ));
+
+    if (response.statusCode == 200) return;
+    final body = _decode(response);
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   /// `PATCH /api/slots/{slotId}/access` — booking owner opens the slot
   /// for play-together (or keeps it private).
   Future<void> updateSlotAccess({
