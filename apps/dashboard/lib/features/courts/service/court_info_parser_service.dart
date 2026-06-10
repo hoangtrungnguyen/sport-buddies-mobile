@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:dashboard/core/env/env.dart';
 import 'package:dashboard/features/setup/model/owner_court.dart';
 import 'package:dio/dio.dart';
@@ -73,44 +74,107 @@ Only include amenities that appear in the allowed list above. Return [] if none 
       throw StateError('GEMINI_API_KEY is not configured. Add it to your .local.env and re-run build_runner.');
     }
 
-    final response = await _dio.post<Map<String, dynamic>>(
-      _endpoint,
-      queryParameters: {'key': apiKey},
-      data: {
-        'contents': [
-          {
-            'role': 'user',
-            'parts': [
-              {'text': '$_systemPrompt\n\nText:\n$text'},
-            ],
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        _endpoint,
+        queryParameters: {'key': apiKey},
+        data: {
+          'contents': [
+            {
+              'role': 'user',
+              'parts': [
+                {'text': '$_systemPrompt\n\nText:\n$text'},
+              ],
+            },
+          ],
+          'generationConfig': {
+            'responseMimeType': 'application/json',
+            'temperature': 0,
           },
-        ],
-        'generationConfig': {
-          'responseMimeType': 'application/json',
-          'temperature': 0,
         },
-      },
-    );
+        options: Options(
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+        ),
+      );
 
-    final body = response.data!;
-    final candidates = body['candidates'] as List<dynamic>;
-    final raw = candidates.first['content']['parts'].first['text'] as String;
-    final json = jsonDecode(raw) as Map<String, dynamic>;
+      // Validate response structure
+      if (response.data == null) {
+        throw StateError('API returned empty response');
+      }
 
-    return CourtParseResult(
-      name: _str(json['name']),
-      address: _str(json['address']),
-      lat: _num(json['lat'])?.toDouble(),
-      lng: _num(json['lng'])?.toDouble(),
-      googleMapsUrl: _str(json['googleMapsUrl']),
-      description: _str(json['description']),
-      amenities: (json['amenities'] as List<dynamic>? ?? [])
-          .whereType<String>()
-          .where(kAmenities.contains)
-          .toList(),
-      openHour: _int(json['openHour']),
-      closeHour: _int(json['closeHour']),
-    );
+      final body = response.data!;
+      if (body is! Map<String, dynamic>) {
+        throw StateError('API response is not a valid map');
+      }
+
+      final candidates = body['candidates'];
+      if (candidates is! List || candidates.isEmpty) {
+        throw StateError('No candidates in API response');
+      }
+
+      final firstCandidate = candidates.first;
+      if (firstCandidate is! Map<String, dynamic>) {
+        throw StateError('Candidate entry is not a valid map');
+      }
+
+      final content = firstCandidate['content'];
+      if (content is! Map<String, dynamic>) {
+        throw StateError('Candidate content is missing or invalid');
+      }
+
+      final parts = content['parts'];
+      if (parts is! List || parts.isEmpty) {
+        throw StateError('Response parts are missing or empty');
+      }
+
+      final firstPart = parts.first;
+      if (firstPart is! Map<String, dynamic>) {
+        throw StateError('Response part is not a valid map');
+      }
+
+      final raw = firstPart['text'];
+      if (raw is! String) {
+        throw StateError('Response text is missing or not a string');
+      }
+
+      Map<String, dynamic> json;
+      try {
+        json = jsonDecode(raw) as Map<String, dynamic>;
+      } on FormatException catch (e, st) {
+        appLogger.e('JSON decode error: ${e.message}', error: e, stackTrace: st);
+        throw StateError('API returned invalid JSON: ${e.message}');
+      }
+
+      return CourtParseResult(
+        name: _str(json['name']),
+        address: _str(json['address']),
+        lat: _num(json['lat'])?.toDouble(),
+        lng: _num(json['lng'])?.toDouble(),
+        googleMapsUrl: _str(json['googleMapsUrl']),
+        description: _str(json['description']),
+        amenities: (json['amenities'] as List<dynamic>? ?? [])
+            .whereType<String>()
+            .where(kAmenities.contains)
+            .toList(),
+        openHour: _int(json['openHour']),
+        closeHour: _int(json['closeHour']),
+      );
+    } on DioException catch (e, st) {
+      appLogger.e('Gemini API error: ${e.message}', error: e, stackTrace: st);
+      final msg = switch (e.type) {
+        DioExceptionType.connectionTimeout => 'Connection timed out. Check your network.',
+        DioExceptionType.receiveTimeout => 'Server took too long to respond.',
+        DioExceptionType.badResponse => 'API error: ${e.response?.statusCode}',
+        _ => 'Network error: ${e.message}',
+      };
+      throw StateError(msg);
+    } on StateError {
+      rethrow;
+    } catch (e, st) {
+      appLogger.e('Unexpected parser error', error: e, stackTrace: st);
+      throw StateError('Unexpected error parsing court info. Please try again.');
+    }
   }
 
   static String? _str(dynamic v) {

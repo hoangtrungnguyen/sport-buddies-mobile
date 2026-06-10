@@ -1,9 +1,11 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
+import '../../../core/debug/app_logger.dart';
 import '../../setup/bloc/court_bloc.dart';
 import '../../setup/bloc/court_event.dart';
 import '../../setup/model/owner_court.dart';
@@ -686,7 +688,14 @@ class _ParseSheetState extends State<_ParseSheet> {
 
   Future<void> _submit() async {
     final text = _ctrl.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty) {
+      setState(() => _error = 'Vui lòng nhập thông tin sân.');
+      return;
+    }
+    if (text.length < 10) {
+      setState(() => _error = 'Vui lòng nhập thêm thông tin (tối thiểu 10 ký tự).');
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -695,9 +704,19 @@ class _ParseSheetState extends State<_ParseSheet> {
       final result = await widget.parserService.parse(text);
       if (!mounted) return;
       widget.onResult(result);
-    } catch (e) {
+    } catch (e, st) {
       if (!mounted) return;
-      setState(() => _error = 'Không thể phân tích văn bản. Vui lòng thử lại.');
+      appLogger.e('Court parse failed', error: e, stackTrace: st);
+      String msg = 'Không thể phân tích văn bản. Vui lòng thử lại.';
+      if (e is StateError) {
+        msg = e.message;
+      } else if (e is DioException) {
+        if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout) {
+          msg = 'Timeout. Vui lòng kiểm tra kết nối mạng.';
+        }
+      }
+      setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
