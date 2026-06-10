@@ -16,7 +16,7 @@ class NotificationRepository {
       final rows = await _client
           .from('notifications')
           .select()
-          .eq('owner_id', uid)
+          .eq('user_id', uid)
           .order('created_at', ascending: false)
           .limit(limit);
       return (rows as List)
@@ -36,7 +36,7 @@ class NotificationRepository {
       await _client
           .from('notifications')
           .update({'is_read': true})
-          .eq('owner_id', uid)
+          .eq('user_id', uid)
           .eq('is_read', false);
     } catch (e, st) {
       appLogger.e('NotificationRepository.markAllRead',
@@ -46,19 +46,19 @@ class NotificationRepository {
   }
 
   RealtimeChannel subscribeToNewNotifications(
-    String ownerId,
+    String userId,
     void Function() onNew,
   ) {
     return _client
-        .channel('owner_notifs:$ownerId')
+        .channel('user_notifs:$userId')
         .onPostgresChanges(
           event: PostgresChangeEvent.insert,
           schema: 'public',
           table: 'notifications',
           filter: PostgresChangeFilter(
             type: PostgresChangeFilterType.eq,
-            column: 'owner_id',
-            value: ownerId,
+            column: 'user_id',
+            value: userId,
           ),
           callback: (_) => onNew(),
         )
