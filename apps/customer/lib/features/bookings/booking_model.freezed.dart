@@ -878,4 +878,296 @@ $SlotCopyWith<$Res> get slot {
 }
 }
 
+
+/// @nodoc
+mixin _$JoinedSlotRequest {
+
+ String get id; String get status;// pending | approved | rejected
+@JsonKey(name: 'slots') Slot get slot;@JsonKey(name: 'requested_at') DateTime? get requestedAt;
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$JoinedSlotRequestCopyWith<JoinedSlotRequest> get copyWith => _$JoinedSlotRequestCopyWithImpl<JoinedSlotRequest>(this as JoinedSlotRequest, _$identity);
+
+  /// Serializes this JoinedSlotRequest to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JoinedSlotRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.slot, slot) || other.slot == slot)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,status,slot,requestedAt);
+
+@override
+String toString() {
+  return 'JoinedSlotRequest(id: $id, status: $status, slot: $slot, requestedAt: $requestedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $JoinedSlotRequestCopyWith<$Res>  {
+  factory $JoinedSlotRequestCopyWith(JoinedSlotRequest value, $Res Function(JoinedSlotRequest) _then) = _$JoinedSlotRequestCopyWithImpl;
+@useResult
+$Res call({
+ String id, String status,@JsonKey(name: 'slots') Slot slot,@JsonKey(name: 'requested_at') DateTime? requestedAt
+});
+
+
+$SlotCopyWith<$Res> get slot;
+
+}
+/// @nodoc
+class _$JoinedSlotRequestCopyWithImpl<$Res>
+    implements $JoinedSlotRequestCopyWith<$Res> {
+  _$JoinedSlotRequestCopyWithImpl(this._self, this._then);
+
+  final JoinedSlotRequest _self;
+  final $Res Function(JoinedSlotRequest) _then;
+
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? status = null,Object? slot = null,Object? requestedAt = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,slot: null == slot ? _self.slot : slot // ignore: cast_nullable_to_non_nullable
+as Slot,requestedAt: freezed == requestedAt ? _self.requestedAt : requestedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SlotCopyWith<$Res> get slot {
+  
+  return $SlotCopyWith<$Res>(_self.slot, (value) {
+    return _then(_self.copyWith(slot: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [JoinedSlotRequest].
+extension JoinedSlotRequestPatterns on JoinedSlotRequest {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _JoinedSlotRequest value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _JoinedSlotRequest() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _JoinedSlotRequest value)  $default,){
+final _that = this;
+switch (_that) {
+case _JoinedSlotRequest():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _JoinedSlotRequest value)?  $default,){
+final _that = this;
+switch (_that) {
+case _JoinedSlotRequest() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String status, @JsonKey(name: 'slots')  Slot slot, @JsonKey(name: 'requested_at')  DateTime? requestedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _JoinedSlotRequest() when $default != null:
+return $default(_that.id,_that.status,_that.slot,_that.requestedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String status, @JsonKey(name: 'slots')  Slot slot, @JsonKey(name: 'requested_at')  DateTime? requestedAt)  $default,) {final _that = this;
+switch (_that) {
+case _JoinedSlotRequest():
+return $default(_that.id,_that.status,_that.slot,_that.requestedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String status, @JsonKey(name: 'slots')  Slot slot, @JsonKey(name: 'requested_at')  DateTime? requestedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _JoinedSlotRequest() when $default != null:
+return $default(_that.id,_that.status,_that.slot,_that.requestedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _JoinedSlotRequest implements JoinedSlotRequest {
+  const _JoinedSlotRequest({required this.id, required this.status, @JsonKey(name: 'slots') required this.slot, @JsonKey(name: 'requested_at') this.requestedAt});
+  factory _JoinedSlotRequest.fromJson(Map<String, dynamic> json) => _$JoinedSlotRequestFromJson(json);
+
+@override final  String id;
+@override final  String status;
+// pending | approved | rejected
+@override@JsonKey(name: 'slots') final  Slot slot;
+@override@JsonKey(name: 'requested_at') final  DateTime? requestedAt;
+
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$JoinedSlotRequestCopyWith<_JoinedSlotRequest> get copyWith => __$JoinedSlotRequestCopyWithImpl<_JoinedSlotRequest>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$JoinedSlotRequestToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JoinedSlotRequest&&(identical(other.id, id) || other.id == id)&&(identical(other.status, status) || other.status == status)&&(identical(other.slot, slot) || other.slot == slot)&&(identical(other.requestedAt, requestedAt) || other.requestedAt == requestedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,status,slot,requestedAt);
+
+@override
+String toString() {
+  return 'JoinedSlotRequest(id: $id, status: $status, slot: $slot, requestedAt: $requestedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$JoinedSlotRequestCopyWith<$Res> implements $JoinedSlotRequestCopyWith<$Res> {
+  factory _$JoinedSlotRequestCopyWith(_JoinedSlotRequest value, $Res Function(_JoinedSlotRequest) _then) = __$JoinedSlotRequestCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String status,@JsonKey(name: 'slots') Slot slot,@JsonKey(name: 'requested_at') DateTime? requestedAt
+});
+
+
+@override $SlotCopyWith<$Res> get slot;
+
+}
+/// @nodoc
+class __$JoinedSlotRequestCopyWithImpl<$Res>
+    implements _$JoinedSlotRequestCopyWith<$Res> {
+  __$JoinedSlotRequestCopyWithImpl(this._self, this._then);
+
+  final _JoinedSlotRequest _self;
+  final $Res Function(_JoinedSlotRequest) _then;
+
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? status = null,Object? slot = null,Object? requestedAt = freezed,}) {
+  return _then(_JoinedSlotRequest(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,slot: null == slot ? _self.slot : slot // ignore: cast_nullable_to_non_nullable
+as Slot,requestedAt: freezed == requestedAt ? _self.requestedAt : requestedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
+  ));
+}
+
+/// Create a copy of JoinedSlotRequest
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$SlotCopyWith<$Res> get slot {
+  
+  return $SlotCopyWith<$Res>(_self.slot, (value) {
+    return _then(_self.copyWith(slot: value));
+  });
+}
+}
+
 // dart format on

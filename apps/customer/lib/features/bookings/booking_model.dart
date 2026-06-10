@@ -65,3 +65,20 @@ abstract class Booking with _$Booking {
 
   factory Booking.fromJson(Map<String, dynamic> json) => _$BookingFromJson(json);
 }
+
+/// A play-together join request the current player has made on an open slot.
+///
+/// Supabase shape: `slot_join_requests.select('id, status, requested_at,
+/// slots(*, courts(*))')`.
+@freezed
+abstract class JoinedSlotRequest with _$JoinedSlotRequest {
+  const factory JoinedSlotRequest({
+    required String id,
+    required String status, // pending | approved | rejected
+    @JsonKey(name: 'slots') required Slot slot,
+    @JsonKey(name: 'requested_at') DateTime? requestedAt,
+  }) = _JoinedSlotRequest;
+
+  factory JoinedSlotRequest.fromJson(Map<String, dynamic> json) =>
+      _$JoinedSlotRequestFromJson(json);
+}

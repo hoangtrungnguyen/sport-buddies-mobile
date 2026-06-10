@@ -26,6 +26,7 @@
 //   BookingsError        — on any exception
 //   BookingsCancelling   — while a cancel request is in-flight
 
+import 'package:customer/core/debug/app_logger.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -78,9 +79,37 @@ class BookingsCubit extends Cubit<BookingsState> {
           .map(Booking.fromJson)
           .toList();
 
-      emit(BookingsLoaded(bookings));
+      final joinRequests = await _loadJoinRequests(client, userId);
+
+      emit(BookingsLoaded(bookings, joinRequests: joinRequests));
     } catch (e, st) {
       emit(BookingsError(e.toString(), stackTrace: st));
+    }
+  }
+
+  /// Loads the player's play-together join requests (any status) for the
+  /// pending tab. Best-effort: a failure here returns an empty list rather
+  /// than failing the whole bookings load.
+  Future<List<JoinedSlotRequest>> _loadJoinRequests(
+    SupabaseClient client,
+    String userId,
+  ) async {
+    try {
+      final response = await client
+          .from('slot_join_requests')
+          .select('id, status, requested_at, slots!inner(*, courts(*))')
+          .eq('user_id', userId)
+          .order('requested_at', ascending: false) as List<dynamic>;
+
+      return response
+          .cast<Map<String, dynamic>>()
+          .where((json) => json['slots'] != null)
+          .map(JoinedSlotRequest.fromJson)
+          .toList();
+    } catch (e, st) {
+      appLogger.w('BookingsCubit._loadJoinRequests failed',
+          error: e, stackTrace: st);
+      return const [];
     }
   }
 

@@ -112,9 +112,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           BlocBuilder<BookingsCubit, BookingsState>(
             builder: (context, state) {
               final all = state is BookingsLoaded ? state.bookings : const <Booking>[];
+              final joinReqs = state is BookingsLoaded
+                  ? state.joinRequests
+                  : const <JoinedSlotRequest>[];
               final source = all.map((b) => b.toMockBooking()).toList();
               final upcomingCount = source.length;
-              final pendingCount = source.where((b) => b.status == BookingStatus.pending).length;
+              final pendingCount =
+                  source.where((b) => b.status == BookingStatus.pending).length +
+                      joinReqs.length;
               return _MyBookingsHeader(
                 tabController: _tabController,
                 upcomingCount: upcomingCount,
@@ -194,14 +199,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           message: message,
           onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
         ),
-      BookingsLoaded(:final bookings) => RefreshIndicator(
+      BookingsLoaded(:final bookings, :final joinRequests) => RefreshIndicator(
           color: _mdPrimary,
           onRefresh: () => context.read<BookingsCubit>().loadUpcoming(),
           child: _PendingTabView(
-            pending: bookings
-                .where((b) => b.status == 'pending')
-                .map((b) => b.toMockBooking())
-                .toList(),
+            pending: [
+              ...bookings
+                  .where((b) => b.status == 'pending')
+                  .map((b) => b.toMockBooking()),
+              ...joinRequests.map((j) => j.toMockBooking()),
+            ],
           ),
         ),
     };
@@ -870,7 +877,11 @@ class _BookingCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        _M3Badge(status: booking.status, role: booking.role),
+                        _M3Badge(
+                          status: booking.status,
+                          role: booking.role,
+                          labelOverride: booking.statusLabelOverride,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -1052,14 +1063,15 @@ class _TypeBadge extends StatelessWidget {
 }
 
 class _M3Badge extends StatelessWidget {
-  const _M3Badge({required this.status, required this.role});
+  const _M3Badge({required this.status, required this.role, this.labelOverride});
 
   final BookingStatus status;
   final BookingRole role;
+  final String? labelOverride;
 
   @override
   Widget build(BuildContext context) {
-    final label = bookingStatusLabel(status, role: role);
+    final label = labelOverride ?? bookingStatusLabel(status, role: role);
     final (bg, fg, dot) = switch (status) {
       BookingStatus.confirmed => (_mdPrimaryContainer, _mdOnPrimaryContainer, _mdPrimary),
       BookingStatus.pending   => (_mdTertiaryContainer, _mdOnTertiaryContainer, _mdTertiary),

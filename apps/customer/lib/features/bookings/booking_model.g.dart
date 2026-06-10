@@ -57,3 +57,21 @@ Map<String, dynamic> _$BookingToJson(_Booking instance) => <String, dynamic>{
   'total_sessions': instance.totalSessions,
   'total_price': instance.totalPrice,
 };
+
+_JoinedSlotRequest _$JoinedSlotRequestFromJson(Map<String, dynamic> json) =>
+    _JoinedSlotRequest(
+      id: json['id'] as String,
+      status: json['status'] as String,
+      slot: Slot.fromJson(json['slots'] as Map<String, dynamic>),
+      requestedAt: json['requested_at'] == null
+          ? null
+          : DateTime.parse(json['requested_at'] as String),
+    );
+
+Map<String, dynamic> _$JoinedSlotRequestToJson(_JoinedSlotRequest instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'status': instance.status,
+      'slots': instance.slot,
+      'requested_at': instance.requestedAt?.toIso8601String(),
+    };

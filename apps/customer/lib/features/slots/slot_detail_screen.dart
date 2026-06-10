@@ -43,7 +43,15 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SlotDetailCubit, SlotDetailState>(
+    return BlocConsumer<SlotDetailCubit, SlotDetailState>(
+      listenWhen: (prev, curr) =>
+          curr is SlotDetailLoaded && curr.errorMessage != null,
+      listener: (context, state) {
+        final msg = (state as SlotDetailLoaded).errorMessage!;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: Colors.red),
+        );
+      },
       builder: (context, state) => Scaffold(
         backgroundColor: _mdSurface,
         appBar: AppBar(
@@ -82,7 +90,12 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
                 style: const TextStyle(color: _mdOnSurfaceVariant),
               ),
             ),
-          SlotDetailLoaded(slot: final slot) => _Body(slot: slot),
+          SlotDetailLoaded(
+            slot: final slot,
+            joinStatus: final joinStatus,
+            joining: final joining,
+          ) =>
+            _Body(slot: slot, joinStatus: joinStatus, joining: joining),
         },
       ),
     );
@@ -92,9 +105,15 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
 // ── Body ──────────────────────────────────────────────────────────────────────
 
 class _Body extends StatelessWidget {
-  const _Body({required this.slot});
+  const _Body({
+    required this.slot,
+    required this.joinStatus,
+    required this.joining,
+  });
 
   final Slot slot;
+  final SlotJoinStatus joinStatus;
+  final bool joining;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +157,14 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
-        _StickyCtaBar(isFull: isFull, slotId: slot.id, isOwner: isOwner),
+        _StickyCtaBar(
+          isFull: isFull,
+          slotId: slot.id,
+          isOwner: isOwner,
+          isOpen: slot.accessPolicy == 'open',
+          joinStatus: joinStatus,
+          joining: joining,
+        ),
       ],
     );
   }
@@ -286,7 +312,7 @@ class _TimeCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${timeFmt.format(slot.startTime)} – ${timeFmt.format(slot.endTime)}',
+                    '${timeFmt.format(slot.startTime.toLocal())} – ${timeFmt.format(slot.endTime.toLocal())}',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -295,7 +321,7 @@ class _TimeCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${dateFmt.format(slot.startTime)} · $durLabel',
+                    '${dateFmt.format(slot.startTime.toLocal())} · $durLabel',
                     style: const TextStyle(
                       fontSize: 12,
                       color: _mdOnSurfaceVariant,
@@ -616,14 +642,26 @@ class _StickyCtaBar extends StatelessWidget {
     required this.isFull,
     required this.slotId,
     required this.isOwner,
+    required this.isOpen,
+    required this.joinStatus,
+    required this.joining,
   });
 
   final bool isFull;
   final String slotId;
   final bool isOwner;
 
+  /// Slot is open for play-together (`access_policy == 'open'`).
+  final bool isOpen;
+  final SlotJoinStatus joinStatus;
+  final bool joining;
+
   @override
   Widget build(BuildContext context) {
+    // Players can only join open, non-owned slots. Owners get the manage
+    // button; for a private slot a non-owner has no action, so hide the bar.
+    if (!isOwner && !isOpen) return const SizedBox.shrink();
+
     final bottomPad = MediaQuery.of(context).padding.bottom;
     return Positioned(
       left: 0,
@@ -659,46 +697,120 @@ class _StickyCtaBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-            ],
-            // Main CTA
-            isFull
-                ? Container(
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: const Color(0x1F181D17),
-                      borderRadius: BorderRadius.circular(_mdCornerFull),
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text(
-                      'Đã đủ người',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0x61181D17),
-                      ),
-                    ),
-                  )
-                : FilledButton(
-                    onPressed: () {},
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _mdPrimary,
-                      minimumSize: const Size(double.infinity, 56),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(_mdCornerFull),
-                      ),
-                    ),
-                    child: const Text(
-                      'Đăng ký chơi cùng',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+            ] else
+              _JoinCta(
+                isFull: isFull,
+                joinStatus: joinStatus,
+                joining: joining,
+                onJoin: () =>
+                    context.read<SlotDetailCubit>().requestToJoin(slotId),
+              ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Play-together join CTA — reflects the player's current request status.
+class _JoinCta extends StatelessWidget {
+  const _JoinCta({
+    required this.isFull,
+    required this.joinStatus,
+    required this.joining,
+    required this.onJoin,
+  });
+
+  final bool isFull;
+  final SlotJoinStatus joinStatus;
+  final bool joining;
+  final VoidCallback onJoin;
+
+  @override
+  Widget build(BuildContext context) {
+    // A request already sent / resolved takes priority over fullness.
+    switch (joinStatus) {
+      case SlotJoinStatus.pending:
+        return const _CtaPill(
+          label: 'Đã gửi yêu cầu · Chờ duyệt',
+          bg: Color(0xFFFEF3C7),
+          fg: Color(0xFF92670B),
+        );
+      case SlotJoinStatus.approved:
+        return const _CtaPill(
+          label: '✓ Đã tham gia',
+          bg: _mdPrimaryContainer,
+          fg: _mdOnPrimaryContainer,
+        );
+      case SlotJoinStatus.rejected:
+        return const _CtaPill(
+          label: 'Yêu cầu bị từ chối',
+          bg: Color(0x1F181D17),
+          fg: Color(0x61181D17),
+        );
+      case SlotJoinStatus.none:
+        break;
+    }
+
+    if (isFull) {
+      return const _CtaPill(
+        label: 'Đã đủ người',
+        bg: Color(0x1F181D17),
+        fg: Color(0x61181D17),
+      );
+    }
+
+    return FilledButton(
+      onPressed: joining ? null : onJoin,
+      style: FilledButton.styleFrom(
+        backgroundColor: _mdPrimary,
+        disabledBackgroundColor: const Color(0x1F181D17),
+        minimumSize: const Size(double.infinity, 56),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_mdCornerFull),
+        ),
+      ),
+      child: joining
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: Colors.white,
+              ),
+            )
+          : const Text(
+              'Đăng ký chơi cùng',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+    );
+  }
+}
+
+/// Non-interactive status pill shown in place of the join button.
+class _CtaPill extends StatelessWidget {
+  const _CtaPill({required this.label, required this.bg, required this.fg});
+
+  final String label;
+  final Color bg;
+  final Color fg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(_mdCornerFull),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: fg),
       ),
     );
   }

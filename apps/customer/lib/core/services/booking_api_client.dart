@@ -13,6 +13,17 @@ class SlotUnavailableException implements Exception {
   String toString() => 'SlotUnavailableException: ${detail ?? 'slot taken'}';
 }
 
+/// Join request rejected with 409 — slot is private, or the player has
+/// already requested to join.
+class JoinConflictException implements Exception {
+  const JoinConflictException(this.detail);
+
+  final String? detail;
+
+  @override
+  String toString() => 'JoinConflictException: ${detail ?? 'duplicate/private'}';
+}
+
 /// Any non-2xx response from the core-engine API other than 409.
 /// [code] is the machine-readable `error` key from the error envelope.
 class BookingApiException implements Exception {
@@ -83,6 +94,29 @@ class BookingApiClient {
     }
     if (response.statusCode == 409) {
       throw SlotUnavailableException(body['detail'] as String?);
+    }
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
+  /// `POST /api/slots/{slotId}/join` — player requests to join an open
+  /// slot. Creates a pending `slot_join_requests` row.
+  ///
+  /// Throws [JoinConflictException] on 409 (slot private or duplicate
+  /// request), [BookingApiException] on other errors.
+  Future<void> requestToJoin(String slotId) async {
+    final response = await _http.post(
+      Uri.parse('$_baseUrl/api/slots/$slotId/join'),
+      headers: _headers(),
+    );
+
+    if (response.statusCode == 201) return;
+    final body = _decode(response);
+    if (response.statusCode == 409) {
+      throw JoinConflictException(body['detail'] as String?);
     }
     throw BookingApiException(
       response.statusCode,

@@ -25,10 +25,18 @@ class BookingsLoading extends BookingsState {
 
 /// Emitted when the upcoming bookings list has been successfully loaded.
 class BookingsLoaded extends BookingsState {
-  const BookingsLoaded(this.bookings, {this.selectedStatus});
+  const BookingsLoaded(
+    this.bookings, {
+    this.selectedStatus,
+    this.joinRequests = const [],
+  });
 
   /// The full unfiltered list of bookings.
   final List<Booking> bookings;
+
+  /// The player's play-together join requests (any status). Shown in the
+  /// pending tab alongside pending bookings.
+  final List<JoinedSlotRequest> joinRequests;
 
   /// Currently selected status filter. `null` means "All" (no filter).
   final String? selectedStatus;
@@ -42,7 +50,7 @@ class BookingsLoaded extends BookingsState {
 
   /// Returns a copy of this state with an updated [selectedStatus].
   BookingsLoaded copyWithFilter(String? status) =>
-      BookingsLoaded(bookings, selectedStatus: status);
+      BookingsLoaded(bookings, selectedStatus: status, joinRequests: joinRequests);
 
   @override
   bool operator ==(Object other) =>
@@ -50,12 +58,17 @@ class BookingsLoaded extends BookingsState {
       other is BookingsLoaded &&
           runtimeType == other.runtimeType &&
           selectedStatus == other.selectedStatus &&
-          _listEquals(bookings, other.bookings);
+          _listEquals(bookings, other.bookings) &&
+          _listEquals(joinRequests, other.joinRequests);
 
   @override
-  int get hashCode => Object.hash(Object.hashAll(bookings), selectedStatus);
+  int get hashCode => Object.hash(
+        Object.hashAll(bookings),
+        Object.hashAll(joinRequests),
+        selectedStatus,
+      );
 
-  static bool _listEquals(List<Booking> a, List<Booking> b) {
+  static bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (a[i] != b[i]) return false;

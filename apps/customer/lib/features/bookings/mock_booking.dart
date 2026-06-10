@@ -35,6 +35,7 @@ class MockBooking {
     this.hostName,
     this.hostInitials,
     this.hostColor,
+    this.statusLabelOverride,
   });
 
   final String id;
@@ -56,6 +57,10 @@ class MockBooking {
   final String? hostName;
   final String? hostInitials;
   final Color? hostColor;
+
+  /// When set, the status badge shows this text instead of the default
+  /// label derived from [status]/[role] (used for join requests).
+  final String? statusLabelOverride;
 }
 
 Color bookingSportColor(SportType sport) => switch (sport) {
@@ -142,6 +147,43 @@ extension BookingDisplay on Booking {
       action: action,
       actionDanger: danger,
       role: BookingRole.host,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// JoinedSlotRequest → MockBooking display mapper
+// ---------------------------------------------------------------------------
+
+extension JoinRequestDisplay on JoinedSlotRequest {
+  MockBooking toMockBooking() {
+    final start = slot.startTime.toLocal();
+    final end = slot.endTime.toLocal();
+    final sport = _parseSport(
+      slot.court.sportTypes.isNotEmpty ? slot.court.sportTypes.first : '',
+    );
+    // Map join-request status onto the booking badge colours and the
+    // CAPP-054 labels (Chờ xác nhận / Đã chấp nhận / Từ chối).
+    final (mappedStatus, label) = switch (status) {
+      'approved' => (BookingStatus.confirmed, 'Đã chấp nhận'),
+      'rejected' => (BookingStatus.cancelled, 'Từ chối'),
+      _ => (BookingStatus.pending, 'Chờ xác nhận'),
+    };
+
+    return MockBooking(
+      id: id,
+      courtId: slot.court.id,
+      courtName: slot.court.name,
+      sport: sport,
+      detail: _bookingDateFmt.format(start),
+      time:
+          '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
+      price: '—',
+      status: mappedStatus,
+      type: BookingType.oneOff,
+      date: start,
+      role: BookingRole.join,
+      statusLabelOverride: label,
     );
   }
 }

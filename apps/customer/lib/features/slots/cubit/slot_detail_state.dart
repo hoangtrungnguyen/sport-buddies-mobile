@@ -1,5 +1,8 @@
 part of 'slot_detail_cubit.dart';
 
+/// Current player's join-request status for the slot.
+enum SlotJoinStatus { none, pending, approved, rejected }
+
 sealed class SlotDetailState {
   const SlotDetailState();
 }
@@ -13,9 +16,35 @@ final class SlotDetailLoading extends SlotDetailState {
 }
 
 final class SlotDetailLoaded extends SlotDetailState {
-  const SlotDetailLoaded(this.slot);
+  const SlotDetailLoaded(
+    this.slot, {
+    this.joinStatus = SlotJoinStatus.none,
+    this.joining = false,
+    this.errorMessage,
+  });
 
   final Slot slot;
+
+  /// This player's join status for [slot].
+  final SlotJoinStatus joinStatus;
+
+  /// A join request is in-flight.
+  final bool joining;
+
+  /// Transient error surfaced via snackbar (cleared on the next action).
+  final String? errorMessage;
+
+  SlotDetailLoaded copyWith({
+    SlotJoinStatus? joinStatus,
+    bool? joining,
+    String? errorMessage,
+  }) =>
+      SlotDetailLoaded(
+        slot,
+        joinStatus: joinStatus ?? this.joinStatus,
+        joining: joining ?? this.joining,
+        errorMessage: errorMessage,
+      );
 }
 
 final class SlotDetailError extends SlotDetailState with AppExceptionMixin {
