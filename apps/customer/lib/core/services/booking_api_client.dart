@@ -3,6 +3,15 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// The request never reached the server — device is offline or the host
+/// is unreachable. UI should surface a "no internet" message.
+class NoConnectionException implements Exception {
+  const NoConnectionException();
+
+  @override
+  String toString() => 'NoConnectionException';
+}
+
 /// Slot already booked / not open — server returned 409.
 class SlotUnavailableException implements Exception {
   const SlotUnavailableException(this.detail);
@@ -57,6 +66,24 @@ class BookingApiClient {
   final String _baseUrl;
   final http.Client _http;
 
+  /// Runs an HTTP call, translating transport-level failures (offline,
+  /// host unreachable) into [NoConnectionException] so callers can show a
+  /// "no internet" message instead of a raw exception string.
+  Future<http.Response> _send(Future<http.Response> Function() call) async {
+    try {
+      return await call();
+    } on http.ClientException {
+      throw const NoConnectionException();
+    } on Exception catch (e) {
+      // SocketException (dart:io) isn't always wrapped as ClientException;
+      // match by name to stay web-safe (no dart:io import).
+      if (e.runtimeType.toString() == 'SocketException') {
+        throw const NoConnectionException();
+      }
+      rethrow;
+    }
+  }
+
   Map<String, String> _headers() {
     final token = _supabase.auth.currentSession?.accessToken;
     return {
@@ -75,18 +102,18 @@ class BookingApiClient {
     String? customerPhone,
     String? notes,
   }) async {
-    final response = await _http.post(
-      Uri.parse('$_baseUrl/api/bookings'),
-      headers: _headers(),
-      body: jsonEncode({
-        'slot_id': slotId,
-        if (customerName != null && customerName.isNotEmpty)
-          'customer_name': customerName,
-        if (customerPhone != null && customerPhone.isNotEmpty)
-          'customer_phone': customerPhone,
-        if (notes != null && notes.isNotEmpty) 'notes': notes,
-      }),
-    );
+    final response = await _send(() => _http.post(
+          Uri.parse('$_baseUrl/api/bookings'),
+          headers: _headers(),
+          body: jsonEncode({
+            'slot_id': slotId,
+            if (customerName != null && customerName.isNotEmpty)
+              'customer_name': customerName,
+            if (customerPhone != null && customerPhone.isNotEmpty)
+              'customer_phone': customerPhone,
+            if (notes != null && notes.isNotEmpty) 'notes': notes,
+          }),
+        ));
 
     final body = _decode(response);
     if (response.statusCode == 201) {
@@ -108,10 +135,10 @@ class BookingApiClient {
   /// Throws [JoinConflictException] on 409 (slot private or duplicate
   /// request), [BookingApiException] on other errors.
   Future<void> requestToJoin(String slotId) async {
-    final response = await _http.post(
-      Uri.parse('$_baseUrl/api/slots/$slotId/join'),
-      headers: _headers(),
-    );
+    final response = await _send(() => _http.post(
+          Uri.parse('$_baseUrl/api/slots/$slotId/join'),
+          headers: _headers(),
+        ));
 
     if (response.statusCode == 201) return;
     final body = _decode(response);
@@ -132,14 +159,14 @@ class BookingApiClient {
     required String accessPolicy,
     int? maxPlayers,
   }) async {
-    final response = await _http.patch(
-      Uri.parse('$_baseUrl/api/slots/$slotId/access'),
-      headers: _headers(),
-      body: jsonEncode({
-        'access_policy': accessPolicy,
-        if (maxPlayers != null) 'max_players': maxPlayers,
-      }),
-    );
+    final response = await _send(() => _http.patch(
+          Uri.parse('$_baseUrl/api/slots/$slotId/access'),
+          headers: _headers(),
+          body: jsonEncode({
+            'access_policy': accessPolicy,
+            if (maxPlayers != null) 'max_players': maxPlayers,
+          }),
+        ));
 
     if (response.statusCode == 200) return;
     final body = _decode(response);

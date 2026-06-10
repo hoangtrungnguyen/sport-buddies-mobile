@@ -30,6 +30,7 @@ dependencies:
   supabase_flutter: ^2.5.0
   shared_preferences: ^2.2.3
   http: ^1.2.0
+  connectivity_plus: ^6.1.0
 
   # Navigation
   go_router: ^14.0.0

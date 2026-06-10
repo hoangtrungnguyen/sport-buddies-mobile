@@ -1,6 +1,7 @@
 import 'package:customer/core/di/injection.dart';
 import 'package:customer/core/l10n/locale_cubit.dart';
 import 'package:customer/core/theme/app_theme.dart';
+import 'package:customer/core/ui/offline_banner.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -25,6 +26,8 @@ class CustomerApp extends StatelessWidget {
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale,
             debugShowCheckedModeBanner: false,
+            builder: (context, child) =>
+                OfflineBanner(child: child ?? const SizedBox.shrink()),
           );
         },
       ),

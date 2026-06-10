@@ -101,6 +101,8 @@ class BookingCubit extends Cubit<BookingState> {
       emit(BookingSubmitted(bookingId: bookingId));
     } on SlotUnavailableException {
       emit(const BookingSlotTaken());
+    } on NoConnectionException {
+      emit(const BookingError('Không có kết nối mạng. Vui lòng thử lại.'));
     } catch (e, st) {
       appLogger.e('BookingCubit.submit', error: e, stackTrace: st);
       emit(BookingError(e.toString(), stackTrace: st));

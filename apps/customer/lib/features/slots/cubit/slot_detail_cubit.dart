@@ -65,6 +65,11 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
       // Already requested (or slot just flipped) — reflect pending so the
       // player sees their request rather than a hard error.
       emit(s.copyWith(joining: false, joinStatus: SlotJoinStatus.pending));
+    } on NoConnectionException {
+      emit(s.copyWith(
+        joining: false,
+        errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
+      ));
     } catch (e, st) {
       appLogger.e('SlotDetailCubit.requestToJoin', error: e, stackTrace: st);
       emit(s.copyWith(
