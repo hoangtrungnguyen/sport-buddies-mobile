@@ -40,12 +40,25 @@ class CourtDetailScreen extends StatelessWidget {
               .showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1080),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(32, 28, 32, 120),
-            child: LayoutBuilder(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Symbols.arrow_back),
+            onPressed: () =>
+                context.canPop() ? context.pop() : context.go('/courts'),
+          ),
+          title: Text('Sân con · ${court.name}'),
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: Divider(height: 1),
+          ),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1080),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(32, 28, 32, 120),
+              child: LayoutBuilder(
               builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 820;
                 if (isWide) {
@@ -70,6 +83,7 @@ class CourtDetailScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -168,7 +182,7 @@ class _CourtInfoCard extends StatelessWidget {
                 icon: const Icon(Symbols.edit, size: 18),
                 label: const Text('Chỉnh sửa thông tin sân'),
                 onPressed: () =>
-                    context.push('/courts/${court.id}/edit', extra: court),
+                    context.go('/courts/${court.id}/edit', extra: court),
               ),
             ),
           ],

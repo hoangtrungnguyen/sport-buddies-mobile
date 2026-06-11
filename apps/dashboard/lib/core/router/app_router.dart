@@ -40,7 +40,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// transition entirely (the cause of the earlier "still sliding" behaviour).
 CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
-    key: state.pageKey,
+    // Key on the full location so sibling routes that share a path prefix
+    // (e.g. /courts/:id vs /courts/:id/edit) are treated as distinct pages and
+    // the inner ShellRoute navigator actually swaps content between them.
+    key: ValueKey(state.uri.toString()),
     transitionDuration: const Duration(milliseconds: 250),
     reverseTransitionDuration: const Duration(milliseconds: 250),
     transitionsBuilder: (context, animation, secondaryAnimation, child) =>

@@ -205,5 +205,43 @@ ThemeData buildDashboardTheme() {
       thickness: 1,
       space: 1,
     ),
+    // Navigation — one set of tokens shared by drawer / rail / bottom bar so the
+    // three adaptive forms stay visually identical (Nav guide §3, §10).
+    // Selection indicator = secondaryContainer everywhere; never primary.
+    navigationDrawerTheme: NavigationDrawerThemeData(
+      backgroundColor: scheme.surfaceContainerLow,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: scheme.secondaryContainer,
+      indicatorShape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return textTheme.labelLarge?.copyWith(
+          color: selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        );
+      }),
+    ),
+    navigationRailTheme: NavigationRailThemeData(
+      backgroundColor: scheme.surfaceContainerLow,
+      indicatorColor: scheme.secondaryContainer,
+      indicatorShape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      selectedIconTheme: IconThemeData(color: scheme.onSecondaryContainer),
+      unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
+      useIndicator: true,
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: scheme.surfaceContainer,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: scheme.secondaryContainer,
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        final selected = states.contains(WidgetState.selected);
+        return IconThemeData(
+          color: selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,
+        );
+      }),
+      labelTextStyle: WidgetStateProperty.all(textTheme.labelMedium),
+    ),
   );
 }

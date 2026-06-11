@@ -103,7 +103,7 @@ class _Header extends StatelessWidget {
         FilledButton.icon(
           icon: const Icon(Symbols.add, size: 18),
           label: const Text('Thêm sân mới'),
-          onPressed: () => context.push('/courts/new'),
+          onPressed: () => context.go('/courts/new'),
         ),
       ],
     );
@@ -133,7 +133,7 @@ class _Grid extends StatelessWidget {
             ),
           SizedBox(
             width: tileW,
-            child: _AddCard(onTap: () => context.push('/courts/new')),
+            child: _AddCard(onTap: () => context.go('/courts/new')),
           ),
         ];
 
@@ -157,7 +157,7 @@ class _CourtCard extends StatelessWidget {
 
     return Card(
       child: InkWell(
-        onTap: () => context.push('/courts/${court.id}/edit', extra: court),
+        onTap: () => context.go('/courts/${court.id}/edit', extra: court),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -247,12 +247,12 @@ class _ActionRow extends StatelessWidget {
             icon: const Icon(Symbols.edit, size: 16),
             label: const Text('Sửa'),
             onPressed: () =>
-                context.push('/courts/${court.id}/edit', extra: court),
+                context.go('/courts/${court.id}/edit', extra: court),
           ),
           TextButton.icon(
             icon: const Icon(Symbols.grid_view, size: 16),
             label: const Text('Sân con'),
-            onPressed: () => context.push('/courts/${court.id}'),
+            onPressed: () => context.go('/courts/${court.id}'),
           ),
           const Spacer(),
           PopupMenuButton<String>(

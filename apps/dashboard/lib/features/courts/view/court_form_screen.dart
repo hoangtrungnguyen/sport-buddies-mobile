@@ -271,7 +271,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
         SnackBar(content: Text('Đã lưu ${saved.name}')),
       );
       if (_isEdit) {
-        context.pop();
+        _leave(context);
       } else {
         context.go('/courts/${saved.id}');
       }
@@ -287,11 +287,14 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    // Full-screen page (rendered over the app shell via root navigator). Its own
+    // app bar carries the back arrow + AI action; the sticky footer keeps the
+    // Lưu/Tạo button pinned and always visible.
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Symbols.arrow_back),
-          onPressed: _saving ? null : () => context.pop(),
+          onPressed: _saving ? null : () => _leave(context),
         ),
         title: Text(_isEdit ? 'Chỉnh sửa sân' : 'Thêm sân mới'),
         actions: [
@@ -544,7 +547,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   OutlinedButton.icon(
                     icon: const Icon(Symbols.grid_view, size: 18),
                     label: const Text('Quản lý sân con'),
-                    onPressed: () => context.push('/courts/${widget.court!.id}'),
+                    onPressed: () => context.go('/courts/${widget.court!.id}'),
                   ),
                   const SizedBox(height: 20),
                   _ActiveToggle(
@@ -561,10 +564,21 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       bottomSheet: _StickyFooter(
         saving: _saving,
         isEdit: _isEdit,
-        onCancel: _saving ? null : () => context.pop(),
+        onCancel: _saving ? null : () => _leave(context),
         onSubmit: _saving ? null : _submit,
       ),
     );
+  }
+
+  /// Leave the form: edit returns to its court's detail, create returns to the
+  /// courts list. Uses go() so the shell location updates (it hides its top bar
+  /// on these sub-screens, leaving only this screen's app bar).
+  void _leave(BuildContext context) {
+    if (_isEdit) {
+      context.go('/courts/${widget.court!.id}');
+    } else {
+      context.go('/courts');
+    }
   }
 }
 

@@ -1,9 +1,9 @@
+import 'package:dashboard/core/theme/app_theme.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:dashboard/features/notifications/view/notification_panel.dart';
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/model/booking_request.dart';
-import 'package:dashboard/core/theme/app_theme.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_state.dart';
 import 'package:flutter/material.dart';
@@ -13,11 +13,11 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // ---------------------------------------------------------------------------
-// Nav model
+// Nav model — single source of truth (Navigation M3 guide §2)
 // ---------------------------------------------------------------------------
 
-class _NavEntry {
-  const _NavEntry({
+class _NavItem {
+  const _NavItem({
     required this.icon,
     required this.label,
     required this.route,
@@ -31,65 +31,47 @@ class _NavEntry {
   final bool warn;
 }
 
-const _mainNav = <_NavEntry>[
-  _NavEntry(
-    icon: Symbols.home,
-    label: 'Trang chủ',
-    route: '/',
-    badge: 3,
-  ),
-  _NavEntry(
-    icon: Symbols.inbox,
-    label: 'Yêu cầu',
-    route: '/requests',
-    warn: true,
-  ),
-  _NavEntry(
-    icon: Symbols.calendar_today,
-    label: 'Lịch sân',
-    route: '/schedule',
-  ),
-  _NavEntry(
-    icon: Symbols.event_repeat,
-    label: 'Lịch cố định',
-    route: '/fixed',
-    badge: 6,
-  ),
-  _NavEntry(
-    icon: Symbols.bar_chart,
-    label: 'Thống kê',
-    route: '/analytics',
-  ),
-  _NavEntry(
-    icon: Symbols.stadium,
-    label: 'Sân của tôi',
-    route: '/courts',
-  ),
-  _NavEntry(
-    icon: Symbols.group,
-    label: 'Khách hàng',
-    route: '/players',
-  ),
+/// QUẢN LÝ (Management)
+const _managementNav = <_NavItem>[
+  _NavItem(icon: Symbols.home, label: 'Trang chủ', route: '/', badge: 3),
+  _NavItem(
+      icon: Symbols.inbox,
+      label: 'Yêu cầu',
+      route: '/requests',
+      badge: 8,
+      warn: true),
+  _NavItem(
+      icon: Symbols.calendar_month, label: 'Lịch sân', route: '/schedule'),
+  _NavItem(
+      icon: Symbols.autorenew,
+      label: 'Lịch cố định',
+      route: '/fixed',
+      badge: 6),
+  _NavItem(icon: Symbols.monitoring, label: 'Thống kê', route: '/analytics'),
+  _NavItem(icon: Symbols.stadium, label: 'Sân của tôi', route: '/courts'),
+  _NavItem(icon: Symbols.group, label: 'Khách hàng', route: '/players'),
 ];
 
-const _systemNav = <_NavEntry>[
-  _NavEntry(
-    icon: Symbols.notifications,
-    label: 'Thông báo',
-    route: '/notifications',
-    badge: 4,
-    warn: true,
-  ),
-  _NavEntry(
-    icon: Symbols.settings,
-    label: 'Cài đặt sân',
-    route: '/settings',
-  ),
-  _NavEntry(
-    icon: Symbols.help,
-    label: 'Hỗ trợ',
-    route: '/support',
-  ),
+/// HỆ THỐNG (System)
+const _systemNav = <_NavItem>[
+  _NavItem(
+      icon: Symbols.notifications,
+      label: 'Thông báo',
+      route: '/notifications',
+      badge: 4,
+      warn: true),
+  _NavItem(icon: Symbols.settings, label: 'Cài đặt sân', route: '/settings'),
+  _NavItem(icon: Symbols.help, label: 'Hỗ trợ', route: '/support'),
+];
+
+const _allNav = <_NavItem>[..._managementNav, ..._systemNav];
+
+/// Compact bottom-bar primaries (guide §6).
+const _bottomNav = <_NavItem>[
+  _NavItem(icon: Symbols.home, label: 'Trang chủ', route: '/'),
+  _NavItem(icon: Symbols.inbox, label: 'Yêu cầu', route: '/requests'),
+  _NavItem(icon: Symbols.calendar_month, label: 'Lịch sân', route: '/schedule'),
+  _NavItem(icon: Symbols.stadium, label: 'Sân của tôi', route: '/courts'),
 ];
 
 const _routeTitle = <String, String>{
@@ -106,13 +88,30 @@ const _routeTitle = <String, String>{
   '/support': 'Hỗ trợ',
 };
 
-/// True when [location] is a court sub-screen (form / detail) that should show
-/// a back arrow instead of being a top-level nav destination.
+/// Index of the destination owning [loc] — selection follows the route, not the
+/// tap (guide §8). Sub-routes light their parent via longest-prefix match, so
+/// `/courts/new` keeps "Sân của tôi" selected. Returns -1 when nothing matches.
+int _indexForLocation(String loc) {
+  var best = -1;
+  var bestLen = -1;
+  for (var i = 0; i < _allNav.length; i++) {
+    final r = _allNav[i].route;
+    final match = r == '/' ? loc == '/' : loc == r || loc.startsWith('$r/');
+    if (match && r.length > bestLen) {
+      best = i;
+      bestLen = r.length;
+    }
+  }
+  return best;
+}
+
+/// True when [location] is a court sub-screen. These render their own app bar
+/// (with a back arrow), so the shell hides its top bar to avoid a double bar.
 bool _isSubScreen(String location) =>
-    location.startsWith('/courts/');
+    location.startsWith('/courts/') && location != '/courts';
 
 // ---------------------------------------------------------------------------
-// Shell
+// Shell — adaptive: drawer ≥1100 · rail 600–1100 · bottom bar <600 (guide §10)
 // ---------------------------------------------------------------------------
 
 class AppShell extends StatefulWidget {
@@ -132,22 +131,50 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final state = GoRouterState.of(context);
-    final location = state.matchedLocation;
-    final isWide = MediaQuery.sizeOf(context).width >= 1024;
+    final location = GoRouterState.of(context).matchedLocation;
+    final selected = _indexForLocation(location);
+    final width = MediaQuery.sizeOf(context).width;
     final showFab = location == '/' || location == '/requests';
+    // Lift the FAB above the bottom navigation bar on the compact tier.
+    final fabBottom = width < 600 ? 96.0 : 24.0;
+    // Court detail/form screens carry their own app bar (back arrow); hide the
+    // shell top bar on them so there is a single bar, not two.
+    final isSub = _isSubScreen(location);
 
-    Widget shell;
-    if (isWide) {
+    final Widget shell;
+    if (width >= 1100) {
+      // Expanded — standard inline NavigationDrawer.
       shell = Scaffold(
         backgroundColor: scheme.surface,
         body: Row(
           children: [
-            _NavDrawer(location: location),
+            _NavDrawer(selected: selected),
             Expanded(
               child: Column(
                 children: [
-                  _TopBar(location: location, onBellTap: _openNotif),
+                  if (!isSub) _TopBar(location: location, onBellTap: _openNotif),
+                  Expanded(child: widget.child),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (width >= 600) {
+      // Medium — icon-only NavigationRail.
+      shell = Scaffold(
+        backgroundColor: scheme.surface,
+        body: Row(
+          children: [
+            _NavRail(selected: selected),
+            Expanded(
+              child: Column(
+                children: [
+                  if (!isSub)
+                    _TopBar(
+                        location: location,
+                        onBellTap: _openNotif,
+                        showSearch: false),
                   Expanded(child: widget.child),
                 ],
               ),
@@ -156,20 +183,23 @@ class _AppShellState extends State<AppShell> {
         ),
       );
     } else {
+      // Compact — bottom NavigationBar + modal drawer for the full list.
       shell = Scaffold(
         backgroundColor: scheme.surface,
         drawer: Drawer(
           backgroundColor: scheme.surfaceContainerLow,
           width: 280,
           shape: const RoundedRectangleBorder(),
-          child: _NavDrawer(location: location, inDrawer: true),
+          child: _NavDrawer(selected: selected, inDrawer: true),
         ),
         body: Column(
           children: [
-            _TopBar(location: location, isMobile: true, onBellTap: _openNotif),
+            if (!isSub)
+              _TopBar(location: location, isMobile: true, onBellTap: _openNotif),
             Expanded(child: widget.child),
           ],
         ),
+        bottomNavigationBar: _BottomBar(location: location),
       );
     }
 
@@ -179,14 +209,14 @@ class _AppShellState extends State<AppShell> {
         if (_notifOpen)
           Positioned.fill(child: NotificationPanel(onClose: _closeNotif)),
         if (showFab)
-          const Positioned(right: 24, bottom: 24, child: _Fab()),
+          Positioned(right: 24, bottom: fabBottom, child: const _Fab()),
       ],
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// FAB — M3 extended FAB (primary container per design's action role)
+// FAB — M3 extended FAB (primary = action role)
 // ---------------------------------------------------------------------------
 
 class _Fab extends StatelessWidget {
@@ -213,7 +243,7 @@ class _Fab extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Top app bar (small, 64px)
+// Top app bar (small, 64px — guide §7)
 // ---------------------------------------------------------------------------
 
 class _TopBar extends StatelessWidget {
@@ -221,17 +251,18 @@ class _TopBar extends StatelessWidget {
     required this.location,
     required this.onBellTap,
     this.isMobile = false,
+    this.showSearch = true,
   });
   final String location;
   final VoidCallback onBellTap;
   final bool isMobile;
+  final bool showSearch;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final title = _routeTitle[location] ?? 'Trang chủ';
-    final isSub = _isSubScreen(location) && location != '/courts';
 
     return Container(
       height: 64,
@@ -242,54 +273,59 @@ class _TopBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          if (isSub)
-            IconButton(
-              icon: const Icon(Symbols.arrow_back),
-              onPressed: () =>
-                  context.canPop() ? context.pop() : context.go('/courts'),
-            )
-          else if (isMobile)
+          if (isMobile) ...[
             Builder(
               builder: (ctx) => IconButton(
                 icon: const Icon(Symbols.menu),
                 onPressed: () => Scaffold.of(ctx).openDrawer(),
               ),
             ),
-          if (isSub || isMobile) const SizedBox(width: 4),
+            const SizedBox(width: 4),
+          ],
 
-          // Breadcrumb + venue context chip
-          Flexible(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Chủ sân',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text('/',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: scheme.outline)),
-                ),
-                Flexible(
-                  child: Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+          // Breadcrumb + venue context chip (title-only on compact to fit)
+          if (isMobile)
+            Flexible(
+              child: Text(
+                title,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            )
+          else
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Chủ sân',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
-                ),
-                const SizedBox(width: 10),
-                const _VenueChip(),
-              ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text('/',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: scheme.outline)),
+                  ),
+                  Flexible(
+                    child: Text(
+                      title,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const _VenueChip(),
+                ],
+              ),
             ),
-          ),
 
           const Spacer(),
 
-          if (!isMobile) ...[
+          if (showSearch && !isMobile) ...[
             const _SearchBar(),
             const SizedBox(width: 8),
           ],
@@ -421,10 +457,7 @@ class _SearchBar extends StatelessWidget {
   }
 
   void _openSearch(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (_) => const _SearchDialog(),
-    );
+    showDialog<void>(context: context, builder: (_) => const _SearchDialog());
   }
 }
 
@@ -465,7 +498,7 @@ class _SearchDialogState extends State<_SearchDialog> {
                     controller: _ctrl,
                     autofocus: true,
                     style: theme.textTheme.bodyLarge,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Tìm booking, khách hàng, mã đơn...',
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -536,10 +569,8 @@ class _BellButton extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(4),
               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: scheme.error,
-              ),
+              decoration:
+                  BoxDecoration(shape: BoxShape.circle, color: scheme.error),
               alignment: Alignment.center,
               child: Text(
                 unread > 9 ? '9+' : unread.toString(),
@@ -556,13 +587,24 @@ class _BellButton extends StatelessWidget {
   }
 }
 
+/// Live pending-requests badge override for the `/requests` destination.
+int? _liveRequestsBadge(BuildContext context) {
+  final pending = context.select<RequestsBloc, int>((bloc) {
+    final s = bloc.state;
+    return s is RequestsLoaded
+        ? s.requests.where((r) => r.status == BookingStatus.pending).length
+        : 0;
+  });
+  return pending > 0 ? pending : null;
+}
+
 // ---------------------------------------------------------------------------
-// Navigation drawer (standard, always visible — 280px, surfaceContainerLow)
+// Expanded navigation drawer (≥1100px / modal on compact — guide §4)
 // ---------------------------------------------------------------------------
 
 class _NavDrawer extends StatelessWidget {
-  const _NavDrawer({required this.location, this.inDrawer = false});
-  final String location;
+  const _NavDrawer({required this.selected, this.inDrawer = false});
+  final int selected;
   final bool inDrawer;
 
   @override
@@ -581,29 +623,21 @@ class _NavDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 children: [
                   const _SectionLabel('Quản lý'),
-                  ..._mainNav.map((e) {
-                    if (e.route == '/requests') {
-                      final pendingCount =
-                          context.select<RequestsBloc, int>((bloc) {
-                        final s = bloc.state;
-                        return s is RequestsLoaded
-                            ? s.requests
-                                .where((r) => r.status == BookingStatus.pending)
-                                .length
-                            : 0;
-                      });
-                      return _NavItem(
-                        entry: e,
-                        location: location,
-                        liveBadge: pendingCount > 0 ? pendingCount : null,
-                      );
-                    }
-                    return _NavItem(entry: e, location: location);
-                  }),
+                  for (var i = 0; i < _managementNav.length; i++)
+                    _NavRow(
+                      item: _managementNav[i],
+                      active: selected == i,
+                      liveBadge: _managementNav[i].route == '/requests'
+                          ? _liveRequestsBadge(context)
+                          : null,
+                    ),
                   const SizedBox(height: 8),
                   const _SectionLabel('Hệ thống'),
-                  ..._systemNav
-                      .map((e) => _NavItem(entry: e, location: location)),
+                  for (var i = 0; i < _systemNav.length; i++)
+                    _NavRow(
+                      item: _systemNav[i],
+                      active: selected == _managementNav.length + i,
+                    ),
                 ],
               ),
             ),
@@ -635,22 +669,7 @@ class _BrandRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: scheme.primary,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'S',
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: scheme.onPrimary,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
+          _BrandTile(),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -670,6 +689,30 @@ class _BrandRow extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BrandTile extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: scheme.primary,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        'S',
+        style: theme.textTheme.titleLarge?.copyWith(
+          color: scheme.onPrimary,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
@@ -697,41 +740,42 @@ class _SectionLabel extends StatelessWidget {
   }
 }
 
-/// M3 navigation destination — 56px full-pill row, active = secondaryContainer
-/// indicator + filled icon, trailing badge count.
-class _NavItem extends StatelessWidget {
-  const _NavItem({required this.entry, required this.location, this.liveBadge});
-  final _NavEntry entry;
-  final String location;
+/// 56px full-pill destination row: secondaryContainer indicator + filled icon
+/// when active, trailing numeral badge (guide §4).
+class _NavRow extends StatelessWidget {
+  const _NavRow({required this.item, required this.active, this.liveBadge});
+  final _NavItem item;
+  final bool active;
   final int? liveBadge;
 
-  bool get _active => location == entry.route;
-
   String get _semanticsLabel =>
-      'nav-${entry.route == '/' ? 'home' : entry.route.replaceAll('/', '')}';
+      'nav-${item.route == '/' ? 'home' : item.route.replaceAll('/', '')}';
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final badge = liveBadge ?? entry.badge;
-    final fg = _active ? scheme.onSecondaryContainer : scheme.onSurfaceVariant;
+    final badge = liveBadge ?? item.badge;
+    final fg = active ? scheme.onSecondaryContainer : scheme.onSurfaceVariant;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Semantics(
         label: _semanticsLabel,
         button: true,
-        selected: _active,
+        selected: active,
         child: Material(
-          color: _active ? scheme.secondaryContainer : Colors.transparent,
+          color: active ? scheme.secondaryContainer : Colors.transparent,
           borderRadius: BorderRadius.circular(28),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () {
-              final scaffold = Scaffold.maybeOf(context);
-              if (scaffold?.hasDrawer ?? false) Navigator.of(context).pop();
-              context.go(entry.route);
+              if (Scaffold.maybeOf(context)?.hasDrawer ?? false) {
+                if (Scaffold.of(context).isDrawerOpen) {
+                  Navigator.of(context).pop();
+                }
+              }
+              context.go(item.route);
             },
             child: SizedBox(
               height: 56,
@@ -739,26 +783,21 @@ class _NavItem extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Icon(
-                      entry.icon,
-                      size: 24,
-                      color: fg,
-                      fill: _active ? 1 : 0,
-                    ),
+                    Icon(item.icon, size: 24, color: fg, fill: active ? 1 : 0),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        entry.label,
+                        item.label,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: fg,
                           fontWeight:
-                              _active ? FontWeight.w600 : FontWeight.w500,
+                              active ? FontWeight.w600 : FontWeight.w500,
                         ),
                       ),
                     ),
                     if (badge != null)
-                      _NavBadge(count: badge, warn: entry.warn, active: _active),
+                      _NavBadge(count: badge, warn: item.warn, active: active),
                   ],
                 ),
               ),
@@ -802,10 +841,8 @@ class _NavBadge extends StatelessWidget {
     return Container(
       constraints: const BoxConstraints(minWidth: 22),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-      ),
+      decoration:
+          BoxDecoration(color: bg, borderRadius: BorderRadius.circular(999)),
       alignment: Alignment.center,
       child: Text(
         count.toString(),
@@ -815,6 +852,91 @@ class _NavBadge extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Rail (600–1100px, icon-only — guide §5)
+// ---------------------------------------------------------------------------
+
+class _NavRail extends StatelessWidget {
+  const _NavRail({required this.selected});
+  final int selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    // All destinations stay reachable as icons; the footer (owner/trial) is
+    // dropped per the guide. Owner actions live in the top bar.
+    return SingleChildScrollView(
+      child: ConstrainedBox(
+        constraints:
+            BoxConstraints(minHeight: MediaQuery.sizeOf(context).height),
+        child: IntrinsicHeight(
+          child: NavigationRail(
+            backgroundColor: scheme.surfaceContainerLow,
+            selectedIndex: selected < 0 ? null : selected,
+            labelType: NavigationRailLabelType.none,
+            minWidth: 84,
+            leading: const Padding(
+              padding: EdgeInsets.symmetric(vertical: 12),
+              child: _BrandTileWrap(),
+            ),
+            destinations: [
+              for (final item in _allNav)
+                NavigationRailDestination(
+                  icon: Tooltip(message: item.label, child: Icon(item.icon)),
+                  selectedIcon: Tooltip(
+                    message: item.label,
+                    child: Icon(item.icon, fill: 1),
+                  ),
+                  label: Text(item.label),
+                ),
+            ],
+            onDestinationSelected: (i) => context.go(_allNav[i].route),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandTileWrap extends StatelessWidget {
+  const _BrandTileWrap();
+  @override
+  Widget build(BuildContext context) => _BrandTile();
+}
+
+// ---------------------------------------------------------------------------
+// Bottom bar (<600px — guide §6)
+// ---------------------------------------------------------------------------
+
+class _BottomBar extends StatelessWidget {
+  const _BottomBar({required this.location});
+  final String location;
+
+  @override
+  Widget build(BuildContext context) {
+    var idx = _bottomNav.indexWhere((it) =>
+        it.route == '/' ? location == '/' : location.startsWith(it.route));
+    if (idx < 0) idx = 0;
+
+    return NavigationBar(
+      selectedIndex: idx,
+      destinations: [
+        for (final item in _bottomNav)
+          NavigationDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.icon, fill: 1),
+            label: item.label,
+          ),
+      ],
+      onDestinationSelected: (i) => context.go(_bottomNav[i].route),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Drawer footer — owner row + trial card (guide §4)
+// ---------------------------------------------------------------------------
 
 class _UserCard extends StatelessWidget {
   const _UserCard();
