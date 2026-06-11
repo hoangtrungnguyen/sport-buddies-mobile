@@ -1,47 +1,50 @@
-import 'dart:async';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:customer/core/services/connectivity_service.dart';
 import 'package:flutter/material.dart';
 
-/// Wraps the whole app and surfaces a persistent banner whenever the device
-/// has no network interface, so users always know they're offline instead of
-/// meeting silent failures or raw errors.
+/// Wraps the whole app and surfaces a banner whenever the device has no
+/// internet, so users always know they're offline instead of meeting silent
+/// failures or raw errors.
+///
+/// This widget is a pure **observer** of [ConnectivityService] (the Subject):
+/// it owns one instance, listens for status changes, and rebuilds. When the
+/// service reports the internet is back it flips [ConnectivityService.isOnline]
+/// to true and the banner dismisses itself.
 ///
 /// Mounted via `MaterialApp.router(builder: ...)` so it sits above every
 /// route — tabs, login, booking flow alike.
 class OfflineBanner extends StatefulWidget {
-  const OfflineBanner({super.key, required this.child});
+  const OfflineBanner({super.key, required this.child, this.service});
 
   final Widget child;
+
+  /// Injectable for tests; defaults to a self-owned [ConnectivityService].
+  final ConnectivityService? service;
 
   @override
   State<OfflineBanner> createState() => _OfflineBannerState();
 }
 
 class _OfflineBannerState extends State<OfflineBanner> {
-  final Connectivity _connectivity = Connectivity();
-  StreamSubscription<List<ConnectivityResult>>? _sub;
-  bool _offline = false;
+  late final ConnectivityService _service;
+  bool _ownsService = false;
 
   @override
   void initState() {
     super.initState();
-    _sub = _connectivity.onConnectivityChanged.listen(_update);
-    // Seed the initial state; ignore errors (e.g. unsupported platform).
-    _connectivity.checkConnectivity().then(_update).catchError((_) {});
+    _service = widget.service ?? ConnectivityService();
+    _ownsService = widget.service == null;
+    _service.addListener(_onStatusChanged);
+    _service.start();
   }
 
-  void _update(List<ConnectivityResult> results) {
-    final offline = results.isEmpty ||
-        results.every((r) => r == ConnectivityResult.none);
-    if (mounted && offline != _offline) {
-      setState(() => _offline = offline);
-    }
+  void _onStatusChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _sub?.cancel();
+    _service.removeListener(_onStatusChanged);
+    if (_ownsService) _service.dispose();
     super.dispose();
   }
 
@@ -51,7 +54,9 @@ class _OfflineBannerState extends State<OfflineBanner> {
       children: [
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 200),
-          child: _offline ? const _OfflineBar() : const SizedBox.shrink(),
+          child: _service.isOnline
+              ? const SizedBox.shrink()
+              : const _OfflineBar(),
         ),
         Expanded(child: widget.child),
       ],
