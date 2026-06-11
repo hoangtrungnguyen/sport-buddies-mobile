@@ -275,7 +275,7 @@ class _MapContentState extends State<_MapContent>
                         onClose: () =>
                             context.read<MapCubit>().selectCourt(null),
                         onOpenCourt: () =>
-                            context.push('/court/${_displayedCourt!.courtId}'),
+                            context.push('/browse/court/${_displayedCourt!.courtId}'),
                       ),
                     ),
                   ),

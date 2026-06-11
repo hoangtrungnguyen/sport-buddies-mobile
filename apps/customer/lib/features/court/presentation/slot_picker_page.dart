@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/court_repository.dart';
 import '../data/fake_court_repository.dart';
 import '../data/fake_slot_repository.dart';
+import '../domain/booking_draft.dart';
 import '../domain/court.dart';
 import '../domain/schedule.dart';
 import '../domain/time_slot.dart';
@@ -73,6 +74,34 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     _loadSlots(); // keep the cart (doc 02)
   }
 
+  /// Edge E11 — assemble the [BookingDraft] from the cart and hand it to the
+  /// booking wizard (handoff doc 03 §4 / booking-wizard doc 04 §1).
+  void _continueToBooking() {
+    final court = _court;
+    if (court == null || _selection.isEmpty) return;
+    final first = _selection.first;
+    final draft = BookingDraft(
+      centerId: court.centerId,
+      courtId: widget.courtId,
+      courtLabel: '${court.name} · ${_courtLabel(widget.courtId)}',
+      address: court.address,
+      sport: court.sports.isNotEmpty ? court.sports.first : Sport.multi,
+      date: DateTime(first.start.year, first.start.month, first.start.day),
+      slots: _selection
+          .map((s) => SlotSelection(
+                slotId: s.id,
+                courtId: s.courtId,
+                courtLabel: _courtLabel(s.courtId),
+                date: DateTime(s.start.year, s.start.month, s.start.day),
+                start: s.start,
+                end: s.end,
+                priceVnd: s.priceVnd,
+              ))
+          .toList(),
+    );
+    context.push('/browse/booking/confirm', extra: draft);
+  }
+
   void _toggleSlot(TimeSlot slot) {
     setState(() {
       final idx = _selection.indexWhere((s) => s.id == slot.id);
@@ -111,9 +140,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
             : _buildBody(court),
         bottomNavigationBar: _BottomCartBar(
           selection: _selection,
-          onContinue: _selection.isEmpty
-              ? null
-              : () => context.push('/browse/booking/confirm'),
+          onContinue: _selection.isEmpty ? null : _continueToBooking,
         ),
       ),
     );

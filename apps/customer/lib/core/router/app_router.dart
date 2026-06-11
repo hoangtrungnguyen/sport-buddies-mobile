@@ -33,6 +33,11 @@ import 'package:customer/features/booking/state/booking_cubit.dart';
 import 'package:customer/features/booking/state/payment_cubit.dart';
 import 'package:customer/features/booking/payment_screen.dart';
 import 'package:customer/features/booking/booking_screen.dart';
+import 'package:customer/features/booking/wizard/cubit/booking_wizard_cubit.dart';
+import 'package:customer/features/booking/wizard/data/api_booking_repository.dart';
+import 'package:customer/features/booking/wizard/domain/booking.dart';
+import 'package:customer/features/booking/wizard/presentation/booking_wizard_page.dart';
+import 'package:customer/features/court/domain/booking_draft.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/my_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
@@ -414,13 +419,43 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/browse/booking/confirm',
-        pageBuilder: (context, state) => _fadePage(
-          state,
-          const PlaceholderPage(
-            title: 'Đặt sân',
-            subtitle: 'EPIC-5 · SPB-042 — đang phát triển',
-          ),
-        ),
+        pageBuilder: (context, state) {
+          final draft = state.extra as BookingDraft?;
+          // Deep-linking here cold (no draft) is unsupported (doc 03 §1):
+          // bounce back to the picker.
+          if (draft == null) {
+            return _fadePage(
+              state,
+              const PlaceholderPage(
+                title: 'Đặt sân',
+                subtitle: 'Hãy chọn khung giờ trước khi đặt sân.',
+              ),
+            );
+          }
+          final supabase = Supabase.instance.client;
+          final user = supabase.auth.currentUser;
+          final initialContact = ContactInfo(
+            name: (user?.userMetadata?['full_name'] as String?) ?? '',
+            phone: user?.phone ?? '',
+          );
+          return _fadePage(
+            state,
+            BlocProvider(
+              create: (_) => BookingWizardCubit(
+                repository: ApiBookingRepository(
+                  client: supabase,
+                  api: BookingApiClient(
+                    supabase: supabase,
+                    baseUrl: Env.apiBaseUrl,
+                  ),
+                ),
+                draft: draft,
+                initialContact: initialContact,
+              ),
+              child: const BookingWizardPage(),
+            ),
+          );
+        },
       ),
     ],
   );

@@ -58,6 +58,36 @@ class _CourtDetailPageState extends State<CourtDetailPage> {
             return _Body(court: court, groupSlots: groupSlots);
           },
         ),
+        bottomNavigationBar: _BookBar(courtId: widget.courtId),
+      ),
+    );
+  }
+}
+
+/// Sticky "pick a slot" CTA → the slot picker for this court (edge E7).
+class _BookBar extends StatelessWidget {
+  const _BookBar({required this.courtId});
+
+  final String courtId;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+        child: FilledButton(
+          onPressed: () => context.push('/browse/court/$courtId/slots'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, AppTokens.buttonStickyHeight),
+            shape: const StadiumBorder(),
+          ),
+          child: const Text('Chọn giờ trống & đặt sân'),
+        ),
       ),
     );
   }
