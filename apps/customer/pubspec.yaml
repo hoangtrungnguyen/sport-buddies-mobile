@@ -51,6 +51,7 @@ dependencies:
   # i18n
   intl: ^0.20.2
   flutter_skill: ^0.9.36
+  google_fonts: ^8.1.0
 
 dev_dependencies:
   flutter_test:

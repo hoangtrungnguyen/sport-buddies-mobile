@@ -17,6 +17,10 @@
 import 'package:customer/core/env/env.dart';
 import 'package:customer/core/router/app_shell.dart';
 import 'package:customer/core/services/booking_api_client.dart';
+import 'package:customer/features/court/presentation/court_detail_page.dart';
+import 'package:customer/features/court/presentation/schedule_page.dart';
+import 'package:customer/features/court/presentation/slot_picker_page.dart';
+import 'package:customer/features/court/presentation/placeholder_page.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/forgot_password_screen.dart';
 import 'package:customer/features/auth/view/login_screen.dart';
@@ -372,6 +376,51 @@ GoRouter buildRouter() {
         path: '/booking/recurring',
         pageBuilder: (context, state) =>
             _fadePage(state, const RecurringBookingScreen()),
+      ),
+
+      // ── EPIC-5 · Browse & Pick (handoff doc 03) ──────────────────────────
+      // Namespaced under /browse to run parallel to the existing wired
+      // court/slot screens; real data swapped in for the fakes later.
+      GoRoute(
+        path: '/browse/court/:courtId',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          CourtDetailPage(courtId: state.pathParameters['courtId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/browse/center/:centerId/schedule',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          SchedulePage(centerId: state.pathParameters['centerId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/browse/court/:courtId/slots',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          SlotPickerPage(courtId: state.pathParameters['courtId']!),
+        ),
+      ),
+      GoRoute(
+        path: '/browse/slot/:slotId',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          const PlaceholderPage(
+            title: 'Chi tiết slot',
+            subtitle: 'EPIC-4 · SPB-035 — đang phát triển',
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/browse/booking/confirm',
+        pageBuilder: (context, state) => _fadePage(
+          state,
+          const PlaceholderPage(
+            title: 'Đặt sân',
+            subtitle: 'EPIC-5 · SPB-042 — đang phát triển',
+          ),
+        ),
       ),
     ],
   );
