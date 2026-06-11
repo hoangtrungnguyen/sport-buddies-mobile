@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:spb_core/core/theme/app_colors.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../setup/bloc/court_bloc.dart';
 import '../../setup/bloc/court_event.dart';
 import '../../setup/bloc/court_state.dart';
 import '../../setup/model/owner_court.dart';
-
-String _fmtHour(int h) => h.toString().padLeft(2, '0');
+import '../repository/venue_repository.dart';
+import 'widgets/court_widgets.dart';
 
 class CourtsScreen extends StatelessWidget {
   const CourtsScreen({super.key});
@@ -20,94 +19,27 @@ class CourtsScreen extends StatelessWidget {
       listener: (context, state) {
         if (state is CourtFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.danger,
-              behavior: SnackBarBehavior.floating,
-            ),
+            SnackBar(content: Text(state.message)),
           );
           context.read<CourtBloc>().add(const CourtEvent.loadRequested());
         }
       },
       builder: (context, state) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sân của tôi',
-                          style: GoogleFonts.sora(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.neutral900,
-                            letterSpacing: -0.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Quản lý danh sách sân và thông tin chi tiết.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13.5,
-                            color: AppColors.neutral500,
-                          ),
-                        ),
-                      ],
-                    ),
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 920),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(32, 28, 32, 120),
+              child: switch (state) {
+                CourtInitial() || CourtLoading() => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 80),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                  FilledButton.icon(
-                    icon: const Icon(Icons.add_rounded, size: 16),
-                    label: const Text('Thêm sân mới'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      textStyle: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w600, fontSize: 13.5),
-                    ),
-                    onPressed: () => context.push('/courts/new'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // List
-              switch (state) {
-                CourtInitial() || CourtLoading() => const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60),
-                      child: CircularProgressIndicator(
-                          color: AppColors.primary),
-                    ),
-                  ),
-                CourtLoaded(:final courts) when courts.isEmpty =>
-                  _EmptyState(
-                    onAdd: () => context.push('/courts/new'),
-                  ),
-                CourtLoaded(:final courts) => Column(
-                    children: courts
-                        .map((c) => _CourtCard(
-                              court: c,
-                              onEdit: () => context.push(
-                                '/courts/${c.id}/edit',
-                                extra: c,
-                              ),
-                            ))
-                        .toList(),
-                  ),
+                CourtLoaded(:final courts) =>
+                  _Loaded(courts: courts),
                 CourtFailure() => const SizedBox.shrink(),
               },
-            ],
+            ),
           ),
         );
       },
@@ -115,187 +47,365 @@ class CourtsScreen extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-
-class _CourtCard extends StatelessWidget {
-  const _CourtCard({required this.court, required this.onEdit});
-  final OwnerCourt court;
-  final VoidCallback onEdit;
+class _Loaded extends StatelessWidget {
+  const _Loaded({required this.courts});
+  final List<OwnerCourt> courts;
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.primary;
+    return FutureBuilder<Map<String, CourtVenueSummary>>(
+      future: context
+          .read<VenueRepository>()
+          .fetchSummaries(courts.map((c) => c.id).toList()),
+      builder: (context, snap) {
+        final summaries = snap.data ?? const {};
+        final venueTotal =
+            summaries.values.fold<int>(0, (a, s) => a + s.count);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Header(courtCount: courts.length, venueCount: venueTotal),
+            const SizedBox(height: 24),
+            _Grid(courts: courts, summaries: summaries),
+          ],
+        );
+      },
+    );
+  }
+}
 
-    return GestureDetector(
-      onTap: () => context.push('/courts/${court.id}'),
-      child: Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.neutral200),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: court.isActive ? color : AppColors.neutral300,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        court.name,
-                        style: GoogleFonts.sora(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: court.isActive
-                              ? AppColors.neutral900
-                              : AppColors.neutral400,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                    ),
-                    if (!court.isActive)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.neutral100,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                        child: Text(
-                          'Tạm ngưng',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.neutral500,
-                          ),
-                        ),
-                      ),
-                  ],
+class _Header extends StatelessWidget {
+  const _Header({required this.courtCount, required this.venueCount});
+  final int courtCount;
+  final int venueCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Sân của tôi', style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 4),
+              Text(
+                '$courtCount cụm sân · $venueCount sân con',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_fmtHour(court.openHour)}:00 – ${_fmtHour(court.closeHour)}:00',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: AppColors.neutral500,
+              ),
+            ],
+          ),
+        ),
+        FilledButton.icon(
+          icon: const Icon(Symbols.add, size: 18),
+          label: const Text('Thêm sân mới'),
+          onPressed: () => context.push('/courts/new'),
+        ),
+      ],
+    );
+  }
+}
+
+class _Grid extends StatelessWidget {
+  const _Grid({required this.courts, required this.summaries});
+  final List<OwnerCourt> courts;
+  final Map<String, CourtVenueSummary> summaries;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 16.0;
+        const minTile = 280.0;
+        final cols =
+            ((constraints.maxWidth + gap) / (minTile + gap)).floor().clamp(1, 4);
+        final tileW = (constraints.maxWidth - gap * (cols - 1)) / cols;
+
+        final cards = <Widget>[
+          for (final c in courts)
+            SizedBox(
+              width: tileW,
+              child: _CourtCard(court: c, summary: summaries[c.id]),
+            ),
+          SizedBox(
+            width: tileW,
+            child: _AddCard(onTap: () => context.push('/courts/new')),
+          ),
+        ];
+
+        return Wrap(spacing: gap, runSpacing: gap, children: cards);
+      },
+    );
+  }
+}
+
+class _CourtCard extends StatelessWidget {
+  const _CourtCard({required this.court, this.summary});
+  final OwnerCourt court;
+  final CourtVenueSummary? summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final venueCount = summary?.count ?? 0;
+    final sports = summary?.sports.toList() ?? const <String>[];
+
+    return Card(
+      child: InkWell(
+        onTap: () => context.push('/courts/${court.id}/edit', extra: court),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                StripedPhotoPlaceholder(caption: court.name),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: CourtStatusChip(
+                    status: court.isActive
+                        ? CourtChipStatus.active
+                        : CourtChipStatus.inactive,
+                    elevated: true,
                   ),
                 ),
-                if (court.address != null &&
-                    court.address!.isNotEmpty) ...[
-                  const SizedBox(height: 3),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    court.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: AppColors.neutral400),
-                      const SizedBox(width: 3),
+                      Icon(Symbols.location_on,
+                          size: 16, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          court.address!,
+                          (court.address?.isNotEmpty ?? false)
+                              ? court.address!
+                              : 'Chưa có địa chỉ',
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppColors.neutral400,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      _MiniChip(
+                        icon: Symbols.grid_view,
+                        label: '$venueCount sân con',
+                        outlined: true,
+                      ),
+                      for (final s in sports.take(3))
+                        _MiniChip(label: s),
+                    ],
+                  ),
                 ],
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          OutlinedButton(
-            onPressed: onEdit,
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 14, vertical: 8),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              foregroundColor: AppColors.neutral700,
-              side: const BorderSide(color: AppColors.neutral200),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              textStyle: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600, fontSize: 13),
-            ),
-            child: const Text('Sửa'),
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onAdd});
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(
-          children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.primaryLight,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.stadium_outlined,
-                  size: 28, color: AppColors.primary),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Chưa có sân nào',
-              style: GoogleFonts.sora(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutral700,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Tạo sân đầu tiên để bắt đầu nhận booking.',
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5, color: AppColors.neutral400),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.icon(
-              icon: const Icon(Icons.add_rounded, size: 16),
-              label: const Text('Tạo sân đầu tiên'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                textStyle: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600, fontSize: 13.5),
-              ),
-              onPressed: onAdd,
-            ),
+            const Divider(),
+            _ActionRow(court: court),
           ],
         ),
       ),
     );
   }
+}
+
+class _ActionRow extends StatelessWidget {
+  const _ActionRow({required this.court});
+  final OwnerCourt court;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 2, 4, 4),
+      child: Row(
+        children: [
+          TextButton.icon(
+            icon: const Icon(Symbols.edit, size: 16),
+            label: const Text('Sửa'),
+            onPressed: () =>
+                context.push('/courts/${court.id}/edit', extra: court),
+          ),
+          TextButton.icon(
+            icon: const Icon(Symbols.grid_view, size: 16),
+            label: const Text('Sân con'),
+            onPressed: () => context.push('/courts/${court.id}'),
+          ),
+          const Spacer(),
+          PopupMenuButton<String>(
+            icon: const Icon(Symbols.more_vert, size: 20),
+            onSelected: (v) {
+              final bloc = context.read<CourtBloc>();
+              if (v == 'toggle') {
+                bloc.add(court.isActive
+                    ? CourtEvent.deactivateRequested(court.id)
+                    : CourtEvent.reactivateRequested(court.id));
+              }
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'toggle',
+                child: Text(court.isActive ? 'Tạm ngưng' : 'Kích hoạt'),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniChip extends StatelessWidget {
+  const _MiniChip({this.icon, required this.label, this.outlined = false});
+  final IconData? icon;
+  final String label;
+  final bool outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final bg = outlined ? Colors.transparent : scheme.secondaryContainer;
+    final fg = outlined ? scheme.onSurfaceVariant : scheme.onSecondaryContainer;
+    return Container(
+      height: 26,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(7),
+        border: outlined ? Border.all(color: scheme.outlineVariant) : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: fg),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: fg),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddCard extends StatelessWidget {
+  const _AddCard({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: DottedBorderBox(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: scheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(Symbols.add,
+                      size: 26, color: scheme.onPrimaryContainer),
+                ),
+                const SizedBox(height: 12),
+                Text('Thêm sân mới',
+                    style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 4),
+                Text(
+                  'Nhập tay hoặc để AI điền giúp từ văn bản, liên kết, ảnh',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Rounded dashed-outline container (M3 outlined "add" affordance).
+class DottedBorderBox extends StatelessWidget {
+  const DottedBorderBox({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashedRectPainter(
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
+      child: child,
+    );
+  }
+}
+
+class _DashedRectPainter extends CustomPainter {
+  _DashedRectPainter({required this.color});
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(12),
+    );
+    final path = Path()..addRRect(rrect);
+    const dash = 6.0, gap = 4.0;
+    for (final metric in path.computeMetrics()) {
+      double dist = 0;
+      while (dist < metric.length) {
+        canvas.drawPath(
+          metric.extractPath(dist, dist + dash),
+          paint,
+        );
+        dist += dash + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedRectPainter old) => old.color != color;
 }

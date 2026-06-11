@@ -1,16 +1,28 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:spb_core/core/theme/app_colors.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../core/debug/app_logger.dart';
 import '../../setup/bloc/court_bloc.dart';
 import '../../setup/bloc/court_event.dart';
 import '../../setup/model/owner_court.dart';
 import '../../setup/repository/owner_court_repository.dart';
 import '../service/court_info_parser_service.dart';
+import '../util/court_format.dart';
+import 'widgets/ai_assist_sheet.dart';
+import 'widgets/court_widgets.dart';
+
+/// Field keys used for AI-fill marking + pulse highlight.
+class _K {
+  static const name = 'name';
+  static const phone = 'phone';
+  static const address = 'address';
+  static const location = 'location';
+  static const maps = 'maps';
+  static const description = 'description';
+  static const amenities = 'amenities';
+  static const hours = 'hours';
+}
 
 class CourtFormScreen extends StatefulWidget {
   const CourtFormScreen({super.key, this.court});
@@ -25,6 +37,7 @@ class CourtFormScreen extends StatefulWidget {
 class _CourtFormScreenState extends State<CourtFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameCtrl;
+  late final TextEditingController _phoneCtrl;
   late final TextEditingController _addressCtrl;
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
@@ -34,9 +47,18 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   late int _openHour;
   late int _closeHour;
   late bool _isActive;
+
   bool _saving = false;
+  bool _descBusy = false;
   String? _error;
-  final _parserService = CourtInfoParserService();
+
+  /// Keys whose value was written by AI and not yet manually edited.
+  final Set<String> _aiFilled = {};
+
+  /// Keys currently showing the one-shot tertiaryContainer pulse.
+  final Set<String> _pulse = {};
+
+  final _parser = CourtInfoParserService();
 
   bool get _isEdit => widget.court != null;
 
@@ -45,6 +67,8 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     super.initState();
     final c = widget.court;
     _nameCtrl = TextEditingController(text: c?.name ?? '');
+    _phoneCtrl =
+        TextEditingController(text: c?.additionalInfo['phone'] as String? ?? '');
     _addressCtrl = TextEditingController(text: c?.address ?? '');
     _latCtrl = TextEditingController(
         text: c?.lat != null ? c!.lat!.toStringAsFixed(6) : '');
@@ -61,6 +85,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   @override
   void dispose() {
     _nameCtrl.dispose();
+    _phoneCtrl.dispose();
     _addressCtrl.dispose();
     _latCtrl.dispose();
     _lngCtrl.dispose();
@@ -69,45 +94,111 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     super.dispose();
   }
 
-  void _applyParseResult(CourtParseResult r) {
-    setState(() {
-      if (r.name != null) _nameCtrl.text = r.name!;
-      if (r.address != null) _addressCtrl.text = r.address!;
-      if (r.lat != null) _latCtrl.text = r.lat!.toStringAsFixed(6);
-      if (r.lng != null) _lngCtrl.text = r.lng!.toStringAsFixed(6);
-      if (r.googleMapsUrl != null) _mapsCtrl.text = r.googleMapsUrl!;
-      if (r.description != null) _descCtrl.text = r.description!;
-      if (r.amenities.isNotEmpty) _selectedAmenities = Set.from(r.amenities);
-      if (r.openHour != null) _openHour = r.openHour!;
-      if (r.closeHour != null) _closeHour = r.closeHour!;
-    });
+  void _clearMark(String key) {
+    if (_aiFilled.remove(key)) setState(() {});
   }
 
-  void _openParseSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ParseSheet(
-        parserService: _parserService,
-        onResult: (r) {
-          _applyParseResult(r);
-          Navigator.of(context).pop();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đã điền thông tin từ văn bản'),
-              behavior: SnackBarBehavior.floating,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        },
+  void _applyAi(CourtParseResult r) {
+    final filled = <String>{};
+    void set(TextEditingController c, String? v, String key) {
+      if (v != null && v.trim().isNotEmpty) {
+        c.text = v.trim();
+        filled.add(key);
+      }
+    }
+
+    set(_nameCtrl, r.name, _K.name);
+    set(_phoneCtrl, r.phone, _K.phone);
+    set(_addressCtrl, r.address, _K.address);
+    set(_mapsCtrl, r.googleMapsUrl, _K.maps);
+    set(_descCtrl, r.description, _K.description);
+    if (r.lat != null) {
+      _latCtrl.text = r.lat!.toStringAsFixed(6);
+      filled.add(_K.location);
+    }
+    if (r.lng != null) {
+      _lngCtrl.text = r.lng!.toStringAsFixed(6);
+      filled.add(_K.location);
+    }
+    if (r.amenities.isNotEmpty) {
+      _selectedAmenities = Set.from(r.amenities);
+      filled.add(_K.amenities);
+    }
+    if (r.openHour != null) {
+      _openHour = r.openHour!;
+      filled.add(_K.hours);
+    }
+    if (r.closeHour != null) {
+      _closeHour = r.closeHour!;
+      filled.add(_K.hours);
+    }
+
+    setState(() {
+      _aiFilled.addAll(filled);
+      _pulse
+        ..clear()
+        ..addAll(filled);
+    });
+    // Clear the pulse highlight after the one-shot flash.
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted) setState(() => _pulse.clear());
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(filled.isEmpty
+            ? 'Không có trường nào được điền.'
+            : 'AI đã điền ${filled.length} trường — các trường được đánh dấu ✦'),
       ),
     );
   }
 
+  void _openAiSheet() {
+    showCourtAiSheet(
+      context: context,
+      service: _parser,
+      onApply: _applyAi,
+    );
+  }
+
+  Future<void> _writeDescription() async {
+    setState(() => _descBusy = true);
+    try {
+      final desc = await _parser.writeDescription(
+        name: _nameCtrl.text.trim(),
+        address: _addressCtrl.text.trim(),
+        openHour: _openHour,
+        closeHour: _closeHour,
+        amenities: _selectedAmenities.toList(),
+        venueNames: const [],
+      );
+      if (!mounted) return;
+      setState(() {
+        _descCtrl.text = desc;
+        _aiFilled.add(_K.description);
+        _pulse.add(_K.description);
+      });
+      Future.delayed(const Duration(milliseconds: 1600), () {
+        if (mounted) setState(() => _pulse.remove(_K.description));
+      });
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không gọi được AI — thử lại nhé')),
+      );
+    } finally {
+      if (mounted) setState(() => _descBusy = false);
+    }
+  }
+
   Future<void> _submit() async {
     setState(() => _error = null);
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Còn trường bắt buộc chưa điền')),
+      );
+      return;
+    }
     if (_closeHour <= _openHour) {
       setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
       return;
@@ -118,20 +209,29 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       final repo = context.read<OwnerCourtRepository>();
       final address = _addressCtrl.text.trim();
       final desc = _descCtrl.text.trim();
+      final phone = _phoneCtrl.text.trim();
       final lat = double.tryParse(_latCtrl.text.trim());
       final lng = double.tryParse(_lngCtrl.text.trim());
       final mapsUrl = _mapsCtrl.text.trim();
 
+      Map<String, dynamic> additionalInfo() {
+        final m = Map<String, dynamic>.from(
+            _isEdit ? widget.court!.additionalInfo : const {});
+        if (mapsUrl.isEmpty) {
+          m.remove('google_maps_url');
+        } else {
+          m['google_maps_url'] = mapsUrl;
+        }
+        if (phone.isEmpty) {
+          m.remove('phone');
+        } else {
+          m['phone'] = phone;
+        }
+        return m;
+      }
+
       OwnerCourt saved;
       if (_isEdit) {
-        final additionalInfo = Map<String, dynamic>.from(
-          widget.court!.additionalInfo,
-        );
-        if (mapsUrl.isEmpty) {
-          additionalInfo.remove('google_maps_url');
-        } else {
-          additionalInfo['google_maps_url'] = mapsUrl;
-        }
         saved = await repo.updateCourt(
           widget.court!.id,
           name: _nameCtrl.text.trim(),
@@ -142,7 +242,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
           amenities: _selectedAmenities.toList(),
           lat: lat,
           lng: lng,
-          additionalInfo: additionalInfo,
+          additionalInfo: additionalInfo(),
         );
         if (_isActive != widget.court!.isActive) {
           if (_isActive) {
@@ -161,18 +261,14 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
           amenities: _selectedAmenities.toList(),
           lat: lat,
           lng: lng,
-          additionalInfo: mapsUrl.isEmpty ? {} : {'google_maps_url': mapsUrl},
+          additionalInfo: additionalInfo(),
         );
       }
 
       if (!mounted) return;
       context.read<CourtBloc>().add(const CourtEvent.loadRequested());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đã lưu sân'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
+        SnackBar(content: Text('Đã lưu ${saved.name}')),
       );
       if (_isEdit) {
         context.pop();
@@ -189,416 +285,433 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded,
-              size: 20, color: AppColors.neutral700),
+          icon: const Icon(Symbols.arrow_back),
           onPressed: _saving ? null : () => context.pop(),
         ),
-        title: Text(
-          _isEdit ? 'Chỉnh sửa sân' : 'Thêm sân mới',
-          style: GoogleFonts.sora(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutral900,
-          ),
-        ),
+        title: Text(_isEdit ? 'Chỉnh sửa sân' : 'Thêm sân mới'),
         actions: [
-          Semantics(
-            label: 'court-form-ai-parse-btn',
-            button: true,
-            child: Tooltip(
-              message: 'Nhập từ văn bản (AI)',
-              child: IconButton(
-                icon: const Icon(Icons.auto_awesome_rounded, size: 20),
-                color: AppColors.primary,
-                onPressed: _saving ? null : _openParseSheet,
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Semantics(
+              label: 'court-form-ai-parse-btn',
+              button: true,
+              child: FilledButton.tonalIcon(
+                icon: const Icon(Symbols.auto_awesome, size: 18),
+                label: const Text('Nhập nhanh bằng AI'),
+                onPressed: _saving ? null : _openAiSheet,
               ),
             ),
           ),
         ],
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1),
-          child: Divider(height: 1, color: AppColors.neutral200),
+          child: Divider(height: 1),
         ),
       ),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Error banner
-                  if (_error != null) ...[
-                    _ErrorBanner(_error!),
-                    const SizedBox(height: 16),
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(32, 8, 32, 140),
+              children: [
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  _ErrorBanner(_error!),
+                ],
+
+                // 1) Thông tin cơ bản
+                const SectionHeader(
+                  icon: Symbols.badge,
+                  title: 'Thông tin cơ bản',
+                  subtitle: 'Tên hiển thị và liên hệ của sân',
+                ),
+                _TwoCol(
+                  left: _AiField(
+                    controller: _nameCtrl,
+                    label: 'Tên sân *',
+                    fieldKey: _K.name,
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                    validator: (v) => (v?.trim().isEmpty ?? true)
+                        ? 'Bắt buộc — nhập tên sân'
+                        : null,
+                  ),
+                  right: _AiField(
+                    controller: _phoneCtrl,
+                    label: 'Số điện thoại',
+                    fieldKey: _K.phone,
+                    leading: Symbols.call,
+                    keyboardType: TextInputType.phone,
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                  ),
+                ),
+
+                // 2) Vị trí
+                const SectionHeader(
+                  icon: Symbols.location_on,
+                  title: 'Vị trí',
+                  subtitle: 'Địa chỉ và toạ độ để khách tìm đường',
+                ),
+                _AiField(
+                  controller: _addressCtrl,
+                  label: 'Địa chỉ *',
+                  fieldKey: _K.address,
+                  aiFilled: _aiFilled,
+                  pulse: _pulse,
+                  onManualEdit: _clearMark,
+                  validator: (v) => (v?.trim().isEmpty ?? true)
+                      ? 'Bắt buộc — nhập địa chỉ'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                _TwoCol(
+                  left: _AiField(
+                    controller: _latCtrl,
+                    label: 'Vĩ độ (lat)',
+                    fieldKey: _K.location,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final n = double.tryParse(v.trim());
+                      return (n == null || n < -90 || n > 90)
+                          ? '-90 đến 90'
+                          : null;
+                    },
+                  ),
+                  right: _AiField(
+                    controller: _lngCtrl,
+                    label: 'Kinh độ (lng)',
+                    fieldKey: _K.location,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true, signed: true),
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null;
+                      final n = double.tryParse(v.trim());
+                      return (n == null || n < -180 || n > 180)
+                          ? '-180 đến 180'
+                          : null;
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _AiField(
+                  controller: _mapsCtrl,
+                  label: 'Google Maps URL',
+                  fieldKey: _K.maps,
+                  leading: Symbols.map,
+                  keyboardType: TextInputType.url,
+                  aiFilled: _aiFilled,
+                  pulse: _pulse,
+                  onManualEdit: _clearMark,
+                  validator: (v) {
+                    final t = v?.trim() ?? '';
+                    if (t.isEmpty) return null;
+                    return t.startsWith('http')
+                        ? null
+                        : 'URL phải bắt đầu bằng http';
+                  },
+                ),
+
+                // 3) Mô tả
+                const SectionHeader(
+                  icon: Symbols.description,
+                  title: 'Mô tả',
+                  subtitle: 'Giới thiệu ngắn hiển thị cho khách',
+                ),
+                _AiField(
+                  controller: _descCtrl,
+                  label: 'Mô tả',
+                  fieldKey: _K.description,
+                  maxLines: 3,
+                  aiFilled: _aiFilled,
+                  pulse: _pulse,
+                  onManualEdit: _clearMark,
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ActionChip(
+                    avatar: _descBusy
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Icon(Symbols.auto_awesome,
+                            size: 18, color: scheme.tertiary),
+                    label: Text(_descBusy
+                        ? 'AI đang viết…'
+                        : (_descCtrl.text.trim().isEmpty
+                            ? 'Viết mô tả bằng AI'
+                            : 'Viết lại bằng AI')),
+                    onPressed: _descBusy ? null : _writeDescription,
+                  ),
+                ),
+
+                // 4) Tiện ích
+                const SectionHeader(
+                  icon: Symbols.category,
+                  title: 'Tiện ích',
+                  subtitle: 'Chọn các tiện ích sân có',
+                ),
+                if (_aiFilled.contains(_K.amenities)) const _AiHint(),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final a in kAmenities)
+                      Semantics(
+                        label: 'amenity-chip-$a',
+                        button: true,
+                        child: FilterChip(
+                          avatar: Icon(amenityIcon(a), size: 18),
+                          label: Text(a),
+                          selected: _selectedAmenities.contains(a),
+                          onSelected: (sel) => setState(() {
+                            if (sel) {
+                              _selectedAmenities.add(a);
+                            } else {
+                              _selectedAmenities.remove(a);
+                            }
+                            _aiFilled.remove(_K.amenities);
+                          }),
+                        ),
+                      ),
                   ],
+                ),
 
-                  _Label('Tên sân'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'court-name-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: _nameCtrl,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: const InputDecoration(
-                          hintText: 'Ví dụ: Sân 1, Pickleball A'),
-                      validator: (v) => (v?.trim().isEmpty ?? true)
-                          ? 'Vui lòng nhập tên sân.'
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  _Label('Địa chỉ'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'court-address-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: _addressCtrl,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: const InputDecoration(
-                          hintText: 'Ví dụ: 123 Nguyễn Văn Linh, Q7, TP.HCM'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label('Vĩ độ (lat)'),
-                            const SizedBox(height: 6),
-                            Semantics(
-                              label: 'court-lat-field',
-                              textField: true,
-                              child: TextFormField(
-                                controller: _latCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                                decoration: const InputDecoration(
-                                    hintText: '10.762622'),
-                                validator: (v) {
-                                  if (v == null || v.trim().isEmpty) {
-                                    return null;
-                                  }
-                                  final n = double.tryParse(v.trim());
-                                  return (n == null || n < -90 || n > 90)
-                                      ? '-90 đến 90'
-                                      : null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _Label('Kinh độ (lng)'),
-                            const SizedBox(height: 6),
-                            Semantics(
-                              label: 'court-lng-field',
-                              textField: true,
-                              child: TextFormField(
-                                controller: _lngCtrl,
-                                keyboardType:
-                                    const TextInputType.numberWithOptions(
-                                        decimal: true, signed: true),
-                                style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                                decoration: const InputDecoration(
-                                    hintText: '106.660172'),
-                                validator: (v) {
-                                  if (v == null || v.trim().isEmpty) {
-                                    return null;
-                                  }
-                                  final n = double.tryParse(v.trim());
-                                  return (n == null || n < -180 || n > 180)
-                                      ? '-180 đến 180'
-                                      : null;
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  _Label('Google Maps URL'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'court-maps-url-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: _mapsCtrl,
-                      keyboardType: TextInputType.url,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: const InputDecoration(
-                        hintText: 'https://maps.google.com/?q=...',
-                        prefixIcon: Icon(Icons.map_outlined, size: 18),
-                      ),
-                      validator: (v) {
-                        final t = v?.trim() ?? '';
-                        if (t.isEmpty) return null;
-                        if (!t.startsWith('http')) {
-                          return 'URL phải bắt đầu bằng http';
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  _Label('Mô tả'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'court-description-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: _descCtrl,
-                      maxLines: 3,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: const InputDecoration(
-                          hintText:
-                              'Mô tả ngắn về sân, tiện ích, lưu ý cho khách...'),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-
-                  _Label('Tiện ích'),
-                  const SizedBox(height: 8),
-                  _ChipSelector(
-                    options: kAmenities,
-                    selected: _selectedAmenities,
-                    semanticsPrefix: 'amenity-chip',
-                    onChanged: (v) =>
-                        setState(() => _selectedAmenities = v),
-                  ),
-                  const SizedBox(height: 18),
-
-                  _Label('Giờ hoạt động'),
-                  const SizedBox(height: 6),
-                  Row(
+                // 5) Giờ hoạt động
+                const SectionHeader(
+                  icon: Symbols.schedule,
+                  title: 'Giờ hoạt động',
+                  subtitle: 'Khung giờ nhận khách trong ngày',
+                ),
+                if (_aiFilled.contains(_K.hours)) const _AiHint(),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 480),
+                  child: Row(
                     children: [
                       Expanded(
                         child: _HourDropdown(
                           label: 'Mở cửa',
+                          icon: Symbols.wb_twilight,
                           value: _openHour,
-                          onChanged: (v) => setState(() => _openHour = v),
+                          onChanged: (v) => setState(() {
+                            _openHour = v;
+                            _aiFilled.remove(_K.hours);
+                          }),
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('–',
-                            style: GoogleFonts.sora(
-                                fontSize: 16,
-                                color: AppColors.neutral400)),
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: _HourDropdown(
                           label: 'Đóng cửa',
+                          icon: Symbols.bedtime,
                           value: _closeHour,
-                          onChanged: (v) => setState(() => _closeHour = v),
+                          onChanged: (v) => setState(() {
+                            _closeHour = v;
+                            _aiFilled.remove(_K.hours);
+                          }),
                         ),
                       ),
                     ],
                   ),
+                ),
 
-                  if (_isEdit) ...[
-                    const SizedBox(height: 18),
-                    _ActiveToggle(
-                      isActive: _isActive,
-                      saving: _saving,
-                      onChanged: (v) => setState(() => _isActive = v),
-                    ),
-                  ],
-
-                  const SizedBox(height: 32),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _saving ? null : () => context.pop(),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.neutral700,
-                            side: const BorderSide(
-                                color: AppColors.neutral200),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
-                            textStyle: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w600, fontSize: 14),
-                          ),
-                          child: const Text('Huỷ'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        flex: 2,
-                        child: Semantics(
-                          label: 'court-form-submit-btn',
-                          button: true,
-                          child: FilledButton(
-                            onPressed: _saving ? null : _submit,
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 14),
-                              textStyle: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w600, fontSize: 14),
-                            ),
-                            child: _saving
-                                ? const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white),
-                                  )
-                                : Text(
-                                    _isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
-                          ),
-                        ),
-                      ),
-                    ],
+                if (_isEdit) ...[
+                  const SectionHeader(
+                    icon: Symbols.grid_view,
+                    title: 'Sân con',
+                    subtitle: 'Quản lý các sân con bên trong cụm sân',
+                  ),
+                  OutlinedButton.icon(
+                    icon: const Icon(Symbols.grid_view, size: 18),
+                    label: const Text('Quản lý sân con'),
+                    onPressed: () => context.push('/courts/${widget.court!.id}'),
+                  ),
+                  const SizedBox(height: 20),
+                  _ActiveToggle(
+                    isActive: _isActive,
+                    saving: _saving,
+                    onChanged: (v) => setState(() => _isActive = v),
                   ),
                 ],
-              ),
+              ],
             ),
           ),
         ),
+      ),
+      bottomSheet: _StickyFooter(
+        saving: _saving,
+        isEdit: _isEdit,
+        onCancel: _saving ? null : () => context.pop(),
+        onSubmit: _saving ? null : _submit,
       ),
     );
   }
 }
 
 // ---------------------------------------------------------------------------
-// Shared sub-widgets
+// Field with AI-fill marking + one-shot pulse
 // ---------------------------------------------------------------------------
 
-class _Label extends StatelessWidget {
-  const _Label(this.label);
+class _AiField extends StatelessWidget {
+  const _AiField({
+    required this.controller,
+    required this.label,
+    required this.fieldKey,
+    required this.aiFilled,
+    required this.pulse,
+    required this.onManualEdit,
+    this.leading,
+    this.keyboardType,
+    this.maxLines = 1,
+    this.validator,
+  });
+
+  final TextEditingController controller;
   final String label;
+  final String fieldKey;
+  final Set<String> aiFilled;
+  final Set<String> pulse;
+  final ValueChanged<String> onManualEdit;
+  final IconData? leading;
+  final TextInputType? keyboardType;
+  final int maxLines;
+  final String? Function(String?)? validator;
 
   @override
-  Widget build(BuildContext context) => Text(
-        label,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color: AppColors.neutral700,
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isAi = aiFilled.contains(fieldKey);
+    final isPulsing = pulse.contains(fieldKey);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 1600),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: isPulsing
+            ? scheme.tertiaryContainer
+            : scheme.tertiaryContainer.withValues(alpha: 0),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        onChanged: (_) {
+          if (aiFilled.contains(fieldKey)) onManualEdit(fieldKey);
+        },
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: leading != null ? Icon(leading, size: 20) : null,
+          helperText: isAi ? '✦ Điền bởi AI — hãy kiểm tra lại' : null,
+          helperStyle: TextStyle(color: scheme.tertiary),
+          helperMaxLines: 2,
         ),
-      );
+        validator: validator,
+      ),
+    );
+  }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner(this.message);
-  final String message;
-
+/// Tertiary "AI filled" note for non-field targets (amenities, hours).
+class _AiHint extends StatelessWidget {
+  const _AiHint();
   @override
-  Widget build(BuildContext context) => Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.dangerBg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-              color: AppColors.danger.withValues(alpha: 0.3)),
-        ),
-        child: Row(
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(Symbols.auto_awesome, size: 14, color: scheme.tertiary),
+          const SizedBox(width: 6),
+          Text(
+            'AI đã điền — hãy kiểm tra lại',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: scheme.tertiary),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TwoCol extends StatelessWidget {
+  const _TwoCol({required this.left, required this.right});
+  final Widget left;
+  final Widget right;
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        if (c.maxWidth < 560) {
+          return Column(
+            children: [left, const SizedBox(height: 16), right],
+          );
+        }
+        return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 15, color: AppColors.danger),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(message,
-                  style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5, color: AppColors.dangerDark)),
-            ),
+            Expanded(child: left),
+            const SizedBox(width: 16),
+            Expanded(child: right),
           ],
-        ),
-      );
+        );
+      },
+    );
+  }
 }
 
-class _ChipSelector extends StatelessWidget {
-  const _ChipSelector({
-    required this.options,
-    required this.selected,
-    required this.semanticsPrefix,
+class _HourDropdown extends StatelessWidget {
+  const _HourDropdown({
+    required this.label,
+    required this.icon,
+    required this.value,
     required this.onChanged,
   });
-  final List<String> options;
-  final Set<String> selected;
-  final String semanticsPrefix;
-  final ValueChanged<Set<String>> onChanged;
+  final String label;
+  final IconData icon;
+  final int value;
+  final ValueChanged<int> onChanged;
 
   @override
-  Widget build(BuildContext context) => Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: options.map((opt) {
-          final sel = selected.contains(opt);
-          return Semantics(
-            label: '$semanticsPrefix-$opt',
-            button: true,
-            child: FilterChip(
-              label: Text(opt),
-              selected: sel,
-              onSelected: (v) {
-                final next = Set<String>.from(selected);
-                if (v) {
-                  next.add(opt);
-                } else {
-                  next.remove(opt);
-                }
-                onChanged(next);
-              },
-              labelStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: sel ? FontWeight.w600 : FontWeight.w400,
-                color: sel
-                    ? AppColors.primaryDark
-                    : AppColors.neutral700,
-              ),
-              selectedColor: AppColors.primaryLight,
-              backgroundColor: AppColors.neutral100,
-              checkmarkColor: AppColors.primary,
-              side: BorderSide(
-                  color:
-                      sel ? AppColors.primary : AppColors.neutral200),
-              showCheckmark: true,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 4, vertical: 2),
-            ),
-          );
-        }).toList(),
-      );
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<int>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, size: 20),
+      ),
+      items: List.generate(17, (i) => i + 6)
+          .map((h) => DropdownMenuItem(value: h, child: Text(formatHour(h))))
+          .toList(),
+      onChanged: (v) {
+        if (v != null) onChanged(v);
+      },
+    );
+  }
 }
 
 class _ActiveToggle extends StatelessWidget {
@@ -612,215 +725,40 @@ class _ActiveToggle extends StatelessWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isActive ? AppColors.neutral50 : AppColors.dangerBg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isActive
-                ? AppColors.neutral200
-                : AppColors.danger.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Trạng thái hoạt động',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutral700,
-                    ),
-                  ),
-                  Text(
-                    isActive
-                        ? 'Sân đang hoạt động — khách có thể đặt.'
-                        : 'Sân đang tạm ngưng — khách không thể đặt.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: isActive
-                          ? AppColors.neutral500
-                          : AppColors.danger,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Semantics(
-              label: 'court-active-toggle',
-              toggled: isActive,
-              child: Switch(
-                value: isActive,
-                onChanged: saving ? null : onChanged,
-                activeTrackColor: AppColors.primary,
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-class _ParseSheet extends StatefulWidget {
-  const _ParseSheet({required this.parserService, required this.onResult});
-
-  final CourtInfoParserService parserService;
-  final ValueChanged<CourtParseResult> onResult;
-
-  @override
-  State<_ParseSheet> createState() => _ParseSheetState();
-}
-
-class _ParseSheetState extends State<_ParseSheet> {
-  final _ctrl = TextEditingController();
-  bool _loading = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final text = _ctrl.text.trim();
-    if (text.isEmpty) {
-      setState(() => _error = 'Vui lòng nhập thông tin sân.');
-      return;
-    }
-    if (text.length < 10) {
-      setState(() => _error = 'Vui lòng nhập thêm thông tin (tối thiểu 10 ký tự).');
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final result = await widget.parserService.parse(text);
-      if (!mounted) return;
-      widget.onResult(result);
-    } catch (e, st) {
-      if (!mounted) return;
-      appLogger.e('Court parse failed', error: e, stackTrace: st);
-      String msg = 'Không thể phân tích văn bản. Vui lòng thử lại.';
-      if (e is StateError) {
-        msg = e.message;
-      } else if (e is DioException) {
-        if (e.type == DioExceptionType.connectionTimeout ||
-            e.type == DioExceptionType.receiveTimeout) {
-          msg = 'Timeout. Vui lòng kiểm tra kết nối mạng.';
-        }
-      }
-      setState(() => _error = msg);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final scheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: scheme.outlineVariant),
       ),
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 20 + bottomInset),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.neutral200,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              const Icon(Icons.auto_awesome_rounded,
-                  size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(
-                'Nhập từ văn bản',
-                style: GoogleFonts.sora(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Trạng thái hoạt động',
+                    style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  isActive
+                      ? 'Sân đang hoạt động — khách có thể đặt.'
+                      : 'Sân đang tạm ngưng — khách không thể đặt.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Dán thông tin sân (tên, địa chỉ, giờ mở cửa, tiện ích…) — AI sẽ tự điền vào form.',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              color: AppColors.neutral500,
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          if (_error != null) ...[
-            _ErrorBanner(_error!),
-            const SizedBox(height: 10),
-          ],
-          TextField(
-            controller: _ctrl,
-            maxLines: 6,
-            autofocus: true,
-            style: GoogleFonts.plusJakartaSans(fontSize: 13.5),
-            decoration: InputDecoration(
-              hintText:
-                  'Ví dụ: Sân Pickleball ABC, 123 Nguyễn Trãi Q1, mở 6h-22h, có WiFi và bãi đậu xe...',
-              hintStyle: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                color: AppColors.neutral400,
-              ),
-              filled: true,
-              fillColor: AppColors.neutral50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.neutral200),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: AppColors.neutral200),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: _loading ? null : _submit,
-              icon: _loading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.auto_awesome_rounded, size: 16),
-              label: Text(_loading ? 'Đang phân tích…' : 'Phân tích'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                textStyle: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w600, fontSize: 14),
-              ),
+          Semantics(
+            label: 'court-active-toggle',
+            toggled: isActive,
+            child: Switch(
+              value: isActive,
+              onChanged: saving ? null : onChanged,
             ),
           ),
         ],
@@ -829,38 +767,88 @@ class _ParseSheetState extends State<_ParseSheet> {
   }
 }
 
-class _HourDropdown extends StatelessWidget {
-  const _HourDropdown({
-    required this.label,
-    required this.value,
-    required this.onChanged,
+class _StickyFooter extends StatelessWidget {
+  const _StickyFooter({
+    required this.saving,
+    required this.isEdit,
+    required this.onCancel,
+    required this.onSubmit,
   });
-  final String label;
-  final int value;
-  final ValueChanged<int> onChanged;
+  final bool saving;
+  final bool isEdit;
+  final VoidCallback? onCancel;
+  final VoidCallback? onSubmit;
 
   @override
-  Widget build(BuildContext context) => InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+      // heightFactor:1 makes this shrink-wrap the button row's height. Without
+      // it, Center fills the bottomSheet's loose vertical constraints and the
+      // footer balloons into a full-height white box over the form.
+      child: Align(
+        alignment: Alignment.center,
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 920),
+          child: Row(
+            children: [
+              TextButton(onPressed: onCancel, child: const Text('Huỷ')),
+              const Spacer(),
+              Semantics(
+                label: 'court-form-submit-btn',
+                button: true,
+                child: FilledButton.icon(
+                  icon: saving
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Symbols.check, size: 18),
+                  label: Text(isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
+                  onPressed: onSubmit,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: DropdownButton<int>(
-          value: value,
-          isExpanded: true,
-          underline: const SizedBox.shrink(),
-          style: GoogleFonts.plusJakartaSans(
-              fontSize: 14, color: AppColors.neutral900),
-          items: List.generate(17, (i) => i + 6)
-              .map((h) => DropdownMenuItem(
-                    value: h,
-                    child: Text('${h.toString().padLeft(2, '0')}:00'),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
-      );
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner(this.message);
+  final String message;
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: scheme.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Symbols.error, size: 18, color: scheme.onErrorContainer),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: scheme.onErrorContainer,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

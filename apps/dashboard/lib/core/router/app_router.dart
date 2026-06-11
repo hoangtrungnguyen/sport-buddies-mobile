@@ -16,12 +16,10 @@ import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/courts/bloc/venue_bloc.dart';
-import 'package:dashboard/features/courts/model/venue.dart';
 import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/courts/view/court_detail_screen.dart';
 import 'package:dashboard/features/courts/view/court_form_screen.dart';
 import 'package:dashboard/features/courts/view/courts_screen.dart';
-import 'package:dashboard/features/courts/view/venue_form_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/venue_schedule/view/venue_schedule_page.dart';
@@ -223,25 +221,6 @@ GoRouter buildRouter() {
                 child: CourtDetailScreen(courtId: state.pathParameters['id']!),
               ),
             ),
-            routes: [
-              GoRoute(
-                path: 'venues/new',
-                pageBuilder: (context, state) => _fadePage(
-                  state,
-                  VenueFormScreen(courtId: state.pathParameters['id']!),
-                ),
-              ),
-              GoRoute(
-                path: 'venues/:venueId/edit',
-                pageBuilder: (context, state) => _fadePage(
-                  state,
-                  VenueFormScreen(
-                    courtId: state.pathParameters['id']!,
-                    venue: state.extra as Venue?,
-                  ),
-                ),
-              ),
-            ],
           ),
           GoRoute(
             path: '/courts/:id/edit',

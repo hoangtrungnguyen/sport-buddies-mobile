@@ -3,12 +3,46 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/venue.dart';
 
+/// Lightweight per-court rollup used by the My-courts grid.
+class CourtVenueSummary {
+  int count = 0;
+  final Set<String> sports = {};
+}
+
 class VenueRepository {
   const VenueRepository(this._client);
   final SupabaseClient _client;
 
   static const _cols =
       'id, court_id, name, sport_type, capacity, price_per_hour, status';
+
+  /// One-query summary (count + distinct sports) per court, for the My-courts
+  /// grid cards. Read-only; RLS scopes `venues` to the owner's courts.
+  Future<Map<String, CourtVenueSummary>> fetchSummaries(
+    List<String> courtIds,
+  ) async {
+    if (courtIds.isEmpty) return {};
+    try {
+      final rows = await _client
+          .from('venues')
+          .select('court_id, sport_type')
+          .inFilter('court_id', courtIds)
+          .neq('status', 'inactive');
+      final out = <String, CourtVenueSummary>{};
+      for (final r in rows as List) {
+        final m = r as Map<String, dynamic>;
+        final cid = m['court_id'] as String;
+        final sport = (m['sport_type'] as String?)?.trim() ?? '';
+        final s = out.putIfAbsent(cid, () => CourtVenueSummary());
+        s.count++;
+        if (sport.isNotEmpty) s.sports.add(sport);
+      }
+      return out;
+    } catch (e, st) {
+      appLogger.e('VenueRepository.fetchSummaries', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
 
   Future<List<Venue>> fetchForCourt(String courtId) async {
     try {
