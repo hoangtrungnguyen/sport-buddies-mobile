@@ -30,7 +30,6 @@ import 'package:customer/features/booking/state/payment_cubit.dart';
 import 'package:customer/features/booking/payment_screen.dart';
 import 'package:customer/features/booking/booking_screen.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
-import 'package:customer/features/bookings/booking_history_screen.dart';
 import 'package:customer/features/bookings/my_bookings_screen.dart';
 import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/schedule/court_schedule_overview_screen.dart';
@@ -155,10 +154,6 @@ GoRouter buildRouter() {
               GoRoute(
                 path: '/bookings/upcoming',
                 builder: (context, state) => const MyBookingsPage(),
-              ),
-              GoRoute(
-                path: '/bookings/history',
-                builder: (context, state) => const BookingHistoryPage(),
               ),
             ],
           ),
