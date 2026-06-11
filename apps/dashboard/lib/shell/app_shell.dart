@@ -3,6 +3,8 @@ import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:dashboard/features/notifications/view/notification_panel.dart';
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/model/booking_request.dart';
+import 'package:dashboard/features/setup/bloc/court_bloc.dart';
+import 'package:dashboard/features/setup/bloc/court_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -817,8 +819,46 @@ class _NavItem extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
+  /// Display name for the signed-in owner, sourced from Supabase auth.
+  /// Supabase exposes no profile table for owners, so we prefer a name in
+  /// `user_metadata` (if the backend ever sets one) and otherwise fall back
+  /// to the email's local part. Never the old hardcoded placeholder.
+  static String _displayName(User? user) {
+    final meta = user?.userMetadata;
+    final metaName = (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
+        as String?;
+    if (metaName != null && metaName.trim().isNotEmpty) return metaName.trim();
+    final email = user?.email ?? '';
+    if (email.contains('@')) return email.split('@').first;
+    return email.isNotEmpty ? email : 'Chủ sân';
+  }
+
+  /// 1–2 letter avatar initials derived from [name].
+  static String _initials(String name) {
+    final parts =
+        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) {
+      final p = parts.first;
+      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
+    }
+    return (parts.first[0] + parts.last[0]).toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final name = _displayName(user);
+    final initials = _initials(name);
+
+    // Court count comes from CourtBloc (already loaded in the shell scope),
+    // which reads the owner's `courts` table via OwnerCourtRepository.
+    final courtCount = context.select<CourtBloc, int>((bloc) {
+      final s = bloc.state;
+      return s is CourtLoaded ? s.courts.length : 0;
+    });
+    final subtitle = courtCount > 0 ? 'Chủ sân · $courtCount sân' : 'Chủ sân';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Container(
@@ -835,7 +875,7 @@ class _UserCard extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  'MN',
+                  initials,
                   style: GoogleFonts.sora(
                     color: Colors.white,
                     fontSize: 11,
@@ -850,7 +890,7 @@ class _UserCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Nguyễn Văn Minh',
+                    name,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12.5,
                       fontWeight: FontWeight.w600,
@@ -859,7 +899,7 @@ class _UserCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    'Chủ sân · 5 sân',
+                    subtitle,
                     style: GoogleFonts.plusJakartaSans(
                         fontSize: 11, color: AppColors.neutral500),
                   ),
