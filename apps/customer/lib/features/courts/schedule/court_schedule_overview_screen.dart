@@ -1,3 +1,4 @@
+import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_cubit.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_state.dart';
 import 'package:flutter/material.dart';
@@ -10,14 +11,22 @@ const _kVenueName = 'Pickle Hub Sài Gòn';
 /// Multi-court venue schedule. Renders a grid of courts × time slots; users
 /// multi-select slots into a cart and continue to the booking wizard.
 class CourtScheduleOverviewScreen extends StatelessWidget {
-  const CourtScheduleOverviewScreen({super.key, required this.courtId});
+  const CourtScheduleOverviewScreen({
+    super.key,
+    required this.sportsCenterId,
+    required this.apiClient,
+  });
 
-  final String courtId;
+  final String sportsCenterId;
+  final BookingApiClient apiClient;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CourtScheduleOverviewCubit(courtId: courtId),
+      create: (_) => CourtScheduleOverviewCubit(
+        sportsCenterId: sportsCenterId,
+        apiClient: apiClient,
+      ),
       child: const _View(),
     );
   }

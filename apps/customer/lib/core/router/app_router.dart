@@ -260,7 +260,13 @@ GoRouter buildRouter() {
         path: '/court/:id/schedule',
         pageBuilder: (context, state) => _fadePage(
           state,
-          CourtScheduleOverviewScreen(courtId: state.pathParameters['id']!),
+          CourtScheduleOverviewScreen(
+            sportsCenterId: state.pathParameters['id']!,
+            apiClient: BookingApiClient(
+              supabase: Supabase.instance.client,
+              baseUrl: Env.apiBaseUrl,
+            ),
+          ),
         ),
       ),
       GoRoute(

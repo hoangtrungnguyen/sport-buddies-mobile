@@ -266,6 +266,28 @@ class BookingApiClient {
     );
   }
 
+  /// `GET /api/sports-centers/{scId}/schedule` — fetch a sports center's 7-day
+  /// schedule including all courts and slots.
+  ///
+  /// Returns { dates: [...], courts: [...], slots: {...} }.
+  /// Throws [BookingApiException] on errors.
+  Future<Map<String, dynamic>> getSportsCenterSchedule(String scId) async {
+    final response = await _send(() => _http.get(
+          Uri.parse('$_baseUrl/api/sports-centers/$scId/schedule'),
+          headers: _headers(),
+        ));
+
+    if (response.statusCode == 200) {
+      return _decode(response);
+    }
+    final body = _decode(response);
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   static Map<String, dynamic> _decode(http.Response response) {
     try {
       return jsonDecode(response.body) as Map<String, dynamic>;
