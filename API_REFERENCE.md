@@ -6,6 +6,33 @@
 
 ---
 
+## Quick Endpoint Reference
+
+**Booking (3 endpoints)**
+- POST /api/bookings — Single slot
+- POST /api/bookings/batch — Multiple slots
+- PATCH /api/bookings/{id}/status — Update status
+
+**Slot Management - Player (7 endpoints)**
+- GET /api/slots/{slotId}/participants — Get players
+- GET /api/slots/{slotId}/join-status — Check join status
+- POST /api/slots/{slotId}/join — Request to join
+- POST /api/slots/{slotId}/last-minute — Signal capacity
+- PATCH /api/slots/{slotId}/access — Update access policy
+- PATCH /api/slot-join-requests/{id}/approve — Approve request
+- PATCH /api/slot-join-requests/{id}/reject — Reject request
+
+**Court/Slot Management - Owner (4 endpoints)**
+- POST /api/courts/slots — Create slot
+- POST /api/courts/{courtId}/recurrence — Create recurring slots
+- PATCH /api/courts/slots/{slotId}/block — Block slot
+- PATCH /api/courts/slots/{slotId}/unblock — Unblock slot
+
+**Schedule (1 endpoint)**
+- GET /api/sports-centers/{scId}/schedule — Get schedule
+
+---
+
 ## Booking APIs
 
 ### POST /api/bookings
@@ -31,6 +58,34 @@ Single slot booking.
 **Errors:**
 - 409: `SlotUnavailableException` — slot already booked
 - 4xx/5xx: `BookingApiException`
+
+---
+
+### PATCH /api/bookings/{bookingId}/status
+Update booking status (approve, reject, cancel, complete).
+
+**Request:**
+```json
+{
+  "status": "confirmed | cancelled | completed"
+}
+```
+
+**Response:** 200 OK
+```json
+{
+  "status": "confirmed | cancelled | completed"
+}
+```
+
+**Notes:**
+- `confirmed`: Approve pending booking
+- `cancelled`: Reject/cancel booking — server restores linked slot to `open`
+- `completed`: Mark as finished
+- Illegal transitions (e.g., confirmed → confirmed) return 409
+
+**Errors:**
+- 409: Illegal status transition (booking moved on)
 
 ---
 
@@ -213,6 +268,157 @@ Reject pending join request.
 
 ---
 
+## Court/Slot Management APIs
+
+### POST /api/courts/slots
+Create a single slot in a court.
+
+**Request:**
+```json
+{
+  "court_id": "uuid",
+  "start_at": "ISO8601",
+  "end_at": "ISO8601",
+  "venue_id": "uuid (optional)",
+  "status": "open | blocked | maintenance | owner (optional)",
+  "is_owner_slot": boolean (optional, default false),
+  "blocked_reason": "string (optional)"
+}
+```
+
+**Response:** 200/201 OK
+```json
+{
+  "id": "uuid",
+  "court_id": "uuid",
+  "start_at": "ISO8601",
+  "end_at": "ISO8601",
+  "status": "open | blocked | maintenance | owner",
+  "blocked_reason": "string | null",
+  "max_players": integer | null
+}
+```
+
+**Notes:**
+- `venue_id`: Real `venues.id` UUID only (server validates). Pass null for venue-less "Chung" lane.
+- `status: owner` and `is_owner_slot: true` imply each other server-side
+- Occurrences overlapping same lane (same venue_id or both NULL) return 409
+
+**Errors:**
+- 400: Invalid venue_id (not found, doesn't belong to court, inactive)
+- 404: Court not found
+- 409: Overlapping slot already exists on same lane
+
+---
+
+### POST /api/courts/{courtId}/recurrence
+Create recurring weekly slots (OPEN only).
+
+**Request:**
+```json
+{
+  "days_of_week": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+  "start_time": "HH:MM",
+  "end_time": "HH:MM",
+  "from_date": "YYYY-MM-DD",
+  "until_date": "YYYY-MM-DD",
+  "venue_id": "uuid (optional)"
+}
+```
+
+**Response:** 200 OK
+```json
+{
+  "created": integer,
+  "slots": [
+    {
+      "id": "uuid",
+      "court_id": "uuid",
+      "start_at": "ISO8601",
+      "end_at": "ISO8601",
+      "status": "open",
+      "max_players": integer | null
+    },
+    ...
+  ]
+}
+```
+
+**Notes:**
+- All times in UTC (backend builds occurrences with `tzinfo=utc`)
+- Max range: 90 days (returns 400 if exceed)
+- Occurrences overlapping existing slots are **silently skipped**
+- Occurrences before now or outside operating hours are **silently skipped**
+- `created` = actual count inserted (may be < requested due to skips)
+
+**Errors:**
+- 400: Invalid date range, out-of-hours, invalid venue_id
+- 404: Court not found
+
+---
+
+### PATCH /api/courts/slots/{slotId}/block
+Block a slot (change status to blocked/maintenance/owner).
+
+**Request:**
+```json
+{
+  "status": "blocked | maintenance | owner (optional)",
+  "blocked_reason": "string (optional)"
+}
+```
+
+**Response:** 200 OK
+```json
+{
+  "id": "uuid",
+  "court_id": "uuid",
+  "start_at": "ISO8601",
+  "end_at": "ISO8601",
+  "status": "blocked | maintenance | owner",
+  "blocked_reason": "string | null",
+  "is_owner_slot": boolean
+}
+```
+
+**Notes:**
+- Server keeps `is_owner_slot` in sync with chosen status
+- Empty reason field OMITS it from request (server behavior on pre-existing reason unspecified)
+- Cannot block a slot with active booking
+
+**Errors:**
+- 409: Slot currently booked
+
+---
+
+### PATCH /api/courts/slots/{slotId}/unblock
+Restore slot to open (remove block).
+
+**Request:** (no body)
+
+**Response:** 200 OK
+```json
+{
+  "id": "uuid",
+  "court_id": "uuid",
+  "start_at": "ISO8601",
+  "end_at": "ISO8601",
+  "status": "open",
+  "blocked_reason": null,
+  "is_owner_slot": false
+}
+```
+
+**Notes:**
+- Clears block reason
+- Resets `is_owner_slot` to false
+- Works on blocked, maintenance, or owner slots
+
+**Errors:**
+- 409: Slot has active booking (cannot be freed)
+
+---
+
 ## Schedule APIs
 
 ### GET /api/sports-centers/{scId}/schedule
@@ -305,7 +511,12 @@ try {
 
 ## Implementation Files
 
-**API Client:** `lib/core/services/booking_api_client.dart`
+**Booking API Client:** `apps/customer/lib/core/services/booking_api_client.dart`
+
+**Schedule/Court API Client:** `apps/dashboard/lib/features/venue_schedule/repository/schedule_api_client.dart`
+- Court slot creation, recurrence, blocking/unblocking
+- Booking status updates
+- Dio HTTP client with error mapping to Vietnamese messages
 
 **Slot Management:** 
 - Cubit: `apps/customer/lib/features/slots/cubit/participant_management_cubit.dart`
