@@ -75,6 +75,23 @@ class ParticipantManagementScreen extends StatelessWidget {
             ParticipantManagementLoading() => const Center(
                 child: CircularProgressIndicator(),
               ),
+            ParticipantManagementError() => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: Color(0xFFEF4444)),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 14, color: _mdOnSurface),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ParticipantManagementLoaded() => _LoadedBody(state: state),
           };
         },

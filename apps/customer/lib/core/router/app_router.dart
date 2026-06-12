@@ -308,8 +308,12 @@ GoRouter buildRouter() {
         pageBuilder: (context, state) => _fadePage(
           state,
           BlocProvider(
-            create: (_) => ParticipantManagementCubit()
-              ..loadSeedData(state.pathParameters['id']!),
+            create: (_) => ParticipantManagementCubit(
+              api: BookingApiClient(
+                supabase: Supabase.instance.client,
+                baseUrl: Env.apiBaseUrl,
+              ),
+            )..loadParticipants(state.pathParameters['id']!),
             child: const ParticipantManagementScreen(),
           ),
         ),

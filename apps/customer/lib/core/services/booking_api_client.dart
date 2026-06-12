@@ -202,6 +202,28 @@ class BookingApiClient {
     );
   }
 
+  /// `GET /api/slots/{slotId}/participants` — fetch confirmed participants and
+  /// pending join requests for a slot.
+  ///
+  /// Returns { confirmed: [...], pending: [...], maxPlayers: int }.
+  /// Throws [BookingApiException] on errors.
+  Future<Map<String, dynamic>> getSlotParticipants(String slotId) async {
+    final response = await _send(() => _http.get(
+          Uri.parse('$_baseUrl/api/slots/$slotId/participants'),
+          headers: _headers(),
+        ));
+
+    if (response.statusCode == 200) {
+      return _decode(response);
+    }
+    final body = _decode(response);
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   static Map<String, dynamic> _decode(http.Response response) {
     try {
       return jsonDecode(response.body) as Map<String, dynamic>;

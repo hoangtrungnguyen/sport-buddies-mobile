@@ -62,6 +62,11 @@ sealed class ParticipantManagementState {}
 
 final class ParticipantManagementLoading extends ParticipantManagementState {}
 
+final class ParticipantManagementError extends ParticipantManagementState {
+  ParticipantManagementError(this.message);
+  final String message;
+}
+
 final class ParticipantManagementLoaded extends ParticipantManagementState {
   ParticipantManagementLoaded({
     required this.confirmed,
