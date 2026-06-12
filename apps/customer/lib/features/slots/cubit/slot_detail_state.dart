@@ -20,6 +20,7 @@ final class SlotDetailLoaded extends SlotDetailState {
     this.slot, {
     this.joinStatus = SlotJoinStatus.none,
     this.joining = false,
+    this.signalingLastMinute = false,
     this.errorMessage,
   });
 
@@ -31,18 +32,23 @@ final class SlotDetailLoaded extends SlotDetailState {
   /// A join request is in-flight.
   final bool joining;
 
+  /// Last-minute capacity signal is in-flight.
+  final bool signalingLastMinute;
+
   /// Transient error surfaced via snackbar (cleared on the next action).
   final String? errorMessage;
 
   SlotDetailLoaded copyWith({
     SlotJoinStatus? joinStatus,
     bool? joining,
+    bool? signalingLastMinute,
     String? errorMessage,
   }) =>
       SlotDetailLoaded(
         slot,
         joinStatus: joinStatus ?? this.joinStatus,
         joining: joining ?? this.joining,
+        signalingLastMinute: signalingLastMinute ?? this.signalingLastMinute,
         errorMessage: errorMessage,
       );
 }

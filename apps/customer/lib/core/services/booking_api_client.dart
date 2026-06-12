@@ -247,6 +247,25 @@ class BookingApiClient {
     );
   }
 
+  /// `POST /api/slots/{slotId}/last-minute` — slot owner signals last-minute
+  /// capacity is available for additional players to join quickly.
+  ///
+  /// Throws [BookingApiException] on errors.
+  Future<void> signalLastMinuteCapacity(String slotId) async {
+    final response = await _send(() => _http.post(
+          Uri.parse('$_baseUrl/api/slots/$slotId/last-minute'),
+          headers: _headers(),
+        ));
+
+    if (response.statusCode == 200) return;
+    final body = _decode(response);
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   static Map<String, dynamic> _decode(http.Response response) {
     try {
       return jsonDecode(response.body) as Map<String, dynamic>;

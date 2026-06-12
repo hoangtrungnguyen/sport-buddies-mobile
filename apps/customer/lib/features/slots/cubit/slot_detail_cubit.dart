@@ -70,6 +70,32 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
     }
   }
 
+  /// Signals last-minute capacity for [slotId] via the REST API.
+  /// Called by slot owner to indicate available spots for quick joining.
+  Future<void> signalLastMinuteCapacity(String slotId) async {
+    final s = state;
+    if (s is! SlotDetailLoaded || s.signalingLastMinute) return;
+    emit(s.copyWith(signalingLastMinute: true));
+    try {
+      await _api.signalLastMinuteCapacity(slotId);
+      emit(s.copyWith(
+        signalingLastMinute: false,
+        errorMessage: 'Đã thông báo khả năng ghép cuối cùng.',
+      ));
+    } on NoConnectionException {
+      emit(s.copyWith(
+        signalingLastMinute: false,
+        errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
+      ));
+    } catch (e, st) {
+      appLogger.e('SlotDetailCubit.signalLastMinuteCapacity', error: e, stackTrace: st);
+      emit(s.copyWith(
+        signalingLastMinute: false,
+        errorMessage: 'Không gửi được thông báo, thử lại sau.',
+      ));
+    }
+  }
+
   static SlotJoinStatus _parseJoinStatus(String? raw) => switch (raw) {
         'pending' => SlotJoinStatus.pending,
         'approved' => SlotJoinStatus.approved,
