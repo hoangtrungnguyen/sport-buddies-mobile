@@ -5,6 +5,10 @@ import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/auth/view/forgot_password_screen.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
 import 'package:dashboard/features/auth/view/signup_screen.dart';
+import 'package:dashboard/features/home/bloc/home_bloc.dart';
+import 'package:dashboard/features/home/bloc/home_event.dart';
+import 'package:dashboard/features/home/repository/home_repository.dart';
+import 'package:dashboard/features/home/view/home_screen.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_event.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
@@ -141,8 +145,14 @@ GoRouter buildRouter() {
           GoRoute(
             path: '/',
             pageBuilder: (context, state) => _fadePage(
-                state,
-                const _PlaceholderScreen('Trang chủ', Icons.home_outlined)),
+              state,
+              BlocProvider(
+                create: (_) =>
+                    HomeBloc(repository: sl<HomeRepository>())
+                      ..add(const HomeEvent.started()),
+                child: const HomeScreen(),
+              ),
+            ),
           ),
           GoRoute(
             path: '/requests',

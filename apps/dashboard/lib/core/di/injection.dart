@@ -1,5 +1,7 @@
 import 'package:dashboard/core/router/app_router.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
+import 'package:dashboard/features/home/repository/home_repository.dart';
+import 'package:dashboard/features/home/repository/home_repository_impl.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
@@ -19,6 +21,10 @@ final sl = GetIt.instance;
 Future<void> configureDependencies() async {
   sl.registerLazySingleton<OwnerAuthRepository>(
     () => OwnerAuthRepository(),
+  );
+
+  sl.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(),
   );
 
   sl.registerLazySingleton<OwnerCourtRepository>(
