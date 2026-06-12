@@ -224,6 +224,29 @@ class BookingApiClient {
     );
   }
 
+  /// `GET /api/slots/{slotId}/join-status` — fetch the current player's join
+  /// request status for the slot.
+  ///
+  /// Returns { status: 'none' | 'pending' | 'approved' | 'rejected' }.
+  /// Throws [BookingApiException] on errors.
+  Future<String> getSlotJoinStatus(String slotId) async {
+    final response = await _send(() => _http.get(
+          Uri.parse('$_baseUrl/api/slots/$slotId/join-status'),
+          headers: _headers(),
+        ));
+
+    if (response.statusCode == 200) {
+      final body = _decode(response);
+      return body['status'] as String? ?? 'none';
+    }
+    final body = _decode(response);
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   static Map<String, dynamic> _decode(http.Response response) {
     try {
       return jsonDecode(response.body) as Map<String, dynamic>;

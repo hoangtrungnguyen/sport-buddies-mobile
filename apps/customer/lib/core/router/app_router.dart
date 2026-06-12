@@ -293,7 +293,6 @@ GoRouter buildRouter() {
           BlocProvider(
             create: (_) => SlotDetailCubit(
               SupabaseSlotRepository(client: Supabase.instance.client),
-              client: Supabase.instance.client,
               apiClient: BookingApiClient(
                 supabase: Supabase.instance.client,
                 baseUrl: Env.apiBaseUrl,

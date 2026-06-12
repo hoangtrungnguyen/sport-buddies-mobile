@@ -3,21 +3,17 @@ import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:customer/core/services/booking_api_client.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'slot_detail_state.dart';
 
 class SlotDetailCubit extends Cubit<SlotDetailState> {
   SlotDetailCubit(
     this._repository, {
-    required SupabaseClient client,
     required BookingApiClient apiClient,
-  })  : _client = client,
-        _api = apiClient,
+  })  : _api = apiClient,
         super(const SlotDetailInitial());
 
   final SlotRepository _repository;
-  final SupabaseClient _client;
   final BookingApiClient _api;
 
   Future<void> loadSlot(String slotId) async {
@@ -33,19 +29,14 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
     );
   }
 
-  /// Reads this player's join status for [slotId] directly from Supabase
-  /// (reads stay on Supabase; only the write goes through the REST API).
+  /// Fetches this player's join status for [slotId] via the REST API.
   Future<SlotJoinStatus> _fetchJoinStatus(String slotId) async {
-    final userId = _client.auth.currentSession?.user.id;
-    if (userId == null) return SlotJoinStatus.none;
     try {
-      final row = await _client
-          .from('slot_join_requests')
-          .select('status')
-          .eq('slot_id', slotId)
-          .eq('user_id', userId)
-          .maybeSingle();
-      return _parseJoinStatus(row?['status'] as String?);
+      final status = await _api.getSlotJoinStatus(slotId);
+      return _parseJoinStatus(status);
+    } on NoConnectionException {
+      appLogger.w('SlotDetailCubit._fetchJoinStatus: no connection');
+      return SlotJoinStatus.none;
     } catch (e, st) {
       appLogger.w('SlotDetailCubit._fetchJoinStatus failed',
           error: e, stackTrace: st);
