@@ -14,6 +14,7 @@ abstract class Venue with _$Venue {
     required int capacity,
     required int pricePerHour,
     required bool isActive,
+    @Default(false) bool indoor,
   }) = _Venue;
 
   factory Venue.fromJson(Map<String, dynamic> json) {
@@ -25,6 +26,7 @@ abstract class Venue with _$Venue {
       capacity: (json['capacity'] as num?)?.toInt() ?? 1,
       pricePerHour: (json['price_per_hour'] as num?)?.toInt() ?? 0,
       isActive: (json['status'] as String?) != 'inactive',
+      indoor: (json['indoor'] as bool?) ?? false,
     );
   }
 }

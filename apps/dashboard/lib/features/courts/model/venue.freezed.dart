@@ -21,6 +21,7 @@ mixin _$Venue {
   int get capacity;
   int get pricePerHour;
   bool get isActive;
+  bool get indoor;
 
   /// Create a copy of Venue
   /// with the given fields replaced by the non-null parameter values.
@@ -44,16 +45,17 @@ mixin _$Venue {
             (identical(other.pricePerHour, pricePerHour) ||
                 other.pricePerHour == pricePerHour) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.indoor, indoor) || other.indoor == indoor));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, courtId, name, sportType,
-      capacity, pricePerHour, isActive);
+      capacity, pricePerHour, isActive, indoor);
 
   @override
   String toString() {
-    return 'Venue(id: $id, courtId: $courtId, name: $name, sportType: $sportType, capacity: $capacity, pricePerHour: $pricePerHour, isActive: $isActive)';
+    return 'Venue(id: $id, courtId: $courtId, name: $name, sportType: $sportType, capacity: $capacity, pricePerHour: $pricePerHour, isActive: $isActive, indoor: $indoor)';
   }
 }
 
@@ -69,7 +71,8 @@ abstract mixin class $VenueCopyWith<$Res> {
       String sportType,
       int capacity,
       int pricePerHour,
-      bool isActive});
+      bool isActive,
+      bool indoor});
 }
 
 /// @nodoc
@@ -91,6 +94,7 @@ class _$VenueCopyWithImpl<$Res> implements $VenueCopyWith<$Res> {
     Object? capacity = null,
     Object? pricePerHour = null,
     Object? isActive = null,
+    Object? indoor = null,
   }) {
     return _then(_self.copyWith(
       id: null == id
@@ -120,6 +124,10 @@ class _$VenueCopyWithImpl<$Res> implements $VenueCopyWith<$Res> {
       isActive: null == isActive
           ? _self.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
+              as bool,
+      indoor: null == indoor
+          ? _self.indoor
+          : indoor // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }
@@ -219,7 +227,7 @@ extension VenuePatterns on Venue {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(String id, String courtId, String name, String sportType,
-            int capacity, int pricePerHour, bool isActive)?
+            int capacity, int pricePerHour, bool isActive, bool indoor)?
         $default, {
     required TResult orElse(),
   }) {
@@ -227,7 +235,7 @@ extension VenuePatterns on Venue {
     switch (_that) {
       case _Venue() when $default != null:
         return $default(_that.id, _that.courtId, _that.name, _that.sportType,
-            _that.capacity, _that.pricePerHour, _that.isActive);
+            _that.capacity, _that.pricePerHour, _that.isActive, _that.indoor);
       case _:
         return orElse();
     }
@@ -249,14 +257,14 @@ extension VenuePatterns on Venue {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(String id, String courtId, String name, String sportType,
-            int capacity, int pricePerHour, bool isActive)
+            int capacity, int pricePerHour, bool isActive, bool indoor)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Venue():
         return $default(_that.id, _that.courtId, _that.name, _that.sportType,
-            _that.capacity, _that.pricePerHour, _that.isActive);
+            _that.capacity, _that.pricePerHour, _that.isActive, _that.indoor);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -277,14 +285,14 @@ extension VenuePatterns on Venue {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(String id, String courtId, String name, String sportType,
-            int capacity, int pricePerHour, bool isActive)?
+            int capacity, int pricePerHour, bool isActive, bool indoor)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _Venue() when $default != null:
         return $default(_that.id, _that.courtId, _that.name, _that.sportType,
-            _that.capacity, _that.pricePerHour, _that.isActive);
+            _that.capacity, _that.pricePerHour, _that.isActive, _that.indoor);
       case _:
         return null;
     }
@@ -301,7 +309,8 @@ class _Venue extends Venue {
       required this.sportType,
       required this.capacity,
       required this.pricePerHour,
-      required this.isActive})
+      required this.isActive,
+      this.indoor = false})
       : super._();
 
   @override
@@ -318,6 +327,9 @@ class _Venue extends Venue {
   final int pricePerHour;
   @override
   final bool isActive;
+  @override
+  @JsonKey()
+  final bool indoor;
 
   /// Create a copy of Venue
   /// with the given fields replaced by the non-null parameter values.
@@ -342,16 +354,17 @@ class _Venue extends Venue {
             (identical(other.pricePerHour, pricePerHour) ||
                 other.pricePerHour == pricePerHour) &&
             (identical(other.isActive, isActive) ||
-                other.isActive == isActive));
+                other.isActive == isActive) &&
+            (identical(other.indoor, indoor) || other.indoor == indoor));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, id, courtId, name, sportType,
-      capacity, pricePerHour, isActive);
+      capacity, pricePerHour, isActive, indoor);
 
   @override
   String toString() {
-    return 'Venue(id: $id, courtId: $courtId, name: $name, sportType: $sportType, capacity: $capacity, pricePerHour: $pricePerHour, isActive: $isActive)';
+    return 'Venue(id: $id, courtId: $courtId, name: $name, sportType: $sportType, capacity: $capacity, pricePerHour: $pricePerHour, isActive: $isActive, indoor: $indoor)';
   }
 }
 
@@ -368,7 +381,8 @@ abstract mixin class _$VenueCopyWith<$Res> implements $VenueCopyWith<$Res> {
       String sportType,
       int capacity,
       int pricePerHour,
-      bool isActive});
+      bool isActive,
+      bool indoor});
 }
 
 /// @nodoc
@@ -390,6 +404,7 @@ class __$VenueCopyWithImpl<$Res> implements _$VenueCopyWith<$Res> {
     Object? capacity = null,
     Object? pricePerHour = null,
     Object? isActive = null,
+    Object? indoor = null,
   }) {
     return _then(_Venue(
       id: null == id
@@ -419,6 +434,10 @@ class __$VenueCopyWithImpl<$Res> implements _$VenueCopyWith<$Res> {
       isActive: null == isActive
           ? _self.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
+              as bool,
+      indoor: null == indoor
+          ? _self.indoor
+          : indoor // ignore: cast_nullable_to_non_nullable
               as bool,
     ));
   }

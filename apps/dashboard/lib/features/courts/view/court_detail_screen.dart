@@ -446,10 +446,20 @@ class _VenueRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(venue.name, style: theme.textTheme.titleSmall),
-                Text(
-                  '${venue.sportType} · ${venue.capacity} người',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
+                Row(
+                  children: [
+                    Icon(venue.indoor ? Symbols.roofing : Symbols.sunny,
+                        size: 14, color: scheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${venue.sportType} · ${venue.indoor ? 'Trong nhà' : 'Ngoài trời'}',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: scheme.onSurfaceVariant),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -563,6 +573,7 @@ class _VenueDialogState extends State<_VenueDialog> {
   late String _sport = widget.venue?.sportType.isNotEmpty == true
       ? widget.venue!.sportType
       : kSportTypes.first;
+  late bool _indoor = widget.venue?.indoor ?? false;
   bool _saving = false;
 
   bool get _isEdit => widget.venue != null;
@@ -588,14 +599,16 @@ class _VenueDialogState extends State<_VenueDialog> {
             name: _name.text.trim(),
             sportType: _sport,
             capacity: capacity,
-            pricePerHour: price);
+            pricePerHour: price,
+            indoor: _indoor);
       } else {
         await widget.repo.create(
             courtId: widget.courtId,
             name: _name.text.trim(),
             sportType: _sport,
             capacity: capacity,
-            pricePerHour: price);
+            pricePerHour: price,
+            indoor: _indoor);
       }
       widget.bloc.add(const VenueEvent.reloadRequested());
       nav.pop();
@@ -670,6 +683,25 @@ class _VenueDialogState extends State<_VenueDialog> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 16),
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: true,
+                  icon: Icon(Symbols.roofing, size: 18),
+                  label: Text('Trong nhà'),
+                ),
+                ButtonSegment(
+                  value: false,
+                  icon: Icon(Symbols.sunny, size: 18),
+                  label: Text('Ngoài trời'),
+                ),
+              ],
+              selected: {_indoor},
+              onSelectionChanged: (s) {
+                setState(() => _indoor = s.first);
+              },
             ),
           ],
         ),
@@ -784,6 +816,7 @@ class _BulkVenueSheetState extends State<_BulkVenueSheet> {
           sportType: rows[i].sportType,
           capacity: 1,
           pricePerHour: rows[i].pricePerHour,
+          indoor: rows[i].indoor,
         );
         created++;
       }

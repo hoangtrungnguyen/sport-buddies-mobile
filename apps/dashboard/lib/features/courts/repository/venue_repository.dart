@@ -14,7 +14,7 @@ class VenueRepository {
   final SupabaseClient _client;
 
   static const _cols =
-      'id, court_id, name, sport_type, capacity, price_per_hour, status';
+      'id, court_id, name, sport_type, capacity, price_per_hour, status, indoor';
 
   /// One-query summary (count + distinct sports) per court, for the My-courts
   /// grid cards. Read-only; RLS scopes `venues` to the owner's courts.
@@ -66,6 +66,7 @@ class VenueRepository {
     required String sportType,
     required int capacity,
     required int pricePerHour,
+    bool indoor = false,
   }) async {
     try {
       final row = await _client
@@ -77,6 +78,7 @@ class VenueRepository {
             'capacity': capacity,
             'price_per_hour': pricePerHour,
             'status': 'active',
+            'indoor': indoor,
           })
           .select(_cols)
           .single();
@@ -93,16 +95,19 @@ class VenueRepository {
     required String sportType,
     required int capacity,
     required int pricePerHour,
+    bool? indoor,
   }) async {
     try {
+      final data = {
+        'name': name,
+        'sport_type': sportType,
+        'capacity': capacity,
+        'price_per_hour': pricePerHour,
+      };
+      if (indoor != null) data['indoor'] = indoor;
       final row = await _client
           .from('venues')
-          .update({
-            'name': name,
-            'sport_type': sportType,
-            'capacity': capacity,
-            'price_per_hour': pricePerHour,
-          })
+          .update(data)
           .eq('id', id)
           .select(_cols)
           .single();
