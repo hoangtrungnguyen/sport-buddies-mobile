@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/court_repository.dart';
 import '../data/fake_court_repository.dart';
 import '../data/fake_slot_repository.dart';
+import '../domain/booking_draft.dart';
 import '../domain/court.dart';
 import '../domain/schedule.dart';
 import '../theme/app_tokens.dart';
@@ -90,6 +91,68 @@ class _SchedulePageState extends State<SchedulePage> {
     });
   }
 
+  /// Edge E7 — assemble the [BookingDraft] from the selected grid cells and
+  /// hand it to the booking wizard. The grid spans multiple courts, so each
+  /// cell becomes a [SlotSelection] carrying its own court; the summary-card
+  /// identity is the single court when only one is selected, else the center.
+  void _continueToBooking() {
+    final center = _center;
+    final day = _day;
+    if (center == null || day == null || _selection.isEmpty) return;
+
+    final raw = _dates[_dateIndex];
+    final date = DateTime(raw.year, raw.month, raw.day);
+    final isoDate = date.toIso8601String().substring(0, 10);
+
+    Court courtOf(String id) => center.courts
+        .firstWhere((c) => c.id == id, orElse: () => center.courts.first);
+
+    int startHourOf(int col) =>
+        col >= 0 && col < day.hourLabels.length
+            ? int.tryParse(day.hourLabels[col].substring(0, 2)) ?? 0
+            : 0;
+
+    // Stable order: by court row, then by time column.
+    final refs = _selection.toList()
+      ..sort((a, b) {
+        final ca = center.courts.indexWhere((c) => c.id == a.courtId);
+        final cb = center.courts.indexWhere((c) => c.id == b.courtId);
+        return ca != cb ? ca.compareTo(cb) : a.hour.compareTo(b.hour);
+      });
+
+    final slots = refs.map((ref) {
+      final court = courtOf(ref.courtId);
+      final sh = startHourOf(ref.hour);
+      final start = DateTime(date.year, date.month, date.day, sh);
+      return SlotSelection(
+        slotId: '${ref.courtId}_${isoDate}_$sh',
+        courtId: ref.courtId,
+        courtLabel: court.name,
+        date: date,
+        start: start,
+        end: start.add(const Duration(hours: 2)),
+        priceVnd: _cellPriceVnd,
+      );
+    }).toList();
+
+    final courtIds = slots.map((s) => s.courtId).toSet();
+    final single = courtIds.length == 1 ? courtOf(courtIds.first) : null;
+    final identity = single ?? center.courts.first;
+
+    final draft = BookingDraft(
+      centerId: widget.centerId,
+      courtId: single?.id ?? widget.centerId,
+      courtLabel:
+          single != null ? '${center.name} · ${single.name}' : center.name,
+      address: identity.address,
+      sport: identity.sports.isNotEmpty ? identity.sports.first : Sport.multi,
+      date: date,
+      slots: slots,
+    );
+
+    context.push('/browse/booking/confirm', extra: draft);
+  }
+
   @override
   Widget build(BuildContext context) {
     final center = _center;
@@ -154,7 +217,7 @@ class _SchedulePageState extends State<SchedulePage> {
             selection: _selection,
             cellPriceVnd: _cellPriceVnd,
             onClear: () => setState(_selection.clear),
-            onContinue: () => context.push('/browse/booking/confirm'),
+            onContinue: _continueToBooking,
           ),
         ],
       ],
