@@ -192,6 +192,7 @@ class _MapContentState extends State<_MapContent>
                       onSearch: () => setState(() => _searchOpen = true),
                       onOpenFilter: () =>
                           _showFilterSheet(context, allCourts, userPos),
+                      onRefresh: () => context.read<MapCubit>().loadCourts(),
                       onSelectAll: () =>
                           context.read<MapFilterCubit>().filterBySports([]),
                       onToggleSport: (sport) {
@@ -256,7 +257,6 @@ class _MapContentState extends State<_MapContent>
                               onReset: () =>
                                   context.read<MapFilterCubit>().clearAll(),
                             ),
-                          // PeekSheet moved to outer Stack for slide animation
                         ],
                       ),
                     ),
@@ -453,6 +453,7 @@ class _MapHeader extends StatelessWidget {
     required this.selectedSports,
     required this.onSearch,
     required this.onOpenFilter,
+    required this.onRefresh,
     required this.onSelectAll,
     required this.onToggleSport,
   });
@@ -464,8 +465,9 @@ class _MapHeader extends StatelessWidget {
   final Set<String> selectedSports;
   final VoidCallback onSearch;
   final VoidCallback onOpenFilter;
-  final VoidCallback onSelectAll;
+  final VoidCallback onRefresh;
   final void Function(String sport) onToggleSport;
+  final VoidCallback onSelectAll;
 
   String get _subtitle {
     if (isLoading) return 'Đang cập nhật…';
@@ -512,6 +514,35 @@ class _MapHeader extends StatelessWidget {
                     ],
                   ),
                 ),
+                // Refresh icon button
+                Semantics(
+                  label: 'Làm mới',
+                  button: true,
+                  child: InkWell(
+                    onTap: isLoading ? null : onRefresh,
+                    borderRadius: BorderRadius.circular(99),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: _mdOutlineVariant),
+                        color: _mdSurface,
+                      ),
+                      child: isLoading
+                          ? const Padding(
+                              padding: EdgeInsets.all(11),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: _mdOnSurfaceVariant,
+                              ),
+                            )
+                          : const Icon(Icons.refresh,
+                              size: 20, color: _mdOnSurfaceVariant),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 // Filter icon button
                 Semantics(
                   label: 'Bộ lọc',

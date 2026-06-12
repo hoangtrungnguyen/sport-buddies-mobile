@@ -25,7 +25,9 @@ sealed class MapTileProvider {
   factory MapTileProvider.fromEnv() {
     switch (Env.mapProvider) {
       case 'vietmap':
-        final key = Env.vietmapApiKey;
+        // Trim: env-injected keys can carry trailing whitespace, which would
+        // corrupt the `?apikey=` query and silently blank the vector map.
+        final key = Env.vietmapApiKey.trim();
         if (key.isEmpty) return const OpenStreetMapTileProvider();
         return VietMapGLProvider(apiKey: key);
       case 'general':
