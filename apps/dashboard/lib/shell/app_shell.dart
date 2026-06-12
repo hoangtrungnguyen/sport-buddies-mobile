@@ -21,32 +21,24 @@ class _NavItem {
     required this.icon,
     required this.label,
     required this.route,
-    this.badge,
     this.warn = false,
   });
   final IconData icon;
   final String label;
   final String route;
-  final int? badge;
+
+  /// Tints the live badge as a warning (pending requests / unread alerts).
   final bool warn;
 }
 
 /// QUẢN LÝ (Management)
 const _managementNav = <_NavItem>[
-  _NavItem(icon: Symbols.home, label: 'Trang chủ', route: '/', badge: 3),
+  _NavItem(icon: Symbols.home, label: 'Trang chủ', route: '/'),
   _NavItem(
-      icon: Symbols.inbox,
-      label: 'Yêu cầu',
-      route: '/requests',
-      badge: 8,
-      warn: true),
+      icon: Symbols.inbox, label: 'Yêu cầu', route: '/requests', warn: true),
   _NavItem(
       icon: Symbols.calendar_month, label: 'Lịch sân', route: '/schedule'),
-  _NavItem(
-      icon: Symbols.autorenew,
-      label: 'Lịch cố định',
-      route: '/fixed',
-      badge: 6),
+  _NavItem(icon: Symbols.autorenew, label: 'Lịch cố định', route: '/fixed'),
   _NavItem(icon: Symbols.monitoring, label: 'Thống kê', route: '/analytics'),
   _NavItem(icon: Symbols.stadium, label: 'Sân của tôi', route: '/courts'),
   _NavItem(icon: Symbols.group, label: 'Khách hàng', route: '/players'),
@@ -58,7 +50,6 @@ const _systemNav = <_NavItem>[
       icon: Symbols.notifications,
       label: 'Thông báo',
       route: '/notifications',
-      badge: 4,
       warn: true),
   _NavItem(icon: Symbols.settings, label: 'Cài đặt sân', route: '/settings'),
   _NavItem(icon: Symbols.help, label: 'Hỗ trợ', route: '/support'),
@@ -598,6 +589,15 @@ int? _liveRequestsBadge(BuildContext context) {
   return pending > 0 ? pending : null;
 }
 
+/// Live unread-notifications badge for the `/notifications` destination.
+int? _liveNotificationsBadge(BuildContext context) {
+  final unread = context.select<NotificationBloc, int>((bloc) {
+    final s = bloc.state;
+    return s is NotificationLoaded ? s.unreadCount : 0;
+  });
+  return unread > 0 ? unread : null;
+}
+
 // ---------------------------------------------------------------------------
 // Expanded navigation drawer (≥1100px / modal on compact — guide §4)
 // ---------------------------------------------------------------------------
@@ -637,6 +637,9 @@ class _NavDrawer extends StatelessWidget {
                     _NavRow(
                       item: _systemNav[i],
                       active: selected == _managementNav.length + i,
+                      liveBadge: _systemNav[i].route == '/notifications'
+                          ? _liveNotificationsBadge(context)
+                          : null,
                     ),
                 ],
               ),
@@ -755,7 +758,7 @@ class _NavRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final badge = liveBadge ?? item.badge;
+    final badge = liveBadge;
     final fg = active ? scheme.onSecondaryContainer : scheme.onSurfaceVariant;
 
     return Padding(
