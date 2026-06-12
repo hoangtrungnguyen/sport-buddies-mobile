@@ -1,13 +1,8 @@
 // Real [BookingRepository] — writes through the core-engine booking API,
 // listens over Supabase Realtime (handoff doc 04 §7 "real mapping").
 //
-// Backend constraint: `POST /api/bookings` claims ONE slot per call (there is
-// no multi-slot atomic endpoint yet). For a multi-slot draft we claim slots
-// sequentially and watch the first booking. If a later slot loses the race we
-// surface [SlotTakenException]; the slots already claimed remain (true
-// multi-slot atomicity needs a server-side `create_booking(uuid[])` RPC —
-// tracked separately). Single-slot bookings — the common case for the
-// GTM-1-court phase — are fully atomic.
+// Multi-slot bookings use the atomic `POST /api/bookings/batch` endpoint.
+// Single-slot bookings fall back to `POST /api/bookings` for compatibility.
 
 import 'dart:async';
 
@@ -41,16 +36,28 @@ class ApiBookingRepository implements BookingRepository {
 
     String? primaryBookingId;
     try {
-      for (final slot in draft.slots) {
-        final id = await _api.createBooking(
-          slotId: slot.slotId,
+      // Use batch endpoint for multiple slots, single endpoint for one slot
+      final slotIds = draft.slots.map((s) => s.slotId).toList();
+      if (slotIds.length > 1) {
+        final ids = await _api.createBatchBooking(
+          slotIds: slotIds,
           customerName: contact.name,
           customerPhone: contact.phone,
           notes: contact.note,
         );
-        primaryBookingId ??= id;
+        primaryBookingId = ids.isNotEmpty ? ids.first : null;
+      } else {
+        primaryBookingId = await _api.createBooking(
+          slotId: slotIds.first,
+          customerName: contact.name,
+          customerPhone: contact.phone,
+          notes: contact.note,
+        );
+      }
 
-        if (access == AccessPolicy.open) {
+      // Update slot access if open play-together
+      if (access == AccessPolicy.open) {
+        for (final slot in draft.slots) {
           await _api.updateSlotAccess(
             slotId: slot.slotId,
             accessPolicy: 'open',
@@ -73,8 +80,12 @@ class ApiBookingRepository implements BookingRepository {
       throw const BookingFailedException();
     }
 
+    if (primaryBookingId == null) {
+      throw const BookingFailedException('no booking id returned');
+    }
+
     return Booking(
-      id: primaryBookingId!,
+      id: primaryBookingId,
       status: BookingStatus.pending,
       centerId: draft.centerId,
       courtId: draft.courtId,

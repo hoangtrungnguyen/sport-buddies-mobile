@@ -129,6 +129,44 @@ class BookingApiClient {
     );
   }
 
+  /// `POST /api/bookings/batch` — atomically books multiple slots at once.
+  ///
+  /// Returns list of created booking ids. Throws [SlotUnavailableException]
+  /// on 409 (one or more slots not open), [BookingApiException] on other errors.
+  Future<List<String>> createBatchBooking({
+    required List<String> slotIds,
+    String? customerName,
+    String? customerPhone,
+    String? notes,
+  }) async {
+    final response = await _send(() => _http.post(
+          Uri.parse('$_baseUrl/api/bookings/batch'),
+          headers: _headers(),
+          body: jsonEncode({
+            'slot_ids': slotIds,
+            if (customerName != null && customerName.isNotEmpty)
+              'customer_name': customerName,
+            if (customerPhone != null && customerPhone.isNotEmpty)
+              'customer_phone': customerPhone,
+            if (notes != null && notes.isNotEmpty) 'notes': notes,
+          }),
+        ));
+
+    final body = _decode(response);
+    if (response.statusCode == 201) {
+      final ids = body['ids'] as List<dynamic>? ?? [];
+      return ids.map((id) => id as String).toList();
+    }
+    if (response.statusCode == 409) {
+      throw SlotUnavailableException(body['detail'] as String?);
+    }
+    throw BookingApiException(
+      response.statusCode,
+      body['error'] as String? ?? 'unknown',
+      body['detail'] as String?,
+    );
+  }
+
   /// `POST /api/slots/{slotId}/join` — player requests to join an open
   /// slot. Creates a pending `slot_join_requests` row.
   ///
