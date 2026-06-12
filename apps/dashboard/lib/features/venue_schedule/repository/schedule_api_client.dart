@@ -57,7 +57,7 @@ class ApiRecurrenceResult {
 /// of `slots` / `bookings` goes through here so role enforcement, overlap
 /// checks and notifications stay server-side.
 ///
-/// Auth/transport mirror `HttpManualBookingRepository`: the owner's Supabase
+/// Auth/transport: the owner's Supabase
 /// session access token is sent as the Bearer credential, all non-2xx
 /// responses are mapped to [ScheduleRepositoryException] with Vietnamese
 /// user-facing messages (raw server text is never surfaced).

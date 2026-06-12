@@ -3,8 +3,6 @@ import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
-import 'package:dashboard/features/schedule/repository/manual_booking_repository.dart';
-import 'package:dashboard/features/schedule/repository/owner_slot_repository.dart';
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
 import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
@@ -31,14 +29,6 @@ Future<void> configureDependencies() async {
     () => VenueRepository(Supabase.instance.client),
   );
 
-  sl.registerLazySingleton<OwnerSlotRepository>(
-    () => SupabaseOwnerSlotRepository(Supabase.instance.client),
-  );
-
-  sl.registerLazySingleton<ManualBookingRepository>(
-    () => HttpManualBookingRepository(),
-  );
-
   sl.registerLazySingleton<NotificationRepository>(
     () => NotificationRepository(Supabase.instance.client),
   );
@@ -57,8 +47,7 @@ Future<void> configureDependencies() async {
 
   // "Lịch sân" (venue_schedule) — reads stay direct-to-Supabase; every
   // mutation (slot create/block/unblock, booking status) goes through the
-  // Django backend via this Dio client (same auth pattern as
-  // HttpManualBookingRepository).
+  // Django backend via this Dio client, forwarding the owner's Supabase JWT.
   sl.registerLazySingleton<ScheduleApiClient>(
     () => ScheduleApiClient(),
   );

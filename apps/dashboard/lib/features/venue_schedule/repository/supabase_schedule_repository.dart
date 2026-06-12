@@ -29,7 +29,7 @@ typedef _Range = ({DateTime start, DateTime end});
 ///
 /// Column contracts mirror the verified repositories:
 /// - `slots(id, court_id, start_at, end_at, status, blocked_reason,
-///   max_players)` — `SupabaseOwnerSlotRepository`; the write endpoints
+///   max_players)`; the write endpoints
 ///   return the same columns, so API responses reuse [_slotFromRow].
 /// - `courts(id, name, operating_hours, price_per_hour)` + embedded
 ///   `venues(sport_type)` — `OwnerCourtRepository` / the requests read path.
@@ -463,9 +463,9 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       final overlaps =
           [for (final r in rows as List) (r as Map).cast<String, dynamic>()];
 
-      // Never block over a customer booking — the per-slot guard of
-      // `SupabaseOwnerSlotRepository.blockSlot`, checked up front because one
-      // range can span several slots. Kept client-side BEFORE any API call:
+      // Never block over a customer booking — a per-slot guard, checked up
+      // front because one range can span several slots. Kept client-side
+      // BEFORE any API call:
       // the backend's own 409 only fires per 'booked' slot, and 'pending'
       // bookings ride on slots the trigger already marked 'booked'.
       if (overlaps.any((r) =>
