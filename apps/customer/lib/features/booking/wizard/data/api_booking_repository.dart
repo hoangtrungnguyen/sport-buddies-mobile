@@ -39,13 +39,13 @@ class ApiBookingRepository implements BookingRepository {
       // Use batch endpoint for multiple slots, single endpoint for one slot
       final slotIds = draft.slots.map((s) => s.slotId).toList();
       if (slotIds.length > 1) {
-        final ids = await _api.createBatchBooking(
+        final bookingMap = await _api.createBatchBooking(
           slotIds: slotIds,
           customerName: contact.name,
           customerPhone: contact.phone,
           notes: contact.note,
         );
-        primaryBookingId = ids.isNotEmpty ? ids.first : null;
+        primaryBookingId = bookingMap.isNotEmpty ? bookingMap.values.first : null;
       } else {
         primaryBookingId = await _api.createBooking(
           slotId: slotIds.first,

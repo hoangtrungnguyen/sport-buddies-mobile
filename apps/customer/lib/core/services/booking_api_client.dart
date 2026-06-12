@@ -131,9 +131,10 @@ class BookingApiClient {
 
   /// `POST /api/bookings/batch` — atomically books multiple slots at once.
   ///
-  /// Returns list of created booking ids. Throws [SlotUnavailableException]
-  /// on 409 (one or more slots not open), [BookingApiException] on other errors.
-  Future<List<String>> createBatchBooking({
+  /// Returns map of slot_id → booking_id for successful bookings.
+  /// Throws [SlotUnavailableException] if any slot fails with 409,
+  /// [BookingApiException] on other errors.
+  Future<Map<String, String>> createBatchBooking({
     required List<String> slotIds,
     String? customerName,
     String? customerPhone,
@@ -152,19 +153,59 @@ class BookingApiClient {
           }),
         ));
 
-    final body = _decode(response);
-    if (response.statusCode == 201) {
-      final ids = body['ids'] as List<dynamic>? ?? [];
-      return ids.map((id) => id as String).toList();
+    if (response.statusCode != 201) {
+      final body = _decode(response);
+      if (response.statusCode == 409) {
+        throw SlotUnavailableException(body['detail'] as String?);
+      }
+      throw BookingApiException(
+        response.statusCode,
+        body['error'] as String? ?? 'unknown',
+        body['detail'] as String?,
+      );
     }
-    if (response.statusCode == 409) {
-      throw SlotUnavailableException(body['detail'] as String?);
+
+    // Parse per-slot results — response is an array of per-slot result objects
+    try {
+      final decoded = jsonDecode(response.body);
+      final resultList = decoded is List<dynamic> ? decoded : [decoded];
+      final bookingMap = <String, String>{};
+      final failedSlots = <String>[];
+
+      for (final item in resultList) {
+        if (item is! Map<String, dynamic>) continue;
+        final slotId = item['slot_id'] as String?;
+        final status = item['status'] as String?;
+        final booking = item['booking'] as Map<String, dynamic>?;
+
+        if (slotId != null) {
+          if (status == 'success' && booking != null) {
+            final bookingId = booking['id'] as String?;
+            if (bookingId != null) {
+              bookingMap[slotId] = bookingId;
+            }
+          } else if (status == 'error') {
+            failedSlots.add(slotId);
+          }
+        }
+      }
+
+      // If any slots failed, throw error with list of failed slot IDs
+      if (failedSlots.isNotEmpty) {
+        throw SlotUnavailableException(
+          'Failed slots: ${failedSlots.join(", ")}',
+        );
+      }
+
+      return bookingMap;
+    } catch (e) {
+      if (e is SlotUnavailableException) rethrow;
+      throw BookingApiException(
+        response.statusCode,
+        'parse_error',
+        'Failed to parse batch booking response',
+      );
     }
-    throw BookingApiException(
-      response.statusCode,
-      body['error'] as String? ?? 'unknown',
-      body['detail'] as String?,
-    );
   }
 
   /// `POST /api/slots/{slotId}/join` — player requests to join an open
