@@ -49,7 +49,6 @@ dependencies:
   # Persistence
   shared_preferences: ^2.3.0
   syncfusion_flutter_calendar: ^32.1.23
-  envied: ^1.3.5
   flutter_skill: any
 
 dev_dependencies:
@@ -59,7 +58,6 @@ dev_dependencies:
   freezed: ^3.2.3
   json_serializable: ^6.9.5
   build_runner: ^2.15.0
-  envied_generator: ^1.3.5
 
 flutter:
   uses-material-design: true
