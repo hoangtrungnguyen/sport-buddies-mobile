@@ -51,6 +51,9 @@ dependencies:
   syncfusion_flutter_calendar: ^32.1.23
   flutter_skill: any
 
+  # Feature flags (YAML defaults)
+  yaml: ^3.1.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,3 +65,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - lib/assets/flags/feature_flags.dev.yaml
+    - lib/assets/flags/feature_flags.staging.yaml
+    - lib/assets/flags/feature_flags.prod.yaml

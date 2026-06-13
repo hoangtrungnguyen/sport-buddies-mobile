@@ -19,6 +19,7 @@
 
 import 'package:dashboard/app.dart';
 import 'package:flutter_skill/flutter_skill.dart';
+import 'package:dashboard/config/feature_flags/feature_flag_service.dart';
 import 'package:dashboard/core/debug/app_bloc_observer.dart';
 import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/core/env/env.dart';
@@ -91,9 +92,30 @@ Future<void> main() async {
     await _devAutoLogin();
   }
 
+  // Feature flags: load YAML defaults + Supabase overrides for the current
+  // owner/plan. Resolved here (after auth) so plan-gated flags are correct on
+  // first render. Offline-safe — falls back to YAML on any remote failure.
+  await _initFeatureFlags();
+
   await configureDependencies();
 
   runApp(const DashboardApp());
+}
+
+/// Resolves the owner session + plan and initializes [FeatureFlagService].
+/// Plan comes from the Supabase user metadata `plan` claim (free/pro/
+/// enterprise), defaulting to free. Never throws — flags degrade to YAML.
+Future<void> _initFeatureFlags() async {
+  final session = Supabase.instance.client.auth.currentSession;
+  final planStr = session?.user.userMetadata?['plan'] as String? ?? 'free';
+  final plan = OwnerPlan.values.firstWhere(
+    (p) => p.name == planStr,
+    orElse: () => OwnerPlan.free,
+  );
+  await FeatureFlagService().initialize(
+    environment: FeatureFlagService.environmentFromName(Env.environment),
+    plan: plan,
+  );
 }
 
 /// Signs in with the [Env.bypassEmail]/[Env.bypassPassword] dev account so a

@@ -1,3 +1,5 @@
+import 'package:dashboard/config/feature_flags/feature_flag_cubit.dart';
+import 'package:dashboard/config/feature_flags/feature_flag_service.dart';
 import 'package:dashboard/core/router/app_router.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/home/repository/home_repository.dart';
@@ -67,6 +69,13 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<ScheduleService>(
     () => ScheduleService(sl<ScheduleRepository>()),
+  );
+
+  // Feature flags. The service is initialized in main() (needs the owner
+  // session + plan) before this runs, so the registered singleton is ready.
+  sl.registerSingleton<FeatureFlagService>(FeatureFlagService());
+  sl.registerLazySingleton<FeatureFlagCubit>(
+    () => FeatureFlagCubit(sl<FeatureFlagService>()),
   );
 
   // Router registered last so it can resolve other singletons.

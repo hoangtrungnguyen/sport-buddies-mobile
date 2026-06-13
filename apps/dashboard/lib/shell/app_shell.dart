@@ -1,3 +1,5 @@
+import 'package:dashboard/config/feature_flags/feature_flag_service.dart';
+import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/core/theme/app_theme.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
@@ -31,6 +33,14 @@ class _NavItem {
   final bool warn;
 }
 
+/// Filters [items] down to the routes the feature flags allow. The nav→flag
+/// mapping lives in the YAML (`route:` on a flag); a route no flag governs
+/// stays visible. See [FeatureFlagService.isRouteEnabled].
+List<_NavItem> _visibleNav(List<_NavItem> items) => [
+      for (final it in items)
+        if (sl<FeatureFlagService>().isRouteEnabled(it.route)) it,
+    ];
+
 /// QUẢN LÝ (Management)
 const _managementNav = <_NavItem>[
   _NavItem(icon: Symbols.home, label: 'Trang chủ', route: '/'),
@@ -54,8 +64,6 @@ const _systemNav = <_NavItem>[
   _NavItem(icon: Symbols.settings, label: 'Cài đặt sân', route: '/settings'),
   _NavItem(icon: Symbols.help, label: 'Hỗ trợ', route: '/support'),
 ];
-
-const _allNav = <_NavItem>[..._managementNav, ..._systemNav];
 
 /// Compact bottom-bar primaries (guide §6).
 const _bottomNav = <_NavItem>[
@@ -82,11 +90,11 @@ const _routeTitle = <String, String>{
 /// Index of the destination owning [loc] — selection follows the route, not the
 /// tap (guide §8). Sub-routes light their parent via longest-prefix match, so
 /// `/courts/new` keeps "Sân của tôi" selected. Returns -1 when nothing matches.
-int _indexForLocation(String loc) {
+int _indexForLocation(List<_NavItem> nav, String loc) {
   var best = -1;
   var bestLen = -1;
-  for (var i = 0; i < _allNav.length; i++) {
-    final r = _allNav[i].route;
+  for (var i = 0; i < nav.length; i++) {
+    final r = nav[i].route;
     final match = r == '/' ? loc == '/' : loc == r || loc.startsWith('$r/');
     if (match && r.length > bestLen) {
       best = i;
@@ -123,7 +131,13 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final location = GoRouterState.of(context).matchedLocation;
-    final selected = _indexForLocation(location);
+    // Feature-flag-gated nav. Filtered once here so selection indices, the
+    // drawer/rail/bottom renderers, and the index lookup all agree.
+    final managementNav = _visibleNav(_managementNav);
+    final systemNav = _visibleNav(_systemNav);
+    final allNav = [...managementNav, ...systemNav];
+    final bottomNav = _visibleNav(_bottomNav);
+    final selected = _indexForLocation(allNav, location);
     final width = MediaQuery.sizeOf(context).width;
     final showFab = location == '/' || location == '/requests';
     // Lift the FAB above the bottom navigation bar on the compact tier.
@@ -139,7 +153,10 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: scheme.surface,
         body: Row(
           children: [
-            _NavDrawer(selected: selected),
+            _NavDrawer(
+                selected: selected,
+                management: managementNav,
+                system: systemNav),
             Expanded(
               child: Column(
                 children: [
@@ -157,7 +174,7 @@ class _AppShellState extends State<AppShell> {
         backgroundColor: scheme.surface,
         body: Row(
           children: [
-            _NavRail(selected: selected),
+            _NavRail(selected: selected, items: allNav),
             Expanded(
               child: Column(
                 children: [
@@ -181,7 +198,11 @@ class _AppShellState extends State<AppShell> {
           backgroundColor: scheme.surfaceContainerLow,
           width: 280,
           shape: const RoundedRectangleBorder(),
-          child: _NavDrawer(selected: selected, inDrawer: true),
+          child: _NavDrawer(
+              selected: selected,
+              management: managementNav,
+              system: systemNav,
+              inDrawer: true),
         ),
         body: Column(
           children: [
@@ -190,7 +211,7 @@ class _AppShellState extends State<AppShell> {
             Expanded(child: widget.child),
           ],
         ),
-        bottomNavigationBar: _BottomBar(location: location),
+        bottomNavigationBar: _BottomBar(location: location, items: bottomNav),
       );
     }
 
@@ -603,8 +624,15 @@ int? _liveNotificationsBadge(BuildContext context) {
 // ---------------------------------------------------------------------------
 
 class _NavDrawer extends StatelessWidget {
-  const _NavDrawer({required this.selected, this.inDrawer = false});
+  const _NavDrawer({
+    required this.selected,
+    required this.management,
+    required this.system,
+    this.inDrawer = false,
+  });
   final int selected;
+  final List<_NavItem> management;
+  final List<_NavItem> system;
   final bool inDrawer;
 
   @override
@@ -623,21 +651,21 @@ class _NavDrawer extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 8),
                 children: [
                   const _SectionLabel('Quản lý'),
-                  for (var i = 0; i < _managementNav.length; i++)
+                  for (var i = 0; i < management.length; i++)
                     _NavRow(
-                      item: _managementNav[i],
+                      item: management[i],
                       active: selected == i,
-                      liveBadge: _managementNav[i].route == '/requests'
+                      liveBadge: management[i].route == '/requests'
                           ? _liveRequestsBadge(context)
                           : null,
                     ),
                   const SizedBox(height: 8),
                   const _SectionLabel('Hệ thống'),
-                  for (var i = 0; i < _systemNav.length; i++)
+                  for (var i = 0; i < system.length; i++)
                     _NavRow(
-                      item: _systemNav[i],
-                      active: selected == _managementNav.length + i,
-                      liveBadge: _systemNav[i].route == '/notifications'
+                      item: system[i],
+                      active: selected == management.length + i,
+                      liveBadge: system[i].route == '/notifications'
                           ? _liveNotificationsBadge(context)
                           : null,
                     ),
@@ -861,8 +889,9 @@ class _NavBadge extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _NavRail extends StatelessWidget {
-  const _NavRail({required this.selected});
+  const _NavRail({required this.selected, required this.items});
   final int selected;
+  final List<_NavItem> items;
 
   @override
   Widget build(BuildContext context) {
@@ -884,7 +913,7 @@ class _NavRail extends StatelessWidget {
               child: _BrandTileWrap(),
             ),
             destinations: [
-              for (final item in _allNav)
+              for (final item in items)
                 NavigationRailDestination(
                   icon: Tooltip(message: item.label, child: Icon(item.icon)),
                   selectedIcon: Tooltip(
@@ -894,7 +923,7 @@ class _NavRail extends StatelessWidget {
                   label: Text(item.label),
                 ),
             ],
-            onDestinationSelected: (i) => context.go(_allNav[i].route),
+            onDestinationSelected: (i) => context.go(items[i].route),
           ),
         ),
       ),
@@ -913,26 +942,27 @@ class _BrandTileWrap extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _BottomBar extends StatelessWidget {
-  const _BottomBar({required this.location});
+  const _BottomBar({required this.location, required this.items});
   final String location;
+  final List<_NavItem> items;
 
   @override
   Widget build(BuildContext context) {
-    var idx = _bottomNav.indexWhere((it) =>
+    var idx = items.indexWhere((it) =>
         it.route == '/' ? location == '/' : location.startsWith(it.route));
     if (idx < 0) idx = 0;
 
     return NavigationBar(
       selectedIndex: idx,
       destinations: [
-        for (final item in _bottomNav)
+        for (final item in items)
           NavigationDestination(
             icon: Icon(item.icon),
             selectedIcon: Icon(item.icon, fill: 1),
             label: item.label,
           ),
       ],
-      onDestinationSelected: (i) => context.go(_bottomNav[i].route),
+      onDestinationSelected: (i) => context.go(items[i].route),
     );
   }
 }
