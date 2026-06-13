@@ -1,0 +1,21 @@
+version: "1.0.0"
+
+# enabled-only: `name: true|false`
+# gates a sidebar route: `name: {enabled: true, route: /path}`
+features:
+  booking_management: true
+  basic_analytics: true
+  venue_settings:
+    enabled: true
+    route: /settings
+  advanced_analytics:
+    enabled: false            # enabled per plan via /api/plans/{plan}/feature-flags
+    route: /analytics
+  staff_management: false
+  bulk_booking_actions: false
+  ai_demand_forecast: false
+  payout_dashboard: false
+  sentry_crash_reporting: false
+  performance_monitoring: false
+  debug_panel: false
+  verbose_logging: false
