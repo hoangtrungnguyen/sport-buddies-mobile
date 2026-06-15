@@ -9,6 +9,7 @@ import '../../setup/model/owner_court.dart';
 import '../../setup/repository/owner_court_repository.dart';
 import '../service/court_info_parser_service.dart';
 import '../util/court_format.dart';
+import '../util/maps_url.dart';
 import 'widgets/ai_assist_sheet.dart';
 import 'widgets/court_form_chrome.dart';
 import 'widgets/court_form_fields.dart';
@@ -82,10 +83,37 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _openHour = c?.openHour ?? 6;
     _closeHour = c?.closeHour ?? 22;
     _isActive = c?.isActive ?? true;
+    // Lat/lng are read-only and derived from the Maps URL — keep them in sync.
+    _mapsCtrl.addListener(_syncCoordsFromMapsUrl);
+  }
+
+  /// Parse the Maps URL and push its coordinates into the read-only lat/lng
+  /// fields. No-op when the URL has no usable pair or they already match.
+  void _syncCoordsFromMapsUrl() {
+    final coords = extractLatLngFromMapsUrl(_mapsCtrl.text.trim());
+    if (coords == null) return;
+    final lat = coords.lat.toStringAsFixed(6);
+    final lng = coords.lng.toStringAsFixed(6);
+    if (_latCtrl.text == lat && _lngCtrl.text == lng) return;
+    setState(() {
+      _latCtrl.text = lat;
+      _lngCtrl.text = lng;
+      _pulse
+        ..add(_K.location)
+        ..add(_K.maps);
+    });
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted) {
+        setState(() => _pulse
+          ..remove(_K.location)
+          ..remove(_K.maps));
+      }
+    });
   }
 
   @override
   void dispose() {
+    _mapsCtrl.removeListener(_syncCoordsFromMapsUrl);
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _addressCtrl.dispose();
@@ -379,43 +407,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                       : null,
                 ),
                 const SizedBox(height: 16),
-                TwoCol(
-                  left: AiField(
-                    controller: _latCtrl,
-                    label: 'Vĩ độ (lat)',
-                    fieldKey: _K.location,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return null;
-                      final n = double.tryParse(v.trim());
-                      return (n == null || n < -90 || n > 90)
-                          ? '-90 đến 90'
-                          : null;
-                    },
-                  ),
-                  right: AiField(
-                    controller: _lngCtrl,
-                    label: 'Kinh độ (lng)',
-                    fieldKey: _K.location,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true, signed: true),
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return null;
-                      final n = double.tryParse(v.trim());
-                      return (n == null || n < -180 || n > 180)
-                          ? '-180 đến 180'
-                          : null;
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
                 AiField(
                   controller: _mapsCtrl,
                   label: 'Google Maps URL',
@@ -425,6 +416,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   aiFilled: _aiFilled,
                   pulse: _pulse,
                   onManualEdit: _clearMark,
+                  helperText: 'Dán link Google Maps — toạ độ tự điền bên dưới',
                   validator: (v) {
                     final t = v?.trim() ?? '';
                     if (t.isEmpty) return null;
@@ -432,6 +424,31 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                         ? null
                         : 'URL phải bắt đầu bằng http';
                   },
+                ),
+                const SizedBox(height: 16),
+                TwoCol(
+                  left: AiField(
+                    controller: _latCtrl,
+                    label: 'Vĩ độ (lat)',
+                    fieldKey: _K.location,
+                    readOnly: true,
+                    leading: Symbols.my_location,
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                    helperText: 'Tự động từ link Maps',
+                  ),
+                  right: AiField(
+                    controller: _lngCtrl,
+                    label: 'Kinh độ (lng)',
+                    fieldKey: _K.location,
+                    readOnly: true,
+                    leading: Symbols.my_location,
+                    aiFilled: _aiFilled,
+                    pulse: _pulse,
+                    onManualEdit: _clearMark,
+                    helperText: 'Tự động từ link Maps',
+                  ),
                 ),
 
                 // 3) Mô tả

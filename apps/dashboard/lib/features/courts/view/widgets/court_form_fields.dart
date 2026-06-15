@@ -20,6 +20,8 @@ class AiField extends StatelessWidget {
     this.keyboardType,
     this.maxLines = 1,
     this.validator,
+    this.readOnly = false,
+    this.helperText,
   });
 
   final TextEditingController controller;
@@ -32,6 +34,12 @@ class AiField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int maxLines;
   final String? Function(String?)? validator;
+
+  /// When true the field can't be edited — its value is derived elsewhere.
+  final bool readOnly;
+
+  /// Static helper shown when the field is not AI-filled (e.g. "auto from URL").
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +60,15 @@ class AiField extends StatelessWidget {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
+        readOnly: readOnly,
         onChanged: (_) {
           if (aiFilled.contains(fieldKey)) onManualEdit(fieldKey);
         },
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: leading != null ? Icon(leading, size: 20) : null,
-          helperText: isAi ? '✦ Điền bởi AI — hãy kiểm tra lại' : null,
+          filled: readOnly,
+          helperText: isAi ? '✦ Điền bởi AI — hãy kiểm tra lại' : helperText,
           helperStyle: TextStyle(color: scheme.tertiary),
           helperMaxLines: 2,
         ),
