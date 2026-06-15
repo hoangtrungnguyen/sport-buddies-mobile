@@ -76,6 +76,7 @@ Future<void> configureDependencies() async {
   sl.registerSingleton<FeatureFlagService>(FeatureFlagService());
   sl.registerLazySingleton<FeatureFlagCubit>(
     () => FeatureFlagCubit(sl<FeatureFlagService>()),
+    dispose: (cubit) => cubit.close(),
   );
 
   // Router registered last so it can resolve other singletons.
