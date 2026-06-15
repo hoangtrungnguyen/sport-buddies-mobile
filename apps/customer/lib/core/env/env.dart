@@ -1,55 +1,43 @@
-import 'package:envied/envied.dart';
-
-part 'env.g.dart';
-
-/// Environment configuration loaded from .env files via envied.
-/// Supports local, dev, and prod environments.
-@Envied(path: '.local.env', name: 'LocalEnv')
-@Envied(path: '.dev.env', name: 'DevEnv')
-@Envied(path: '.prod.env', name: 'ProdEnv')
+/// Environment configuration read from compile-time `--dart-define` variables.
+///
+/// Values are baked in at build/run time, e.g.:
+/// ```
+/// flutter run \
+///   --dart-define=SUPABASE_URL=https://xyz.supabase.co \
+///   --dart-define=SUPABASE_PUBLISHABLE_KEY=... \
+///   --dart-define=API_BASE_URL=... \
+///   --dart-define=MAP_PROVIDER=google
+/// ```
+/// (Typically supplied via a launch config / `--dart-define-from-file`.)
 abstract class Env {
-  Env._(); // Private constructor
+  Env._(); // Private constructor — static access only.
 
+  /// Target environment: 'local' (default), 'dev', or 'prod'.
   static const String environment =
       String.fromEnvironment('ENVIRONMENT', defaultValue: 'local');
 
-  static final Env _instance = switch (environment) {
-    'prod' => _ProdEnv(),
-    'dev' => _DevEnv(),
-    _ => _LocalEnv(),
-  };
-
   /// Supabase project URL.
-  @EnviedField(varName: 'SUPABASE_URL')
-  final String _supabaseUrl = _instance._supabaseUrl;
-  static String get supabaseUrl => _instance._supabaseUrl;
+  static const String supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 
-  /// Supabase anonymous/public key.
-  @EnviedField(varName: 'SUPABASE_PUBLISHABLE_KEY')
-  final String _supabaseAnonKey = _instance._supabaseAnonKey;
-  static String get supabaseAnonKey => _instance._supabaseAnonKey;
+  /// Supabase anonymous/publishable key.
+  static const String supabaseAnonKey =
+      String.fromEnvironment('SUPABASE_PUBLISHABLE_KEY');
 
   /// Core-engine REST API base URL (writes: bookings, slot access, …).
-  @EnviedField(varName: 'API_BASE_URL', defaultValue: '')
-  final String _apiBaseUrl = _instance._apiBaseUrl;
-  static String get apiBaseUrl => _instance._apiBaseUrl;
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
   /// VietMap tile + geocoding API key.
-  @EnviedField(varName: 'VIETMAP_API_KEY', defaultValue: '')
-  final String _vietmapApiKey = _instance._vietmapApiKey;
-  static String get vietmapApiKey => _instance._vietmapApiKey;
+  static const String vietmapApiKey =
+      String.fromEnvironment('VIETMAP_API_KEY');
 
   /// Google Maps API key for map tiles.
-  /// Leave empty in dev — the proFvider falls back to the keyless endpoint.
-  @EnviedField(varName: 'GOOGLE_MAP_API_KEY', defaultValue: '')
-  final String _googleMapApiKey = _instance._googleMapApiKey;
-  static String get googleMapApiKey => _instance._googleMapApiKey;
+  /// Leave empty in dev — the provider falls back to the keyless endpoint.
+  static const String googleMapApiKey =
+      String.fromEnvironment('GOOGLE_MAP_API_KEY');
 
   /// Active map tile provider: 'google' (default) or 'vietmap'.
-  /// Controls which [MapTileProvider] strategy [MapTileProvider.fromEnv] picks.
-  @EnviedField(varName: 'MAP_PROVIDER', defaultValue: 'google')
-  final String _mapProvider = _instance._mapProvider;
-  static String get mapProvider => _instance._mapProvider;
+  static const String mapProvider =
+      String.fromEnvironment('MAP_PROVIDER', defaultValue: 'google');
 
   /// Throws [StateError] if any required env var is empty.
   static void assertConfigured() {
@@ -62,7 +50,7 @@ abstract class Env {
     if (missing.isNotEmpty) {
       throw StateError(
         'Missing env vars: ${missing.join(', ')}. '
-        'Add them to .env file in project root.',
+        'Pass them via --dart-define (or --dart-define-from-file).',
       );
     }
   }

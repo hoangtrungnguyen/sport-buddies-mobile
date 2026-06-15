@@ -9,6 +9,7 @@
             "request": "launch",
             "type": "dart",
             "toolArgs": [
+                "--dart-define-from-file=.local.env",
                 "--dart-define=ENVIRONMENT=local"
             ]
         },
@@ -17,6 +18,7 @@
             "request": "launch",
             "type": "dart",
             "toolArgs": [
+                "--dart-define-from-file=.dev.env",
                 "--dart-define=ENVIRONMENT=dev"
             ]
         },

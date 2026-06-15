@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #
-# bootstrap_env.sh — create the env files envied codegen requires.
+# bootstrap_env.sh — create the env files the app loads at run/build time.
 #
-# env.dart declares @Envied for .local.env, .dev.env AND .prod.env — all three
-# must exist or `dart run build_runner build` fails with
-# "Environment variable not found". The files are gitignored (they may hold
-# real keys), so every fresh clone needs this once:
+# env.dart reads its config from compile-time `--dart-define` variables. The
+# three env files (.local.env / .dev.env / .prod.env) are fed into the build
+# via `--dart-define-from-file` (see scripts/run.sh and .vscode/launch.json).
+#
+# The files are gitignored (they may hold real keys), so every fresh clone
+# needs this once:
 #
 #   ./scripts/bootstrap_env.sh
 #
@@ -22,9 +24,17 @@ fi
 
 for f in .dev.env .prod.env; do
     if [ ! -f "$f" ]; then
-        printf 'SUPABASE_URL=http://localhost:54321\nSUPABASE_PUBLISHABLE_KEY=placeholder\n' > "$f"
+        cat > "$f" <<'EOF'
+SUPABASE_URL=http://localhost:54321
+SUPABASE_PUBLISHABLE_KEY=placeholder
+API_BASE_URL=
+MAP_PROVIDER=google
+VIETMAP_API_KEY=
+GOOGLE_MAP_API_KEY=
+EOF
         echo "created $f (placeholder)"
     fi
 done
 
 echo "env files ready: .local.env .dev.env .prod.env"
+echo "run the app with: ./scripts/run.sh [local|dev|prod]"
