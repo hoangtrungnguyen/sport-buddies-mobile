@@ -17,7 +17,7 @@ dependencies:
     path: ../../packages/spb_core
 
   # State management
-  flutter_bloc: ^8.1.6
+  flutter_bloc: ^9.1.1
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
 
