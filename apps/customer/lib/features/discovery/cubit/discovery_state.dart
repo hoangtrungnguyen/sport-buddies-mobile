@@ -2,25 +2,25 @@ import 'package:customer/core/mixins/app_exception_mixin.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:spb_core/spb_core.dart';
 
-part 'map_state.freezed.dart';
+part 'discovery_state.freezed.dart';
 
 @freezed
-sealed class MapState with _$MapState {
-  const factory MapState.initial() = MapInitial;
-  const factory MapState.loading() = MapLoading;
+sealed class DiscoveryState with _$DiscoveryState {
+  const factory DiscoveryState.initial() = DiscoveryInitial;
+  const factory DiscoveryState.loading() = DiscoveryLoading;
 
-  const factory MapState.loaded(
+  const factory DiscoveryState.loaded(
     List<CourtAvailability> courts, {
     CourtAvailability? selectedCourt,
-  }) = MapLoaded;
+  }) = DiscoveryLoaded;
 
   @With<AppExceptionMixin>()
-  const factory MapState.error(String message, {StackTrace? stackTrace}) =
-      MapError;
+  const factory DiscoveryState.error(String message, {StackTrace? stackTrace}) =
+      DiscoveryError;
 }
 
-extension MapLoadedX on MapLoaded {
-  MapLoaded withSelection(CourtAvailability? court) =>
+extension DiscoveryLoadedX on DiscoveryLoaded {
+  DiscoveryLoaded withSelection(CourtAvailability? court) =>
       copyWith(selectedCourt: court);
 
   List<CourtAvailability> applyFilter({

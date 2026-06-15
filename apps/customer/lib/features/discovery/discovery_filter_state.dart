@@ -8,7 +8,7 @@
 
 import 'package:flutter/foundation.dart';
 
-/// State for [MapFilterCubit].
+/// State for [DiscoveryFilterCubit].
 ///
 /// [selectedSports] is a set of sport identifiers (lower-case slugs, e.g.
 /// `'football'`, `'basketball'`).  An empty set means "All" — no filter
@@ -18,8 +18,8 @@ import 'package:flutter/foundation.dart';
 /// When null, no distance filter is applied. Values are rounded to 1
 /// decimal place for display consistency.
 @immutable
-class MapFilterState {
-  const MapFilterState({
+class DiscoveryFilterState {
+  const DiscoveryFilterState({
     this.selectedSports = const {},
     this.maxDistanceKm,
     this.onlyWithOpenSlots = false,
@@ -31,12 +31,12 @@ class MapFilterState {
   /// When true, courts with zero open slots are hidden from the map.
   final bool onlyWithOpenSlots;
 
-  MapFilterState copyWith({
+  DiscoveryFilterState copyWith({
     Set<String>? selectedSports,
     double? Function()? maxDistanceKm,
     bool? onlyWithOpenSlots,
   }) {
-    return MapFilterState(
+    return DiscoveryFilterState(
       selectedSports: selectedSports ?? this.selectedSports,
       maxDistanceKm: maxDistanceKm != null
           ? maxDistanceKm()
@@ -48,7 +48,7 @@ class MapFilterState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is MapFilterState &&
+      other is DiscoveryFilterState &&
           runtimeType == other.runtimeType &&
           _setsEqual(selectedSports, other.selectedSports) &&
           maxDistanceKm == other.maxDistanceKm &&

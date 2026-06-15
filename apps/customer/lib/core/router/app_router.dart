@@ -47,17 +47,17 @@ import 'package:customer/features/courts/schedule/court_schedule_overview_screen
 import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
 import 'package:customer/features/courts/cubit/slot_picker_cubit.dart';
 import 'package:customer/features/courts/slot_picker_screen.dart';
-import 'package:customer/features/map/court_repository_impl.dart';
-import 'package:customer/features/map/cubit/map_cubit.dart';
-import 'package:customer/features/map/data/supabase_court_availability_repository.dart';
-import 'package:customer/features/map/location_cubit.dart';
-import 'package:customer/features/map/location_service.dart' show GeolocatorLocationService;
+import 'package:customer/features/discovery/court_repository_impl.dart';
+import 'package:customer/features/discovery/cubit/discovery_cubit.dart';
+import 'package:customer/features/discovery/data/supabase_court_availability_repository.dart';
+import 'package:customer/features/discovery/location_cubit.dart';
+import 'package:customer/features/discovery/location_service.dart' show GeolocatorLocationService;
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
 import 'package:customer/features/slots/cubit/participant_management_cubit.dart';
 import 'package:customer/features/slots/data/supabase_slot_repository.dart';
 import 'package:customer/features/slots/open_slot_list_screen.dart';
 import 'package:customer/features/slots/participant_management_screen.dart';
-import 'package:customer/features/map/map_screen.dart';
+import 'package:customer/features/discovery/discovery_list_screen.dart';
 import 'package:customer/features/profile/profile_cubit.dart';
 import 'package:customer/features/profile/profile_screen.dart';
 import 'package:customer/features/notifications/notifications_cubit.dart';
@@ -127,7 +127,7 @@ GoRouter buildRouter() {
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
         branches: [
-          // Tab 1 — Map / home.
+          // Tab 1 — Discovery list (Khám phá) / home.
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -135,7 +135,7 @@ GoRouter buildRouter() {
                 builder: (context, state) => MultiBlocProvider(
                   providers: [
                     BlocProvider(
-                      create: (_) => MapCubit(
+                      create: (_) => DiscoveryCubit(
                         repository: SupabaseCourtAvailabilityRepository(
                           Supabase.instance.client,
                         ),
@@ -146,15 +146,8 @@ GoRouter buildRouter() {
                       create: (_) =>
                           LocationCubit(const GeolocatorLocationService())..requestAndFetch(),
                     ),
-                    BlocProvider(
-                      create: (_) => SlotListCubit(
-                        SupabaseSlotRepository(
-                          client: Supabase.instance.client,
-                        ),
-                      ),
-                    ),
                   ],
-                  child: const MapScreen(),
+                  child: const DiscoveryListScreen(),
                 ),
               ),
             ],

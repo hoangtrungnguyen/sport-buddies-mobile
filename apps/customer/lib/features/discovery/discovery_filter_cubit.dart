@@ -1,19 +1,19 @@
-// MapFilterCubit — grava-c9ca.3.1, grava-c9ca.4.2
+// DiscoveryFilterCubit — grava-c9ca.3.1, grava-c9ca.4.2
 //
 // Manages sport-type and distance filter state for the map screen.
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'map_filter_state.dart';
+import 'discovery_filter_state.dart';
 
 /// Cubit that tracks which sport types and distance range are currently
 /// selected for filtering court markers on the map.
 ///
-/// The initial state has an empty [MapFilterState.selectedSports] and null
-/// [MapFilterState.maxDistanceKm], meaning all courts are visible (no filter
+/// The initial state has an empty [DiscoveryFilterState.selectedSports] and null
+/// [DiscoveryFilterState.maxDistanceKm], meaning all courts are visible (no filter
 /// active).
-class MapFilterCubit extends Cubit<MapFilterState> {
-  MapFilterCubit() : super(const MapFilterState());
+class DiscoveryFilterCubit extends Cubit<DiscoveryFilterState> {
+  DiscoveryFilterCubit() : super(const DiscoveryFilterState());
 
   /// Update the active sport filters.
   ///
@@ -45,11 +45,11 @@ class MapFilterCubit extends Cubit<MapFilterState> {
 
   /// Clear all active filters (sports, distance, and open-slots flag).
   void clearAll() {
-    emit(const MapFilterState());
+    emit(const DiscoveryFilterState());
   }
 
   /// Apply all filter values at once (used by the filter sheet draft pattern).
-  void setAll(MapFilterState newState) {
+  void setAll(DiscoveryFilterState newState) {
     emit(newState);
   }
 }

@@ -39,14 +39,9 @@ dependencies:
   get_it: ^7.7.0
   injectable: ^2.4.2
 
-  # Maps & location
-  flutter_map: ^8.3.0
+  # Location (map-rendering packages removed — discovery is list-only, EPIC-4)
   latlong2: ^0.9.1
   geolocator: ^12.0.0
-  vietmap_flutter_gl: ^4.1.0
-  vietmap_flutter_plugin: ^0.5.2
-  google_maps_flutter: ^2.6.0
-  google_maps_flutter_web: ^0.5.4
 
   # i18n
   intl: ^0.20.2
