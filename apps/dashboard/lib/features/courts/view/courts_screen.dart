@@ -47,16 +47,50 @@ class CourtsScreen extends StatelessWidget {
   }
 }
 
-class _Loaded extends StatelessWidget {
+class _Loaded extends StatefulWidget {
   const _Loaded({required this.courts});
   final List<OwnerCourt> courts;
 
   @override
+  State<_Loaded> createState() => _LoadedState();
+}
+
+class _LoadedState extends State<_Loaded> {
+  /// Memoized so each rebuild reuses the same request — building the future
+  /// inline in build() re-fires a Dio call on every CourtBloc emission and
+  /// leaks the in-flight requests. Re-fetch only when the court-id set changes.
+  late Future<Map<String, CourtVenueSummary>> _summaries;
+  late List<String> _ids;
+
+  @override
+  void initState() {
+    super.initState();
+    _ids = widget.courts.map((c) => c.id).toList();
+    _summaries = context.read<VenueRepository>().fetchSummaries(_ids);
+  }
+
+  @override
+  void didUpdateWidget(_Loaded oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final ids = widget.courts.map((c) => c.id).toList();
+    if (!_sameIds(ids, _ids)) {
+      _ids = ids;
+      _summaries = context.read<VenueRepository>().fetchSummaries(ids);
+    }
+  }
+
+  static bool _sameIds(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, CourtVenueSummary>>(
-      future: context
-          .read<VenueRepository>()
-          .fetchSummaries(courts.map((c) => c.id).toList()),
+      future: _summaries,
       builder: (context, snap) {
         final summaries = snap.data ?? const {};
         final venueTotal =
@@ -64,9 +98,9 @@ class _Loaded extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Header(courtCount: courts.length, venueCount: venueTotal),
+            _Header(courtCount: widget.courts.length, venueCount: venueTotal),
             const SizedBox(height: 24),
-            _Grid(courts: courts, summaries: summaries),
+            _Grid(courts: widget.courts, summaries: summaries),
           ],
         );
       },
