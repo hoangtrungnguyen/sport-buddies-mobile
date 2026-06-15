@@ -154,12 +154,139 @@
   "errorAvatarSize": "Dung lượng ảnh đại diện không được vượt quá 2 MB.",
   "@errorAvatarSize": {},
 
-  "navMap": "Bản đồ",
+  "navMap": "Khám phá",
   "@navMap": {},
   "navBookings": "Lịch đặt",
   "@navBookings": {},
   "navProfile": "Hồ sơ",
   "@navProfile": {},
   "navSlots": "Slot trống",
-  "@navSlots": {}
+  "@navSlots": {},
+
+  "commonFilter": "Bộ lọc",
+  "@commonFilter": {},
+  "commonSearch": "Tìm kiếm",
+  "@commonSearch": {},
+  "commonNotifications": "Thông báo",
+  "@commonNotifications": {},
+  "commonReset": "Đặt lại",
+  "@commonReset": {},
+  "commonBack": "Quay lại",
+  "@commonBack": {},
+
+  "sportAll": "Tất cả",
+  "@sportAll": {},
+  "sportFootball": "Bóng đá",
+  "@sportFootball": {},
+  "sportPickleball": "Pickleball",
+  "@sportPickleball": {},
+  "sportBadminton": "Cầu lông",
+  "@sportBadminton": {},
+  "sportTennis": "Tennis",
+  "@sportTennis": {},
+  "sportMulti": "Đa năng",
+  "@sportMulti": {},
+  "sportGeneric": "Thể thao",
+  "@sportGeneric": {},
+
+  "availabilityOpenSlots": "{count} slot trống",
+  "@availabilityOpenSlots": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "availabilityFull": "Hết slot",
+  "@availabilityFull": {},
+  "distanceKm": "{km} km",
+  "@distanceKm": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "distanceWithin5": "Trong 5 km",
+  "@distanceWithin5": {},
+
+  "discoveryTitle": "Khám phá",
+  "@discoveryTitle": {},
+  "discoveryUpdating": "Đang cập nhật…",
+  "@discoveryUpdating": {},
+  "discoveryNoMatch": "Không có sân khớp bộ lọc",
+  "@discoveryNoMatch": {},
+  "discoverySubtitle": "{count} sân · {slots} slot trống quanh đây",
+  "@discoverySubtitle": {
+    "placeholders": { "count": { "type": "int" }, "slots": { "type": "int" } }
+  },
+  "discoveryCourtsCount": "{count} sân",
+  "@discoveryCourtsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "discoverySortNearest": "Gần nhất ↓",
+  "@discoverySortNearest": {},
+  "discoveryFooterEnd": "Hết sân trong khoảng cách đã chọn",
+  "@discoveryFooterEnd": {},
+  "discoveryAllFullTitle": "Tất cả sân quanh đây đang kín chỗ.",
+  "@discoveryAllFullTitle": {},
+  "discoveryAllFullAction": "Xem slot trống →",
+  "@discoveryAllFullAction": {},
+  "discoveryEmptyNoOpen": "Không còn slot trống ở đây",
+  "@discoveryEmptyNoOpen": {},
+  "discoveryEmptyNoCourts": "Không tìm thấy sân nào",
+  "@discoveryEmptyNoCourts": {},
+  "discoveryEmptyBody": "Thử mở rộng khoảng cách hoặc bỏ bớt bộ lọc để xem thêm lựa chọn.",
+  "@discoveryEmptyBody": {},
+  "discoveryEmptyExpand": "Mở rộng 5 km",
+  "@discoveryEmptyExpand": {},
+  "discoveryEmptyResetFilters": "Đặt lại bộ lọc",
+  "@discoveryEmptyResetFilters": {},
+
+  "filterSports": "Môn thể thao",
+  "@filterSports": {},
+  "filterDistance": "Khoảng cách",
+  "@filterDistance": {},
+  "filterStatus": "Trạng thái",
+  "@filterStatus": {},
+  "filterOnlyOpen": "Chỉ hiển thị sân còn slot trống",
+  "@filterOnlyOpen": {},
+  "filterApply": "Hiển thị {count} sân",
+  "@filterApply": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "filterApplyZero": "Xem kết quả · 0 sân",
+  "@filterApplyZero": {},
+
+  "searchHint": "Tìm sân, khu vực…",
+  "@searchHint": {},
+  "searchAllCourts": "Tất cả {total} sân · gần nhất trước",
+  "@searchAllCourts": {
+    "placeholders": { "total": { "type": "int" } }
+  },
+  "searchResultsFor": "{count} kết quả cho \"{query}\"",
+  "@searchResultsFor": {
+    "placeholders": { "count": { "type": "int" }, "query": { "type": "String" } }
+  },
+  "searchNoResults": "Không tìm thấy \"{query}\"",
+  "@searchNoResults": {
+    "placeholders": { "query": { "type": "String" } }
+  },
+  "searchTryOther": "Thử tên sân hoặc khu vực khác.",
+  "@searchTryOther": {},
+
+  "slotsTitle": "Slot trống",
+  "@slotsTitle": {},
+  "slotsSubtitle": "Slot đang tìm người chơi cùng",
+  "@slotsSubtitle": {},
+  "slotsCountSort": "{count} slot · Sắp xếp: Sớm nhất ↓",
+  "@slotsCountSort": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotsHostInvite": "Chủ slot mời chơi cùng",
+  "@slotsHostInvite": {},
+  "slotsOpenMatch": "🌐 Mở ghép",
+  "@slotsOpenMatch": {},
+  "slotsFull": "Đã đủ người",
+  "@slotsFull": {},
+  "slotsJoinedCount": "{joined}/{max} người",
+  "@slotsJoinedCount": {
+    "placeholders": { "joined": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "slotsEmptyTitle": "Không có slot trống",
+  "@slotsEmptyTitle": {},
+  "slotsEmptyBody": "Không có slot nào đang tìm người trong khu vực của bạn.",
+  "@slotsEmptyBody": {}
 }

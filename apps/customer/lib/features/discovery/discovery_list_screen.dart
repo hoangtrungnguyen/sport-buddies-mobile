@@ -15,6 +15,7 @@
 //   DiscoveryCubit (court availability) · DiscoveryFilterCubit (filters) · LocationCubit.
 
 import 'package:customer/features/discovery/cubit/discovery_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:customer/features/discovery/location_cubit.dart';
 import 'package:customer/features/discovery/location_state.dart';
 import 'package:customer/features/discovery/discovery_filter_cubit.dart';
@@ -32,7 +33,6 @@ const _mdOnSurface = Color(0xFF181D17); // primary text
 const _mdOnSurfaceVariant = Color(0xFF42493F); // secondary text
 const _mdSurfaceContainerLowest = Color(0xFFFFFFFF); // peek/card bg
 const _mdSurfaceContainerLow = Color(0xFFF1F6EC); // filter sheet bg
-const _mdSurfaceContainer = Color(0xFFEBF0E6); // chip soft bg
 const _mdSurfaceContainerHigh = Color(0xFFE5EAE1); // full badge bg
 const _mdSurfaceContainerHighest = Color(0xFFDFE4DA); // search bar bg
 const _mdPrimary = Color(0xFF15803D);
@@ -90,6 +90,18 @@ double? _distanceKm(CourtAvailability c, LatLng? userPos) {
 String _formatKm(double km) =>
     km < 10 ? km.toStringAsFixed(1) : km.toStringAsFixed(0);
 
+/// Localized label for a sport filter slug ('' = all). Falls back to the raw
+/// slug for unknown values.
+String _sportLabelFor(AppLocalizations l10n, String slug) => switch (slug) {
+      '' => l10n.sportAll,
+      'football' => l10n.sportFootball,
+      'pickleball' => l10n.sportPickleball,
+      'badminton' => l10n.sportBadminton,
+      'tennis' => l10n.sportTennis,
+      'multi' => l10n.sportMulti,
+      _ => slug,
+    };
+
 // ---------------------------------------------------------------------------
 // DiscoveryListScreen
 // ---------------------------------------------------------------------------
@@ -120,43 +132,8 @@ class _DiscoveryContent extends StatefulWidget {
   State<_DiscoveryContent> createState() => _DiscoveryContentState();
 }
 
-class _DiscoveryContentState extends State<_DiscoveryContent>
-    with SingleTickerProviderStateMixin {
+class _DiscoveryContentState extends State<_DiscoveryContent> {
   bool _searchOpen = false;
-
-  late final AnimationController _peekCtrl;
-  late final Animation<Offset> _peekSlide;
-  CourtAvailability? _displayedCourt; // retained during slide-out
-
-  @override
-  void initState() {
-    super.initState();
-    _peekCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _peekSlide = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _peekCtrl, curve: Curves.easeOut));
-  }
-
-  @override
-  void dispose() {
-    _peekCtrl.dispose();
-    super.dispose();
-  }
-
-  void _animatePeek(CourtAvailability? court) {
-    if (court != null) {
-      setState(() => _displayedCourt = court);
-      _peekCtrl.forward();
-    } else {
-      _peekCtrl.reverse().then((_) {
-        if (mounted) setState(() => _displayedCourt = null);
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +144,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
             SnackBar(content: Text(state.message)),
           );
         }
-        _animatePeek(state is DiscoveryLoaded ? state.selectedCourt : null);
       },
       builder: (context, mapState) {
         return BlocBuilder<DiscoveryFilterCubit, DiscoveryFilterState>(
@@ -208,21 +184,10 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                       openSlots: openSlots,
                       isLoading: isLoading,
                       isEmpty: isEmpty,
-                      selectedSports: filterState.selectedSports,
                       onSearch: () => setState(() => _searchOpen = true),
                       onOpenFilter: () =>
                           _showFilterSheet(context, allCourts, userPos),
-                      onSelectAll: () =>
-                          context.read<DiscoveryFilterCubit>().filterBySports([]),
-                      onToggleSport: (sport) {
-                        final cubit = context.read<DiscoveryFilterCubit>();
-                        final current = filterState.selectedSports;
-                        if (current.length == 1 && current.contains(sport)) {
-                          cubit.filterBySports([]);
-                        } else {
-                          cubit.filterBySports([sport]);
-                        }
-                      },
+                      onNotifications: () => context.push('/notifications'),
                     ),
                     Expanded(
                       child: _buildBody(
@@ -238,24 +203,6 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
                     ),
                   ],
                 ),
-                // ── peek sheet ────────────────────────────────────────────
-                if (_displayedCourt != null)
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    child: SlideTransition(
-                      position: _peekSlide,
-                      child: _PeekSheet(
-                        court: _displayedCourt!,
-                        distanceKm: _distanceKm(_displayedCourt!, userPos),
-                        onClose: () =>
-                            context.read<DiscoveryCubit>().selectCourt(null),
-                        onOpenCourt: () => context.push(
-                            '/browse/court/${_displayedCourt!.courtId}'),
-                      ),
-                    ),
-                  ),
                 // ── search overlay ────────────────────────────────────────
                 if (_searchOpen)
                   Positioned.fill(
@@ -318,15 +265,15 @@ class _DiscoveryContentState extends State<_DiscoveryContent>
             child: _CourtCard(
               court: c,
               distanceKm: _distanceKm(c, userPos),
-              onTap: () => context.read<DiscoveryCubit>().selectCourt(c),
+              onTap: () => context.push('/browse/court/${c.courtId}'),
             ),
           ),
         ),
         const SizedBox(height: 4),
-        const Center(
+        Center(
           child: Text(
-            'Hết sân trong khoảng cách đã chọn',
-            style: TextStyle(fontSize: 12, color: Color(0xFF9AA3AF)),
+            AppLocalizations.of(context).discoveryFooterEnd,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF9AA3AF)),
           ),
         ),
       ],
@@ -374,31 +321,28 @@ class _DiscoveryHeader extends StatelessWidget {
     required this.openSlots,
     required this.isLoading,
     required this.isEmpty,
-    required this.selectedSports,
     required this.onSearch,
     required this.onOpenFilter,
-    required this.onSelectAll,
-    required this.onToggleSport,
+    required this.onNotifications,
   });
 
   final int courtCount;
   final int openSlots;
   final bool isLoading;
   final bool isEmpty;
-  final Set<String> selectedSports;
   final VoidCallback onSearch;
   final VoidCallback onOpenFilter;
-  final VoidCallback onSelectAll;
-  final void Function(String sport) onToggleSport;
+  final VoidCallback onNotifications;
 
-  String get _subtitle {
-    if (isLoading) return 'Đang cập nhật…';
-    if (isEmpty) return 'Không có sân khớp bộ lọc';
-    return '$courtCount sân · $openSlots slot trống quanh đây';
+  String _subtitle(AppLocalizations l10n) {
+    if (isLoading) return l10n.discoveryUpdating;
+    if (isEmpty) return l10n.discoveryNoMatch;
+    return l10n.discoverySubtitle(courtCount, openSlots);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final topPad = MediaQuery.of(context).padding.top;
     return Container(
       color: _mdSurface,
@@ -413,9 +357,9 @@ class _DiscoveryHeader extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Khám phá',
-                        style: TextStyle(
+                      Text(
+                        l10n.discoveryTitle,
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: _mdOnSurface,
@@ -424,7 +368,7 @@ class _DiscoveryHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _subtitle,
+                        _subtitle(l10n),
                         style: const TextStyle(
                           fontSize: 12,
                           color: _mdOnSurfaceVariant,
@@ -437,25 +381,27 @@ class _DiscoveryHeader extends StatelessWidget {
                   ),
                 ),
                 _HeaderIconButton(
-                  label: 'Bộ lọc',
+                  label: l10n.commonFilter,
                   icon: Icons.tune,
                   onTap: onOpenFilter,
                 ),
                 const SizedBox(width: 8),
                 _HeaderIconButton(
-                  label: 'Tìm kiếm',
+                  label: l10n.commonSearch,
                   icon: Icons.search,
                   onTap: onSearch,
+                ),
+                const SizedBox(width: 8),
+                _HeaderIconButton(
+                  label: l10n.commonNotifications,
+                  icon: Icons.notifications_none,
+                  onTap: onNotifications,
                 ),
                 const SizedBox(width: 8),
               ],
             ),
           ),
-          _ChipRow(
-            selectedSports: selectedSports,
-            onSelectAll: onSelectAll,
-            onToggleSport: onToggleSport,
-          ),
+          const SizedBox(height: 12),
           Container(height: 1, color: _mdOutlineVariant),
         ],
       ),
@@ -498,153 +444,6 @@ class _HeaderIconButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// _ChipRow
-// ---------------------------------------------------------------------------
-
-const _kQuickSports = [
-  ('football', 'Bóng đá', Icons.sports_soccer),
-  ('pickleball', 'Pickleball', Icons.sports_tennis),
-  ('badminton', 'Cầu lông', Icons.sports_tennis),
-  ('tennis', 'Tennis', Icons.sports_tennis),
-];
-
-class _ChipRow extends StatelessWidget {
-  const _ChipRow({
-    required this.selectedSports,
-    required this.onSelectAll,
-    required this.onToggleSport,
-  });
-
-  final Set<String> selectedSports;
-  final VoidCallback onSelectAll;
-  final void Function(String) onToggleSport;
-
-  @override
-  Widget build(BuildContext context) {
-    final allActive = selectedSports.isEmpty;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          _QuickChip(
-            label: 'Tất cả',
-            icon: null,
-            active: allActive,
-            onTap: onSelectAll,
-          ),
-          const SizedBox(width: 8),
-          ...(_kQuickSports.map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: _QuickChip(
-                label: e.$2,
-                icon: e.$3,
-                active: selectedSports.length == 1 &&
-                    selectedSports.contains(e.$1),
-                onTap: () => onToggleSport(e.$1),
-              ),
-            ),
-          )),
-          const _SoftChip(label: 'Trong 5 km'),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickChip extends StatelessWidget {
-  const _QuickChip({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData? icon;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: active ? _mdPrimaryContainer : Colors.transparent,
-          border: active ? null : Border.all(color: _mdOutlineVariant),
-          borderRadius: BorderRadius.circular(_mdCornerSm),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (active) ...[
-              const Icon(Icons.check, size: 14, color: _mdOnPrimaryContainer),
-              const SizedBox(width: 4),
-            ],
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 14,
-                color: active ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
-              ),
-              const SizedBox(width: 5),
-            ],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: active ? _mdOnPrimaryContainer : _mdOnSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SoftChip extends StatelessWidget {
-  const _SoftChip({required this.label});
-  final String label;
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        color: _mdSurfaceContainer,
-        borderRadius: BorderRadius.circular(_mdCornerSm),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: _mdPrimary,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: _mdOnSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
 // _CountLine
 // ---------------------------------------------------------------------------
 
@@ -656,6 +455,7 @@ class _CountLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -663,7 +463,7 @@ class _CountLine extends StatelessWidget {
           TextSpan(
             children: [
               TextSpan(
-                text: '$courtCount sân',
+                text: l10n.discoveryCourtsCount(courtCount),
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -671,7 +471,7 @@ class _CountLine extends StatelessWidget {
                 ),
               ),
               TextSpan(
-                text: ' · $openSlots slot trống',
+                text: ' · ${l10n.availabilityOpenSlots(openSlots)}',
                 style: const TextStyle(
                   fontSize: 13,
                   color: _mdOnSurfaceVariant,
@@ -680,9 +480,9 @@ class _CountLine extends StatelessWidget {
             ],
           ),
         ),
-        const Text(
-          'Gần nhất ↓',
-          style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+        Text(
+          l10n.discoverySortNearest,
+          style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
         ),
       ],
     );
@@ -706,9 +506,10 @@ class _CourtCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasSlots = court.openSlotCount > 0;
     final sportColor = _sportColor(court.sportTypes);
-    final sportLabel = court.sportTypes.firstOrNull ?? 'Thể thao';
+    final sportLabel = court.sportTypes.firstOrNull ?? l10n.sportGeneric;
 
     return GestureDetector(
       onTap: onTap,
@@ -829,7 +630,7 @@ class _CourtCard extends StatelessWidget {
                               fontSize: 13, color: _mdOnSurfaceVariant),
                         ),
                         Text(
-                          '${_formatKm(distanceKm!)} km',
+                          l10n.distanceKm(_formatKm(distanceKm!)),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -856,6 +657,7 @@ class _AvailabilityBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hasSlots = openSlotCount > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -876,7 +678,9 @@ class _AvailabilityBadge extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            hasSlots ? '$openSlotCount slot trống' : 'Hết slot',
+            hasSlots
+                ? l10n.availabilityOpenSlots(openSlotCount)
+                : l10n.availabilityFull,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -901,6 +705,7 @@ class _AllFullBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
@@ -919,10 +724,10 @@ class _AllFullBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
-              'Tất cả sân quanh đây đang kín chỗ.',
-              style: TextStyle(
+              l10n.discoveryAllFullTitle,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: _warningText,
@@ -931,9 +736,9 @@ class _AllFullBanner extends StatelessWidget {
           ),
           GestureDetector(
             onTap: onSlots,
-            child: const Text(
-              'Xem slot trống →',
-              style: TextStyle(
+            child: Text(
+              l10n.discoveryAllFullAction,
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: _warningText,
@@ -941,171 +746,6 @@ class _AllFullBanner extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// _PeekSheet — shared by list (doc 02 §4) → hand-off to EPIC-5
-// ---------------------------------------------------------------------------
-
-class _PeekSheet extends StatelessWidget {
-  const _PeekSheet({
-    required this.court,
-    required this.distanceKm,
-    required this.onClose,
-    required this.onOpenCourt,
-  });
-
-  final CourtAvailability court;
-  final double? distanceKm;
-  final VoidCallback onClose;
-  final VoidCallback onOpenCourt;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasSlots = court.openSlotCount > 0;
-    final sportColor = _sportColor(court.sportTypes);
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: _mdSurfaceContainerLowest,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(_mdCornerXl)),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1A000000),
-            blurRadius: 20,
-            offset: Offset(0, -4),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              height: 24,
-              child: Stack(
-                children: [
-                  Center(
-                    child: Container(
-                      width: 36,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: _mdOutlineVariant,
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    child: Semantics(
-                      label: 'Đóng',
-                      button: true,
-                      child: GestureDetector(
-                        onTap: onClose,
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: const BoxDecoration(
-                            color: _mdSurfaceContainerHigh,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(Icons.close,
-                              size: 16, color: _mdOnSurfaceVariant),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [sportColor, sportColor.withAlpha(204)],
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(_sportIcon(court.sportTypes),
-                      size: 32, color: Colors.white),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              court.name,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700,
-                                color: _mdOnSurface,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          _AvailabilityBadge(openSlotCount: court.openSlotCount),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        [
-                          court.sportTypes.firstOrNull ?? 'Thể thao',
-                          if (distanceKm != null) '${_formatKm(distanceKm!)} km',
-                        ].join(' · '),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: _mdOnSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            SizedBox(
-              width: double.infinity,
-              height: 46,
-              child: FilledButton(
-                onPressed: onOpenCourt,
-                style: FilledButton.styleFrom(
-                  backgroundColor: _mdPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(_mdCornerFull),
-                  ),
-                ),
-                child: Text(
-                  hasSlots ? 'Xem sân & đặt' : 'Xem sân',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: _mdOnPrimary,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1128,6 +768,7 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(32, 0, 32, 60),
@@ -1146,7 +787,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              onlyOpen ? 'Không còn slot trống ở đây' : 'Không tìm thấy sân nào',
+              onlyOpen ? l10n.discoveryEmptyNoOpen : l10n.discoveryEmptyNoCourts,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -1155,10 +796,10 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Thử mở rộng khoảng cách hoặc bỏ bớt bộ lọc để xem thêm lựa chọn.',
-              style:
-                  TextStyle(fontSize: 13, color: _mdOnSurfaceVariant, height: 1.4),
+            Text(
+              l10n.discoveryEmptyBody,
+              style: const TextStyle(
+                  fontSize: 13, color: _mdOnSurfaceVariant, height: 1.4),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -1174,9 +815,9 @@ class _EmptyState extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
-                      'Mở rộng 5 km',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.discoveryEmptyExpand,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: _mdOnSurfaceVariant,
@@ -1195,9 +836,9 @@ class _EmptyState extends StatelessWidget {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text(
-                      'Đặt lại bộ lọc',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.discoveryEmptyResetFilters,
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: _mdOnPrimary,
@@ -1218,14 +859,8 @@ class _EmptyState extends StatelessWidget {
 // _FilterSheet — draft state, live count CTA (doc 02 screen 03)
 // ---------------------------------------------------------------------------
 
-const _kFilterSports = [
-  ('', 'Tất cả'),
-  ('football', 'Bóng đá'),
-  ('pickleball', 'Pickleball'),
-  ('badminton', 'Cầu lông'),
-  ('tennis', 'Tennis'),
-  ('multi', 'Đa năng'),
-];
+// Sport filter slugs ('' = all); labels resolved via [_sportLabelFor].
+const _kFilterSportSlugs = ['', 'football', 'pickleball', 'badminton', 'tennis', 'multi'];
 
 const _kDistanceOptions = [1.0, 3.0, 5.0];
 
@@ -1285,6 +920,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final count = _draftCount;
     return Container(
       decoration: const BoxDecoration(
@@ -1315,9 +951,9 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Bộ lọc',
-                style: TextStyle(
+              Text(
+                l10n.commonFilter,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
                   color: _mdOnSurface,
@@ -1329,9 +965,9 @@ class _FilterSheetState extends State<_FilterSheet> {
                   _distance = null;
                   _onlyOpen = false;
                 }),
-                child: const Text(
-                  'Đặt lại',
-                  style: TextStyle(
+                child: Text(
+                  l10n.commonReset,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: _mdPrimary,
@@ -1341,9 +977,9 @@ class _FilterSheetState extends State<_FilterSheet> {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Môn thể thao',
-            style: TextStyle(
+          Text(
+            l10n.filterSports,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: _mdOnSurfaceVariant,
@@ -1353,9 +989,7 @@ class _FilterSheetState extends State<_FilterSheet> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: _kFilterSports.map((e) {
-              final slug = e.$1;
-              final label = e.$2;
+            children: _kFilterSportSlugs.map((slug) {
               final isAll = slug.isEmpty;
               final active = isAll ? _sports.isEmpty : _sports.contains(slug);
               return GestureDetector(
@@ -1368,14 +1002,15 @@ class _FilterSheetState extends State<_FilterSheet> {
                     _sports = Set.from(_sports)..add(slug);
                   }
                 }),
-                child: _SheetChip(label: label, active: active),
+                child: _SheetChip(
+                    label: _sportLabelFor(l10n, slug), active: active),
               );
             }).toList(),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Khoảng cách',
-            style: TextStyle(
+          Text(
+            l10n.filterDistance,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: _mdOnSurfaceVariant,
@@ -1395,7 +1030,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     onTap: () =>
                         setState(() => _distance = active ? null : km),
                     child: _SheetChip(
-                      label: '${km.toInt()} km',
+                      label: l10n.distanceKm('${km.toInt()}'),
                       active: active,
                       centered: true,
                     ),
@@ -1405,9 +1040,9 @@ class _FilterSheetState extends State<_FilterSheet> {
             }).toList(),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Trạng thái',
-            style: TextStyle(
+          Text(
+            l10n.filterStatus,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: _mdOnSurfaceVariant,
@@ -1434,10 +1069,11 @@ class _FilterSheetState extends State<_FilterSheet> {
                       : null,
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Chỉ hiển thị sân còn slot trống',
-                    style: TextStyle(fontSize: 14, color: _mdOnSurfaceVariant),
+                    l10n.filterOnlyOpen,
+                    style: const TextStyle(
+                        fontSize: 14, color: _mdOnSurfaceVariant),
                   ),
                 ),
               ],
@@ -1456,7 +1092,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
               ),
               child: Text(
-                count > 0 ? 'Hiển thị $count sân' : 'Xem kết quả · 0 sân',
+                count > 0 ? l10n.filterApply(count) : l10n.filterApplyZero,
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -1550,6 +1186,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
       color: _mdN50,
       child: BlocBuilder<DiscoveryCubit, DiscoveryState>(
         builder: (context, mapState) {
+          final l10n = AppLocalizations.of(context);
           final allCourts =
               mapState is DiscoveryLoaded ? mapState.courts : <CourtAvailability>[];
           final q = _query.trim().toLowerCase();
@@ -1578,7 +1215,7 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                 child: Row(
                   children: [
                     Semantics(
-                      label: 'Quay lại',
+                      label: l10n.commonBack,
                       button: true,
                       child: GestureDetector(
                         onTap: widget.onBack,
@@ -1619,10 +1256,10 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                               child: TextField(
                                 controller: _ctrl,
                                 autofocus: true,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   border: InputBorder.none,
-                                  hintText: 'Tìm sân, khu vực…',
-                                  hintStyle: TextStyle(
+                                  hintText: l10n.searchHint,
+                                  hintStyle: const TextStyle(
                                     fontSize: 14,
                                     color: _mdOnSurfaceVariant,
                                   ),
@@ -1667,8 +1304,8 @@ class _SearchOverlayState extends State<_SearchOverlay> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     q.isEmpty
-                        ? 'Tất cả ${allCourts.length} sân · gần nhất trước'
-                        : '${results.length} kết quả cho "$_query"',
+                        ? l10n.searchAllCourts(allCourts.length)
+                        : l10n.searchResultsFor(results.length, _query),
                     style: const TextStyle(
                         fontSize: 12, color: _mdOnSurfaceVariant),
                   ),
@@ -1702,6 +1339,7 @@ class _SearchEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1718,7 +1356,7 @@ class _SearchEmpty extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Không tìm thấy "$query"',
+            l10n.searchNoResults(query),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -1726,9 +1364,9 @@ class _SearchEmpty extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Thử tên sân hoặc khu vực khác.',
-            style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+          Text(
+            l10n.searchTryOther,
+            style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
           ),
         ],
       ),

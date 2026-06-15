@@ -115,8 +115,8 @@ class _AppShellState extends State<AppShell>
             onDestinationSelected: _goBranch,
             destinations: [
               NavigationDestination(
-                icon: const Icon(Icons.map_outlined),
-                selectedIcon: const Icon(Icons.map),
+                icon: const Icon(Icons.explore_outlined),
+                selectedIcon: const Icon(Icons.explore),
                 label: l10n.navMap,
               ),
               NavigationDestination(

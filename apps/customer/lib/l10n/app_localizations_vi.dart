@@ -213,7 +213,7 @@ class AppLocalizationsVi extends AppLocalizations {
       'Dung lượng ảnh đại diện không được vượt quá 2 MB.';
 
   @override
-  String get navMap => 'Bản đồ';
+  String get navMap => 'Khám phá';
 
   @override
   String get navBookings => 'Lịch đặt';
@@ -223,4 +223,176 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get navSlots => 'Slot trống';
+
+  @override
+  String get commonFilter => 'Bộ lọc';
+
+  @override
+  String get commonSearch => 'Tìm kiếm';
+
+  @override
+  String get commonNotifications => 'Thông báo';
+
+  @override
+  String get commonReset => 'Đặt lại';
+
+  @override
+  String get commonBack => 'Quay lại';
+
+  @override
+  String get sportAll => 'Tất cả';
+
+  @override
+  String get sportFootball => 'Bóng đá';
+
+  @override
+  String get sportPickleball => 'Pickleball';
+
+  @override
+  String get sportBadminton => 'Cầu lông';
+
+  @override
+  String get sportTennis => 'Tennis';
+
+  @override
+  String get sportMulti => 'Đa năng';
+
+  @override
+  String get sportGeneric => 'Thể thao';
+
+  @override
+  String availabilityOpenSlots(int count) {
+    return '$count slot trống';
+  }
+
+  @override
+  String get availabilityFull => 'Hết slot';
+
+  @override
+  String distanceKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get distanceWithin5 => 'Trong 5 km';
+
+  @override
+  String get discoveryTitle => 'Khám phá';
+
+  @override
+  String get discoveryUpdating => 'Đang cập nhật…';
+
+  @override
+  String get discoveryNoMatch => 'Không có sân khớp bộ lọc';
+
+  @override
+  String discoverySubtitle(int count, int slots) {
+    return '$count sân · $slots slot trống quanh đây';
+  }
+
+  @override
+  String discoveryCourtsCount(int count) {
+    return '$count sân';
+  }
+
+  @override
+  String get discoverySortNearest => 'Gần nhất ↓';
+
+  @override
+  String get discoveryFooterEnd => 'Hết sân trong khoảng cách đã chọn';
+
+  @override
+  String get discoveryAllFullTitle => 'Tất cả sân quanh đây đang kín chỗ.';
+
+  @override
+  String get discoveryAllFullAction => 'Xem slot trống →';
+
+  @override
+  String get discoveryEmptyNoOpen => 'Không còn slot trống ở đây';
+
+  @override
+  String get discoveryEmptyNoCourts => 'Không tìm thấy sân nào';
+
+  @override
+  String get discoveryEmptyBody =>
+      'Thử mở rộng khoảng cách hoặc bỏ bớt bộ lọc để xem thêm lựa chọn.';
+
+  @override
+  String get discoveryEmptyExpand => 'Mở rộng 5 km';
+
+  @override
+  String get discoveryEmptyResetFilters => 'Đặt lại bộ lọc';
+
+  @override
+  String get filterSports => 'Môn thể thao';
+
+  @override
+  String get filterDistance => 'Khoảng cách';
+
+  @override
+  String get filterStatus => 'Trạng thái';
+
+  @override
+  String get filterOnlyOpen => 'Chỉ hiển thị sân còn slot trống';
+
+  @override
+  String filterApply(int count) {
+    return 'Hiển thị $count sân';
+  }
+
+  @override
+  String get filterApplyZero => 'Xem kết quả · 0 sân';
+
+  @override
+  String get searchHint => 'Tìm sân, khu vực…';
+
+  @override
+  String searchAllCourts(int total) {
+    return 'Tất cả $total sân · gần nhất trước';
+  }
+
+  @override
+  String searchResultsFor(int count, String query) {
+    return '$count kết quả cho \"$query\"';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'Không tìm thấy \"$query\"';
+  }
+
+  @override
+  String get searchTryOther => 'Thử tên sân hoặc khu vực khác.';
+
+  @override
+  String get slotsTitle => 'Slot trống';
+
+  @override
+  String get slotsSubtitle => 'Slot đang tìm người chơi cùng';
+
+  @override
+  String slotsCountSort(int count) {
+    return '$count slot · Sắp xếp: Sớm nhất ↓';
+  }
+
+  @override
+  String get slotsHostInvite => 'Chủ slot mời chơi cùng';
+
+  @override
+  String get slotsOpenMatch => '🌐 Mở ghép';
+
+  @override
+  String get slotsFull => 'Đã đủ người';
+
+  @override
+  String slotsJoinedCount(int joined, int max) {
+    return '$joined/$max người';
+  }
+
+  @override
+  String get slotsEmptyTitle => 'Không có slot trống';
+
+  @override
+  String get slotsEmptyBody =>
+      'Không có slot nào đang tìm người trong khu vực của bạn.';
 }

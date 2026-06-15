@@ -154,12 +154,139 @@
   "errorAvatarSize": "Avatar size must not exceed 2 MB.",
   "@errorAvatarSize": {},
 
-  "navMap": "Map",
+  "navMap": "Explore",
   "@navMap": {},
   "navBookings": "Bookings",
   "@navBookings": {},
   "navProfile": "Profile",
   "@navProfile": {},
   "navSlots": "Open Slots",
-  "@navSlots": {}
+  "@navSlots": {},
+
+  "commonFilter": "Filter",
+  "@commonFilter": {},
+  "commonSearch": "Search",
+  "@commonSearch": {},
+  "commonNotifications": "Notifications",
+  "@commonNotifications": {},
+  "commonReset": "Reset",
+  "@commonReset": {},
+  "commonBack": "Back",
+  "@commonBack": {},
+
+  "sportAll": "All",
+  "@sportAll": {},
+  "sportFootball": "Football",
+  "@sportFootball": {},
+  "sportPickleball": "Pickleball",
+  "@sportPickleball": {},
+  "sportBadminton": "Badminton",
+  "@sportBadminton": {},
+  "sportTennis": "Tennis",
+  "@sportTennis": {},
+  "sportMulti": "Multi-sport",
+  "@sportMulti": {},
+  "sportGeneric": "Sports",
+  "@sportGeneric": {},
+
+  "availabilityOpenSlots": "{count} open slots",
+  "@availabilityOpenSlots": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "availabilityFull": "Full",
+  "@availabilityFull": {},
+  "distanceKm": "{km} km",
+  "@distanceKm": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "distanceWithin5": "Within 5 km",
+  "@distanceWithin5": {},
+
+  "discoveryTitle": "Explore",
+  "@discoveryTitle": {},
+  "discoveryUpdating": "Updating…",
+  "@discoveryUpdating": {},
+  "discoveryNoMatch": "No courts match the filters",
+  "@discoveryNoMatch": {},
+  "discoverySubtitle": "{count} courts · {slots} open slots nearby",
+  "@discoverySubtitle": {
+    "placeholders": { "count": { "type": "int" }, "slots": { "type": "int" } }
+  },
+  "discoveryCourtsCount": "{count} courts",
+  "@discoveryCourtsCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "discoverySortNearest": "Nearest ↓",
+  "@discoverySortNearest": {},
+  "discoveryFooterEnd": "No more courts within the selected distance",
+  "@discoveryFooterEnd": {},
+  "discoveryAllFullTitle": "All nearby courts are fully booked.",
+  "@discoveryAllFullTitle": {},
+  "discoveryAllFullAction": "View open slots →",
+  "@discoveryAllFullAction": {},
+  "discoveryEmptyNoOpen": "No open slots here",
+  "@discoveryEmptyNoOpen": {},
+  "discoveryEmptyNoCourts": "No courts found",
+  "@discoveryEmptyNoCourts": {},
+  "discoveryEmptyBody": "Try widening the distance or removing filters to see more options.",
+  "@discoveryEmptyBody": {},
+  "discoveryEmptyExpand": "Expand to 5 km",
+  "@discoveryEmptyExpand": {},
+  "discoveryEmptyResetFilters": "Reset filters",
+  "@discoveryEmptyResetFilters": {},
+
+  "filterSports": "Sport",
+  "@filterSports": {},
+  "filterDistance": "Distance",
+  "@filterDistance": {},
+  "filterStatus": "Status",
+  "@filterStatus": {},
+  "filterOnlyOpen": "Only show courts with open slots",
+  "@filterOnlyOpen": {},
+  "filterApply": "Show {count} courts",
+  "@filterApply": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "filterApplyZero": "View results · 0 courts",
+  "@filterApplyZero": {},
+
+  "searchHint": "Search courts, areas…",
+  "@searchHint": {},
+  "searchAllCourts": "All {total} courts · nearest first",
+  "@searchAllCourts": {
+    "placeholders": { "total": { "type": "int" } }
+  },
+  "searchResultsFor": "{count} results for \"{query}\"",
+  "@searchResultsFor": {
+    "placeholders": { "count": { "type": "int" }, "query": { "type": "String" } }
+  },
+  "searchNoResults": "No results for \"{query}\"",
+  "@searchNoResults": {
+    "placeholders": { "query": { "type": "String" } }
+  },
+  "searchTryOther": "Try another court name or area.",
+  "@searchTryOther": {},
+
+  "slotsTitle": "Open Slots",
+  "@slotsTitle": {},
+  "slotsSubtitle": "Slots looking for players",
+  "@slotsSubtitle": {},
+  "slotsCountSort": "{count} slots · Sort: Soonest ↓",
+  "@slotsCountSort": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotsHostInvite": "Host invites you to play",
+  "@slotsHostInvite": {},
+  "slotsOpenMatch": "🌐 Open match",
+  "@slotsOpenMatch": {},
+  "slotsFull": "Full",
+  "@slotsFull": {},
+  "slotsJoinedCount": "{joined}/{max} people",
+  "@slotsJoinedCount": {
+    "placeholders": { "joined": { "type": "int" }, "max": { "type": "int" } }
+  },
+  "slotsEmptyTitle": "No open slots",
+  "@slotsEmptyTitle": {},
+  "slotsEmptyBody": "No slots looking for players in your area.",
+  "@slotsEmptyBody": {}
 }

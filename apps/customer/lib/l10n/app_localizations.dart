@@ -473,7 +473,7 @@ abstract class AppLocalizations {
   /// No description provided for @navMap.
   ///
   /// In vi, this message translates to:
-  /// **'Bản đồ'**
+  /// **'Khám phá'**
   String get navMap;
 
   /// No description provided for @navBookings.
@@ -493,6 +493,306 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Slot trống'**
   String get navSlots;
+
+  /// No description provided for @commonFilter.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bộ lọc'**
+  String get commonFilter;
+
+  /// No description provided for @commonSearch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm kiếm'**
+  String get commonSearch;
+
+  /// No description provided for @commonNotifications.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get commonNotifications;
+
+  /// No description provided for @commonReset.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lại'**
+  String get commonReset;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quay lại'**
+  String get commonBack;
+
+  /// No description provided for @sportAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get sportAll;
+
+  /// No description provided for @sportFootball.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bóng đá'**
+  String get sportFootball;
+
+  /// No description provided for @sportPickleball.
+  ///
+  /// In vi, this message translates to:
+  /// **'Pickleball'**
+  String get sportPickleball;
+
+  /// No description provided for @sportBadminton.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cầu lông'**
+  String get sportBadminton;
+
+  /// No description provided for @sportTennis.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tennis'**
+  String get sportTennis;
+
+  /// No description provided for @sportMulti.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đa năng'**
+  String get sportMulti;
+
+  /// No description provided for @sportGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thể thao'**
+  String get sportGeneric;
+
+  /// No description provided for @availabilityOpenSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} slot trống'**
+  String availabilityOpenSlots(int count);
+
+  /// No description provided for @availabilityFull.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết slot'**
+  String get availabilityFull;
+
+  /// No description provided for @distanceKm.
+  ///
+  /// In vi, this message translates to:
+  /// **'{km} km'**
+  String distanceKm(String km);
+
+  /// No description provided for @distanceWithin5.
+  ///
+  /// In vi, this message translates to:
+  /// **'Trong 5 km'**
+  String get distanceWithin5;
+
+  /// No description provided for @discoveryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khám phá'**
+  String get discoveryTitle;
+
+  /// No description provided for @discoveryUpdating.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang cập nhật…'**
+  String get discoveryUpdating;
+
+  /// No description provided for @discoveryNoMatch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có sân khớp bộ lọc'**
+  String get discoveryNoMatch;
+
+  /// No description provided for @discoverySubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} sân · {slots} slot trống quanh đây'**
+  String discoverySubtitle(int count, int slots);
+
+  /// No description provided for @discoveryCourtsCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} sân'**
+  String discoveryCourtsCount(int count);
+
+  /// No description provided for @discoverySortNearest.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gần nhất ↓'**
+  String get discoverySortNearest;
+
+  /// No description provided for @discoveryFooterEnd.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết sân trong khoảng cách đã chọn'**
+  String get discoveryFooterEnd;
+
+  /// No description provided for @discoveryAllFullTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả sân quanh đây đang kín chỗ.'**
+  String get discoveryAllFullTitle;
+
+  /// No description provided for @discoveryAllFullAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem slot trống →'**
+  String get discoveryAllFullAction;
+
+  /// No description provided for @discoveryEmptyNoOpen.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không còn slot trống ở đây'**
+  String get discoveryEmptyNoOpen;
+
+  /// No description provided for @discoveryEmptyNoCourts.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy sân nào'**
+  String get discoveryEmptyNoCourts;
+
+  /// No description provided for @discoveryEmptyBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử mở rộng khoảng cách hoặc bỏ bớt bộ lọc để xem thêm lựa chọn.'**
+  String get discoveryEmptyBody;
+
+  /// No description provided for @discoveryEmptyExpand.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở rộng 5 km'**
+  String get discoveryEmptyExpand;
+
+  /// No description provided for @discoveryEmptyResetFilters.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lại bộ lọc'**
+  String get discoveryEmptyResetFilters;
+
+  /// No description provided for @filterSports.
+  ///
+  /// In vi, this message translates to:
+  /// **'Môn thể thao'**
+  String get filterSports;
+
+  /// No description provided for @filterDistance.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khoảng cách'**
+  String get filterDistance;
+
+  /// No description provided for @filterStatus.
+  ///
+  /// In vi, this message translates to:
+  /// **'Trạng thái'**
+  String get filterStatus;
+
+  /// No description provided for @filterOnlyOpen.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ hiển thị sân còn slot trống'**
+  String get filterOnlyOpen;
+
+  /// No description provided for @filterApply.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hiển thị {count} sân'**
+  String filterApply(int count);
+
+  /// No description provided for @filterApplyZero.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem kết quả · 0 sân'**
+  String get filterApplyZero;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm sân, khu vực…'**
+  String get searchHint;
+
+  /// No description provided for @searchAllCourts.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả {total} sân · gần nhất trước'**
+  String searchAllCourts(int total);
+
+  /// No description provided for @searchResultsFor.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} kết quả cho \"{query}\"'**
+  String searchResultsFor(int count, String query);
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy \"{query}\"'**
+  String searchNoResults(String query);
+
+  /// No description provided for @searchTryOther.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử tên sân hoặc khu vực khác.'**
+  String get searchTryOther;
+
+  /// No description provided for @slotsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot trống'**
+  String get slotsTitle;
+
+  /// No description provided for @slotsSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot đang tìm người chơi cùng'**
+  String get slotsSubtitle;
+
+  /// No description provided for @slotsCountSort.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} slot · Sắp xếp: Sớm nhất ↓'**
+  String slotsCountSort(int count);
+
+  /// No description provided for @slotsHostInvite.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ slot mời chơi cùng'**
+  String get slotsHostInvite;
+
+  /// No description provided for @slotsOpenMatch.
+  ///
+  /// In vi, this message translates to:
+  /// **'🌐 Mở ghép'**
+  String get slotsOpenMatch;
+
+  /// No description provided for @slotsFull.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đủ người'**
+  String get slotsFull;
+
+  /// No description provided for @slotsJoinedCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{joined}/{max} người'**
+  String slotsJoinedCount(int joined, int max);
+
+  /// No description provided for @slotsEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có slot trống'**
+  String get slotsEmptyTitle;
+
+  /// No description provided for @slotsEmptyBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có slot nào đang tìm người trong khu vực của bạn.'**
+  String get slotsEmptyBody;
 }
 
 class _AppLocalizationsDelegate

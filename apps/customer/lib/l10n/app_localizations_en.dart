@@ -211,7 +211,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorAvatarSize => 'Avatar size must not exceed 2 MB.';
 
   @override
-  String get navMap => 'Map';
+  String get navMap => 'Explore';
 
   @override
   String get navBookings => 'Bookings';
@@ -221,4 +221,176 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navSlots => 'Open Slots';
+
+  @override
+  String get commonFilter => 'Filter';
+
+  @override
+  String get commonSearch => 'Search';
+
+  @override
+  String get commonNotifications => 'Notifications';
+
+  @override
+  String get commonReset => 'Reset';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
+  String get sportAll => 'All';
+
+  @override
+  String get sportFootball => 'Football';
+
+  @override
+  String get sportPickleball => 'Pickleball';
+
+  @override
+  String get sportBadminton => 'Badminton';
+
+  @override
+  String get sportTennis => 'Tennis';
+
+  @override
+  String get sportMulti => 'Multi-sport';
+
+  @override
+  String get sportGeneric => 'Sports';
+
+  @override
+  String availabilityOpenSlots(int count) {
+    return '$count open slots';
+  }
+
+  @override
+  String get availabilityFull => 'Full';
+
+  @override
+  String distanceKm(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get distanceWithin5 => 'Within 5 km';
+
+  @override
+  String get discoveryTitle => 'Explore';
+
+  @override
+  String get discoveryUpdating => 'Updating…';
+
+  @override
+  String get discoveryNoMatch => 'No courts match the filters';
+
+  @override
+  String discoverySubtitle(int count, int slots) {
+    return '$count courts · $slots open slots nearby';
+  }
+
+  @override
+  String discoveryCourtsCount(int count) {
+    return '$count courts';
+  }
+
+  @override
+  String get discoverySortNearest => 'Nearest ↓';
+
+  @override
+  String get discoveryFooterEnd =>
+      'No more courts within the selected distance';
+
+  @override
+  String get discoveryAllFullTitle => 'All nearby courts are fully booked.';
+
+  @override
+  String get discoveryAllFullAction => 'View open slots →';
+
+  @override
+  String get discoveryEmptyNoOpen => 'No open slots here';
+
+  @override
+  String get discoveryEmptyNoCourts => 'No courts found';
+
+  @override
+  String get discoveryEmptyBody =>
+      'Try widening the distance or removing filters to see more options.';
+
+  @override
+  String get discoveryEmptyExpand => 'Expand to 5 km';
+
+  @override
+  String get discoveryEmptyResetFilters => 'Reset filters';
+
+  @override
+  String get filterSports => 'Sport';
+
+  @override
+  String get filterDistance => 'Distance';
+
+  @override
+  String get filterStatus => 'Status';
+
+  @override
+  String get filterOnlyOpen => 'Only show courts with open slots';
+
+  @override
+  String filterApply(int count) {
+    return 'Show $count courts';
+  }
+
+  @override
+  String get filterApplyZero => 'View results · 0 courts';
+
+  @override
+  String get searchHint => 'Search courts, areas…';
+
+  @override
+  String searchAllCourts(int total) {
+    return 'All $total courts · nearest first';
+  }
+
+  @override
+  String searchResultsFor(int count, String query) {
+    return '$count results for \"$query\"';
+  }
+
+  @override
+  String searchNoResults(String query) {
+    return 'No results for \"$query\"';
+  }
+
+  @override
+  String get searchTryOther => 'Try another court name or area.';
+
+  @override
+  String get slotsTitle => 'Open Slots';
+
+  @override
+  String get slotsSubtitle => 'Slots looking for players';
+
+  @override
+  String slotsCountSort(int count) {
+    return '$count slots · Sort: Soonest ↓';
+  }
+
+  @override
+  String get slotsHostInvite => 'Host invites you to play';
+
+  @override
+  String get slotsOpenMatch => '🌐 Open match';
+
+  @override
+  String get slotsFull => 'Full';
+
+  @override
+  String slotsJoinedCount(int joined, int max) {
+    return '$joined/$max people';
+  }
+
+  @override
+  String get slotsEmptyTitle => 'No open slots';
+
+  @override
+  String get slotsEmptyBody => 'No slots looking for players in your area.';
 }

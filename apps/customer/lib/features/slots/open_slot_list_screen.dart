@@ -2,6 +2,7 @@
 // Design: EPIC-4 Slot Detail · Material 3 · M3DiscoverSlots component.
 
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -33,15 +34,24 @@ const _sportColors = <String, Color>{
   'multi':      Color(0xFF6B7280),
 };
 
-const _sportLabels = <String, String>{
-  'football':   'Bóng đá',
-  'badminton':  'Cầu lông',
-  'pickleball': 'Pickleball',
-  'tennis':     'Tennis',
-  'multi':      'Đa năng',
-};
+/// Localized display label for a sport type; falls back to the raw value.
+String _sportLabel(AppLocalizations l10n, String type) => switch (type) {
+      'football' => l10n.sportFootball,
+      'badminton' => l10n.sportBadminton,
+      'pickleball' => l10n.sportPickleball,
+      'tennis' => l10n.sportTennis,
+      'multi' => l10n.sportMulti,
+      _ => type,
+    };
 
-const _filterLabels = ['Tất cả', 'Bóng đá', 'Pickleball', 'Cầu lông', 'Tennis'];
+/// Quick-filter labels, ordered: all · football · pickleball · badminton · tennis.
+List<String> _filterLabels(AppLocalizations l10n) => [
+      l10n.sportAll,
+      l10n.sportFootball,
+      l10n.sportPickleball,
+      l10n.sportBadminton,
+      l10n.sportTennis,
+    ];
 
 class OpenSlotListScreen extends StatefulWidget {
   const OpenSlotListScreen({super.key});
@@ -105,6 +115,8 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final filterLabels = _filterLabels(l10n);
     return Container(
       color: _mdSurfaceContainerLow,
       child: Column(
@@ -113,38 +125,29 @@ class _Header extends StatelessWidget {
           SizedBox(height: MediaQuery.of(context).padding.top + 8),
           // Title row
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 4, 0),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Slot trống',
-                        style: TextStyle(
+                        l10n.slotsTitle,
+                        style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: _mdOnSurface,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
-                        'Slot đang tìm người chơi cùng',
-                        style: TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
+                        l10n.slotsSubtitle,
+                        style: const TextStyle(
+                            fontSize: 12, color: _mdOnSurfaceVariant),
                       ),
                     ],
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.filter_list_outlined),
-                  color: _mdOnSurfaceVariant,
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  color: _mdOnSurfaceVariant,
-                  onPressed: () {},
                 ),
               ],
             ),
@@ -155,19 +158,19 @@ class _Header extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              itemCount: _filterLabels.length + 1,
+              itemCount: filterLabels.length + 1,
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (_, i) {
-                if (i < _filterLabels.length) {
+                if (i < filterLabels.length) {
                   return _FilterChip(
-                    label: _filterLabels[i],
+                    label: filterLabels[i],
                     selected: selectedFilter == i,
                     onTap: () => onFilterSelected(i),
                   );
                 }
                 // Distance chip (non-interactive for now)
                 return _FilterChip(
-                  label: 'Trong 5 km',
+                  label: l10n.distanceWithin5,
                   selected: false,
                   onTap: () {},
                 );
@@ -253,7 +256,7 @@ class _SlotBody extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              '${slots.length} slot · Sắp xếp: Sớm nhất ↓',
+              AppLocalizations.of(context).slotsCountSort(slots.length),
               style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
             ),
           );
@@ -275,8 +278,9 @@ class _SlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final sportColor = _sportColors[slot.sportType] ?? const Color(0xFF6B7280);
-    final sportLabel = _sportLabels[slot.sportType] ?? slot.sportType;
+    final sportLabel = _sportLabel(l10n, slot.sportType);
     final isFull = slot.isFull;
 
     final timeFmt = DateFormat('HH:mm');
@@ -381,7 +385,7 @@ class _SlotCard extends StatelessWidget {
                     Container(
                       width: 28,
                       height: 28,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: _mdSurfaceContainer,
                         shape: BoxShape.circle,
                       ),
@@ -392,10 +396,10 @@ class _SlotCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Chủ slot mời chơi cùng',
-                        style: TextStyle(
+                        l10n.slotsHostInvite,
+                        style: const TextStyle(
                           fontSize: 12,
                           color: _mdOnSurfaceVariant,
                         ),
@@ -411,9 +415,9 @@ class _SlotCard extends StatelessWidget {
                           color: _mdSurfaceContainerHigh,
                           borderRadius: BorderRadius.circular(_mdCornerSm),
                         ),
-                        child: const Text(
-                          '🌐 Mở ghép',
-                          style: TextStyle(
+                        child: Text(
+                          l10n.slotsOpenMatch,
+                          style: const TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: _mdOnSurfaceVariant,
@@ -472,7 +476,9 @@ class _FullnessBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            isFull ? 'Đã đủ người' : '$joined/$max người',
+            isFull
+                ? AppLocalizations.of(context).slotsFull
+                : AppLocalizations.of(context).slotsJoinedCount(joined, max),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -490,6 +496,7 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -510,19 +517,19 @@ class _EmptyView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Không có slot trống',
-              style: TextStyle(
+            Text(
+              l10n.slotsEmptyTitle,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: _mdOnSurface,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Không có slot nào đang tìm người trong khu vực của bạn.',
+            Text(
+              l10n.slotsEmptyBody,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+              style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
             ),
           ],
         ),
