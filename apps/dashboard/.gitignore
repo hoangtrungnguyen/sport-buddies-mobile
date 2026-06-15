@@ -53,3 +53,4 @@ scripts/.env.web
 # envied codegen output — bakes (obfuscated) env values, regenerate per build:
 #   dart run build_runner build --delete-conflicting-outputs
 lib/core/env/env.g.dart
+.worktree/
