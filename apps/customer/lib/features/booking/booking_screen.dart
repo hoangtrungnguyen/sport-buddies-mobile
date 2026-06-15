@@ -1,5 +1,6 @@
 import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/booking_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -45,15 +46,16 @@ class _BookingScreenState extends State<BookingScreen> {
   /// Name + phone are required so the court owner can reach the player.
   /// Phone must look like a VN number (9–11 digits, optional +).
   bool _validateContact(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final name = _nameCtrl.text.trim();
     final phone = _phoneCtrl.text.trim();
     String? error;
     if (name.isEmpty) {
-      error = 'Vui lòng nhập họ tên';
+      error = l10n.bookingValidationName;
     } else if (phone.isEmpty) {
-      error = 'Vui lòng nhập số điện thoại';
+      error = l10n.bookingValidationPhone;
     } else if (!RegExp(r'^\+?\d{9,11}$').hasMatch(phone)) {
-      error = 'Số điện thoại không hợp lệ';
+      error = l10n.bookingValidationPhoneInvalid;
     }
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -71,8 +73,8 @@ class _BookingScreenState extends State<BookingScreen> {
         if (state is BookingLoaded) _populateControllers(state);
         if (state is BookingSlotTaken) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Slot vừa được đặt, chọn giờ khác'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).bookingSlotTaken),
               backgroundColor: Colors.orange,
             ),
           );
@@ -91,7 +93,7 @@ class _BookingScreenState extends State<BookingScreen> {
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            title: const Text('Xác nhận đặt sân'),
+            title: Text(AppLocalizations.of(context).bookingConfirmTitle),
             backgroundColor: Colors.white,
             elevation: 0,
             leading: const BackButton(),
@@ -205,11 +207,13 @@ class _Step1Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final durationH =
         slot.endTime.difference(slot.startTime).inMinutes / 60.0;
-    final durationLabel = durationH == durationH.roundToDouble()
-        ? '${durationH.toInt()} giờ'
-        : '${durationH.toStringAsFixed(1)} giờ';
+    final hoursStr = durationH == durationH.roundToDouble()
+        ? '${durationH.toInt()}'
+        : durationH.toStringAsFixed(1);
+    final durationLabel = l10n.bookingDurationHours(hoursStr);
     final totalPrice =
         pricePerHour != null ? pricePerHour! * durationH : null;
 
@@ -223,9 +227,9 @@ class _Step1Content extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Khung giờ đã chọn',
-                style: TextStyle(
+              Text(
+                l10n.bookingSelectedSlot,
+                style: const TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF111827),
@@ -239,7 +243,7 @@ class _Step1Content extends StatelessWidget {
                   borderRadius: BorderRadius.circular(99),
                 ),
                 child: Text(
-                  '1 khung · $durationLabel',
+                  l10n.bookingSlotCountDuration(durationLabel),
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -260,14 +264,14 @@ class _Step1Content extends StatelessWidget {
                 : '—',
           ),
           const SizedBox(height: 16),
-          _SummaryRow(k: 'Tổng thời lượng', v: durationLabel),
+          _SummaryRow(k: l10n.bookingTotalDuration, v: durationLabel),
           _SummaryRow(
-            k: 'Giá thuê',
+            k: l10n.bookingRentPrice,
             v: pricePerHour != null
-                ? '${_priceFmt.format(pricePerHour!)}/giờ'
+                ? l10n.bookingPricePerHour(_priceFmt.format(pricePerHour!))
                 : '—',
           ),
-          const _SummaryRow(k: 'Phí dịch vụ', v: 'Miễn phí'),
+          _SummaryRow(k: l10n.bookingServiceFee, v: l10n.bookingFree),
           const SizedBox(height: 12),
           Container(
             padding:
@@ -279,9 +283,9 @@ class _Step1Content extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Tổng thanh toán',
-                  style: TextStyle(
+                Text(
+                  l10n.bookingTotalPayment,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF374151),
@@ -306,14 +310,14 @@ class _Step1Content extends StatelessWidget {
               color: const Color(0xFFFEF9C3),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.payments_outlined,
+                const Icon(Icons.payments_outlined,
                     color: Color(0xFF92670B), size: 20),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
-                  'Thanh toán tiền mặt tại sân',
-                  style: TextStyle(
+                  l10n.bookingCashAtCourt,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF92670B),
@@ -323,9 +327,9 @@ class _Step1Content extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Thông tin liên hệ',
-            style: TextStyle(
+          Text(
+            l10n.bookingContactInfo,
+            style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
@@ -524,25 +528,26 @@ class _ContactForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         _EditableField(
-          label: 'Họ tên',
+          label: l10n.bookingFieldName,
           controller: nameCtrl,
           keyboardType: TextInputType.name,
         ),
         const SizedBox(height: 12),
         _EditableField(
-          label: 'Số điện thoại',
+          label: l10n.bookingFieldPhone,
           controller: phoneCtrl,
           prefixIcon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
         ),
         const SizedBox(height: 12),
         _EditableField(
-          label: 'Ghi chú cho chủ sân (tuỳ chọn)',
+          label: l10n.bookingFieldNotes,
           controller: notesCtrl,
-          hint: 'VD: cần mượn vợt, đến muộn 10p...',
+          hint: l10n.bookingNotesHint,
           multiline: true,
         ),
       ],
@@ -653,9 +658,9 @@ class _BottomConfirmBtn extends StatelessWidget {
                     color: Colors.white,
                   ),
                 )
-              : const Text(
-                  'Xác nhận đặt sân',
-                  style: TextStyle(
+              : Text(
+                  AppLocalizations.of(context).bookingConfirmTitle,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

@@ -1,5 +1,5 @@
-// Display view model + Booking→view mappers for the My Bookings screen.
-// (Static mock data removed — screens now render real Supabase data only.)
+// BookingView display view-model + Booking→view mappers for the My Bookings
+// screen. Renders real Supabase data (no mock/seed data).
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,8 +14,8 @@ enum BookingType { oneOff, recurring }
 
 enum BookingRole { host, join }
 
-class MockBooking {
-  const MockBooking({
+class BookingView {
+  const BookingView({
     required this.id,
     required this.courtName,
     required this.sport,
@@ -35,7 +35,7 @@ class MockBooking {
     this.hostName,
     this.hostInitials,
     this.hostColor,
-    this.statusLabelOverride,
+    this.statusOverrideToken,
   });
 
   final String id;
@@ -58,9 +58,10 @@ class MockBooking {
   final String? hostInitials;
   final Color? hostColor;
 
-  /// When set, the status badge shows this text instead of the default
-  /// label derived from [status]/[role] (used for join requests).
-  final String? statusLabelOverride;
+  /// When set, the status badge uses this join-request token instead of the
+  /// default label derived from [status]/[role]: 'accepted' | 'rejected' |
+  /// 'pending'. The screen resolves it to a localized string.
+  final String? statusOverrideToken;
 }
 
 Color bookingSportColor(SportType sport) => switch (sport) {
@@ -77,18 +78,8 @@ String bookingSportEmoji(SportType sport) => switch (sport) {
       SportType.tennis => '🎾',
     };
 
-String bookingStatusLabel(BookingStatus status, {BookingRole role = BookingRole.host}) =>
-    switch (status) {
-      BookingStatus.confirmed =>
-        role == BookingRole.join ? 'Đã duyệt' : 'Đã xác nhận',
-      BookingStatus.pending =>
-        role == BookingRole.join ? 'Chờ duyệt' : 'Chờ xác nhận',
-      BookingStatus.completed => 'Đã hoàn thành',
-      BookingStatus.cancelled => 'Đã huỷ',
-    };
-
 // ---------------------------------------------------------------------------
-// Booking → MockBooking display mapper
+// Booking → BookingView display mapper
 // ---------------------------------------------------------------------------
 
 SportType _parseSport(String raw) => switch (raw.toLowerCase().trim()) {
@@ -112,7 +103,7 @@ final _bookingPriceFmt =
     NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
 
 extension BookingDisplay on Booking {
-  MockBooking toMockBooking() {
+  BookingView toBookingView() {
     final start = slot.startTime.toLocal();
     final end = slot.endTime.toLocal();
     final sport = _parseSport(
@@ -126,13 +117,13 @@ extension BookingDisplay on Booking {
         ? '${_bookingPriceFmt.format(totalPrice).trim()}đ'
         : '—';
     final action = switch (mappedStatus) {
-      BookingStatus.pending => 'Huỷ',
-      BookingStatus.confirmed => 'Chi tiết',
-      BookingStatus.completed || BookingStatus.cancelled => 'Đặt lại',
+      BookingStatus.pending => 'cancel',
+      BookingStatus.confirmed => 'detail',
+      BookingStatus.completed || BookingStatus.cancelled => 'rebook',
     };
     final danger = mappedStatus == BookingStatus.pending;
 
-    return MockBooking(
+    return BookingView(
       id: id,
       courtId: slot.court.id,
       courtName: slot.court.name,
@@ -152,25 +143,25 @@ extension BookingDisplay on Booking {
 }
 
 // ---------------------------------------------------------------------------
-// JoinedSlotRequest → MockBooking display mapper
+// JoinedSlotRequest → BookingView display mapper
 // ---------------------------------------------------------------------------
 
 extension JoinRequestDisplay on JoinedSlotRequest {
-  MockBooking toMockBooking() {
+  BookingView toBookingView() {
     final start = slot.startTime.toLocal();
     final end = slot.endTime.toLocal();
     final sport = _parseSport(
       slot.court.sportTypes.isNotEmpty ? slot.court.sportTypes.first : '',
     );
-    // Map join-request status onto the booking badge colours and the
-    // CAPP-054 labels (Chờ xác nhận / Đã chấp nhận / Từ chối).
-    final (mappedStatus, label) = switch (status) {
-      'approved' => (BookingStatus.confirmed, 'Đã chấp nhận'),
-      'rejected' => (BookingStatus.cancelled, 'Từ chối'),
-      _ => (BookingStatus.pending, 'Chờ xác nhận'),
+    // Map join-request status onto the booking badge colours and a token the
+    // screen resolves to a localized label (accepted / rejected / pending).
+    final (mappedStatus, overrideToken) = switch (status) {
+      'approved' => (BookingStatus.confirmed, 'accepted'),
+      'rejected' => (BookingStatus.cancelled, 'rejected'),
+      _ => (BookingStatus.pending, 'pending'),
     };
 
-    return MockBooking(
+    return BookingView(
       id: id,
       courtId: slot.court.id,
       courtName: slot.court.name,
@@ -183,7 +174,7 @@ extension JoinRequestDisplay on JoinedSlotRequest {
       type: BookingType.oneOff,
       date: start,
       role: BookingRole.join,
-      statusLabelOverride: label,
+      statusOverrideToken: overrideToken,
     );
   }
 }

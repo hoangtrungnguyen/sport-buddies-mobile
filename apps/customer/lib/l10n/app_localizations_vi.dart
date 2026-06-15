@@ -395,4 +395,208 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get slotsEmptyBody =>
       'Không có slot nào đang tìm người trong khu vực của bạn.';
+
+  @override
+  String get bookingValidationName => 'Vui lòng nhập họ tên';
+
+  @override
+  String get bookingValidationPhone => 'Vui lòng nhập số điện thoại';
+
+  @override
+  String get bookingValidationPhoneInvalid => 'Số điện thoại không hợp lệ';
+
+  @override
+  String get bookingSlotTaken => 'Slot vừa được đặt, chọn giờ khác';
+
+  @override
+  String get bookingConfirmTitle => 'Xác nhận đặt sân';
+
+  @override
+  String bookingDurationHours(String hours) {
+    return '$hours giờ';
+  }
+
+  @override
+  String get bookingSelectedSlot => 'Khung giờ đã chọn';
+
+  @override
+  String bookingSlotCountDuration(String duration) {
+    return '1 khung · $duration';
+  }
+
+  @override
+  String get bookingTotalDuration => 'Tổng thời lượng';
+
+  @override
+  String get bookingRentPrice => 'Giá thuê';
+
+  @override
+  String bookingPricePerHour(String price) {
+    return '$price/giờ';
+  }
+
+  @override
+  String get bookingServiceFee => 'Phí dịch vụ';
+
+  @override
+  String get bookingFree => 'Miễn phí';
+
+  @override
+  String get bookingTotalPayment => 'Tổng thanh toán';
+
+  @override
+  String get bookingCashAtCourt => 'Thanh toán tiền mặt tại sân';
+
+  @override
+  String get bookingContactInfo => 'Thông tin liên hệ';
+
+  @override
+  String get bookingFieldName => 'Họ tên';
+
+  @override
+  String get bookingFieldPhone => 'Số điện thoại';
+
+  @override
+  String get bookingFieldNotes => 'Ghi chú cho chủ sân (tuỳ chọn)';
+
+  @override
+  String get bookingNotesHint => 'VD: cần mượn vợt, đến muộn 10p...';
+
+  @override
+  String get myBookingsTitle => 'Lịch đặt của tôi';
+
+  @override
+  String get bookingsTabUpcoming => 'Sắp tới';
+
+  @override
+  String get bookingsTabPending => 'Đang chờ';
+
+  @override
+  String get bookingsTabHistory => 'Lịch sử';
+
+  @override
+  String get bookingsFilterAll => 'Tất cả';
+
+  @override
+  String get bookingsFilterHost => 'Đặt sân';
+
+  @override
+  String get bookingsFilterJoin => 'Chơi ghép';
+
+  @override
+  String get bookingsFilterRecurring => '🔁 Định kỳ';
+
+  @override
+  String get bookingsFilterCompleted => 'Đã hoàn thành';
+
+  @override
+  String get bookingsEmptyUpcoming => 'Không có lịch đặt nào';
+
+  @override
+  String get bookingsEmptyPending => 'Không có lịch đang chờ';
+
+  @override
+  String get bookingsEmptyHistory => 'Không có lịch sử đặt sân';
+
+  @override
+  String get bookingsToday => 'HÔM NAY';
+
+  @override
+  String get bookingsTomorrow => 'NGÀY MAI';
+
+  @override
+  String get bookingsWeekdaySun => 'CHỦ NHẬT';
+
+  @override
+  String get bookingsWeekdayMon => 'THỨ HAI';
+
+  @override
+  String get bookingsWeekdayTue => 'THỨ BA';
+
+  @override
+  String get bookingsWeekdayWed => 'THỨ TƯ';
+
+  @override
+  String get bookingsWeekdayThu => 'THỨ NĂM';
+
+  @override
+  String get bookingsWeekdayFri => 'THỨ SÁU';
+
+  @override
+  String get bookingsWeekdaySat => 'THỨ BẢY';
+
+  @override
+  String get bookingsPendingHeader => 'ĐẶT SÂN CHỜ XÁC NHẬN';
+
+  @override
+  String get commonRetry => 'Thử lại';
+
+  @override
+  String get bookingsCancelTitle => 'Huỷ đặt sân này?';
+
+  @override
+  String get bookingsCancelBody => 'Hành động này không thể hoàn tác.';
+
+  @override
+  String get commonNo => 'Không';
+
+  @override
+  String get commonConfirm => 'Xác nhận';
+
+  @override
+  String bookingsJoinedHost(String host) {
+    return 'Bạn tham gia · chủ slot $host';
+  }
+
+  @override
+  String bookingsHostWithPlayers(String players) {
+    return 'Bạn là chủ slot · $players';
+  }
+
+  @override
+  String get bookingsHost => 'Bạn là chủ slot';
+
+  @override
+  String get bookingsOneOff => 'Một lần';
+
+  @override
+  String bookingsExtraSlots(int count) {
+    return '+$count khung';
+  }
+
+  @override
+  String get bookingsLegendHost => 'Bạn đặt sân';
+
+  @override
+  String get bookingsLegendJoin => 'Bạn chơi ghép (tham gia slot)';
+
+  @override
+  String get bookingActionRebook => 'Đặt lại';
+
+  @override
+  String get bookingActionDetail => 'Chi tiết';
+
+  @override
+  String get bookingActionCancel => 'Huỷ';
+
+  @override
+  String get bookingStatusApproved => 'Đã duyệt';
+
+  @override
+  String get bookingStatusConfirmed => 'Đã xác nhận';
+
+  @override
+  String get bookingStatusPendingJoin => 'Chờ duyệt';
+
+  @override
+  String get bookingStatusPendingHost => 'Chờ xác nhận';
+
+  @override
+  String get bookingStatusCancelled => 'Đã huỷ';
+
+  @override
+  String get bookingJoinAccepted => 'Đã chấp nhận';
+
+  @override
+  String get bookingJoinRejected => 'Từ chối';
 }

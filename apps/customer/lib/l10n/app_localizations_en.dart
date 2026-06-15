@@ -393,4 +393,210 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get slotsEmptyBody => 'No slots looking for players in your area.';
+
+  @override
+  String get bookingValidationName => 'Please enter your name';
+
+  @override
+  String get bookingValidationPhone => 'Please enter your phone number';
+
+  @override
+  String get bookingValidationPhoneInvalid => 'Invalid phone number';
+
+  @override
+  String get bookingSlotTaken =>
+      'This slot was just booked, please pick another time';
+
+  @override
+  String get bookingConfirmTitle => 'Confirm booking';
+
+  @override
+  String bookingDurationHours(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get bookingSelectedSlot => 'Selected time slot';
+
+  @override
+  String bookingSlotCountDuration(String duration) {
+    return '1 slot · $duration';
+  }
+
+  @override
+  String get bookingTotalDuration => 'Total duration';
+
+  @override
+  String get bookingRentPrice => 'Rental price';
+
+  @override
+  String bookingPricePerHour(String price) {
+    return '$price/hour';
+  }
+
+  @override
+  String get bookingServiceFee => 'Service fee';
+
+  @override
+  String get bookingFree => 'Free';
+
+  @override
+  String get bookingTotalPayment => 'Total payment';
+
+  @override
+  String get bookingCashAtCourt => 'Pay cash at the court';
+
+  @override
+  String get bookingContactInfo => 'Contact information';
+
+  @override
+  String get bookingFieldName => 'Full name';
+
+  @override
+  String get bookingFieldPhone => 'Phone number';
+
+  @override
+  String get bookingFieldNotes => 'Note for the court owner (optional)';
+
+  @override
+  String get bookingNotesHint =>
+      'e.g. need to borrow a racket, arriving 10 min late...';
+
+  @override
+  String get myBookingsTitle => 'My bookings';
+
+  @override
+  String get bookingsTabUpcoming => 'Upcoming';
+
+  @override
+  String get bookingsTabPending => 'Pending';
+
+  @override
+  String get bookingsTabHistory => 'History';
+
+  @override
+  String get bookingsFilterAll => 'All';
+
+  @override
+  String get bookingsFilterHost => 'Hosted';
+
+  @override
+  String get bookingsFilterJoin => 'Joined';
+
+  @override
+  String get bookingsFilterRecurring => '🔁 Recurring';
+
+  @override
+  String get bookingsFilterCompleted => 'Completed';
+
+  @override
+  String get bookingsEmptyUpcoming => 'No bookings yet';
+
+  @override
+  String get bookingsEmptyPending => 'No pending bookings';
+
+  @override
+  String get bookingsEmptyHistory => 'No booking history';
+
+  @override
+  String get bookingsToday => 'TODAY';
+
+  @override
+  String get bookingsTomorrow => 'TOMORROW';
+
+  @override
+  String get bookingsWeekdaySun => 'SUNDAY';
+
+  @override
+  String get bookingsWeekdayMon => 'MONDAY';
+
+  @override
+  String get bookingsWeekdayTue => 'TUESDAY';
+
+  @override
+  String get bookingsWeekdayWed => 'WEDNESDAY';
+
+  @override
+  String get bookingsWeekdayThu => 'THURSDAY';
+
+  @override
+  String get bookingsWeekdayFri => 'FRIDAY';
+
+  @override
+  String get bookingsWeekdaySat => 'SATURDAY';
+
+  @override
+  String get bookingsPendingHeader => 'BOOKINGS AWAITING CONFIRMATION';
+
+  @override
+  String get commonRetry => 'Retry';
+
+  @override
+  String get bookingsCancelTitle => 'Cancel this booking?';
+
+  @override
+  String get bookingsCancelBody => 'This action cannot be undone.';
+
+  @override
+  String get commonNo => 'No';
+
+  @override
+  String get commonConfirm => 'Confirm';
+
+  @override
+  String bookingsJoinedHost(String host) {
+    return 'You joined · host $host';
+  }
+
+  @override
+  String bookingsHostWithPlayers(String players) {
+    return 'You\'re the host · $players';
+  }
+
+  @override
+  String get bookingsHost => 'You\'re the host';
+
+  @override
+  String get bookingsOneOff => 'One-off';
+
+  @override
+  String bookingsExtraSlots(int count) {
+    return '+$count slots';
+  }
+
+  @override
+  String get bookingsLegendHost => 'You booked';
+
+  @override
+  String get bookingsLegendJoin => 'You joined (joined a slot)';
+
+  @override
+  String get bookingActionRebook => 'Rebook';
+
+  @override
+  String get bookingActionDetail => 'Details';
+
+  @override
+  String get bookingActionCancel => 'Cancel';
+
+  @override
+  String get bookingStatusApproved => 'Approved';
+
+  @override
+  String get bookingStatusConfirmed => 'Confirmed';
+
+  @override
+  String get bookingStatusPendingJoin => 'Awaiting approval';
+
+  @override
+  String get bookingStatusPendingHost => 'Awaiting confirmation';
+
+  @override
+  String get bookingStatusCancelled => 'Cancelled';
+
+  @override
+  String get bookingJoinAccepted => 'Accepted';
+
+  @override
+  String get bookingJoinRejected => 'Rejected';
 }

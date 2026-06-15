@@ -4,7 +4,7 @@
 // joined with slots and courts, ordered by slots.start_at DESC.
 
 import 'package:customer/core/debug/app_logger.dart';
-import 'package:customer/features/bookings/mock_booking.dart';
+import 'package:customer/features/bookings/booking_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 

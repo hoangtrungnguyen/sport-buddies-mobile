@@ -793,6 +793,390 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không có slot nào đang tìm người trong khu vực của bạn.'**
   String get slotsEmptyBody;
+
+  /// No description provided for @bookingValidationName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập họ tên'**
+  String get bookingValidationName;
+
+  /// No description provided for @bookingValidationPhone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập số điện thoại'**
+  String get bookingValidationPhone;
+
+  /// No description provided for @bookingValidationPhoneInvalid.
+  ///
+  /// In vi, this message translates to:
+  /// **'Số điện thoại không hợp lệ'**
+  String get bookingValidationPhoneInvalid;
+
+  /// No description provided for @bookingSlotTaken.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot vừa được đặt, chọn giờ khác'**
+  String get bookingSlotTaken;
+
+  /// No description provided for @bookingConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận đặt sân'**
+  String get bookingConfirmTitle;
+
+  /// No description provided for @bookingDurationHours.
+  ///
+  /// In vi, this message translates to:
+  /// **'{hours} giờ'**
+  String bookingDurationHours(String hours);
+
+  /// No description provided for @bookingSelectedSlot.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khung giờ đã chọn'**
+  String get bookingSelectedSlot;
+
+  /// No description provided for @bookingSlotCountDuration.
+  ///
+  /// In vi, this message translates to:
+  /// **'1 khung · {duration}'**
+  String bookingSlotCountDuration(String duration);
+
+  /// No description provided for @bookingTotalDuration.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng thời lượng'**
+  String get bookingTotalDuration;
+
+  /// No description provided for @bookingRentPrice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá thuê'**
+  String get bookingRentPrice;
+
+  /// No description provided for @bookingPricePerHour.
+  ///
+  /// In vi, this message translates to:
+  /// **'{price}/giờ'**
+  String bookingPricePerHour(String price);
+
+  /// No description provided for @bookingServiceFee.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phí dịch vụ'**
+  String get bookingServiceFee;
+
+  /// No description provided for @bookingFree.
+  ///
+  /// In vi, this message translates to:
+  /// **'Miễn phí'**
+  String get bookingFree;
+
+  /// No description provided for @bookingTotalPayment.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng thanh toán'**
+  String get bookingTotalPayment;
+
+  /// No description provided for @bookingCashAtCourt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán tiền mặt tại sân'**
+  String get bookingCashAtCourt;
+
+  /// No description provided for @bookingContactInfo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin liên hệ'**
+  String get bookingContactInfo;
+
+  /// No description provided for @bookingFieldName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Họ tên'**
+  String get bookingFieldName;
+
+  /// No description provided for @bookingFieldPhone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Số điện thoại'**
+  String get bookingFieldPhone;
+
+  /// No description provided for @bookingFieldNotes.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghi chú cho chủ sân (tuỳ chọn)'**
+  String get bookingFieldNotes;
+
+  /// No description provided for @bookingNotesHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'VD: cần mượn vợt, đến muộn 10p...'**
+  String get bookingNotesHint;
+
+  /// No description provided for @myBookingsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch đặt của tôi'**
+  String get myBookingsTitle;
+
+  /// No description provided for @bookingsTabUpcoming.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sắp tới'**
+  String get bookingsTabUpcoming;
+
+  /// No description provided for @bookingsTabPending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ'**
+  String get bookingsTabPending;
+
+  /// No description provided for @bookingsTabHistory.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sử'**
+  String get bookingsTabHistory;
+
+  /// No description provided for @bookingsFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get bookingsFilterAll;
+
+  /// No description provided for @bookingsFilterHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân'**
+  String get bookingsFilterHost;
+
+  /// No description provided for @bookingsFilterJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chơi ghép'**
+  String get bookingsFilterJoin;
+
+  /// No description provided for @bookingsFilterRecurring.
+  ///
+  /// In vi, this message translates to:
+  /// **'🔁 Định kỳ'**
+  String get bookingsFilterRecurring;
+
+  /// No description provided for @bookingsFilterCompleted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã hoàn thành'**
+  String get bookingsFilterCompleted;
+
+  /// No description provided for @bookingsEmptyUpcoming.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có lịch đặt nào'**
+  String get bookingsEmptyUpcoming;
+
+  /// No description provided for @bookingsEmptyPending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có lịch đang chờ'**
+  String get bookingsEmptyPending;
+
+  /// No description provided for @bookingsEmptyHistory.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có lịch sử đặt sân'**
+  String get bookingsEmptyHistory;
+
+  /// No description provided for @bookingsToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'HÔM NAY'**
+  String get bookingsToday;
+
+  /// No description provided for @bookingsTomorrow.
+  ///
+  /// In vi, this message translates to:
+  /// **'NGÀY MAI'**
+  String get bookingsTomorrow;
+
+  /// No description provided for @bookingsWeekdaySun.
+  ///
+  /// In vi, this message translates to:
+  /// **'CHỦ NHẬT'**
+  String get bookingsWeekdaySun;
+
+  /// No description provided for @bookingsWeekdayMon.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ HAI'**
+  String get bookingsWeekdayMon;
+
+  /// No description provided for @bookingsWeekdayTue.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ BA'**
+  String get bookingsWeekdayTue;
+
+  /// No description provided for @bookingsWeekdayWed.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ TƯ'**
+  String get bookingsWeekdayWed;
+
+  /// No description provided for @bookingsWeekdayThu.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ NĂM'**
+  String get bookingsWeekdayThu;
+
+  /// No description provided for @bookingsWeekdayFri.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ SÁU'**
+  String get bookingsWeekdayFri;
+
+  /// No description provided for @bookingsWeekdaySat.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỨ BẢY'**
+  String get bookingsWeekdaySat;
+
+  /// No description provided for @bookingsPendingHeader.
+  ///
+  /// In vi, this message translates to:
+  /// **'ĐẶT SÂN CHỜ XÁC NHẬN'**
+  String get bookingsPendingHeader;
+
+  /// No description provided for @commonRetry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get commonRetry;
+
+  /// No description provided for @bookingsCancelTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ đặt sân này?'**
+  String get bookingsCancelTitle;
+
+  /// No description provided for @bookingsCancelBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hành động này không thể hoàn tác.'**
+  String get bookingsCancelBody;
+
+  /// No description provided for @commonNo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không'**
+  String get commonNo;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận'**
+  String get commonConfirm;
+
+  /// No description provided for @bookingsJoinedHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn tham gia · chủ slot {host}'**
+  String bookingsJoinedHost(String host);
+
+  /// No description provided for @bookingsHostWithPlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn là chủ slot · {players}'**
+  String bookingsHostWithPlayers(String players);
+
+  /// No description provided for @bookingsHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn là chủ slot'**
+  String get bookingsHost;
+
+  /// No description provided for @bookingsOneOff.
+  ///
+  /// In vi, this message translates to:
+  /// **'Một lần'**
+  String get bookingsOneOff;
+
+  /// No description provided for @bookingsExtraSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'+{count} khung'**
+  String bookingsExtraSlots(int count);
+
+  /// No description provided for @bookingsLegendHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đặt sân'**
+  String get bookingsLegendHost;
+
+  /// No description provided for @bookingsLegendJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chơi ghép (tham gia slot)'**
+  String get bookingsLegendJoin;
+
+  /// No description provided for @bookingActionRebook.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lại'**
+  String get bookingActionRebook;
+
+  /// No description provided for @bookingActionDetail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết'**
+  String get bookingActionDetail;
+
+  /// No description provided for @bookingActionCancel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ'**
+  String get bookingActionCancel;
+
+  /// No description provided for @bookingStatusApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã duyệt'**
+  String get bookingStatusApproved;
+
+  /// No description provided for @bookingStatusConfirmed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xác nhận'**
+  String get bookingStatusConfirmed;
+
+  /// No description provided for @bookingStatusPendingJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ duyệt'**
+  String get bookingStatusPendingJoin;
+
+  /// No description provided for @bookingStatusPendingHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ xác nhận'**
+  String get bookingStatusPendingHost;
+
+  /// No description provided for @bookingStatusCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã huỷ'**
+  String get bookingStatusCancelled;
+
+  /// No description provided for @bookingJoinAccepted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chấp nhận'**
+  String get bookingJoinAccepted;
+
+  /// No description provided for @bookingJoinRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối'**
+  String get bookingJoinRejected;
 }
 
 class _AppLocalizationsDelegate

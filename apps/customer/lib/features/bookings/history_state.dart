@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
-import 'mock_booking.dart';
+import 'booking_view.dart';
 
 @immutable
 sealed class HistoryState {
@@ -54,11 +54,11 @@ class HistoryBookingItem {
       ? BookingStatus.completed
       : BookingStatus.cancelled;
 
-  MockBooking toMockBooking() {
+  BookingView toBookingView() {
     final price =
         totalPrice != null ? '${_priceFmt.format(totalPrice!).trim()}đ' : '—';
 
-    return MockBooking(
+    return BookingView(
       id: id,
       courtId: courtId,
       courtName: courtName,
@@ -68,7 +68,7 @@ class HistoryBookingItem {
       price: price,
       status: bookingStatus,
       type: BookingType.oneOff,
-      action: 'Đặt lại',
+      action: 'rebook',
       date: startAt,
     );
   }

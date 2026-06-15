@@ -3,6 +3,7 @@
 // Material Design 3 — role rail (primary=host, secondary=join), M3Badge.
 // Design reference: EPIC-6 My Bookings.html
 
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,7 +15,7 @@ import 'bookings_cubit.dart';
 import 'bookings_state.dart';
 import 'history_cubit.dart';
 import 'history_state.dart';
-import 'mock_booking.dart';
+import 'booking_view.dart';
 
 // ─── MD3 tokens ──────────────────────────────────────────────────────────────
 const _mdSurface                 = Color(0xFFF7FBF2);
@@ -83,7 +84,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     super.dispose();
   }
 
-  List<MockBooking> _filterUpcoming(List<MockBooking> all) {
+  List<BookingView> _filterUpcoming(List<BookingView> all) {
     return switch (_upcomingFilter) {
       null => all,
       'host' => all.where((b) => b.role == BookingRole.host).toList(),
@@ -93,7 +94,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
     };
   }
 
-  List<MockBooking> _filterHistory(List<MockBooking> all) {
+  List<BookingView> _filterHistory(List<BookingView> all) {
     return switch (_historyFilter) {
       null => all,
       'host' => all.where((b) => b.role == BookingRole.host).toList(),
@@ -115,7 +116,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
               final joinReqs = state is BookingsLoaded
                   ? state.joinRequests
                   : const <JoinedSlotRequest>[];
-              final source = all.map((b) => b.toMockBooking()).toList();
+              final source = all.map((b) => b.toBookingView()).toList();
               final upcomingCount = source.length;
               final pendingCount =
                   source.where((b) => b.status == BookingStatus.pending).length +
@@ -151,7 +152,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                             context.read<HistoryCubit>().loadHistory(),
                         child: _HistoryTabView(
                           bookings: _filterHistory(
-                            items.map((i) => i.toMockBooking()).toList(),
+                            items.map((i) => i.toBookingView()).toList(),
                           ),
                           activeFilter: _historyFilter,
                           onFilterChanged: (f) =>
@@ -181,9 +182,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
           onRefresh: () => context.read<BookingsCubit>().loadUpcoming(),
           child: _UpcomingTabView(
             bookings: _filterUpcoming(
-              bookings.map((b) => b.toMockBooking()).toList(),
+              bookings.map((b) => b.toBookingView()).toList(),
             ),
-            allBookings: bookings.map((b) => b.toMockBooking()).toList(),
+            allBookings: bookings.map((b) => b.toBookingView()).toList(),
             activeFilter: _upcomingFilter,
             onFilterChanged: (f) => setState(() => _upcomingFilter = f),
           ),
@@ -206,8 +207,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
             pending: [
               ...bookings
                   .where((b) => b.status == 'pending')
-                  .map((b) => b.toMockBooking()),
-              ...joinRequests.map((j) => j.toMockBooking()),
+                  .map((b) => b.toBookingView()),
+              ...joinRequests.map((j) => j.toBookingView()),
             ],
           ),
         ),
@@ -230,6 +231,7 @@ class _MyBookingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: _mdSurface,
       child: SafeArea(
@@ -250,11 +252,11 @@ class _MyBookingsHeader extends StatelessWidget {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
               child: Text(
-                'Lịch đặt của tôi',
-                style: TextStyle(
+                l10n.myBookingsTitle,
+                style: const TextStyle(
                   fontFamily: 'Sora',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
@@ -294,16 +296,20 @@ class _MyBookingsHeader extends StatelessWidget {
                 Tab(
                   height: 48,
                   child: Text(
-                    upcomingCount > 0 ? 'Sắp tới · $upcomingCount' : 'Sắp tới',
+                    upcomingCount > 0
+                        ? '${l10n.bookingsTabUpcoming} · $upcomingCount'
+                        : l10n.bookingsTabUpcoming,
                   ),
                 ),
                 Tab(
                   height: 48,
                   child: Text(
-                    pendingCount > 0 ? 'Đang chờ · $pendingCount' : 'Đang chờ',
+                    pendingCount > 0
+                        ? '${l10n.bookingsTabPending} · $pendingCount'
+                        : l10n.bookingsTabPending,
                   ),
                 ),
-                const Tab(height: 48, child: Text('Lịch sử')),
+                Tab(height: 48, child: Text(l10n.bookingsTabHistory)),
               ],
             ),
             Container(height: 1, color: _mdOutlineVariant),
@@ -483,15 +489,15 @@ class _UpcomingTabView extends StatelessWidget {
     required this.onFilterChanged,
   });
 
-  final List<MockBooking> bookings;
-  final List<MockBooking> allBookings;
+  final List<BookingView> bookings;
+  final List<BookingView> allBookings;
   final String? activeFilter;
   final ValueChanged<String?> onFilterChanged;
 
-  List<MapEntry<String, List<MockBooking>>> _groupByDate() {
-    final grouped = <String, List<MockBooking>>{};
+  List<MapEntry<String, List<BookingView>>> _groupByDate(AppLocalizations l10n) {
+    final grouped = <String, List<BookingView>>{};
     for (final b in bookings) {
-      final key = _dateSectionLabel(b.date);
+      final key = _dateSectionLabel(l10n, b.date);
       grouped.putIfAbsent(key, () => []).add(b);
     }
     return grouped.entries.toList();
@@ -499,7 +505,8 @@ class _UpcomingTabView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final groups = _groupByDate();
+    final l10n = AppLocalizations.of(context);
+    final groups = _groupByDate(l10n);
     final hostCount = allBookings.where((b) => b.role == BookingRole.host).length;
     final joinCount = allBookings.where((b) => b.role == BookingRole.join).length;
     final recurringCount = allBookings.where((b) => b.type == BookingType.recurring).length;
@@ -514,14 +521,14 @@ class _UpcomingTabView extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: [
               _RoleFilterChip(
-                label: 'Tất cả · ${allBookings.length}',
+                label: '${l10n.bookingsFilterAll} · ${allBookings.length}',
                 value: null,
                 isActive: activeFilter == null,
                 onTap: () => onFilterChanged(null),
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: 'Đặt sân · $hostCount',
+                label: '${l10n.bookingsFilterHost} · $hostCount',
                 value: 'host',
                 isActive: activeFilter == 'host',
                 leading: _HostCrown(color: activeFilter == 'host' ? _mdOnPrimaryContainer : _mdPrimary, size: 12),
@@ -529,7 +536,7 @@ class _UpcomingTabView extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: 'Chơi ghép · $joinCount',
+                label: '${l10n.bookingsFilterJoin} · $joinCount',
                 value: 'join',
                 isActive: activeFilter == 'join',
                 leading: Container(
@@ -543,7 +550,7 @@ class _UpcomingTabView extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: '🔁 Định kỳ · $recurringCount',
+                label: '${l10n.bookingsFilterRecurring} · $recurringCount',
                 value: 'recurring',
                 isActive: activeFilter == 'recurring',
                 onTap: () => onFilterChanged(activeFilter == 'recurring' ? null : 'recurring'),
@@ -555,12 +562,12 @@ class _UpcomingTabView extends StatelessWidget {
         const _RoleLegend(),
         const SizedBox(height: 8),
         if (groups.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
             child: Center(
               child: Text(
-                'Không có lịch đặt nào',
-                style: TextStyle(color: _mdOnSurfaceVariant),
+                l10n.bookingsEmptyUpcoming,
+                style: const TextStyle(color: _mdOnSurfaceVariant),
               ),
             ),
           )
@@ -579,35 +586,72 @@ class _UpcomingTabView extends StatelessWidget {
   }
 }
 
-String _dateSectionLabel(DateTime date) {
+String _dateSectionLabel(AppLocalizations l10n, DateTime date) {
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
   final d = DateTime(date.year, date.month, date.day);
   final formatted = DateFormat('dd/MM').format(date);
-  if (d == today) return 'HÔM NAY · $formatted';
-  if (d == today.add(const Duration(days: 1))) return 'NGÀY MAI · $formatted';
-  const weekdays = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
+  if (d == today) return '${l10n.bookingsToday} · $formatted';
+  if (d == today.add(const Duration(days: 1))) {
+    return '${l10n.bookingsTomorrow} · $formatted';
+  }
+  final weekdays = [
+    l10n.bookingsWeekdaySun,
+    l10n.bookingsWeekdayMon,
+    l10n.bookingsWeekdayTue,
+    l10n.bookingsWeekdayWed,
+    l10n.bookingsWeekdayThu,
+    l10n.bookingsWeekdayFri,
+    l10n.bookingsWeekdaySat,
+  ];
   return '${weekdays[date.weekday % 7]} · $formatted';
 }
+
+/// Localized booking status label from status + role.
+String _statusLabel(AppLocalizations l10n, BookingStatus status, BookingRole role) =>
+    switch (status) {
+      BookingStatus.confirmed =>
+        role == BookingRole.join ? l10n.bookingStatusApproved : l10n.bookingStatusConfirmed,
+      BookingStatus.pending =>
+        role == BookingRole.join ? l10n.bookingStatusPendingJoin : l10n.bookingStatusPendingHost,
+      BookingStatus.completed => l10n.bookingsFilterCompleted,
+      BookingStatus.cancelled => l10n.bookingStatusCancelled,
+    };
+
+/// Localized label for a join-request override token.
+String _overrideLabel(AppLocalizations l10n, String token) => switch (token) {
+      'accepted' => l10n.bookingJoinAccepted,
+      'rejected' => l10n.bookingJoinRejected,
+      _ => l10n.bookingStatusPendingHost,
+    };
+
+/// Localized label for an action token.
+String _actionLabel(AppLocalizations l10n, String token) => switch (token) {
+      'rebook' => l10n.bookingActionRebook,
+      'detail' => l10n.bookingActionDetail,
+      'cancel' => l10n.bookingActionCancel,
+      _ => token,
+    };
 
 // ─── Pending tab ──────────────────────────────────────────────────────────────
 
 class _PendingTabView extends StatelessWidget {
   const _PendingTabView({required this.pending});
 
-  final List<MockBooking> pending;
+  final List<BookingView> pending;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (pending.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        children: const [
+        children: [
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 80),
+            padding: const EdgeInsets.symmetric(vertical: 80),
             child: Center(
-              child: Text('Không có lịch đang chờ',
-                  style: TextStyle(color: _mdOnSurfaceVariant)),
+              child: Text(l10n.bookingsEmptyPending,
+                  style: const TextStyle(color: _mdOnSurfaceVariant)),
             ),
           ),
         ],
@@ -618,7 +662,7 @@ class _PendingTabView extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
-        const _SectionHeader(label: 'ĐẶT SÂN CHỜ XÁC NHẬN'),
+        _SectionHeader(label: l10n.bookingsPendingHeader),
         const SizedBox(height: 8),
         for (final b in pending) ...[
           _BookingCard(booking: b),
@@ -638,12 +682,13 @@ class _HistoryTabView extends StatelessWidget {
     required this.onFilterChanged,
   });
 
-  final List<MockBooking> bookings;
+  final List<BookingView> bookings;
   final String? activeFilter;
   final ValueChanged<String?> onFilterChanged;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
@@ -654,14 +699,14 @@ class _HistoryTabView extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             children: [
               _RoleFilterChip(
-                label: 'Tất cả',
+                label: l10n.bookingsFilterAll,
                 value: null,
                 isActive: activeFilter == null,
                 onTap: () => onFilterChanged(null),
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: 'Đặt sân',
+                label: l10n.bookingsFilterHost,
                 value: 'host',
                 isActive: activeFilter == 'host',
                 leading: _HostCrown(
@@ -672,7 +717,7 @@ class _HistoryTabView extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: 'Chơi ghép',
+                label: l10n.bookingsFilterJoin,
                 value: 'join',
                 isActive: activeFilter == 'join',
                 leading: Container(
@@ -686,7 +731,7 @@ class _HistoryTabView extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _RoleFilterChip(
-                label: 'Đã hoàn thành',
+                label: l10n.bookingsFilterCompleted,
                 value: 'completed',
                 isActive: activeFilter == 'completed',
                 onTap: () => onFilterChanged(activeFilter == 'completed' ? null : 'completed'),
@@ -696,10 +741,10 @@ class _HistoryTabView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (bookings.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 40),
             child: Center(
-              child: Text('Không có lịch sử đặt sân', style: TextStyle(color: _mdOnSurfaceVariant)),
+              child: Text(l10n.bookingsEmptyHistory, style: const TextStyle(color: _mdOnSurfaceVariant)),
             ),
           )
         else
@@ -730,7 +775,9 @@ class _ErrorView extends StatelessWidget {
           children: [
             Text(message, textAlign: TextAlign.center, style: const TextStyle(color: _mdOnSurfaceVariant)),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: onRetry, child: const Text('Thử lại')),
+            ElevatedButton(
+                onPressed: onRetry,
+                child: Text(AppLocalizations.of(context).commonRetry)),
           ],
         ),
       ),
@@ -743,22 +790,23 @@ class _ErrorView extends StatelessWidget {
 class _BookingCard extends StatelessWidget {
   const _BookingCard({required this.booking});
 
-  final MockBooking booking;
+  final BookingView booking;
 
   Future<void> _confirmCancel(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Huỷ đặt sân này?'),
-        content: const Text('Hành động này không thể hoàn tác.'),
+        title: Text(l10n.bookingsCancelTitle),
+        content: Text(l10n.bookingsCancelBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Không'),
+            child: Text(l10n.commonNo),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text('Xác nhận', style: TextStyle(color: _mdError)),
+            child: Text(l10n.commonConfirm, style: const TextStyle(color: _mdError)),
           ),
         ],
       ),
@@ -770,9 +818,9 @@ class _BookingCard extends StatelessWidget {
 
   VoidCallback _actionTap(BuildContext context) {
     return switch (booking.action) {
-      'Đặt lại' when booking.courtId != null => () => context.push('/court/${booking.courtId}'),
-      'Chi tiết' => () => context.push('/bookings/${booking.id}'),
-      'Huỷ' => () => _confirmCancel(context),
+      'rebook' when booking.courtId != null => () => context.push('/court/${booking.courtId}'),
+      'detail' => () => context.push('/bookings/${booking.id}'),
+      'cancel' => () => _confirmCancel(context),
       _ => () {},
     };
   }
@@ -790,7 +838,6 @@ class _BookingCard extends StatelessWidget {
     final isHost = booking.role == BookingRole.host;
     final railColor = isHost ? _mdPrimary : _mdSecondary;
     final iconBg = isHost ? _mdPrimaryContainer : _mdSecondaryContainer;
-    final iconFg = isHost ? _mdOnPrimaryContainer : _mdOnSecondaryContainer;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -880,7 +927,7 @@ class _BookingCard extends StatelessWidget {
                         _M3Badge(
                           status: booking.status,
                           role: booking.role,
-                          labelOverride: booking.statusLabelOverride,
+                          overrideToken: booking.statusOverrideToken,
                         ),
                       ],
                     ),
@@ -917,7 +964,8 @@ class _BookingCard extends StatelessWidget {
                         ),
                         if (booking.action != null)
                           _ActionButton(
-                            label: booking.action!,
+                            label: _actionLabel(
+                                AppLocalizations.of(context), booking.action!),
                             danger: booking.actionDanger,
                             onTap: _actionTap(context),
                           ),
@@ -942,10 +990,11 @@ class _BookingCard extends StatelessWidget {
 class _RoleLine extends StatelessWidget {
   const _RoleLine({required this.booking});
 
-  final MockBooking booking;
+  final BookingView booking;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (booking.role == BookingRole.join) {
       return Row(
         children: [
@@ -965,7 +1014,7 @@ class _RoleLine extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              'Bạn tham gia · chủ slot ${booking.hostName ?? ""}',
+              l10n.bookingsJoinedHost(booking.hostName ?? ''),
               style: const TextStyle(fontSize: 12, color: _mdSecondary, fontWeight: FontWeight.w700),
               overflow: TextOverflow.ellipsis,
             ),
@@ -979,7 +1028,9 @@ class _RoleLine extends StatelessWidget {
         const _HostCrown(color: _mdPrimary, size: 13),
         const SizedBox(width: 5),
         Text(
-          booking.players != null ? 'Bạn là chủ slot · ${booking.players}' : 'Bạn là chủ slot',
+          booking.players != null
+              ? l10n.bookingsHostWithPlayers(booking.players!)
+              : l10n.bookingsHost,
           style: const TextStyle(fontSize: 12, color: _mdPrimary, fontWeight: FontWeight.w700),
         ),
       ],
@@ -1050,7 +1101,9 @@ class _TypeBadge extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          isRecurring ? '🔁 Định kỳ' : 'Một lần',
+          isRecurring
+              ? AppLocalizations.of(context).bookingsFilterRecurring
+              : AppLocalizations.of(context).bookingsOneOff,
           style: TextStyle(
             fontSize: 10,
             fontWeight: isRecurring ? FontWeight.w700 : FontWeight.w600,
@@ -1063,15 +1116,18 @@ class _TypeBadge extends StatelessWidget {
 }
 
 class _M3Badge extends StatelessWidget {
-  const _M3Badge({required this.status, required this.role, this.labelOverride});
+  const _M3Badge({required this.status, required this.role, this.overrideToken});
 
   final BookingStatus status;
   final BookingRole role;
-  final String? labelOverride;
+  final String? overrideToken;
 
   @override
   Widget build(BuildContext context) {
-    final label = labelOverride ?? bookingStatusLabel(status, role: role);
+    final l10n = AppLocalizations.of(context);
+    final label = overrideToken != null
+        ? _overrideLabel(l10n, overrideToken!)
+        : _statusLabel(l10n, status, role);
     final (bg, fg, dot) = switch (status) {
       BookingStatus.confirmed => (_mdPrimaryContainer, _mdOnPrimaryContainer, _mdPrimary),
       BookingStatus.pending   => (_mdTertiaryContainer, _mdOnTertiaryContainer, _mdTertiary),
@@ -1107,7 +1163,7 @@ class _MultiSlotBadge extends StatelessWidget {
       decoration: BoxDecoration(color: _mdPrimaryContainer, borderRadius: BorderRadius.circular(99)),
       child: Center(
         child: Text(
-          '+$extraSlots khung',
+          AppLocalizations.of(context).bookingsExtraSlots(extraSlots),
           style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _mdOnPrimaryContainer),
         ),
       ),
@@ -1164,9 +1220,11 @@ class _RoleLegend extends StatelessWidget {
       ),
       child: Row(
         children: [
-          _LegendItem(color: _mdPrimary, label: 'Bạn đặt sân'),
+          _LegendItem(color: _mdPrimary, label: AppLocalizations.of(context).bookingsLegendHost),
           const SizedBox(width: 16),
-          _LegendItem(color: _mdSecondary, label: 'Bạn chơi ghép (tham gia slot)'),
+          _LegendItem(
+              color: _mdSecondary,
+              label: AppLocalizations.of(context).bookingsLegendJoin),
         ],
       ),
     );
