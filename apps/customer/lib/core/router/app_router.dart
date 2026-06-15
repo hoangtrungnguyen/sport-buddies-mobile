@@ -17,6 +17,8 @@
 import 'package:customer/core/env/env.dart';
 import 'package:customer/core/router/app_shell.dart';
 import 'package:customer/core/services/booking_api_client.dart';
+import 'package:customer/features/court/data/supabase_court_repository.dart';
+import 'package:customer/features/court/data/supabase_slot_repository.dart';
 import 'package:customer/features/court/presentation/court_detail_page.dart';
 import 'package:customer/features/court/presentation/schedule_page.dart';
 import 'package:customer/features/court/presentation/slot_picker_page.dart';
@@ -399,21 +401,36 @@ GoRouter buildRouter() {
         path: '/browse/court/:courtId',
         pageBuilder: (context, state) => _fadePage(
           state,
-          CourtDetailPage(courtId: state.pathParameters['courtId']!),
+          CourtDetailPage(
+            courtId: state.pathParameters['courtId']!,
+            courtRepository:
+                SupabaseBrowseCourtRepository(Supabase.instance.client),
+            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+          ),
         ),
       ),
       GoRoute(
         path: '/browse/center/:centerId/schedule',
         pageBuilder: (context, state) => _fadePage(
           state,
-          SchedulePage(centerId: state.pathParameters['centerId']!),
+          SchedulePage(
+            centerId: state.pathParameters['centerId']!,
+            courtRepository:
+                SupabaseBrowseCourtRepository(Supabase.instance.client),
+            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+          ),
         ),
       ),
       GoRoute(
         path: '/browse/court/:courtId/slots',
         pageBuilder: (context, state) => _fadePage(
           state,
-          SlotPickerPage(courtId: state.pathParameters['courtId']!),
+          SlotPickerPage(
+            courtId: state.pathParameters['courtId']!,
+            courtRepository:
+                SupabaseBrowseCourtRepository(Supabase.instance.client),
+            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+          ),
         ),
       ),
       GoRoute(
