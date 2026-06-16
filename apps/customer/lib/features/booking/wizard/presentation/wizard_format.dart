@@ -1,8 +1,9 @@
 // Display formatters for the booking wizard. All numbers/times/prices use
 // tabular figures via the text styles; these just build the strings.
-// Vietnamese copy is final (handoff CLAUDE.md §3).
+// Word-bearing formatters take AppLocalizations so copy follows the locale.
 
 import 'package:customer/features/court/domain/court.dart';
+import 'package:customer/l10n/app_localizations.dart';
 
 /// "610000" → "610.000 đ".
 String vnd(int amount) {
@@ -23,15 +24,15 @@ String hm(DateTime t) =>
 String timeRange(DateTime start, DateTime end) => '${hm(start)} – ${hm(end)}';
 
 /// "Thứ tư, 14/05".
-String dateLabel(DateTime d) {
-  const weekdays = {
-    DateTime.monday: 'Thứ hai',
-    DateTime.tuesday: 'Thứ ba',
-    DateTime.wednesday: 'Thứ tư',
-    DateTime.thursday: 'Thứ năm',
-    DateTime.friday: 'Thứ sáu',
-    DateTime.saturday: 'Thứ bảy',
-    DateTime.sunday: 'Chủ nhật',
+String dateLabel(AppLocalizations l10n, DateTime d) {
+  final weekdays = {
+    DateTime.monday: l10n.weekdayMonday,
+    DateTime.tuesday: l10n.weekdayTuesday,
+    DateTime.wednesday: l10n.weekdayWednesday,
+    DateTime.thursday: l10n.weekdayThursday,
+    DateTime.friday: l10n.weekdayFriday,
+    DateTime.saturday: l10n.weekdaySaturday,
+    DateTime.sunday: l10n.weekdaySunday,
   };
   final dd = d.day.toString().padLeft(2, '0');
   final mm = d.month.toString().padLeft(2, '0');
@@ -39,17 +40,17 @@ String dateLabel(DateTime d) {
 }
 
 /// "4 giờ" / "1.5 giờ".
-String durationLabel(Duration d) {
+String durationLabel(AppLocalizations l10n, Duration d) {
   final hours = d.inMinutes / 60;
   final str = hours == hours.roundToDouble()
       ? hours.toStringAsFixed(0)
       : hours.toStringAsFixed(1);
-  return '$str giờ';
+  return l10n.wizardHours(str);
 }
 
 /// "n khung · 4 giờ".
-String countLabel(int slotCount, Duration total) =>
-    '$slotCount khung · ${durationLabel(total)}';
+String countLabel(AppLocalizations l10n, int slotCount, Duration total) =>
+    l10n.wizardSlotCountDuration(slotCount, durationLabel(l10n, total));
 
 /// Backend ids are uuids; show a short stable token — "#A1B2C3D4".
 String bookingIdLabel(String id) {

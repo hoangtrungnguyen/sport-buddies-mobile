@@ -6,6 +6,7 @@ import 'package:customer/features/booking/wizard/domain/play_session.dart';
 import 'package:customer/features/booking/wizard/presentation/widgets/common.dart';
 import 'package:customer/features/booking/wizard/presentation/wizard_format.dart';
 import 'package:customer/features/court/theme/app_tokens.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class Step4Done extends StatelessWidget {
@@ -17,6 +18,7 @@ class Step4Done extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final booking = state.booking;
     if (booking == null) return const SizedBox.shrink();
     final isOpen = booking.access == AccessPolicy.open;
@@ -26,12 +28,11 @@ class Step4Done extends StatelessWidget {
       children: [
         const Center(child: _SuccessCheck()),
         const SizedBox(height: 20),
-        Text('Đặt sân thành công!',
+        Text(l10n.wizardSuccessTitle,
             textAlign: TextAlign.center, style: text.headlineSmall),
         const SizedBox(height: 6),
         Text(
-          'Hẹn gặp bạn tại ${state.draft.courtLabel}.\n'
-          'Đến đúng giờ và mang theo tiền mặt nhé.',
+          l10n.wizardSuccessBody(state.draft.courtLabel),
           textAlign: TextAlign.center,
           style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
         ),
@@ -42,16 +43,16 @@ class Step4Done extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            const StatusBadge(kind: BadgeKind.confirmed, label: 'Đã xác nhận'),
+            StatusBadge(
+                kind: BadgeKind.confirmed, label: l10n.bookingStatusConfirmed),
             if (isOpen)
-              const StatusBadge(kind: BadgeKind.access, label: '🌐 Mở chơi ghép'),
+              StatusBadge(kind: BadgeKind.access, label: l10n.wizardOpen),
           ],
         ),
         const SizedBox(height: 14),
         CashNotice(
-          title: 'Nhớ mang tiền mặt',
-          subtitle:
-              'Thanh toán ${vnd(state.totalVnd)} tại sân khi đến chơi (cho cả ${state.slotCount} khung).',
+          title: l10n.wizardBringCash,
+          subtitle: l10n.wizardBringCashBody(vnd(state.totalVnd), state.slotCount),
         ),
       ],
     );
@@ -68,6 +69,7 @@ class _ReceiptCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final draft = state.draft;
     final sessions = mergeSessions(draft.slots);
 
@@ -87,25 +89,25 @@ class _ReceiptCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Mã đặt sân',
+              Text(l10n.wizardBookingId,
                   style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
               Text(idLabel,
                   style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum)),
             ],
           ),
           Divider(height: 24, color: scheme.outlineVariant),
-          SummaryRow(label: 'Sân', value: draft.courtLabel),
-          SummaryRow(label: 'Ngày', value: dateLabel(draft.date)),
+          SummaryRow(label: l10n.wizardLabelCourt, value: draft.courtLabel),
+          SummaryRow(label: l10n.wizardLabelDate, value: dateLabel(l10n, draft.date)),
           SummaryRow(
-            label: 'Khung giờ',
-            value: countLabel(state.slotCount, state.totalDuration),
+            label: l10n.wizardLabelSlots,
+            value: countLabel(l10n, state.slotCount, state.totalDuration),
           ),
           const SizedBox(height: 8),
           ...sessions.map((s) => Padding(
                 padding: const EdgeInsets.only(bottom: 2),
                 child: Text(
                   '• ${timeRange(s.start, s.end)}'
-                  '${s.isMerged ? ' (gộp ${s.slotCount} khung)' : ''}',
+                  '${s.isMerged ? l10n.wizardMergedSuffix(s.slotCount) : ''}',
                   style: text.bodySmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                     fontFeatures: AppTokens.tnum,
@@ -117,7 +119,7 @@ class _ReceiptCard extends StatelessWidget {
             size: const Size(double.infinity, 1),
             painter: _DashedLinePainter(scheme.outlineVariant),
           ),
-          SummaryRow(label: 'Tổng', value: vnd(state.totalVnd), bold: true, divider: false),
+          SummaryRow(label: l10n.wizardLabelTotal, value: vnd(state.totalVnd), bold: true, divider: false),
         ],
       ),
     );

@@ -599,4 +599,215 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get bookingJoinRejected => 'Từ chối';
+
+  @override
+  String get commonClose => 'Đóng';
+
+  @override
+  String get weekdayMonday => 'Thứ hai';
+
+  @override
+  String get weekdayTuesday => 'Thứ ba';
+
+  @override
+  String get weekdayWednesday => 'Thứ tư';
+
+  @override
+  String get weekdayThursday => 'Thứ năm';
+
+  @override
+  String get weekdayFriday => 'Thứ sáu';
+
+  @override
+  String get weekdaySaturday => 'Thứ bảy';
+
+  @override
+  String get weekdaySunday => 'Chủ nhật';
+
+  @override
+  String get wizardStepConfirm => 'Xác nhận';
+
+  @override
+  String get wizardStepPlay => 'Chơi ghép';
+
+  @override
+  String get wizardStepAwait => 'Chờ duyệt';
+
+  @override
+  String get wizardStepDone => 'Hoàn tất';
+
+  @override
+  String get wizardStepPlayTitle => 'Chơi cùng ai?';
+
+  @override
+  String get wizardStepAwaitingTitle => 'Đang chờ xác nhận';
+
+  @override
+  String get wizardSkip => 'Bỏ qua';
+
+  @override
+  String get wizardSaveContinue => 'Lưu & tiếp tục';
+
+  @override
+  String get wizardViewBookings => 'Xem lịch đặt';
+
+  @override
+  String get wizardBackToMap => 'Về bản đồ';
+
+  @override
+  String get wizardRaceLost => 'Slot vừa được đặt';
+
+  @override
+  String get wizardNetworkFailed => 'Không thể đặt sân, thử lại';
+
+  @override
+  String get wizardTotalRent => 'Tổng giá thuê';
+
+  @override
+  String get wizardContactHint => 'Thông tin được gửi tới chủ sân.';
+
+  @override
+  String get wizardAdjacent => 'liền kề';
+
+  @override
+  String get wizardAnd => 'và';
+
+  @override
+  String wizardMergeNotice(String names, String duration) {
+    return 'Khung $names liền nhau sẽ được gộp thành 1 buổi chơi $duration.';
+  }
+
+  @override
+  String wizardSelectedSlots(int count) {
+    return 'Đã chọn $count khung giờ';
+  }
+
+  @override
+  String get wizardPickPlayers =>
+      'Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.';
+
+  @override
+  String get wizardWhoCanJoin => 'Ai có thể tham gia?';
+
+  @override
+  String wizardAccessApplies(int count) {
+    return 'Cài đặt áp dụng cho cả $count khung giờ đã đặt. Bạn có thể đổi riêng từng khung sau khi đặt xong.';
+  }
+
+  @override
+  String get wizardPrivate => '🔒 Riêng tư';
+
+  @override
+  String get wizardPrivateDesc =>
+      'Chỉ bạn và những người bạn mời mới chơi được.';
+
+  @override
+  String get wizardOpen => '🌐 Mở chơi ghép';
+
+  @override
+  String get wizardOpenDesc =>
+      'Slot xuất hiện trong \"Slot trống\". Bạn duyệt yêu cầu tham gia.';
+
+  @override
+  String get wizardMaxPlayers => 'Số người tối đa';
+
+  @override
+  String get wizardDecrease => 'Giảm số người';
+
+  @override
+  String get wizardIncrease => 'Tăng số người';
+
+  @override
+  String get wizardMaxPlayersHint =>
+      'Bao gồm cả bạn. Khuyến nghị 4 cho pickleball đôi.';
+
+  @override
+  String get wizardDeclinedTitle => 'Chủ sân không thể nhận';
+
+  @override
+  String get wizardWaitingTitle => 'Chờ chủ sân xác nhận';
+
+  @override
+  String get wizardDeclinedBody =>
+      'Rất tiếc, chủ sân không thể nhận yêu cầu này. Bạn có thể chọn khung giờ khác.';
+
+  @override
+  String wizardWaitingBody(int count, String court) {
+    return 'Yêu cầu đặt $count khung giờ đã được gửi tới $court. Chủ sân thường phản hồi trong vòng vài phút. Bạn sẽ nhận thông báo ngay khi có kết quả.';
+  }
+
+  @override
+  String get wizardNotConfirmed => 'Yêu cầu chưa được xác nhận.';
+
+  @override
+  String get wizardPickAnotherTime => 'Chọn giờ khác';
+
+  @override
+  String get wizardBookingId => 'Mã đặt sân';
+
+  @override
+  String wizardCourtSlots(String court, int count) {
+    return '$court · $count khung giờ';
+  }
+
+  @override
+  String get wizardTimelineSent => 'Bạn gửi yêu cầu đặt sân';
+
+  @override
+  String get wizardTimelineDeclined => 'Chủ sân đã từ chối';
+
+  @override
+  String get wizardTimelineWaiting => 'Chờ chủ sân phản hồi...';
+
+  @override
+  String get wizardWaitingShort => 'đang chờ';
+
+  @override
+  String get wizardTimelineConfirmed => 'Đặt sân được xác nhận';
+
+  @override
+  String get wizardAwaitingSemantic => 'Đang chờ chủ sân xác nhận';
+
+  @override
+  String get wizardSuccessTitle => 'Đặt sân thành công!';
+
+  @override
+  String wizardSuccessBody(String court) {
+    return 'Hẹn gặp bạn tại $court.\nĐến đúng giờ và mang theo tiền mặt nhé.';
+  }
+
+  @override
+  String get wizardBringCash => 'Nhớ mang tiền mặt';
+
+  @override
+  String wizardBringCashBody(String total, int count) {
+    return 'Thanh toán $total tại sân khi đến chơi (cho cả $count khung).';
+  }
+
+  @override
+  String get wizardLabelCourt => 'Sân';
+
+  @override
+  String get wizardLabelDate => 'Ngày';
+
+  @override
+  String get wizardLabelSlots => 'Khung giờ';
+
+  @override
+  String get wizardLabelTotal => 'Tổng';
+
+  @override
+  String wizardMergedSuffix(int count) {
+    return ' (gộp $count khung)';
+  }
+
+  @override
+  String wizardHours(String value) {
+    return '$value giờ';
+  }
+
+  @override
+  String wizardSlotCountDuration(int count, String duration) {
+    return '$count khung · $duration';
+  }
 }

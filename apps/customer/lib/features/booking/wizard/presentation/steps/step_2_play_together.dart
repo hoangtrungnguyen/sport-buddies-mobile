@@ -3,6 +3,7 @@
 import 'package:customer/features/booking/wizard/cubit/booking_wizard_cubit.dart';
 import 'package:customer/features/booking/wizard/domain/booking.dart';
 import 'package:customer/features/court/theme/app_tokens.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -15,6 +16,7 @@ class Step2PlayTogether extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final count = state.slotCount;
 
     return ListView(
@@ -44,12 +46,12 @@ class Step2PlayTogether extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Đã chọn $count khung giờ',
+                    Text(l10n.wizardSelectedSlots(count),
                         style: text.labelLarge
                             ?.copyWith(color: scheme.onPrimaryContainer)),
                     const SizedBox(height: 2),
                     Text(
-                      'Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.',
+                      l10n.wizardPickPlayers,
                       style: text.bodySmall
                           ?.copyWith(color: scheme.onPrimaryContainer),
                     ),
@@ -61,27 +63,26 @@ class Step2PlayTogether extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         // 2.2 intro
-        Text('Ai có thể tham gia?', style: text.titleMedium),
+        Text(l10n.wizardWhoCanJoin, style: text.titleMedium),
         const SizedBox(height: 4),
         Text(
-          'Cài đặt áp dụng cho cả $count khung giờ đã đặt. Bạn có thể đổi '
-          'riêng từng khung sau khi đặt xong.',
+          l10n.wizardAccessApplies(count),
           style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 16),
         // 2.3 access radio cards
         _AccessCard(
           selected: state.access == AccessPolicy.private,
-          title: '🔒 Riêng tư',
-          subtitle: 'Chỉ bạn và những người bạn mời mới chơi được.',
+          title: l10n.wizardPrivate,
+          subtitle: l10n.wizardPrivateDesc,
           onTap: () =>
               context.read<BookingWizardCubit>().selectAccess(AccessPolicy.private),
         ),
         const SizedBox(height: 12),
         _AccessCard(
           selected: state.access == AccessPolicy.open,
-          title: '🌐 Mở chơi ghép',
-          subtitle: 'Slot xuất hiện trong "Slot trống". Bạn duyệt yêu cầu tham gia.',
+          title: l10n.wizardOpen,
+          subtitle: l10n.wizardOpenDesc,
           onTap: () =>
               context.read<BookingWizardCubit>().selectAccess(AccessPolicy.open),
           reveal: _MaxPlayersStepper(value: state.maxPlayers),
@@ -226,6 +227,7 @@ class _MaxPlayersStepper extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final cubit = context.read<BookingWizardCubit>();
 
     return Container(
@@ -238,7 +240,7 @@ class _MaxPlayersStepper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Số người tối đa',
+          Text(l10n.wizardMaxPlayers,
               style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
           const SizedBox(height: 8),
           Row(
@@ -246,7 +248,7 @@ class _MaxPlayersStepper extends StatelessWidget {
               _StepBtn(
                 icon: Icons.remove,
                 filled: false,
-                semantic: 'Giảm số người',
+                semantic: l10n.wizardDecrease,
                 onTap: value > 2 ? () => cubit.setMaxPlayers(value - 1) : null,
               ),
               const SizedBox(width: 16),
@@ -262,14 +264,14 @@ class _MaxPlayersStepper extends StatelessWidget {
               _StepBtn(
                 icon: Icons.add,
                 filled: true,
-                semantic: 'Tăng số người',
+                semantic: l10n.wizardIncrease,
                 onTap: () => cubit.setMaxPlayers(value + 1),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            'Bao gồm cả bạn. Khuyến nghị 4 cho pickleball đôi.',
+            l10n.wizardMaxPlayersHint,
             style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
           ),
         ],

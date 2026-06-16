@@ -10,6 +10,7 @@ import 'package:customer/features/booking/wizard/domain/play_session.dart';
 import 'package:customer/features/booking/wizard/presentation/widgets/common.dart';
 import 'package:customer/features/booking/wizard/presentation/wizard_format.dart';
 import 'package:customer/features/court/theme/app_tokens.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,6 +23,7 @@ class Step3Awaiting extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final booking = state.booking;
     if (booking == null) return const SizedBox.shrink();
 
@@ -40,7 +42,7 @@ class Step3Awaiting extends StatelessWidget {
         Semantics(
           liveRegion: true,
           child: Text(
-            declined ? 'Chủ sân không thể nhận' : 'Chờ chủ sân xác nhận',
+            declined ? l10n.wizardDeclinedTitle : l10n.wizardWaitingTitle,
             textAlign: TextAlign.center,
             style: text.headlineSmall,
           ),
@@ -50,11 +52,9 @@ class Step3Awaiting extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           child: Text(
             declined
-                ? 'Rất tiếc, chủ sân không thể nhận yêu cầu này. Bạn có thể chọn '
-                    'khung giờ khác.'
-                : 'Yêu cầu đặt ${state.slotCount} khung giờ đã được gửi tới '
-                    '${state.draft.courtLabel}. Chủ sân thường phản hồi trong vòng '
-                    'vài phút. Bạn sẽ nhận thông báo ngay khi có kết quả.',
+                ? l10n.wizardDeclinedBody
+                : l10n.wizardWaitingBody(
+                    state.slotCount, state.draft.courtLabel),
             textAlign: TextAlign.center,
             style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
@@ -71,14 +71,14 @@ class Step3Awaiting extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Yêu cầu chưa được xác nhận.',
+                    l10n.wizardNotConfirmed,
                     style: text.bodySmall
                         ?.copyWith(color: scheme.onErrorContainer),
                   ),
                 ),
                 TextButton(
                   onPressed: () => context.pop(),
-                  child: const Text('Chọn giờ khác'),
+                  child: Text(l10n.wizardPickAnotherTime),
                 ),
               ],
             ),
@@ -90,7 +90,7 @@ class Step3Awaiting extends StatelessWidget {
           courtLabel: state.draft.courtLabel,
           slotCount: state.slotCount,
           dateDurTotal:
-              '${dateLabel(state.draft.date)} · ${durationLabel(state.totalDuration)} · ${vnd(state.totalVnd)}',
+              '${dateLabel(l10n, state.draft.date)} · ${durationLabel(l10n, state.totalDuration)} · ${vnd(state.totalVnd)}',
           sessions: sessions,
         ),
         const SizedBox(height: 24),
@@ -122,6 +122,7 @@ class _BookingIdCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -135,14 +136,14 @@ class _BookingIdCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Mã đặt sân',
+              Text(l10n.wizardBookingId,
                   style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
               Text(idLabel,
                   style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum)),
             ],
           ),
           Divider(height: 24, color: scheme.outlineVariant),
-          Text('$courtLabel · $slotCount khung giờ', style: text.titleSmall),
+          Text(l10n.wizardCourtSlots(courtLabel, slotCount), style: text.titleSmall),
           const SizedBox(height: 2),
           Text(dateDurTotal,
               style: text.bodySmall?.copyWith(
@@ -161,7 +162,8 @@ class _BookingIdCard extends StatelessWidget {
                 ),
               )),
           const SizedBox(height: 12),
-          const StatusBadge(kind: BadgeKind.pending, label: 'Chờ xác nhận'),
+          StatusBadge(
+              kind: BadgeKind.pending, label: l10n.bookingStatusPendingHost),
         ],
       ),
     );
@@ -176,21 +178,24 @@ class _StatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         _TimelineItem(
           kind: _NodeKind.done,
-          title: 'Bạn gửi yêu cầu đặt sân',
+          title: l10n.wizardTimelineSent,
           time: sentAt,
         ),
         _TimelineItem(
           kind: declined ? _NodeKind.declined : _NodeKind.active,
-          title: declined ? 'Chủ sân đã từ chối' : 'Chờ chủ sân phản hồi...',
-          time: declined ? '' : 'đang chờ',
+          title: declined
+              ? l10n.wizardTimelineDeclined
+              : l10n.wizardTimelineWaiting,
+          time: declined ? '' : l10n.wizardWaitingShort,
         ),
-        const _TimelineItem(
+        _TimelineItem(
           kind: _NodeKind.upcoming,
-          title: 'Đặt sân được xác nhận',
+          title: l10n.wizardTimelineConfirmed,
           time: '',
           isLast: true,
         ),
@@ -377,7 +382,7 @@ class _AwaitingRingState extends State<AwaitingRing>
 
     return Semantics(
       liveRegion: true,
-      label: 'Đang chờ chủ sân xác nhận',
+      label: AppLocalizations.of(context).wizardAwaitingSemantic,
       child: clock,
     );
   }

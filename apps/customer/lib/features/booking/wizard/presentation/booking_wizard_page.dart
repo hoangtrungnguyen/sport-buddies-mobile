@@ -10,6 +10,7 @@ import 'package:customer/features/booking/wizard/presentation/steps/step_4_done.
 import 'package:customer/features/booking/wizard/presentation/widgets/wizard_stepper.dart';
 import 'package:customer/features/court/theme/app_tokens.dart';
 import 'package:customer/features/court/theme/browse_pick_theme.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,12 +54,13 @@ class BookingWizardPage extends StatelessWidget {
   // ── Effects (doc 03 §3.4 / §3.5) ──────────────────────────────────────
   void _onEffect(BuildContext context, BookingWizardState state) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     switch (state.effect) {
       case WizardEffect.raceLost:
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(SnackBar(
-            content: const Text('Slot vừa được đặt'),
+            content: Text(l10n.wizardRaceLost),
             backgroundColor: scheme.inverseSurface,
           ));
         context.read<BookingWizardCubit>().clearEffect();
@@ -67,10 +69,10 @@ class BookingWizardPage extends StatelessWidget {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(SnackBar(
-            content: const Text('Không thể đặt sân, thử lại'),
+            content: Text(l10n.wizardNetworkFailed),
             backgroundColor: scheme.inverseSurface,
             action: SnackBarAction(
-              label: 'Thử lại',
+              label: l10n.commonRetry,
               textColor: scheme.inversePrimary,
               onPressed: () => context.read<BookingWizardCubit>().submit(),
             ),
@@ -84,14 +86,20 @@ class BookingWizardPage extends StatelessWidget {
   // ── Per-step app bar (doc 03 §5) ──────────────────────────────────────
   PreferredSizeWidget _buildAppBar(BuildContext context, BookingWizardState s) {
     final cubit = context.read<BookingWizardCubit>();
-    final titles = ['Xác nhận đặt sân', 'Chơi cùng ai?', 'Đang chờ xác nhận', 'Hoàn tất'];
+    final l10n = AppLocalizations.of(context);
+    final titles = [
+      l10n.bookingConfirmTitle,
+      l10n.wizardStepPlayTitle,
+      l10n.wizardStepAwaitingTitle,
+      l10n.wizardStepDone,
+    ];
     final isDone = s.currentStep == 3;
 
     return AppBar(
       title: Text(titles[s.currentStep]),
       leading: IconButton(
         icon: Icon(isDone ? Icons.close : Icons.arrow_back),
-        tooltip: isDone ? 'Đóng' : 'Quay lại',
+        tooltip: isDone ? l10n.commonClose : l10n.commonBack,
         onPressed: () {
           switch (s.currentStep) {
             case 1:
@@ -107,7 +115,7 @@ class BookingWizardPage extends StatelessWidget {
         if (s.currentStep == 1)
           TextButton(
             onPressed: s.submitting ? null : () => cubit.submit(skip: true),
-            child: const Text('Bỏ qua'),
+            child: Text(l10n.wizardSkip),
           ),
       ],
     );
@@ -136,6 +144,7 @@ class BookingWizardPage extends StatelessWidget {
   Widget _buildStickyBar(BuildContext context, BookingWizardState s) {
     final scheme = Theme.of(context).colorScheme;
     final cubit = context.read<BookingWizardCubit>();
+    final l10n = AppLocalizations.of(context);
 
     Widget bar(List<Widget> children) => Container(
           decoration: BoxDecoration(
@@ -172,11 +181,11 @@ class BookingWizardPage extends StatelessWidget {
 
     switch (s.currentStep) {
       case 0:
-        return bar([filled('Xác nhận đặt sân', cubit.confirm)]);
+        return bar([filled(l10n.bookingConfirmTitle, cubit.confirm)]);
       case 1:
         return bar([
           filled(
-            'Lưu & tiếp tục',
+            l10n.wizardSaveContinue,
             s.submitting ? null : () => cubit.submit(),
             child: s.submitting
                 ? const SizedBox(
@@ -188,12 +197,12 @@ class BookingWizardPage extends StatelessWidget {
           ),
         ]);
       case 2:
-        return bar([tonal('Xem lịch đặt', () => context.go(_myBookingsRoute))]);
+        return bar([tonal(l10n.wizardViewBookings, () => context.go(_myBookingsRoute))]);
       default:
         return bar([
-          tonal('Về bản đồ', () => context.go(_mapRoute)),
+          tonal(l10n.wizardBackToMap, () => context.go(_mapRoute)),
           const SizedBox(width: 10),
-          filled('Xem lịch đặt', () => context.go(_myBookingsRoute)),
+          filled(l10n.wizardViewBookings, () => context.go(_myBookingsRoute)),
         ]);
     }
   }

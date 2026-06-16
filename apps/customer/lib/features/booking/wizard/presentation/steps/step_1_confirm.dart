@@ -7,6 +7,7 @@ import 'package:customer/features/booking/wizard/presentation/widgets/common.dar
 import 'package:customer/features/booking/wizard/presentation/wizard_format.dart';
 import 'package:customer/features/court/domain/booking_draft.dart';
 import 'package:customer/features/court/theme/app_tokens.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +21,7 @@ class Step1Confirm extends StatelessWidget {
     final draft = state.draft;
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final merged = hasMerge(draft.slots);
 
     return ListView(
@@ -30,8 +32,9 @@ class Step1Confirm extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Khung giờ đã chọn', style: text.titleMedium),
-            CountBadge(label: countLabel(state.slotCount, draft.totalDuration)),
+            Text(l10n.bookingSelectedSlot, style: text.titleMedium),
+            CountBadge(
+                label: countLabel(l10n, state.slotCount, draft.totalDuration)),
           ],
         ),
         const SizedBox(height: 10),
@@ -50,21 +53,23 @@ class Step1Confirm extends StatelessWidget {
           _MergeNotice(slots: draft.slots),
         ],
         const SizedBox(height: 16),
-        SummaryRow(label: 'Tổng thời lượng', value: durationLabel(draft.totalDuration)),
-        SummaryRow(label: 'Tổng giá thuê', value: vnd(draft.totalVnd)),
-        const SummaryRow(label: 'Phí dịch vụ', value: 'Miễn phí'),
+        SummaryRow(
+            label: l10n.bookingTotalDuration,
+            value: durationLabel(l10n, draft.totalDuration)),
+        SummaryRow(label: l10n.wizardTotalRent, value: vnd(draft.totalVnd)),
+        SummaryRow(label: l10n.bookingServiceFee, value: l10n.bookingFree),
         const SizedBox(height: 12),
         _TotalBar(totalVnd: draft.totalVnd),
         const SizedBox(height: 10),
-        const CashNotice(title: 'Thanh toán tiền mặt tại sân'),
+        CashNotice(title: l10n.bookingCashAtCourt),
         const SizedBox(height: 24),
-        Text('Thông tin liên hệ', style: text.titleMedium),
+        Text(l10n.bookingContactInfo, style: text.titleMedium),
         const SizedBox(height: 10),
         _ContactForm(contact: state.contact),
         const SizedBox(height: 8),
         // soft hint to anchor the bottom on short drafts
         Text(
-          'Thông tin được gửi tới chủ sân.',
+          l10n.wizardContactHint,
           style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
       ],
@@ -119,11 +124,12 @@ class _SlotLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final sub = [
-      dateLabel(slot.date),
+      dateLabel(l10n, slot.date),
       slot.courtLabel,
-      durationLabel(slot.duration),
-      if (adjacent) 'liền kề',
+      durationLabel(l10n, slot.duration),
+      if (adjacent) l10n.wizardAdjacent,
     ].join(' · ');
 
     return Container(
@@ -181,6 +187,7 @@ class _MergeNotice extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
 
     // Derived copy — name the slots composing the first merged run.
     final session = mergeSessions(slots).firstWhere((s) => s.isMerged);
@@ -189,9 +196,9 @@ class _MergeNotice extends StatelessWidget {
             !s.start.isBefore(session.start) && !s.end.isAfter(session.end))
         .map((s) => timeRange(s.start, s.end))
         .toList();
-    final names = parts.join(' và ');
-    final copy = 'Khung $names liền nhau sẽ được gộp thành 1 buổi chơi '
-        '${durationLabel(session.duration)}.';
+    final names = parts.join(' ${l10n.wizardAnd} ');
+    final copy =
+        l10n.wizardMergeNotice(names, durationLabel(l10n, session.duration));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -233,7 +240,7 @@ class _TotalBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('Tổng thanh toán',
+          Text(AppLocalizations.of(context).bookingTotalPayment,
               style: text.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
           Text(
             vnd(totalVnd),
@@ -282,12 +289,13 @@ class _ContactFormState extends State<_ContactForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        _Field(label: 'Họ tên', controller: _name, onChanged: (_) => _push()),
+        _Field(label: l10n.bookingFieldName, controller: _name, onChanged: (_) => _push()),
         const SizedBox(height: 12),
         _Field(
-          label: 'Số điện thoại',
+          label: l10n.bookingFieldPhone,
           controller: _phone,
           keyboardType: TextInputType.phone,
           icon: Icons.phone,
@@ -295,9 +303,9 @@ class _ContactFormState extends State<_ContactForm> {
         ),
         const SizedBox(height: 12),
         _Field(
-          label: 'Ghi chú cho chủ sân (tuỳ chọn)',
+          label: l10n.bookingFieldNotes,
           controller: _note,
-          hint: 'VD: cần mượn vợt, đến muộn 10p...',
+          hint: l10n.bookingNotesHint,
           maxLines: 2,
           onChanged: (_) => _push(),
         ),

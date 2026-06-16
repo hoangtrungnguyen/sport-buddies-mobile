@@ -5,6 +5,7 @@
 // respecting reduced motion.
 
 import 'package:customer/features/court/theme/app_tokens.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class WizardStepper extends StatelessWidget {
@@ -12,17 +13,22 @@ class WizardStepper extends StatelessWidget {
 
   final int currentStep; // 0..3
 
-  static const _labels = ['Xác nhận', 'Chơi ghép', 'Chờ duyệt', 'Hoàn tất'];
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final labels = [
+      l10n.wizardStepConfirm,
+      l10n.wizardStepPlay,
+      l10n.wizardStepAwait,
+      l10n.wizardStepDone,
+    ];
     final duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : AppTokens.motionMed;
 
     final children = <Widget>[];
-    for (var i = 0; i < _labels.length; i++) {
+    for (var i = 0; i < labels.length; i++) {
       if (i > 0) {
         final filled = i <= currentStep;
         children.add(Expanded(
@@ -41,7 +47,7 @@ class WizardStepper extends StatelessWidget {
       children.add(_StepNode(
         index: i,
         currentStep: currentStep,
-        label: _labels[i],
+        label: labels[i],
         duration: duration,
       ));
     }

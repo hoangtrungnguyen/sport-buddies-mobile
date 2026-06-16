@@ -599,4 +599,214 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingJoinRejected => 'Rejected';
+
+  @override
+  String get commonClose => 'Close';
+
+  @override
+  String get weekdayMonday => 'Monday';
+
+  @override
+  String get weekdayTuesday => 'Tuesday';
+
+  @override
+  String get weekdayWednesday => 'Wednesday';
+
+  @override
+  String get weekdayThursday => 'Thursday';
+
+  @override
+  String get weekdayFriday => 'Friday';
+
+  @override
+  String get weekdaySaturday => 'Saturday';
+
+  @override
+  String get weekdaySunday => 'Sunday';
+
+  @override
+  String get wizardStepConfirm => 'Confirm';
+
+  @override
+  String get wizardStepPlay => 'Play';
+
+  @override
+  String get wizardStepAwait => 'Awaiting';
+
+  @override
+  String get wizardStepDone => 'Done';
+
+  @override
+  String get wizardStepPlayTitle => 'Who\'s playing?';
+
+  @override
+  String get wizardStepAwaitingTitle => 'Awaiting confirmation';
+
+  @override
+  String get wizardSkip => 'Skip';
+
+  @override
+  String get wizardSaveContinue => 'Save & continue';
+
+  @override
+  String get wizardViewBookings => 'View bookings';
+
+  @override
+  String get wizardBackToMap => 'Back to map';
+
+  @override
+  String get wizardRaceLost => 'This slot was just booked';
+
+  @override
+  String get wizardNetworkFailed => 'Couldn\'t book, try again';
+
+  @override
+  String get wizardTotalRent => 'Total rental';
+
+  @override
+  String get wizardContactHint => 'This info is sent to the court owner.';
+
+  @override
+  String get wizardAdjacent => 'adjacent';
+
+  @override
+  String get wizardAnd => 'and';
+
+  @override
+  String wizardMergeNotice(String names, String duration) {
+    return 'Adjacent slots $names will be merged into one $duration session.';
+  }
+
+  @override
+  String wizardSelectedSlots(int count) {
+    return 'Selected $count slots';
+  }
+
+  @override
+  String get wizardPickPlayers =>
+      'Choose who plays with you before sending the request to the owner.';
+
+  @override
+  String get wizardWhoCanJoin => 'Who can join?';
+
+  @override
+  String wizardAccessApplies(int count) {
+    return 'Applies to all $count booked slots. You can change each slot individually after booking.';
+  }
+
+  @override
+  String get wizardPrivate => '🔒 Private';
+
+  @override
+  String get wizardPrivateDesc => 'Only you and people you invite can play.';
+
+  @override
+  String get wizardOpen => '🌐 Open match';
+
+  @override
+  String get wizardOpenDesc =>
+      'Your slot appears in \"Open slots\". You approve join requests.';
+
+  @override
+  String get wizardMaxPlayers => 'Max players';
+
+  @override
+  String get wizardDecrease => 'Decrease players';
+
+  @override
+  String get wizardIncrease => 'Increase players';
+
+  @override
+  String get wizardMaxPlayersHint =>
+      'Includes you. 4 recommended for pickleball doubles.';
+
+  @override
+  String get wizardDeclinedTitle => 'Owner can\'t accept';
+
+  @override
+  String get wizardWaitingTitle => 'Waiting for owner confirmation';
+
+  @override
+  String get wizardDeclinedBody =>
+      'Sorry, the owner can\'t accept this request. You can pick another time.';
+
+  @override
+  String wizardWaitingBody(int count, String court) {
+    return 'Your request for $count slots was sent to $court. The owner usually responds within a few minutes. You\'ll be notified as soon as there\'s a result.';
+  }
+
+  @override
+  String get wizardNotConfirmed => 'Request not yet confirmed.';
+
+  @override
+  String get wizardPickAnotherTime => 'Pick another time';
+
+  @override
+  String get wizardBookingId => 'Booking ID';
+
+  @override
+  String wizardCourtSlots(String court, int count) {
+    return '$court · $count slots';
+  }
+
+  @override
+  String get wizardTimelineSent => 'You sent the booking request';
+
+  @override
+  String get wizardTimelineDeclined => 'Owner declined';
+
+  @override
+  String get wizardTimelineWaiting => 'Waiting for owner response...';
+
+  @override
+  String get wizardWaitingShort => 'waiting';
+
+  @override
+  String get wizardTimelineConfirmed => 'Booking confirmed';
+
+  @override
+  String get wizardAwaitingSemantic => 'Waiting for the owner to confirm';
+
+  @override
+  String get wizardSuccessTitle => 'Booking successful!';
+
+  @override
+  String wizardSuccessBody(String court) {
+    return 'See you at $court.\nArrive on time and bring cash.';
+  }
+
+  @override
+  String get wizardBringCash => 'Remember to bring cash';
+
+  @override
+  String wizardBringCashBody(String total, int count) {
+    return 'Pay $total at the court when you arrive (for all $count slots).';
+  }
+
+  @override
+  String get wizardLabelCourt => 'Court';
+
+  @override
+  String get wizardLabelDate => 'Date';
+
+  @override
+  String get wizardLabelSlots => 'Slots';
+
+  @override
+  String get wizardLabelTotal => 'Total';
+
+  @override
+  String wizardMergedSuffix(int count) {
+    return ' (merged $count slots)';
+  }
+
+  @override
+  String wizardHours(String value) {
+    return '$value h';
+  }
+
+  @override
+  String wizardSlotCountDuration(int count, String duration) {
+    return '$count slots · $duration';
+  }
 }

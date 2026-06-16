@@ -1177,6 +1177,378 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Từ chối'**
   String get bookingJoinRejected;
+
+  /// No description provided for @commonClose.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng'**
+  String get commonClose;
+
+  /// No description provided for @weekdayMonday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ hai'**
+  String get weekdayMonday;
+
+  /// No description provided for @weekdayTuesday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ ba'**
+  String get weekdayTuesday;
+
+  /// No description provided for @weekdayWednesday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ tư'**
+  String get weekdayWednesday;
+
+  /// No description provided for @weekdayThursday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ năm'**
+  String get weekdayThursday;
+
+  /// No description provided for @weekdayFriday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ sáu'**
+  String get weekdayFriday;
+
+  /// No description provided for @weekdaySaturday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thứ bảy'**
+  String get weekdaySaturday;
+
+  /// No description provided for @weekdaySunday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ nhật'**
+  String get weekdaySunday;
+
+  /// No description provided for @wizardStepConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận'**
+  String get wizardStepConfirm;
+
+  /// No description provided for @wizardStepPlay.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chơi ghép'**
+  String get wizardStepPlay;
+
+  /// No description provided for @wizardStepAwait.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ duyệt'**
+  String get wizardStepAwait;
+
+  /// No description provided for @wizardStepDone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoàn tất'**
+  String get wizardStepDone;
+
+  /// No description provided for @wizardStepPlayTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chơi cùng ai?'**
+  String get wizardStepPlayTitle;
+
+  /// No description provided for @wizardStepAwaitingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ xác nhận'**
+  String get wizardStepAwaitingTitle;
+
+  /// No description provided for @wizardSkip.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bỏ qua'**
+  String get wizardSkip;
+
+  /// No description provided for @wizardSaveContinue.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu & tiếp tục'**
+  String get wizardSaveContinue;
+
+  /// No description provided for @wizardViewBookings.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem lịch đặt'**
+  String get wizardViewBookings;
+
+  /// No description provided for @wizardBackToMap.
+  ///
+  /// In vi, this message translates to:
+  /// **'Về bản đồ'**
+  String get wizardBackToMap;
+
+  /// No description provided for @wizardRaceLost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot vừa được đặt'**
+  String get wizardRaceLost;
+
+  /// No description provided for @wizardNetworkFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể đặt sân, thử lại'**
+  String get wizardNetworkFailed;
+
+  /// No description provided for @wizardTotalRent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng giá thuê'**
+  String get wizardTotalRent;
+
+  /// No description provided for @wizardContactHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin được gửi tới chủ sân.'**
+  String get wizardContactHint;
+
+  /// No description provided for @wizardAdjacent.
+  ///
+  /// In vi, this message translates to:
+  /// **'liền kề'**
+  String get wizardAdjacent;
+
+  /// No description provided for @wizardAnd.
+  ///
+  /// In vi, this message translates to:
+  /// **'và'**
+  String get wizardAnd;
+
+  /// No description provided for @wizardMergeNotice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khung {names} liền nhau sẽ được gộp thành 1 buổi chơi {duration}.'**
+  String wizardMergeNotice(String names, String duration);
+
+  /// No description provided for @wizardSelectedSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn {count} khung giờ'**
+  String wizardSelectedSlots(int count);
+
+  /// No description provided for @wizardPickPlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.'**
+  String get wizardPickPlayers;
+
+  /// No description provided for @wizardWhoCanJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ai có thể tham gia?'**
+  String get wizardWhoCanJoin;
+
+  /// No description provided for @wizardAccessApplies.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cài đặt áp dụng cho cả {count} khung giờ đã đặt. Bạn có thể đổi riêng từng khung sau khi đặt xong.'**
+  String wizardAccessApplies(int count);
+
+  /// No description provided for @wizardPrivate.
+  ///
+  /// In vi, this message translates to:
+  /// **'🔒 Riêng tư'**
+  String get wizardPrivate;
+
+  /// No description provided for @wizardPrivateDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ bạn và những người bạn mời mới chơi được.'**
+  String get wizardPrivateDesc;
+
+  /// No description provided for @wizardOpen.
+  ///
+  /// In vi, this message translates to:
+  /// **'🌐 Mở chơi ghép'**
+  String get wizardOpen;
+
+  /// No description provided for @wizardOpenDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot xuất hiện trong \"Slot trống\". Bạn duyệt yêu cầu tham gia.'**
+  String get wizardOpenDesc;
+
+  /// No description provided for @wizardMaxPlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Số người tối đa'**
+  String get wizardMaxPlayers;
+
+  /// No description provided for @wizardDecrease.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giảm số người'**
+  String get wizardDecrease;
+
+  /// No description provided for @wizardIncrease.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tăng số người'**
+  String get wizardIncrease;
+
+  /// No description provided for @wizardMaxPlayersHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bao gồm cả bạn. Khuyến nghị 4 cho pickleball đôi.'**
+  String get wizardMaxPlayersHint;
+
+  /// No description provided for @wizardDeclinedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ sân không thể nhận'**
+  String get wizardDeclinedTitle;
+
+  /// No description provided for @wizardWaitingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ chủ sân xác nhận'**
+  String get wizardWaitingTitle;
+
+  /// No description provided for @wizardDeclinedBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tiếc, chủ sân không thể nhận yêu cầu này. Bạn có thể chọn khung giờ khác.'**
+  String get wizardDeclinedBody;
+
+  /// No description provided for @wizardWaitingBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu đặt {count} khung giờ đã được gửi tới {court}. Chủ sân thường phản hồi trong vòng vài phút. Bạn sẽ nhận thông báo ngay khi có kết quả.'**
+  String wizardWaitingBody(int count, String court);
+
+  /// No description provided for @wizardNotConfirmed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu chưa được xác nhận.'**
+  String get wizardNotConfirmed;
+
+  /// No description provided for @wizardPickAnotherTime.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn giờ khác'**
+  String get wizardPickAnotherTime;
+
+  /// No description provided for @wizardBookingId.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã đặt sân'**
+  String get wizardBookingId;
+
+  /// No description provided for @wizardCourtSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'{court} · {count} khung giờ'**
+  String wizardCourtSlots(String court, int count);
+
+  /// No description provided for @wizardTimelineSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn gửi yêu cầu đặt sân'**
+  String get wizardTimelineSent;
+
+  /// No description provided for @wizardTimelineDeclined.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ sân đã từ chối'**
+  String get wizardTimelineDeclined;
+
+  /// No description provided for @wizardTimelineWaiting.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chờ chủ sân phản hồi...'**
+  String get wizardTimelineWaiting;
+
+  /// No description provided for @wizardWaitingShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'đang chờ'**
+  String get wizardWaitingShort;
+
+  /// No description provided for @wizardTimelineConfirmed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân được xác nhận'**
+  String get wizardTimelineConfirmed;
+
+  /// No description provided for @wizardAwaitingSemantic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chờ chủ sân xác nhận'**
+  String get wizardAwaitingSemantic;
+
+  /// No description provided for @wizardSuccessTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân thành công!'**
+  String get wizardSuccessTitle;
+
+  /// No description provided for @wizardSuccessBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hẹn gặp bạn tại {court}.\nĐến đúng giờ và mang theo tiền mặt nhé.'**
+  String wizardSuccessBody(String court);
+
+  /// No description provided for @wizardBringCash.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhớ mang tiền mặt'**
+  String get wizardBringCash;
+
+  /// No description provided for @wizardBringCashBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán {total} tại sân khi đến chơi (cho cả {count} khung).'**
+  String wizardBringCashBody(String total, int count);
+
+  /// No description provided for @wizardLabelCourt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sân'**
+  String get wizardLabelCourt;
+
+  /// No description provided for @wizardLabelDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngày'**
+  String get wizardLabelDate;
+
+  /// No description provided for @wizardLabelSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khung giờ'**
+  String get wizardLabelSlots;
+
+  /// No description provided for @wizardLabelTotal.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tổng'**
+  String get wizardLabelTotal;
+
+  /// No description provided for @wizardMergedSuffix.
+  ///
+  /// In vi, this message translates to:
+  /// **' (gộp {count} khung)'**
+  String wizardMergedSuffix(int count);
+
+  /// No description provided for @wizardHours.
+  ///
+  /// In vi, this message translates to:
+  /// **'{value} giờ'**
+  String wizardHours(String value);
+
+  /// No description provided for @wizardSlotCountDuration.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} khung · {duration}'**
+  String wizardSlotCountDuration(int count, String duration);
 }
 
 class _AppLocalizationsDelegate
