@@ -107,8 +107,8 @@ JSON fields:
 - "phone": string or null — contact phone number
 - "description": string or null — description, notes, or other info
 - "amenities": array — zero or more items from: ["$_amenityList"]
-- "openHour": integer or null — opening hour (6–22)
-- "closeHour": integer or null — closing hour (6–22), must be > openHour
+- "openHour": integer or null — opening hour in 24h time (0–23)
+- "closeHour": integer or null — closing hour in 24h time (1–24, 24 = midnight), must be > openHour
 - "venues": array — zero or more {"name": string, "sportType": one of ["$_sportList"], "pricePerHour": integer VND, "indoor": boolean}
 
 Rules: missing field → null. "120k" → 120000. "6h" → 6. If the text states a

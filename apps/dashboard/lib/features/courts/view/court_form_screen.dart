@@ -154,12 +154,14 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       _selectedAmenities = Set.from(r.amenities);
       filled.add(_K.amenities);
     }
+    // Clamp to the dropdown's 0–24 range so a stray AI value can't break the
+    // DropdownButtonFormField (a value outside its items asserts).
     if (r.openHour != null) {
-      _openHour = r.openHour!;
+      _openHour = r.openHour!.clamp(0, 24);
       filled.add(_K.hours);
     }
     if (r.closeHour != null) {
-      _closeHour = r.closeHour!;
+      _closeHour = r.closeHour!.clamp(0, 24);
       filled.add(_K.hours);
     }
 

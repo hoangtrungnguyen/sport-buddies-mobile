@@ -152,7 +152,9 @@ class HourDropdown extends StatelessWidget {
         labelText: label,
         prefixIcon: Icon(icon, size: 20),
       ),
-      items: List.generate(17, (i) => i + 6)
+      // 0–24 (00:00–24:00) so early-open / late-close venues are representable
+      // and AI-extracted hours always have a matching dropdown entry.
+      items: List.generate(25, (i) => i)
           .map((h) => DropdownMenuItem(value: h, child: Text(formatHour(h))))
           .toList(),
       onChanged: (v) {
