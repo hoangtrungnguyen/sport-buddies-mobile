@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -159,16 +160,16 @@ class _SchedulePageState extends State<SchedulePage> {
     return BrowsePickTheme(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(center?.name ?? 'Lịch sân'),
+          title: Text(center?.name ?? AppLocalizations.of(context).scheduleTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Quay lại',
+            tooltip: AppLocalizations.of(context).commonBack,
             onPressed: () => context.pop(),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.ios_share),
-              tooltip: 'Chia sẻ',
+              tooltip: AppLocalizations.of(context).courtDetailShare,
               onPressed: () {},
             ),
           ],
@@ -183,12 +184,13 @@ class _SchedulePageState extends State<SchedulePage> {
   Widget _buildBody(SportsCenter center) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final day = _day;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       children: [
-        Text('Lịch tất cả các sân',
+        Text(l10n.scheduleAllCourts,
             style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
         const SizedBox(height: 12),
         DateTabs(dates: _dates, selectedIndex: _dateIndex, onSelect: _onDate),
@@ -225,8 +227,9 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   String _sectionDateLabel() {
+    final l10n = AppLocalizations.of(context);
     final d = _dates[_dateIndex];
-    final prefix = _dateIndex == 0 ? 'Hôm nay' : 'Ngày';
+    final prefix = _dateIndex == 0 ? l10n.scheduleToday : l10n.scheduleDateWord;
     return '$prefix, ${d.day.toString().padLeft(2, '0')}/'
         '${d.month.toString().padLeft(2, '0')}';
   }
@@ -380,8 +383,8 @@ class _Cell extends StatelessWidget {
               style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant));
         case CellStatus.booked:
           bg = scheme.surfaceContainerHigh;
-          glyph =
-              Text('Đặt', style: TextStyle(fontSize: 10, color: scheme.outline));
+          glyph = Text(AppLocalizations.of(context).scheduleBookedShort,
+              style: TextStyle(fontSize: 10, color: scheme.outline));
         case CellStatus.blocked:
           bg = scheme.surfaceContainerHigh;
           glyph =
@@ -418,15 +421,17 @@ class _Legend extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Row(
       children: [
         _swatch(scheme.surfaceContainerLowest, scheme.outlineVariant,
-            'Còn trống', scheme),
+            l10n.scheduleLegendOpen, scheme),
         const SizedBox(width: 16),
-        _swatch(scheme.surfaceContainerHigh, scheme.outlineVariant, 'Đã đặt',
-            scheme),
+        _swatch(scheme.surfaceContainerHigh, scheme.outlineVariant,
+            l10n.slotPickerBooked, scheme),
         const SizedBox(width: 16),
-        _swatch(scheme.primaryContainer, scheme.primary, 'Đang chọn', scheme),
+        _swatch(scheme.primaryContainer, scheme.primary,
+            l10n.scheduleLegendSelected, scheme),
       ],
     );
   }
@@ -476,6 +481,7 @@ class _SummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final onCt = scheme.onPrimaryContainer;
     final rows = selection.toList();
     final total = rows.length * cellPriceVnd;
@@ -494,12 +500,12 @@ class _SummaryCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('Đang chọn · ${rows.length} khung',
+              Text(l10n.scheduleSelectedCount(rows.length),
                   style: text.labelLarge?.copyWith(color: onCt)),
               const Spacer(),
               InkWell(
                 onTap: onClear,
-                child: Text('Xoá tất cả',
+                child: Text(l10n.scheduleClearAll,
                     style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -550,7 +556,8 @@ class _SummaryCard extends StatelessWidget {
           Divider(color: onCt.withValues(alpha: 0.18), height: 16),
           Row(
             children: [
-              Text('Tổng', style: text.labelLarge?.copyWith(color: onCt)),
+              Text(l10n.wizardLabelTotal,
+                  style: text.labelLarge?.copyWith(color: onCt)),
               const Spacer(),
               Text(
                 '${_thousands(total)} đ',
@@ -566,7 +573,7 @@ class _SummaryCard extends StatelessWidget {
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, AppTokens.buttonSummaryHeight),
               ),
-              child: const Text('Tiếp tục đặt sân'),
+              child: Text(l10n.scheduleContinue),
             ),
           ),
         ],

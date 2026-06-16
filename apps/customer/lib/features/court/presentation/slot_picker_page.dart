@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -115,7 +116,8 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
 
   // E9: external maps intent is out of scope this milestone — the handoff
   // sanctions a "Sắp ra mắt" snackbar fallback (doc 03 §E9).
-  void _directions() => _snack('Chỉ đường — sắp ra mắt');
+  void _directions() =>
+      _snack(AppLocalizations.of(context).slotPickerDirectionsSoon);
 
   void _snack(String msg) {
     if (!mounted) return;
@@ -128,10 +130,10 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     return BrowsePickTheme(
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Chọn giờ'),
+          title: Text(AppLocalizations.of(context).slotPickerTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            tooltip: 'Quay lại',
+            tooltip: AppLocalizations.of(context).commonBack,
             onPressed: () => context.pop(),
           ),
         ),
@@ -149,6 +151,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
   Widget _buildBody(Court court) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final slots = _slots;
     final openCount = slots?.where((s) => s.isOpen).length ?? 0;
 
@@ -172,14 +175,14 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('Khung giờ', style: text.titleMedium),
+            Text(l10n.wizardLabelSlots, style: text.titleMedium),
             const Spacer(),
-            Text('Chạm để chọn nhiều khung',
+            Text(l10n.slotPickerMultiHint,
                 style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
           ],
         ),
         const SizedBox(height: 2),
-        Text('$openCount slot trống · có thể đặt liên tiếp',
+        Text(l10n.slotPickerOpenCount(openCount),
             style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
         const SizedBox(height: 12),
         if (slots == null)
@@ -196,7 +199,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
         const SizedBox(height: 28),
         OpenSlotSection(
           slots: _groupSlots,
-          helper: 'Chạm để xem chi tiết & xin chơi cùng',
+          helper: l10n.slotPickerOpenHelper,
           trailing: OpenSlotTrailing.chevron,
         ),
       ],
@@ -250,6 +253,7 @@ class _DirectionsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: scheme.surfaceContainerLowest,
       borderRadius: AppTokens.radiusMd,
@@ -289,7 +293,8 @@ class _DirectionsCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 4),
                         Text(
-                          '${court.distanceKm.toStringAsFixed(1)} km · ~6 phút lái xe',
+                          l10n.slotPickerDistanceDrive(
+                              court.distanceKm.toStringAsFixed(1)),
                           style: text.bodySmall?.copyWith(
                             color: scheme.onSurfaceVariant,
                             fontFeatures: AppTokens.tnum,
@@ -301,7 +306,7 @@ class _DirectionsCard extends StatelessWidget {
                             Icon(Icons.navigation_outlined,
                                 size: 16, color: scheme.primary),
                             const SizedBox(width: 4),
-                            Text('Chỉ đường',
+                            Text(l10n.slotPickerDirections,
                                 style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
@@ -469,7 +474,9 @@ class _SlotCell extends StatelessWidget {
                 if (inert) ...[
                   const Spacer(),
                   Text(
-                    slot.status == CellStatus.booked ? 'Đã đặt' : 'Đóng',
+                    slot.status == CellStatus.booked
+                        ? AppLocalizations.of(context).slotPickerBooked
+                        : AppLocalizations.of(context).slotPickerClosed,
                     style: TextStyle(
                       fontSize: 12,
                       color: slot.status == CellStatus.booked
@@ -499,6 +506,7 @@ class _BottomCartBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final count = selection.length;
     final total = selection.fold<int>(0, (s, e) => s + e.priceVnd);
     final minutes =
@@ -524,8 +532,9 @@ class _BottomCartBar extends StatelessWidget {
                 children: [
                   Text(
                     count == 0
-                        ? 'Chưa chọn khung'
-                        : '$count khung đã chọn · $hoursLabel giờ',
+                        ? l10n.slotPickerNoSelection
+                        : l10n.slotPickerSelectedCount(
+                            count, l10n.wizardHours(hoursLabel)),
                     style: text.bodySmall
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),
@@ -544,7 +553,9 @@ class _BottomCartBar extends StatelessWidget {
                 minimumSize: const Size(0, AppTokens.buttonStickyHeight),
                 padding: const EdgeInsets.symmetric(horizontal: 24),
               ),
-              child: Text(enabled ? 'Tiếp tục · $count khung' : 'Chọn khung giờ'),
+              child: Text(enabled
+                  ? l10n.slotPickerContinue(count)
+                  : l10n.slotPickerPickSlots),
             ),
           ],
         ),

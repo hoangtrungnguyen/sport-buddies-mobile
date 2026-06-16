@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -86,7 +87,7 @@ class _BookBar extends StatelessWidget {
             minimumSize: const Size(double.infinity, AppTokens.buttonStickyHeight),
             shape: const StadiumBorder(),
           ),
-          child: const Text('Chọn giờ trống & đặt sân'),
+          child: Text(AppLocalizations.of(context).courtDetailBookCta),
         ),
       ),
     );
@@ -110,6 +111,7 @@ class _BodyState extends State<_Body> {
   @override
   Widget build(BuildContext context) {
     final court = widget.court;
+    final l10n = AppLocalizations.of(context);
     return ListView(
       padding: const EdgeInsets.only(bottom: 28),
       children: [
@@ -139,7 +141,7 @@ class _BodyState extends State<_Body> {
               const SizedBox(height: 28),
               OpenSlotSection(
                 slots: widget.groupSlots,
-                helper: 'Tham gia cùng người chơi khác tại sân này',
+                helper: l10n.courtDetailOpenSlotsHelper,
                 trailing: OpenSlotTrailing.joinButton,
               ),
             ],
@@ -170,6 +172,7 @@ class _PhotoCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final top = MediaQuery.of(context).padding.top;
+    final l10n = AppLocalizations.of(context);
     return SizedBox(
       height: 280,
       child: Stack(
@@ -178,8 +181,9 @@ class _PhotoCarousel extends StatelessWidget {
           PageView.builder(
             itemCount: photoCount,
             onPageChanged: onIndex,
-            itemBuilder: (_, i) =>
-                _CourtPhotoPlaceholder(label: 'ảnh sân · ${i + 1}/$photoCount'),
+            itemBuilder: (_, i) => _CourtPhotoPlaceholder(
+                label: AppLocalizations.of(context)
+                    .courtDetailPhoto(i + 1, photoCount)),
           ),
           Positioned(
             top: top + 12,
@@ -189,19 +193,19 @@ class _PhotoCarousel extends StatelessWidget {
               children: [
                 _FloatingIconButton(
                   icon: Icons.arrow_back,
-                  tooltip: 'Quay lại',
+                  tooltip: l10n.commonBack,
                   onTap: () => context.pop(),
                 ),
                 const Spacer(),
                 _FloatingIconButton(
                   icon: isFavorite ? Icons.favorite : Icons.favorite_border,
-                  tooltip: 'Yêu thích',
+                  tooltip: l10n.courtDetailFavorite,
                   onTap: onFavorite,
                 ),
                 const SizedBox(width: 8),
                 _FloatingIconButton(
                   icon: Icons.ios_share,
-                  tooltip: 'Chia sẻ',
+                  tooltip: l10n.courtDetailShare,
                   onTap: () {},
                 ),
               ],
@@ -404,6 +408,7 @@ class _TitleBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     final muted = text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,9 +428,10 @@ class _TitleBlock extends StatelessWidget {
               ),
             ),
             _Sep(scheme: scheme),
-            Text('${court.reviewCount} đánh giá', style: muted),
+            Text(l10n.courtDetailReviews(court.reviewCount), style: muted),
             _Sep(scheme: scheme),
-            Text('${court.distanceKm.toStringAsFixed(1)} km', style: muted),
+            Text(l10n.distanceKm(court.distanceKm.toStringAsFixed(1)),
+                style: muted),
           ],
         ),
         const SizedBox(height: 12),
@@ -463,6 +469,7 @@ class _StatCards extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     // IntrinsicHeight bounds the Row's (otherwise unbounded) cross-axis so
     // CrossAxisAlignment.stretch can give the two cards equal height without
     // forcing an infinite constraint.
@@ -472,7 +479,7 @@ class _StatCards extends StatelessWidget {
         children: [
           Expanded(
             child: _StatCard(
-              label: 'Giá / giờ',
+              label: l10n.courtDetailPricePerHour,
               value: '${_thousands(court.pricePerHourVnd)} đ',
               valueColor: scheme.onSurface,
             ),
@@ -480,8 +487,8 @@ class _StatCards extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _StatCard(
-              label: 'Slot trống hôm nay',
-              value: '${court.openSlotsToday} slot',
+              label: l10n.courtDetailOpenToday,
+              value: l10n.courtDetailSlotCount(court.openSlotsToday),
               valueColor: scheme.primary,
             ),
           ),
@@ -551,7 +558,8 @@ class _AmenitySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tiện ích', style: text.titleMedium),
+        Text(AppLocalizations.of(context).courtDetailAmenities,
+            style: text.titleMedium),
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -603,7 +611,8 @@ class _AboutSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Giới thiệu', style: text.titleMedium),
+        Text(AppLocalizations.of(context).courtDetailAbout,
+            style: text.titleMedium),
         const SizedBox(height: 8),
         Text(description,
             style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
@@ -623,10 +632,11 @@ class _ScheduleEntryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lịch tổng hợp', style: text.titleMedium),
+        Text(l10n.courtDetailScheduleTitle, style: text.titleMedium),
         const SizedBox(height: 10),
         Material(
           color: scheme.primaryContainer,
@@ -652,12 +662,12 @@ class _ScheduleEntryCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Xem lịch tất cả các sân',
+                        Text(l10n.courtDetailViewAllCourts,
                             style: text.labelLarge
                                 ?.copyWith(color: scheme.onPrimaryContainer)),
                         const SizedBox(height: 2),
                         Text(
-                          'Pickle Hub Sài Gòn · 3 sân · chọn khung & đặt',
+                          l10n.courtDetailScheduleSubtitle,
                           style: text.bodySmall?.copyWith(
                             color:
                                 scheme.onPrimaryContainer.withValues(alpha: 0.8),

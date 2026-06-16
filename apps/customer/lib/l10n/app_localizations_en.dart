@@ -809,4 +809,200 @@ class AppLocalizationsEn extends AppLocalizations {
   String wizardSlotCountDuration(int count, String duration) {
     return '$count slots · $duration';
   }
+
+  @override
+  String get courtDetailBookCta => 'Pick a free slot & book';
+
+  @override
+  String get courtDetailOpenSlotsHelper => 'Join other players at this court';
+
+  @override
+  String courtDetailPhoto(int index, int total) {
+    return 'court photo · $index/$total';
+  }
+
+  @override
+  String get courtDetailFavorite => 'Favorite';
+
+  @override
+  String get courtDetailShare => 'Share';
+
+  @override
+  String courtDetailReviews(int count) {
+    return '$count reviews';
+  }
+
+  @override
+  String get courtDetailPricePerHour => 'Price / hour';
+
+  @override
+  String get courtDetailOpenToday => 'Open slots today';
+
+  @override
+  String courtDetailSlotCount(int count) {
+    return '$count slots';
+  }
+
+  @override
+  String get courtDetailAmenities => 'Amenities';
+
+  @override
+  String get courtDetailAbout => 'About';
+
+  @override
+  String get courtDetailScheduleTitle => 'Full schedule';
+
+  @override
+  String get courtDetailViewAllCourts => 'View all courts\' schedule';
+
+  @override
+  String get courtDetailScheduleSubtitle => 'Pick a time slot & book';
+
+  @override
+  String get slotPickerTitle => 'Pick a time';
+
+  @override
+  String get slotPickerDirectionsSoon => 'Directions — coming soon';
+
+  @override
+  String get slotPickerMultiHint => 'Tap to select multiple slots';
+
+  @override
+  String slotPickerOpenCount(int count) {
+    return '$count open slots · book consecutively';
+  }
+
+  @override
+  String get slotPickerOpenHelper => 'Tap for details & to request to join';
+
+  @override
+  String slotPickerDistanceDrive(String km) {
+    return '$km km · ~6 min drive';
+  }
+
+  @override
+  String get slotPickerDirections => 'Directions';
+
+  @override
+  String get slotPickerBooked => 'Booked';
+
+  @override
+  String get slotPickerClosed => 'Closed';
+
+  @override
+  String get slotPickerNoSelection => 'No slots selected';
+
+  @override
+  String slotPickerSelectedCount(int count, String duration) {
+    return '$count slots selected · $duration';
+  }
+
+  @override
+  String slotPickerContinue(int count) {
+    return 'Continue · $count slots';
+  }
+
+  @override
+  String get slotPickerPickSlots => 'Pick time slots';
+
+  @override
+  String get scheduleTitle => 'Court schedule';
+
+  @override
+  String get scheduleAllCourts => 'All courts\' schedule';
+
+  @override
+  String get scheduleToday => 'Today';
+
+  @override
+  String get scheduleDateWord => 'Date';
+
+  @override
+  String get scheduleBookedShort => 'Booked';
+
+  @override
+  String get scheduleLegendOpen => 'Available';
+
+  @override
+  String get scheduleLegendSelected => 'Selected';
+
+  @override
+  String scheduleSelectedCount(int count) {
+    return 'Selecting · $count slots';
+  }
+
+  @override
+  String get scheduleClearAll => 'Clear all';
+
+  @override
+  String get scheduleContinue => 'Continue to booking';
+
+  @override
+  String get paymentTime => 'Time';
+
+  @override
+  String paymentCashBody(String total) {
+    return 'Pay $total at the court when you arrive.';
+  }
+
+  @override
+  String get awaitingBody =>
+      'Your booking request has been sent to the owner.\nYou\'ll be notified when there\'s a result.';
+
+  @override
+  String get accessSlotSelected => 'Time slot selected';
+
+  @override
+  String get accessApplies =>
+      'Applies to the booked slot. You can change it after booking.';
+
+  @override
+  String get accessSlotTakenTitle => 'This slot is taken';
+
+  @override
+  String get accessSlotTakenBody =>
+      'Sorry, someone just booked this slot before you.\nPlease pick another time.';
+
+  @override
+  String get bookingDetailTitle => 'Booking details';
+
+  @override
+  String get bookingDetailMode => 'Mode';
+
+  @override
+  String get bookingDetailCallOwner => 'Call owner';
+
+  @override
+  String get bookingDetailPlayers => 'Players';
+
+  @override
+  String get bookingDetailInvite => '+ Invite';
+
+  @override
+  String get bookingDetailYouHost => 'You (host)';
+
+  @override
+  String get bookingDetailHostRole => 'Host';
+
+  @override
+  String bookingDetailAcceptedAt(String time) {
+    return 'Accepted · $time';
+  }
+
+  @override
+  String get bookingDetailJoinRequests => 'Join requests';
+
+  @override
+  String bookingDetailNewCount(int count) {
+    return '$count new';
+  }
+
+  @override
+  String get bookingDetailNoRequests => 'No join requests yet';
+
+  @override
+  String get bookingDetailAccept => 'Accept';
+
+  @override
+  String get bookingDetailManagePlayers => 'Manage players';
 }

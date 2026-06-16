@@ -577,5 +577,148 @@
   "wizardSlotCountDuration": "{count} khung · {duration}",
   "@wizardSlotCountDuration": {
     "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
-  }
+  },
+
+  "courtDetailBookCta": "Chọn giờ trống & đặt sân",
+  "@courtDetailBookCta": {},
+  "courtDetailOpenSlotsHelper": "Tham gia cùng người chơi khác tại sân này",
+  "@courtDetailOpenSlotsHelper": {},
+  "courtDetailPhoto": "ảnh sân · {index}/{total}",
+  "@courtDetailPhoto": {
+    "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "courtDetailFavorite": "Yêu thích",
+  "@courtDetailFavorite": {},
+  "courtDetailShare": "Chia sẻ",
+  "@courtDetailShare": {},
+  "courtDetailReviews": "{count} đánh giá",
+  "@courtDetailReviews": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "courtDetailPricePerHour": "Giá / giờ",
+  "@courtDetailPricePerHour": {},
+  "courtDetailOpenToday": "Slot trống hôm nay",
+  "@courtDetailOpenToday": {},
+  "courtDetailSlotCount": "{count} slot",
+  "@courtDetailSlotCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "courtDetailAmenities": "Tiện ích",
+  "@courtDetailAmenities": {},
+  "courtDetailAbout": "Giới thiệu",
+  "@courtDetailAbout": {},
+  "courtDetailScheduleTitle": "Lịch tổng hợp",
+  "@courtDetailScheduleTitle": {},
+  "courtDetailViewAllCourts": "Xem lịch tất cả các sân",
+  "@courtDetailViewAllCourts": {},
+  "courtDetailScheduleSubtitle": "Chọn khung giờ & đặt sân",
+  "@courtDetailScheduleSubtitle": {},
+
+  "slotPickerTitle": "Chọn giờ",
+  "@slotPickerTitle": {},
+  "slotPickerDirectionsSoon": "Chỉ đường — sắp ra mắt",
+  "@slotPickerDirectionsSoon": {},
+  "slotPickerMultiHint": "Chạm để chọn nhiều khung",
+  "@slotPickerMultiHint": {},
+  "slotPickerOpenCount": "{count} slot trống · có thể đặt liên tiếp",
+  "@slotPickerOpenCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotPickerOpenHelper": "Chạm để xem chi tiết & xin chơi cùng",
+  "@slotPickerOpenHelper": {},
+  "slotPickerDistanceDrive": "{km} km · ~6 phút lái xe",
+  "@slotPickerDistanceDrive": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "slotPickerDirections": "Chỉ đường",
+  "@slotPickerDirections": {},
+  "slotPickerBooked": "Đã đặt",
+  "@slotPickerBooked": {},
+  "slotPickerClosed": "Đóng",
+  "@slotPickerClosed": {},
+  "slotPickerNoSelection": "Chưa chọn khung",
+  "@slotPickerNoSelection": {},
+  "slotPickerSelectedCount": "{count} khung đã chọn · {duration}",
+  "@slotPickerSelectedCount": {
+    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+  },
+  "slotPickerContinue": "Tiếp tục · {count} khung",
+  "@slotPickerContinue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotPickerPickSlots": "Chọn khung giờ",
+  "@slotPickerPickSlots": {},
+
+  "scheduleTitle": "Lịch sân",
+  "@scheduleTitle": {},
+  "scheduleAllCourts": "Lịch tất cả các sân",
+  "@scheduleAllCourts": {},
+  "scheduleToday": "Hôm nay",
+  "@scheduleToday": {},
+  "scheduleDateWord": "Ngày",
+  "@scheduleDateWord": {},
+  "scheduleBookedShort": "Đặt",
+  "@scheduleBookedShort": {},
+  "scheduleLegendOpen": "Còn trống",
+  "@scheduleLegendOpen": {},
+  "scheduleLegendSelected": "Đang chọn",
+  "@scheduleLegendSelected": {},
+  "scheduleSelectedCount": "Đang chọn · {count} khung",
+  "@scheduleSelectedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "scheduleClearAll": "Xoá tất cả",
+  "@scheduleClearAll": {},
+  "scheduleContinue": "Tiếp tục đặt sân",
+  "@scheduleContinue": {},
+
+  "paymentTime": "Thời gian",
+  "@paymentTime": {},
+  "paymentCashBody": "Thanh toán {total} tại sân khi đến chơi.",
+  "@paymentCashBody": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+
+  "awaitingBody": "Yêu cầu đặt sân đã được gửi đến chủ sân.\nBạn sẽ được thông báo khi có kết quả.",
+  "@awaitingBody": {},
+
+  "accessSlotSelected": "Đã chọn khung giờ",
+  "@accessSlotSelected": {},
+  "accessApplies": "Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.",
+  "@accessApplies": {},
+  "accessSlotTakenTitle": "Khung giờ đã được đặt",
+  "@accessSlotTakenTitle": {},
+  "accessSlotTakenBody": "Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.",
+  "@accessSlotTakenBody": {},
+
+  "bookingDetailTitle": "Chi tiết đặt sân",
+  "@bookingDetailTitle": {},
+  "bookingDetailMode": "Chế độ",
+  "@bookingDetailMode": {},
+  "bookingDetailCallOwner": "Gọi chủ sân",
+  "@bookingDetailCallOwner": {},
+  "bookingDetailPlayers": "Người chơi",
+  "@bookingDetailPlayers": {},
+  "bookingDetailInvite": "+ Mời bạn",
+  "@bookingDetailInvite": {},
+  "bookingDetailYouHost": "Bạn (chủ slot)",
+  "@bookingDetailYouHost": {},
+  "bookingDetailHostRole": "Chủ slot",
+  "@bookingDetailHostRole": {},
+  "bookingDetailAcceptedAt": "Đã chấp nhận · {time}",
+  "@bookingDetailAcceptedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "bookingDetailJoinRequests": "Yêu cầu tham gia",
+  "@bookingDetailJoinRequests": {},
+  "bookingDetailNewCount": "{count} mới",
+  "@bookingDetailNewCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bookingDetailNoRequests": "Chưa có yêu cầu tham gia",
+  "@bookingDetailNoRequests": {},
+  "bookingDetailAccept": "Chấp nhận",
+  "@bookingDetailAccept": {},
+  "bookingDetailManagePlayers": "Quản lý người chơi",
+  "@bookingDetailManagePlayers": {}
 }

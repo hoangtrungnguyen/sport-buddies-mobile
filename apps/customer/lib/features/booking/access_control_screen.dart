@@ -1,6 +1,7 @@
 import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/access_control_cubit.dart';
 import 'package:customer/features/booking/state/access_control_state.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -108,20 +109,21 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
         }
       },
       builder: (context, state) {
+        final l10n = AppLocalizations.of(context);
         final isSaving = state is AccessControlSaving;
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            title: const Text('Chơi cùng ai?'),
+            title: Text(l10n.wizardStepPlayTitle),
             backgroundColor: Colors.white,
             elevation: 0,
             automaticallyImplyLeading: false,
             actions: [
               TextButton(
                 onPressed: isSaving ? null : _skip,
-                child: const Text(
-                  'Bỏ qua',
-                  style: TextStyle(
+                child: Text(
+                  l10n.wizardSkip,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF6B7280),
@@ -147,25 +149,25 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                           border: Border.all(color: const Color(0xFFBBF7D0)),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            _SuccessCircle(),
-                            SizedBox(width: 10),
+                            const _SuccessCircle(),
+                            const SizedBox(width: 10),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Đã chọn khung giờ',
-                                    style: TextStyle(
+                                    l10n.accessSlotSelected,
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFF15803D),
                                     ),
                                   ),
                                   Text(
-                                    'Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.',
-                                    style: TextStyle(
+                                    l10n.wizardPickPlayers,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: Color(0xFF16A34A),
                                     ),
@@ -177,18 +179,18 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Ai có thể tham gia?',
-                        style: TextStyle(
+                      Text(
+                        l10n.wizardWhoCanJoin,
+                        style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF111827),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.',
-                        style: TextStyle(
+                      Text(
+                        l10n.accessApplies,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF6B7280),
                         ),
@@ -196,16 +198,16 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                       const SizedBox(height: 16),
                       _PolicyCard(
                         value: 'closed',
-                        label: '🔒 Riêng tư',
-                        description: 'Chỉ bạn và những người bạn mời mới chơi được.',
+                        label: l10n.wizardPrivate,
+                        description: l10n.wizardPrivateDesc,
                         selected: _policy == 'closed',
                         onTap: isSaving ? null : () => _setPolicy('closed'),
                       ),
                       const SizedBox(height: 10),
                       _PolicyCard(
                         value: 'open',
-                        label: '🌐 Mở chơi ghép',
-                        description: 'Slot xuất hiện trong "Slot trống". Bạn duyệt yêu cầu tham gia.',
+                        label: l10n.wizardOpen,
+                        description: l10n.wizardOpenDesc,
                         selected: _policy == 'open',
                         onTap: isSaving ? null : () => _setPolicy('open'),
                         child: _policy == 'open'
@@ -241,9 +243,9 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Lưu & tiếp tục',
-                          style: TextStyle(
+                      : Text(
+                          l10n.wizardSaveContinue,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
@@ -407,9 +409,9 @@ class _MaxPlayersStepper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Số người tối đa',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).wizardMaxPlayers,
+            style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: Color(0xFF374151),
@@ -442,9 +444,9 @@ class _MaxPlayersStepper extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Bao gồm cả bạn. Khuyến nghị 4 cho pickleball đôi.',
-            style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+          Text(
+            AppLocalizations.of(context).wizardMaxPlayersHint,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
           ),
         ],
       ),
@@ -495,6 +497,7 @@ class _SlotTakenSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
@@ -515,19 +518,19 @@ class _SlotTakenSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Khung giờ đã được đặt',
-              style: TextStyle(
+            Text(
+              l10n.accessSlotTakenTitle,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.',
+            Text(
+              l10n.accessSlotTakenBody,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 height: 1.5,
                 color: Color(0xFF6B7280),
@@ -543,9 +546,9 @@ class _SlotTakenSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'Chọn giờ khác',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              child: Text(
+                l10n.wizardPickAnotherTime,
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
               ),
             ),
           ],

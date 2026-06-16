@@ -4,6 +4,7 @@
 
 import 'package:customer/core/env/env.dart';
 import 'package:customer/core/services/booking_api_client.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -68,9 +69,9 @@ class BookingDetailScreen extends StatelessWidget {
         backgroundColor: _mdSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Chi tiết đặt sân',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _mdOnSurface),
+        title: Text(
+          AppLocalizations.of(context).bookingDetailTitle,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _mdOnSurface),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: _mdOnSurface),
@@ -176,12 +177,13 @@ class _BookingInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final start = booking.slot.startTime.toLocal();
     final end = booking.slot.endTime.toLocal();
     final statusLabel = switch (booking.status) {
-      'confirmed' => 'Đã xác nhận',
-      'pending'   => 'Chờ xác nhận',
-      'cancelled' => 'Đã huỷ',
+      'confirmed' => l10n.bookingStatusConfirmed,
+      'pending'   => l10n.bookingStatusPendingHost,
+      'cancelled' => l10n.bookingStatusCancelled,
       _           => booking.status,
     };
 
@@ -202,7 +204,7 @@ class _BookingInfoCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _M3Badge(statusLabel: statusLabel),
+                _M3Badge(status: booking.status, label: statusLabel),
                 Text(
                   '#SPB-${booking.id.substring(0, booking.id.length.clamp(0, 8)).toUpperCase()}',
                   style: const TextStyle(fontSize: 12, color: _mdOnSurfaceVariant),
@@ -229,10 +231,10 @@ class _BookingInfoCard extends StatelessWidget {
             const SizedBox(height: 12),
             Container(height: 1, color: _mdOutlineVariant),
             const SizedBox(height: 12),
-            _SummaryRow(label: 'Chế độ', value: '🌐 Mở chơi ghép'),
+            _SummaryRow(label: l10n.bookingDetailMode, value: l10n.wizardOpen),
             const SizedBox(height: 6),
             _SummaryRow(
-              label: 'Tổng',
+              label: l10n.wizardLabelTotal,
               value: _formatPrice(booking.totalPrice),
               bold: true,
             ),
@@ -243,7 +245,7 @@ class _BookingInfoCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () {},
                     icon: const Icon(Icons.phone_outlined, size: 16),
-                    label: const Text('Gọi chủ sân'),
+                    label: Text(l10n.bookingDetailCallOwner),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _mdOnSurface,
                       side: const BorderSide(color: _mdOutlineVariant),
@@ -257,7 +259,7 @@ class _BookingInfoCard extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: () {},
                     icon: const Icon(Icons.map_outlined, size: 16),
-                    label: const Text('Chỉ đường'),
+                    label: Text(l10n.slotPickerDirections),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _mdOnSurface,
                       side: const BorderSide(color: _mdOutlineVariant),
@@ -338,6 +340,7 @@ class _ParticipantsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final approved = joinRequests.where((r) => r.status == 'approved').toList();
 
     return Container(
@@ -356,9 +359,9 @@ class _ParticipantsCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Người chơi',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
+                    Text(
+                      l10n.bookingDetailPlayers,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -374,15 +377,15 @@ class _ParticipantsCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     minimumSize: const Size(0, 32),
                   ),
-                  child: const Text('+ Mời bạn', style: TextStyle(fontSize: 13)),
+                  child: Text(l10n.bookingDetailInvite, style: const TextStyle(fontSize: 13)),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             // Host row (placeholder - real data would come from booking)
             _PlayerRow(
-              name: 'Bạn (chủ slot)',
-              sub: 'Chủ slot',
+              name: l10n.bookingDetailYouHost,
+              sub: l10n.bookingDetailHostRole,
               initials: 'TM',
               color: _mdPrimary,
               isHost: true,
@@ -392,7 +395,7 @@ class _ParticipantsCard extends StatelessWidget {
               for (final req in approved) ...[
                 _PlayerRow(
                   name: req.userName,
-                  sub: 'Đã chấp nhận · ${req.createdAt}',
+                  sub: l10n.bookingDetailAcceptedAt(req.createdAt),
                   initials: _initials(req.userName),
                   color: _mdSurfaceContainerHighest,
                 ),
@@ -458,10 +461,10 @@ class _PlayerRow extends StatelessWidget {
                       height: 18,
                       padding: const EdgeInsets.symmetric(horizontal: 7),
                       decoration: BoxDecoration(color: _mdPrimaryContainer, borderRadius: _mdCornerFull),
-                      child: const Center(
+                      child: Center(
                         child: Text(
-                          'Chủ slot',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _mdOnPrimaryContainer),
+                          AppLocalizations.of(context).bookingDetailHostRole,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: _mdOnPrimaryContainer),
                         ),
                       ),
                     ),
@@ -492,6 +495,7 @@ class _JoinRequestsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final pending = joinRequests.where((r) => r.status == 'pending').toList();
 
     return Container(
@@ -507,9 +511,9 @@ class _JoinRequestsCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Text(
-                  'Yêu cầu tham gia',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
+                Text(
+                  l10n.bookingDetailJoinRequests,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _mdOnSurface),
                 ),
                 if (pending.isNotEmpty) ...[
                   const SizedBox(width: 8),
@@ -519,7 +523,7 @@ class _JoinRequestsCard extends StatelessWidget {
                     decoration: BoxDecoration(color: _mdTertiaryContainer, borderRadius: _mdCornerFull),
                     child: Center(
                       child: Text(
-                        '${pending.length} mới',
+                        l10n.bookingDetailNewCount(pending.length),
                         style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: _mdOnTertiaryContainer),
                       ),
                     ),
@@ -529,11 +533,11 @@ class _JoinRequestsCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             if (pending.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  'Chưa có yêu cầu tham gia',
-                  style: TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
+                  l10n.bookingDetailNoRequests,
+                  style: const TextStyle(fontSize: 13, color: _mdOnSurfaceVariant),
                 ),
               )
             else
@@ -577,6 +581,7 @@ class _RequestRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -621,7 +626,7 @@ class _RequestRow extends StatelessWidget {
                   shape: const RoundedRectangleBorder(borderRadius: _mdCornerMd),
                   padding: const EdgeInsets.symmetric(vertical: 8),
                 ),
-                child: const Text('Từ chối', style: TextStyle(fontSize: 13)),
+                child: Text(l10n.bookingJoinRejected, style: const TextStyle(fontSize: 13)),
               ),
             ),
             const SizedBox(width: 8),
@@ -648,7 +653,7 @@ class _RequestRow extends StatelessWidget {
                           color: _mdOnPrimary,
                         ),
                       )
-                    : const Text('Chấp nhận', style: TextStyle(fontSize: 13)),
+                    : Text(l10n.bookingDetailAccept, style: const TextStyle(fontSize: 13)),
               ),
             ),
           ],
@@ -667,6 +672,7 @@ class _BottomActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: const BoxDecoration(
@@ -684,7 +690,7 @@ class _BottomActions extends StatelessWidget {
                 shape: const RoundedRectangleBorder(borderRadius: _mdCornerFull),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
-              child: const Text('Quản lý người chơi'),
+              child: Text(l10n.bookingDetailManagePlayers),
             ),
           ),
           const SizedBox(width: 10),
@@ -692,7 +698,7 @@ class _BottomActions extends StatelessWidget {
             child: FilledButton.icon(
               onPressed: () {},
               icon: const Icon(Icons.map_outlined, size: 18),
-              label: const Text('Chỉ đường'),
+              label: Text(l10n.slotPickerDirections),
               style: FilledButton.styleFrom(
                 backgroundColor: _mdPrimary,
                 foregroundColor: _mdOnPrimary,
@@ -710,19 +716,21 @@ class _BottomActions extends StatelessWidget {
 // ─── M3Badge ──────────────────────────────────────────────────────────────────
 
 class _M3Badge extends StatelessWidget {
-  const _M3Badge({required this.statusLabel});
+  const _M3Badge({required this.status, required this.label});
 
-  final String statusLabel;
+  /// Raw DB status ('confirmed' | 'pending' | 'cancelled') — drives colours.
+  final String status;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
-    final (bg, fg, dot) = switch (statusLabel) {
-      'Đã xác nhận' || 'Đã duyệt' => (
+    final (bg, fg, dot) = switch (status) {
+      'confirmed' => (
           const Color(0xFFBBF7D0),
           const Color(0xFF002111),
           const Color(0xFF15803D),
         ),
-      'Chờ xác nhận' || 'Chờ duyệt' => (
+      'pending' => (
           _mdTertiaryContainer,
           _mdOnTertiaryContainer,
           _mdTertiary,
@@ -743,7 +751,7 @@ class _M3Badge extends StatelessWidget {
         children: [
           Container(width: 6, height: 6, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
           const SizedBox(width: 5),
-          Text(statusLabel, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
         ],
       ),
     );

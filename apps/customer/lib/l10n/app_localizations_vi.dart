@@ -810,4 +810,201 @@ class AppLocalizationsVi extends AppLocalizations {
   String wizardSlotCountDuration(int count, String duration) {
     return '$count khung · $duration';
   }
+
+  @override
+  String get courtDetailBookCta => 'Chọn giờ trống & đặt sân';
+
+  @override
+  String get courtDetailOpenSlotsHelper =>
+      'Tham gia cùng người chơi khác tại sân này';
+
+  @override
+  String courtDetailPhoto(int index, int total) {
+    return 'ảnh sân · $index/$total';
+  }
+
+  @override
+  String get courtDetailFavorite => 'Yêu thích';
+
+  @override
+  String get courtDetailShare => 'Chia sẻ';
+
+  @override
+  String courtDetailReviews(int count) {
+    return '$count đánh giá';
+  }
+
+  @override
+  String get courtDetailPricePerHour => 'Giá / giờ';
+
+  @override
+  String get courtDetailOpenToday => 'Slot trống hôm nay';
+
+  @override
+  String courtDetailSlotCount(int count) {
+    return '$count slot';
+  }
+
+  @override
+  String get courtDetailAmenities => 'Tiện ích';
+
+  @override
+  String get courtDetailAbout => 'Giới thiệu';
+
+  @override
+  String get courtDetailScheduleTitle => 'Lịch tổng hợp';
+
+  @override
+  String get courtDetailViewAllCourts => 'Xem lịch tất cả các sân';
+
+  @override
+  String get courtDetailScheduleSubtitle => 'Chọn khung giờ & đặt sân';
+
+  @override
+  String get slotPickerTitle => 'Chọn giờ';
+
+  @override
+  String get slotPickerDirectionsSoon => 'Chỉ đường — sắp ra mắt';
+
+  @override
+  String get slotPickerMultiHint => 'Chạm để chọn nhiều khung';
+
+  @override
+  String slotPickerOpenCount(int count) {
+    return '$count slot trống · có thể đặt liên tiếp';
+  }
+
+  @override
+  String get slotPickerOpenHelper => 'Chạm để xem chi tiết & xin chơi cùng';
+
+  @override
+  String slotPickerDistanceDrive(String km) {
+    return '$km km · ~6 phút lái xe';
+  }
+
+  @override
+  String get slotPickerDirections => 'Chỉ đường';
+
+  @override
+  String get slotPickerBooked => 'Đã đặt';
+
+  @override
+  String get slotPickerClosed => 'Đóng';
+
+  @override
+  String get slotPickerNoSelection => 'Chưa chọn khung';
+
+  @override
+  String slotPickerSelectedCount(int count, String duration) {
+    return '$count khung đã chọn · $duration';
+  }
+
+  @override
+  String slotPickerContinue(int count) {
+    return 'Tiếp tục · $count khung';
+  }
+
+  @override
+  String get slotPickerPickSlots => 'Chọn khung giờ';
+
+  @override
+  String get scheduleTitle => 'Lịch sân';
+
+  @override
+  String get scheduleAllCourts => 'Lịch tất cả các sân';
+
+  @override
+  String get scheduleToday => 'Hôm nay';
+
+  @override
+  String get scheduleDateWord => 'Ngày';
+
+  @override
+  String get scheduleBookedShort => 'Đặt';
+
+  @override
+  String get scheduleLegendOpen => 'Còn trống';
+
+  @override
+  String get scheduleLegendSelected => 'Đang chọn';
+
+  @override
+  String scheduleSelectedCount(int count) {
+    return 'Đang chọn · $count khung';
+  }
+
+  @override
+  String get scheduleClearAll => 'Xoá tất cả';
+
+  @override
+  String get scheduleContinue => 'Tiếp tục đặt sân';
+
+  @override
+  String get paymentTime => 'Thời gian';
+
+  @override
+  String paymentCashBody(String total) {
+    return 'Thanh toán $total tại sân khi đến chơi.';
+  }
+
+  @override
+  String get awaitingBody =>
+      'Yêu cầu đặt sân đã được gửi đến chủ sân.\nBạn sẽ được thông báo khi có kết quả.';
+
+  @override
+  String get accessSlotSelected => 'Đã chọn khung giờ';
+
+  @override
+  String get accessApplies =>
+      'Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.';
+
+  @override
+  String get accessSlotTakenTitle => 'Khung giờ đã được đặt';
+
+  @override
+  String get accessSlotTakenBody =>
+      'Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.';
+
+  @override
+  String get bookingDetailTitle => 'Chi tiết đặt sân';
+
+  @override
+  String get bookingDetailMode => 'Chế độ';
+
+  @override
+  String get bookingDetailCallOwner => 'Gọi chủ sân';
+
+  @override
+  String get bookingDetailPlayers => 'Người chơi';
+
+  @override
+  String get bookingDetailInvite => '+ Mời bạn';
+
+  @override
+  String get bookingDetailYouHost => 'Bạn (chủ slot)';
+
+  @override
+  String get bookingDetailHostRole => 'Chủ slot';
+
+  @override
+  String bookingDetailAcceptedAt(String time) {
+    return 'Đã chấp nhận · $time';
+  }
+
+  @override
+  String get bookingDetailJoinRequests => 'Yêu cầu tham gia';
+
+  @override
+  String bookingDetailNewCount(int count) {
+    return '$count mới';
+  }
+
+  @override
+  String get bookingDetailNoRequests => 'Chưa có yêu cầu tham gia';
+
+  @override
+  String get bookingDetailAccept => 'Chấp nhận';
+
+  @override
+  String get bookingDetailManagePlayers => 'Quản lý người chơi';
 }

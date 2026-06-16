@@ -1549,6 +1549,348 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'{count} khung · {duration}'**
   String wizardSlotCountDuration(int count, String duration);
+
+  /// No description provided for @courtDetailBookCta.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn giờ trống & đặt sân'**
+  String get courtDetailBookCta;
+
+  /// No description provided for @courtDetailOpenSlotsHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tham gia cùng người chơi khác tại sân này'**
+  String get courtDetailOpenSlotsHelper;
+
+  /// No description provided for @courtDetailPhoto.
+  ///
+  /// In vi, this message translates to:
+  /// **'ảnh sân · {index}/{total}'**
+  String courtDetailPhoto(int index, int total);
+
+  /// No description provided for @courtDetailFavorite.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu thích'**
+  String get courtDetailFavorite;
+
+  /// No description provided for @courtDetailShare.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chia sẻ'**
+  String get courtDetailShare;
+
+  /// No description provided for @courtDetailReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} đánh giá'**
+  String courtDetailReviews(int count);
+
+  /// No description provided for @courtDetailPricePerHour.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giá / giờ'**
+  String get courtDetailPricePerHour;
+
+  /// No description provided for @courtDetailOpenToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot trống hôm nay'**
+  String get courtDetailOpenToday;
+
+  /// No description provided for @courtDetailSlotCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} slot'**
+  String courtDetailSlotCount(int count);
+
+  /// No description provided for @courtDetailAmenities.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiện ích'**
+  String get courtDetailAmenities;
+
+  /// No description provided for @courtDetailAbout.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giới thiệu'**
+  String get courtDetailAbout;
+
+  /// No description provided for @courtDetailScheduleTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch tổng hợp'**
+  String get courtDetailScheduleTitle;
+
+  /// No description provided for @courtDetailViewAllCourts.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem lịch tất cả các sân'**
+  String get courtDetailViewAllCourts;
+
+  /// No description provided for @courtDetailScheduleSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn khung giờ & đặt sân'**
+  String get courtDetailScheduleSubtitle;
+
+  /// No description provided for @slotPickerTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn giờ'**
+  String get slotPickerTitle;
+
+  /// No description provided for @slotPickerDirectionsSoon.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đường — sắp ra mắt'**
+  String get slotPickerDirectionsSoon;
+
+  /// No description provided for @slotPickerMultiHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạm để chọn nhiều khung'**
+  String get slotPickerMultiHint;
+
+  /// No description provided for @slotPickerOpenCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} slot trống · có thể đặt liên tiếp'**
+  String slotPickerOpenCount(int count);
+
+  /// No description provided for @slotPickerOpenHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạm để xem chi tiết & xin chơi cùng'**
+  String get slotPickerOpenHelper;
+
+  /// No description provided for @slotPickerDistanceDrive.
+  ///
+  /// In vi, this message translates to:
+  /// **'{km} km · ~6 phút lái xe'**
+  String slotPickerDistanceDrive(String km);
+
+  /// No description provided for @slotPickerDirections.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ đường'**
+  String get slotPickerDirections;
+
+  /// No description provided for @slotPickerBooked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đặt'**
+  String get slotPickerBooked;
+
+  /// No description provided for @slotPickerClosed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đóng'**
+  String get slotPickerClosed;
+
+  /// No description provided for @slotPickerNoSelection.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa chọn khung'**
+  String get slotPickerNoSelection;
+
+  /// No description provided for @slotPickerSelectedCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} khung đã chọn · {duration}'**
+  String slotPickerSelectedCount(int count, String duration);
+
+  /// No description provided for @slotPickerContinue.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục · {count} khung'**
+  String slotPickerContinue(int count);
+
+  /// No description provided for @slotPickerPickSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn khung giờ'**
+  String get slotPickerPickSlots;
+
+  /// No description provided for @scheduleTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch sân'**
+  String get scheduleTitle;
+
+  /// No description provided for @scheduleAllCourts.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch tất cả các sân'**
+  String get scheduleAllCourts;
+
+  /// No description provided for @scheduleToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm nay'**
+  String get scheduleToday;
+
+  /// No description provided for @scheduleDateWord.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngày'**
+  String get scheduleDateWord;
+
+  /// No description provided for @scheduleBookedShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt'**
+  String get scheduleBookedShort;
+
+  /// No description provided for @scheduleLegendOpen.
+  ///
+  /// In vi, this message translates to:
+  /// **'Còn trống'**
+  String get scheduleLegendOpen;
+
+  /// No description provided for @scheduleLegendSelected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chọn'**
+  String get scheduleLegendSelected;
+
+  /// No description provided for @scheduleSelectedCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang chọn · {count} khung'**
+  String scheduleSelectedCount(int count);
+
+  /// No description provided for @scheduleClearAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xoá tất cả'**
+  String get scheduleClearAll;
+
+  /// No description provided for @scheduleContinue.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục đặt sân'**
+  String get scheduleContinue;
+
+  /// No description provided for @paymentTime.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thời gian'**
+  String get paymentTime;
+
+  /// No description provided for @paymentCashBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thanh toán {total} tại sân khi đến chơi.'**
+  String paymentCashBody(String total);
+
+  /// No description provided for @awaitingBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu đặt sân đã được gửi đến chủ sân.\nBạn sẽ được thông báo khi có kết quả.'**
+  String get awaitingBody;
+
+  /// No description provided for @accessSlotSelected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chọn khung giờ'**
+  String get accessSlotSelected;
+
+  /// No description provided for @accessApplies.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.'**
+  String get accessApplies;
+
+  /// No description provided for @accessSlotTakenTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khung giờ đã được đặt'**
+  String get accessSlotTakenTitle;
+
+  /// No description provided for @accessSlotTakenBody.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.'**
+  String get accessSlotTakenBody;
+
+  /// No description provided for @bookingDetailTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết đặt sân'**
+  String get bookingDetailTitle;
+
+  /// No description provided for @bookingDetailMode.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chế độ'**
+  String get bookingDetailMode;
+
+  /// No description provided for @bookingDetailCallOwner.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gọi chủ sân'**
+  String get bookingDetailCallOwner;
+
+  /// No description provided for @bookingDetailPlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người chơi'**
+  String get bookingDetailPlayers;
+
+  /// No description provided for @bookingDetailInvite.
+  ///
+  /// In vi, this message translates to:
+  /// **'+ Mời bạn'**
+  String get bookingDetailInvite;
+
+  /// No description provided for @bookingDetailYouHost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn (chủ slot)'**
+  String get bookingDetailYouHost;
+
+  /// No description provided for @bookingDetailHostRole.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ slot'**
+  String get bookingDetailHostRole;
+
+  /// No description provided for @bookingDetailAcceptedAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã chấp nhận · {time}'**
+  String bookingDetailAcceptedAt(String time);
+
+  /// No description provided for @bookingDetailJoinRequests.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu tham gia'**
+  String get bookingDetailJoinRequests;
+
+  /// No description provided for @bookingDetailNewCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} mới'**
+  String bookingDetailNewCount(int count);
+
+  /// No description provided for @bookingDetailNoRequests.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có yêu cầu tham gia'**
+  String get bookingDetailNoRequests;
+
+  /// No description provided for @bookingDetailAccept.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chấp nhận'**
+  String get bookingDetailAccept;
+
+  /// No description provided for @bookingDetailManagePlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản lý người chơi'**
+  String get bookingDetailManagePlayers;
 }
 
 class _AppLocalizationsDelegate

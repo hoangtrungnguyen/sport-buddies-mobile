@@ -1,6 +1,7 @@
 import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/awaiting_confirmation_cubit.dart';
 import 'package:customer/features/booking/state/awaiting_confirmation_state.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,7 +54,7 @@ class _AwaitingConfirmationScreenState
       builder: (context, state) => Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          title: const Text('Chờ xác nhận'),
+          title: Text(AppLocalizations.of(context).bookingStatusPendingHost),
           backgroundColor: Colors.white,
           elevation: 0,
           leading: BackButton(
@@ -96,6 +97,7 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final shortId = state.bookingId.split('-').first.toUpperCase();
 
     return Column(
@@ -144,19 +146,19 @@ class _LoadedBody extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Chờ chủ sân xác nhận',
-                  style: TextStyle(
+                Text(
+                  l10n.wizardWaitingTitle,
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF111827),
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Yêu cầu đặt sân đã được gửi đến chủ sân.\nBạn sẽ được thông báo khi có kết quả.',
+                Text(
+                  l10n.awaitingBody,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                  style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
                 ),
                 const SizedBox(height: 32),
                 // Booking detail card
@@ -172,7 +174,7 @@ class _LoadedBody extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _DetailRow(
-                        label: 'Mã đặt sân',
+                        label: l10n.wizardBookingId,
                         value: shortId,
                         valueStyle: const TextStyle(
                           fontSize: 13,
@@ -182,16 +184,16 @@ class _LoadedBody extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _DetailRow(label: 'Sân', value: state.courtName),
+                      _DetailRow(label: l10n.wizardLabelCourt, value: state.courtName),
                       const SizedBox(height: 10),
                       _DetailRow(
-                        label: 'Thời gian',
+                        label: l10n.paymentTime,
                         value:
                             '${_timeFmt.format(state.slotStart)} – ${_timeFmt.format(state.slotEnd)}',
                       ),
                       const SizedBox(height: 10),
                       _DetailRow(
-                        label: 'Ngày',
+                        label: l10n.wizardLabelDate,
                         value: _dateFmt.format(state.slotStart),
                       ),
                       const SizedBox(height: 12),
@@ -202,14 +204,14 @@ class _LoadedBody extends StatelessWidget {
                           color: const Color(0xFFFEF9C3),
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.circle, size: 6, color: Color(0xFFCA8A04)),
-                            SizedBox(width: 5),
+                            const Icon(Icons.circle, size: 6, color: Color(0xFFCA8A04)),
+                            const SizedBox(width: 5),
                             Text(
-                              'Chờ xác nhận',
-                              style: TextStyle(
+                              l10n.bookingStatusPendingHost,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF92400E),
@@ -239,9 +241,9 @@ class _LoadedBody extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text(
-              'Xem lịch đặt',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context).wizardViewBookings,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF374151),
@@ -292,21 +294,22 @@ class _TimelineSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _TimelineItem(
           done: true,
-          label: 'Bạn gửi yêu cầu đặt sân',
+          label: l10n.wizardTimelineSent,
           time: _timeFmt.format(submittedAt),
         ),
         _TimelineItem(
           active: true,
-          label: 'Chờ chủ sân phản hồi...',
-          time: 'đang chờ',
+          label: l10n.wizardTimelineWaiting,
+          time: l10n.wizardWaitingShort,
         ),
         _TimelineItem(
-          label: 'Đặt sân được xác nhận',
+          label: l10n.wizardTimelineConfirmed,
           time: '',
           isLast: true,
         ),

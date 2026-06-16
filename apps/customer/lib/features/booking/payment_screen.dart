@@ -1,6 +1,7 @@
 import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/payment_cubit.dart';
 import 'package:customer/features/booking/state/payment_state.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -50,12 +51,13 @@ class _LoadedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final shortId = state.bookingId.split('-').first.toUpperCase();
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Hoàn tất'),
+        title: Text(l10n.wizardStepDone),
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -98,9 +100,9 @@ class _LoadedScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Đặt sân thành công!',
-                    style: TextStyle(
+                  Text(
+                    l10n.wizardSuccessTitle,
+                    style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -108,7 +110,7 @@ class _LoadedScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Hẹn gặp bạn tại ${state.courtName}.\nĐến đúng giờ và mang theo tiền mặt nhé.',
+                    l10n.wizardSuccessBody(state.courtName),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 14,
@@ -139,9 +141,9 @@ class _LoadedScreen extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Mã đặt sân',
-                              style: TextStyle(
+                            Text(
+                              l10n.wizardBookingId,
+                              style: const TextStyle(
                                   fontSize: 13, color: Color(0xFF6B7280)),
                             ),
                             Text(
@@ -159,21 +161,21 @@ class _LoadedScreen extends StatelessWidget {
                           padding: EdgeInsets.symmetric(vertical: 10),
                           child: Divider(height: 1, color: Color(0xFFE5E7EB)),
                         ),
-                        _Row(label: 'Sân', value: state.courtName),
+                        _Row(label: l10n.wizardLabelCourt, value: state.courtName),
                         const _Divider(),
                         _Row(
-                          label: 'Ngày',
+                          label: l10n.wizardLabelDate,
                           value: _dateFmt.format(state.slotStart),
                         ),
                         const _Divider(),
                         _Row(
-                          label: 'Thời gian',
+                          label: l10n.paymentTime,
                           value:
                               '${_timeFmt.format(state.slotStart)} – ${_timeFmt.format(state.slotEnd)}',
                         ),
                         const _Divider(),
                         _Row(
-                          label: 'Tổng',
+                          label: l10n.wizardLabelTotal,
                           value: _priceFmt.format(state.totalPrice),
                           valueStyle: const TextStyle(
                             fontSize: 14,
@@ -187,7 +189,7 @@ class _LoadedScreen extends StatelessWidget {
                           spacing: 8,
                           children: [
                             _Badge(
-                              label: 'Đã xác nhận',
+                              label: l10n.bookingStatusConfirmed,
                               dotColor: const Color(0xFF16A34A),
                               bg: const Color(0xFFF0FDF4),
                               textColor: const Color(0xFF15803D),
@@ -216,9 +218,9 @@ class _LoadedScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Nhớ mang tiền mặt',
-                                style: TextStyle(
+                              Text(
+                                l10n.wizardBringCash,
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: Color(0xFF92400E),
@@ -226,7 +228,8 @@ class _LoadedScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'Thanh toán ${_priceFmt.format(state.totalPrice)} tại sân khi đến chơi.',
+                                l10n.paymentCashBody(
+                                    _priceFmt.format(state.totalPrice)),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Color(0xFF92400E),
@@ -257,9 +260,9 @@ class _LoadedScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'Về bản đồ',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.wizardBackToMap,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Color(0xFF374151),
@@ -278,9 +281,9 @@ class _LoadedScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    child: const Text(
-                      'Xem lịch đặt',
-                      style: TextStyle(
+                    child: Text(
+                      l10n.wizardViewBookings,
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),

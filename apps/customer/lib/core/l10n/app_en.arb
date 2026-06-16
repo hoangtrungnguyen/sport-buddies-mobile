@@ -577,5 +577,148 @@
   "wizardSlotCountDuration": "{count} slots · {duration}",
   "@wizardSlotCountDuration": {
     "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
-  }
+  },
+
+  "courtDetailBookCta": "Pick a free slot & book",
+  "@courtDetailBookCta": {},
+  "courtDetailOpenSlotsHelper": "Join other players at this court",
+  "@courtDetailOpenSlotsHelper": {},
+  "courtDetailPhoto": "court photo · {index}/{total}",
+  "@courtDetailPhoto": {
+    "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } }
+  },
+  "courtDetailFavorite": "Favorite",
+  "@courtDetailFavorite": {},
+  "courtDetailShare": "Share",
+  "@courtDetailShare": {},
+  "courtDetailReviews": "{count} reviews",
+  "@courtDetailReviews": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "courtDetailPricePerHour": "Price / hour",
+  "@courtDetailPricePerHour": {},
+  "courtDetailOpenToday": "Open slots today",
+  "@courtDetailOpenToday": {},
+  "courtDetailSlotCount": "{count} slots",
+  "@courtDetailSlotCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "courtDetailAmenities": "Amenities",
+  "@courtDetailAmenities": {},
+  "courtDetailAbout": "About",
+  "@courtDetailAbout": {},
+  "courtDetailScheduleTitle": "Full schedule",
+  "@courtDetailScheduleTitle": {},
+  "courtDetailViewAllCourts": "View all courts' schedule",
+  "@courtDetailViewAllCourts": {},
+  "courtDetailScheduleSubtitle": "Pick a time slot & book",
+  "@courtDetailScheduleSubtitle": {},
+
+  "slotPickerTitle": "Pick a time",
+  "@slotPickerTitle": {},
+  "slotPickerDirectionsSoon": "Directions — coming soon",
+  "@slotPickerDirectionsSoon": {},
+  "slotPickerMultiHint": "Tap to select multiple slots",
+  "@slotPickerMultiHint": {},
+  "slotPickerOpenCount": "{count} open slots · book consecutively",
+  "@slotPickerOpenCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotPickerOpenHelper": "Tap for details & to request to join",
+  "@slotPickerOpenHelper": {},
+  "slotPickerDistanceDrive": "{km} km · ~6 min drive",
+  "@slotPickerDistanceDrive": {
+    "placeholders": { "km": { "type": "String" } }
+  },
+  "slotPickerDirections": "Directions",
+  "@slotPickerDirections": {},
+  "slotPickerBooked": "Booked",
+  "@slotPickerBooked": {},
+  "slotPickerClosed": "Closed",
+  "@slotPickerClosed": {},
+  "slotPickerNoSelection": "No slots selected",
+  "@slotPickerNoSelection": {},
+  "slotPickerSelectedCount": "{count} slots selected · {duration}",
+  "@slotPickerSelectedCount": {
+    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+  },
+  "slotPickerContinue": "Continue · {count} slots",
+  "@slotPickerContinue": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "slotPickerPickSlots": "Pick time slots",
+  "@slotPickerPickSlots": {},
+
+  "scheduleTitle": "Court schedule",
+  "@scheduleTitle": {},
+  "scheduleAllCourts": "All courts' schedule",
+  "@scheduleAllCourts": {},
+  "scheduleToday": "Today",
+  "@scheduleToday": {},
+  "scheduleDateWord": "Date",
+  "@scheduleDateWord": {},
+  "scheduleBookedShort": "Booked",
+  "@scheduleBookedShort": {},
+  "scheduleLegendOpen": "Available",
+  "@scheduleLegendOpen": {},
+  "scheduleLegendSelected": "Selected",
+  "@scheduleLegendSelected": {},
+  "scheduleSelectedCount": "Selecting · {count} slots",
+  "@scheduleSelectedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "scheduleClearAll": "Clear all",
+  "@scheduleClearAll": {},
+  "scheduleContinue": "Continue to booking",
+  "@scheduleContinue": {},
+
+  "paymentTime": "Time",
+  "@paymentTime": {},
+  "paymentCashBody": "Pay {total} at the court when you arrive.",
+  "@paymentCashBody": {
+    "placeholders": { "total": { "type": "String" } }
+  },
+
+  "awaitingBody": "Your booking request has been sent to the owner.\nYou'll be notified when there's a result.",
+  "@awaitingBody": {},
+
+  "accessSlotSelected": "Time slot selected",
+  "@accessSlotSelected": {},
+  "accessApplies": "Applies to the booked slot. You can change it after booking.",
+  "@accessApplies": {},
+  "accessSlotTakenTitle": "This slot is taken",
+  "@accessSlotTakenTitle": {},
+  "accessSlotTakenBody": "Sorry, someone just booked this slot before you.\nPlease pick another time.",
+  "@accessSlotTakenBody": {},
+
+  "bookingDetailTitle": "Booking details",
+  "@bookingDetailTitle": {},
+  "bookingDetailMode": "Mode",
+  "@bookingDetailMode": {},
+  "bookingDetailCallOwner": "Call owner",
+  "@bookingDetailCallOwner": {},
+  "bookingDetailPlayers": "Players",
+  "@bookingDetailPlayers": {},
+  "bookingDetailInvite": "+ Invite",
+  "@bookingDetailInvite": {},
+  "bookingDetailYouHost": "You (host)",
+  "@bookingDetailYouHost": {},
+  "bookingDetailHostRole": "Host",
+  "@bookingDetailHostRole": {},
+  "bookingDetailAcceptedAt": "Accepted · {time}",
+  "@bookingDetailAcceptedAt": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "bookingDetailJoinRequests": "Join requests",
+  "@bookingDetailJoinRequests": {},
+  "bookingDetailNewCount": "{count} new",
+  "@bookingDetailNewCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bookingDetailNoRequests": "No join requests yet",
+  "@bookingDetailNoRequests": {},
+  "bookingDetailAccept": "Accept",
+  "@bookingDetailAccept": {},
+  "bookingDetailManagePlayers": "Manage players",
+  "@bookingDetailManagePlayers": {}
 }
