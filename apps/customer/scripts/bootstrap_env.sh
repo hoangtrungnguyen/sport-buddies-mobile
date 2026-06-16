@@ -28,9 +28,6 @@ for f in .dev.env .prod.env; do
 SUPABASE_URL=http://localhost:54321
 SUPABASE_PUBLISHABLE_KEY=placeholder
 API_BASE_URL=
-MAP_PROVIDER=google
-VIETMAP_API_KEY=
-GOOGLE_MAP_API_KEY=
 EOF
         echo "created $f (placeholder)"
     fi

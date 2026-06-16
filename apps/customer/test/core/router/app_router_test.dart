@@ -11,14 +11,12 @@
 //   /signup              → SignUpScreen (public)
 //   /forgot-password     → ForgotPasswordScreen (public)
 //   /profile             → ProfileScreen (protected, later story)
-//   /map                 → MapScreen (protected, later story)
 //   /bookings/upcoming   → UpcomingBookingsPage (grava-654b.1.1)
 //
 // Note: in unit tests Supabase is not initialised, so
 // `Supabase.instance.client.auth.currentSession` returns null — all widget
 // tests run in the unauthenticated code-path unless Supabase is mocked.
 import 'package:customer/core/router/app_router.dart';
-import 'package:customer/features/map/map_screen.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -109,15 +107,6 @@ void main() {
       await tester.pumpAndSettle();
       // "Create account" appears in both the AppBar title and the submit button.
       expect(find.text('Create account'), findsWidgets);
-    });
-  });
-
-  group('MapScreen widget', () {
-    testWidgets('mounts without throwing', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(home: MapScreen()),
-      );
-      expect(find.byType(MapScreen), findsOneWidget);
     });
   });
 }

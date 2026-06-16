@@ -1,16 +1,15 @@
-// Tests for the [Env] class. Values are baked into env.g.dart by envied at
-// build time from the local .env file, so the fields here reflect whatever
-// .env held at the last `dart run build_runner build`.
+// Tests for the [Env] class. Values come from compile-time --dart-define
+// variables; in the default test-runner context they are empty strings.
 
 import 'package:customer/core/env/env.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Env', () {
-    test('exposes static const fields for the three required keys', () {
+    test('exposes static const fields for the required keys', () {
       expect(Env.supabaseUrl, isA<String>());
       expect(Env.supabaseAnonKey, isA<String>());
-      expect(Env.vietmapApiKey, isA<String>());
+      expect(Env.apiBaseUrl, isA<String>());
     });
 
     test('assertConfigured() does not throw when Supabase keys are baked', () {

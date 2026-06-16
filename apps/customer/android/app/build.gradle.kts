@@ -1,18 +1,8 @@
-import java.util.Properties
-
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
-}
-
-// Load local.properties for secrets (GOOGLE_MAP_API_KEY etc.)
-val localProperties = Properties().also { props ->
-    val localPropsFile = rootProject.file("local.properties")
-    if (localPropsFile.exists()) {
-        localPropsFile.inputStream().use { props.load(it) }
-    }
 }
 
 android {
@@ -30,14 +20,10 @@ android {
         applicationId = "spb.customer"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        // vietmap_flutter_gl requires minSdk 24 (GL native renderer).
         minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Inject GOOGLE_MAP_API_KEY into the merged AndroidManifest.
-        manifestPlaceholders["GOOGLE_MAP_API_KEY"] =
-            localProperties.getProperty("GOOGLE_MAP_API_KEY", "")
     }
 
     buildTypes {

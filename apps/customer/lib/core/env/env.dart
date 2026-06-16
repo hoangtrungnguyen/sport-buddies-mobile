@@ -5,8 +5,7 @@
 /// flutter run \
 ///   --dart-define=SUPABASE_URL=https://xyz.supabase.co \
 ///   --dart-define=SUPABASE_PUBLISHABLE_KEY=... \
-///   --dart-define=API_BASE_URL=... \
-///   --dart-define=MAP_PROVIDER=google
+///   --dart-define=API_BASE_URL=...
 /// ```
 /// (Typically supplied via a launch config / `--dart-define-from-file`.)
 abstract class Env {
@@ -26,22 +25,8 @@ abstract class Env {
   /// Core-engine REST API base URL (writes: bookings, slot access, …).
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
-  /// VietMap tile + geocoding API key.
-  static const String vietmapApiKey =
-      String.fromEnvironment('VIETMAP_API_KEY');
-
-  /// Google Maps API key for map tiles.
-  /// Leave empty in dev — the provider falls back to the keyless endpoint.
-  static const String googleMapApiKey =
-      String.fromEnvironment('GOOGLE_MAP_API_KEY');
-
-  /// Active map tile provider: 'google' (default) or 'vietmap'.
-  static const String mapProvider =
-      String.fromEnvironment('MAP_PROVIDER', defaultValue: 'google');
-
   /// Throws [StateError] if any required env var is empty.
   static void assertConfigured() {
-    // VIETMAP_API_KEY temporarily relaxed — map tiles will fail until set.
     final missing = <String>[
       if (supabaseUrl.isEmpty) 'SUPABASE_URL',
       if (supabaseAnonKey.isEmpty) 'SUPABASE_KEY',
