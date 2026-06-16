@@ -303,7 +303,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       if (_isEdit) {
         _leave(context);
       } else {
-        context.go('/courts/${saved.id}');
+        // After creating a court, return to the courts list (not the new
+        // court's sub-court detail) so the owner sees it in the list.
+        context.go('/courts');
       }
     } catch (e) {
       setState(() {
