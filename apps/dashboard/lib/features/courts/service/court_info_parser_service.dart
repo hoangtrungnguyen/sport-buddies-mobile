@@ -78,12 +78,17 @@ class VenueParseResult {
 }
 
 class CourtInfoParserService {
-  CourtInfoParserService() : _dio = Dio();
+  /// [apiKey] overrides the compile-time [Env.geminiApiKey] — useful for driving
+  /// the parser from an e2e/demo entrypoint that can't set dart-defines.
+  CourtInfoParserService({String? apiKey})
+      : _dio = Dio(),
+        _apiKey = apiKey ?? Env.geminiApiKey;
 
   final Dio _dio;
+  final String _apiKey;
 
   static const _endpoint =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   static final _amenityList = kAmenities.join('", "');
   static final _sportList = kSportTypes.join('", "');
@@ -264,7 +269,7 @@ MỖI lượt trả lời PHẢI có 2 phần:
 
   Future<String> _generateContents(List<Map<String, dynamic>> contents,
       {bool jsonMime = true}) async {
-    final apiKey = Env.geminiApiKey;
+    final apiKey = _apiKey;
     if (apiKey.isEmpty) {
       throw StateError(
           'GEMINI_API_KEY is not configured. Add it to your .local.env and re-run build_runner.');
