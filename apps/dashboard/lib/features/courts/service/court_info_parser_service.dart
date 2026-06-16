@@ -80,8 +80,9 @@ class VenueParseResult {
 class CourtInfoParserService {
   /// [apiKey] overrides the compile-time [Env.geminiApiKey] — useful for driving
   /// the parser from an e2e/demo entrypoint that can't set dart-defines.
-  CourtInfoParserService({String? apiKey})
-      : _dio = Dio(),
+  /// [dio] lets tests inject a stubbed HTTP client instead of hitting the API.
+  CourtInfoParserService({String? apiKey, Dio? dio})
+      : _dio = dio ?? Dio(),
         _apiKey = apiKey ?? Env.geminiApiKey;
 
   final Dio _dio;
