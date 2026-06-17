@@ -1,4 +1,5 @@
 import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -65,7 +66,7 @@ class _ErrorBody extends StatelessWidget {
           FilledButton(
             onPressed: () =>
                 context.read<CourtDetailCubit>().loadCourt(courtId),
-            child: const Text('Thử lại'),
+            child: Text(AppLocalizations.of(context).commonRetry),
           ),
         ],
       ),
@@ -295,6 +296,7 @@ class _CourtInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
@@ -350,7 +352,7 @@ class _CourtInfoSection extends StatelessWidget {
             children: [
               Expanded(
                 child: _StatTile(
-                  label: 'Giá / giờ',
+                  label: l10n.courtDetailPricePerHour,
                   value: court.pricePerHour != null
                       ? _formatPrice(court.pricePerHour!)
                       : '–',
@@ -362,7 +364,7 @@ class _CourtInfoSection extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _StatTile(
-                  label: 'Slot trống hôm nay',
+                  label: l10n.courtDetailOpenToday,
                   value: openSlotCount.toString(),
                   valueColor: openSlotCount > 0
                       ? const Color(0xFF22C55E)
@@ -377,9 +379,9 @@ class _CourtInfoSection extends StatelessWidget {
           // Amenities
           if (court.amenities.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Text(
-              'Tiện ích',
-              style: TextStyle(
+            Text(
+              l10n.courtDetailAmenities,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -398,9 +400,9 @@ class _CourtInfoSection extends StatelessWidget {
           // Description
           if (court.description != null && court.description!.isNotEmpty) ...[
             const SizedBox(height: 20),
-            const Text(
-              'Giới thiệu',
-              style: TextStyle(
+            Text(
+              l10n.courtDetailAbout,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF111827),
@@ -420,9 +422,9 @@ class _CourtInfoSection extends StatelessWidget {
           ],
           // Lịch tổng hợp
           const SizedBox(height: 20),
-          const Text(
-            'Lịch tổng hợp',
-            style: TextStyle(
+          Text(
+            l10n.courtDetailScheduleTitle,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xFF111827),
@@ -454,22 +456,22 @@ class _CourtInfoSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Xem lịch tất cả các sân',
-                          style: TextStyle(
+                          l10n.courtDetailViewAllCourts,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFF15803D),
                           ),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
-                          'Chọn khung giờ & đặt sân',
-                          style: TextStyle(
+                          l10n.courtDetailScheduleSubtitle,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Color(0xFF15803D),
                           ),
@@ -489,10 +491,10 @@ class _CourtInfoSection extends StatelessWidget {
             const SizedBox(height: 20),
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Slot mở chơi ghép',
-                    style: TextStyle(
+                    l10n.courtsOpenMatchSlots,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF111827),
@@ -518,7 +520,7 @@ class _CourtInfoSection extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${groupSlots.length} slot',
+                        l10n.courtDetailSlotCount(groupSlots.length),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -531,9 +533,9 @@ class _CourtInfoSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            const Text(
-              'Tham gia cùng người chơi khác tại sân này',
-              style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+            Text(
+              l10n.courtDetailOpenSlotsHelper,
+              style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 12),
             ...groupSlots.map((s) => Padding(
@@ -715,6 +717,7 @@ class _BottomCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final safeBottom = MediaQuery.of(context).padding.bottom;
     final priceLabel = pricePerHour != null
         ? '${(pricePerHour! / 1000).toStringAsFixed(pricePerHour! % 1000 == 0 ? 0 : 1)}k'
@@ -746,8 +749,8 @@ class _BottomCta extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Từ',
-                        style: TextStyle(
+                    Text(l10n.courtsPriceFrom,
+                        style: const TextStyle(
                             fontSize: 12, color: Color(0xFF6B7280))),
                     const SizedBox(height: 2),
                     Text.rich(
@@ -762,9 +765,9 @@ class _BottomCta extends StatelessWidget {
                             ),
                           ),
                           if (pricePerHour != null)
-                            const TextSpan(
-                              text: '/giờ',
-                              style: TextStyle(
+                            TextSpan(
+                              text: l10n.courtsPerHourSuffix,
+                              style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                                 color: Color(0xFF6B7280),
@@ -798,7 +801,9 @@ class _BottomCta extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      openSlotCount > 0 ? 'Đặt sân ngay' : 'Hết slot hôm nay',
+                      openSlotCount > 0
+                          ? l10n.courtsBookNow
+                          : l10n.courtsSoldOutToday,
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -815,22 +820,22 @@ class _BottomCta extends StatelessWidget {
               const SizedBox(height: 6),
               GestureDetector(
                 onTap: () => context.push('/court/$courtId/schedule'),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_month_outlined,
+                    const Icon(Icons.calendar_month_outlined,
                         size: 16, color: Color(0xFF0EA5E9)),
-                    SizedBox(width: 4),
+                    const SizedBox(width: 4),
                     Text(
-                      'Xem lịch trống những ngày tới',
-                      style: TextStyle(
+                      l10n.courtsViewUpcoming,
+                      style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF0EA5E9),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 2),
-                    Icon(Icons.chevron_right,
+                    const SizedBox(width: 2),
+                    const Icon(Icons.chevron_right,
                         size: 16, color: Color(0xFF0EA5E9)),
                   ],
                 ),
@@ -872,11 +877,12 @@ class _GroupSlotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final key = slot.sportType.toLowerCase();
     final color = _sportColors[key] ?? const Color(0xFF374151);
     final icon = _sportIcon(slot.sportType);
     final left = slot.maxPlayers - slot.currentPlayers;
-    final timeLabel = _buildTimeLabel(slot.startTime, slot.endTime);
+    final timeLabel = _buildTimeLabel(l10n, slot.startTime, slot.endTime);
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -925,7 +931,7 @@ class _GroupSlotCard extends StatelessWidget {
                         size: 14, color: Color(0xFF6B7280)),
                     const SizedBox(width: 4),
                     Text(
-                      '${slot.currentPlayers}/${slot.maxPlayers} người',
+                      l10n.slotsJoinedCount(slot.currentPlayers, slot.maxPlayers),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -934,7 +940,7 @@ class _GroupSlotCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '· còn $left',
+                      l10n.courtsSlotsLeft(left),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -958,21 +964,22 @@ class _GroupSlotCard extends StatelessWidget {
               textStyle: const TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w700),
             ),
-            child: const Text('Tham gia'),
+            child: Text(l10n.courtsJoin),
           ),
         ],
       ),
     );
   }
 
-  static String _buildTimeLabel(DateTime start, DateTime end) {
+  static String _buildTimeLabel(
+      AppLocalizations l10n, DateTime start, DateTime end) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final slotDay = DateTime(start.year, start.month, start.day);
     final diff = slotDay.difference(today).inDays;
     final prefix = switch (diff) {
-      0 => 'Hôm nay',
-      1 => 'Mai',
+      0 => l10n.scheduleToday,
+      1 => l10n.courtsTomorrow,
       _ => DateFormat('EEE', 'vi').format(start),
     };
     final fmt = DateFormat('HH:mm');

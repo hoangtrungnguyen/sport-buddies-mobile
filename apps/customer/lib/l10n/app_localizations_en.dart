@@ -1017,4 +1017,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courtDetailMapsUnavailable => 'Couldn\'t open a maps app';
+
+  @override
+  String get courtsOpenMatchSlots => 'Open match slots';
+
+  @override
+  String get courtsPriceFrom => 'From';
+
+  @override
+  String get courtsPerHourSuffix => '/hr';
+
+  @override
+  String get courtsBookNow => 'Book now';
+
+  @override
+  String get courtsSoldOutToday => 'Sold out today';
+
+  @override
+  String get courtsViewUpcoming => 'See open slots on upcoming days';
+
+  @override
+  String courtsSlotsLeft(int count) {
+    return '· $count left';
+  }
+
+  @override
+  String get courtsJoin => 'Join';
+
+  @override
+  String get courtsTomorrow => 'Tomorrow';
+
+  @override
+  String get scheduleTapHint => 'Tap an empty cell to pick a time slot';
+
+  @override
+  String get scheduleMultiHint =>
+      'You can pick several consecutive slots to book longer.';
+
+  @override
+  String get schedulePickAtLeastOne => 'Pick at least 1 time slot to continue';
+
+  @override
+  String get commonContinue => 'Continue';
+
+  @override
+  String get slotPickerTapSelect => 'Tap to select';
+
+  @override
+  String get slotPickerNoSlotsToday => 'No open slots on this day.';
+
+  @override
+  String get slotPickerLocked => 'Locked';
+
+  @override
+  String get slotPickerMaintenance => 'Maintenance';
+
+  @override
+  String get slotPickerBookNow => 'Book now';
+
+  @override
+  String get courtsDefaultName => 'Sports court';
 }

@@ -1019,4 +1019,65 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get courtDetailMapsUnavailable => 'Không mở được ứng dụng bản đồ';
+
+  @override
+  String get courtsOpenMatchSlots => 'Slot mở chơi ghép';
+
+  @override
+  String get courtsPriceFrom => 'Từ';
+
+  @override
+  String get courtsPerHourSuffix => '/giờ';
+
+  @override
+  String get courtsBookNow => 'Đặt sân ngay';
+
+  @override
+  String get courtsSoldOutToday => 'Hết slot hôm nay';
+
+  @override
+  String get courtsViewUpcoming => 'Xem lịch trống những ngày tới';
+
+  @override
+  String courtsSlotsLeft(int count) {
+    return '· còn $count';
+  }
+
+  @override
+  String get courtsJoin => 'Tham gia';
+
+  @override
+  String get courtsTomorrow => 'Mai';
+
+  @override
+  String get scheduleTapHint => 'Chạm vào ô trống để chọn khung giờ';
+
+  @override
+  String get scheduleMultiHint =>
+      'Có thể chọn nhiều khung liên tục để đặt lâu hơn.';
+
+  @override
+  String get schedulePickAtLeastOne => 'Chọn ít nhất 1 khung giờ để tiếp tục';
+
+  @override
+  String get commonContinue => 'Tiếp tục';
+
+  @override
+  String get slotPickerTapSelect => 'Chạm để chọn';
+
+  @override
+  String get slotPickerNoSlotsToday =>
+      'Không có khung giờ trống trong ngày này.';
+
+  @override
+  String get slotPickerLocked => 'Đã khoá';
+
+  @override
+  String get slotPickerMaintenance => 'Bảo trì';
+
+  @override
+  String get slotPickerBookNow => 'Đặt ngay';
+
+  @override
+  String get courtsDefaultName => 'Sân thể thao';
 }

@@ -1,6 +1,7 @@
 import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_cubit.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_state.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -81,6 +82,7 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final cubit = context.read<CourtScheduleOverviewCubit>();
     final groups = state.buildCartGroups();
     final hasSelection = groups.isNotEmpty;
@@ -104,9 +106,9 @@ class _LoadedBody extends StatelessWidget {
                 color: Colors.white,
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: const Text(
-                  'Lịch tất cả các sân',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                child: Text(
+                  l10n.scheduleAllCourts,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                 ),
               ),
               _DateTabRow(
@@ -117,7 +119,7 @@ class _LoadedBody extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
                 child: Text(
-                  _dateHeading(selectedDate),
+                  _dateHeading(l10n, selectedDate),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
@@ -168,27 +170,28 @@ class _LoadedBody extends StatelessWidget {
     );
   }
 
-  static String _dateHeading(DateTime d) {
+  static String _dateHeading(AppLocalizations l10n, DateTime d) {
     final today = DateTime.now();
     final isToday = d.year == today.year &&
         d.month == today.month &&
         d.day == today.day;
     final dd = d.day.toString().padLeft(2, '0');
     final mm = d.month.toString().padLeft(2, '0');
-    if (isToday) return 'Hôm nay, $dd/$mm';
-    return '${_fullWeekday(d.weekday)}, $dd/$mm';
+    if (isToday) return '${l10n.scheduleToday}, $dd/$mm';
+    return '${fullWeekday(l10n, d.weekday)}, $dd/$mm';
   }
-
-  static String _fullWeekday(int w) => switch (w) {
-        1 => 'Thứ hai',
-        2 => 'Thứ ba',
-        3 => 'Thứ tư',
-        4 => 'Thứ năm',
-        5 => 'Thứ sáu',
-        6 => 'Thứ bảy',
-        _ => 'Chủ nhật',
-      };
 }
+
+/// Localized full weekday name (Mon=1 … Sun=7).
+String fullWeekday(AppLocalizations l10n, int w) => switch (w) {
+      1 => l10n.weekdayMonday,
+      2 => l10n.weekdayTuesday,
+      3 => l10n.weekdayWednesday,
+      4 => l10n.weekdayThursday,
+      5 => l10n.weekdayFriday,
+      6 => l10n.weekdaySaturday,
+      _ => l10n.weekdaySunday,
+    };
 
 // ── Date tabs ────────────────────────────────────────────────────────────────
 
@@ -244,10 +247,11 @@ class _DateTabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final topLabel = isToday
-        ? 'Hôm nay'
+        ? l10n.scheduleToday
         : isTomorrow
-            ? 'Mai'
+            ? l10n.courtsTomorrow
             : _weekdayShort(date.weekday);
     final dd = date.day.toString().padLeft(2, '0');
     final mm = date.month.toString().padLeft(2, '0');
@@ -473,9 +477,9 @@ class _Cell extends StatelessWidget {
         color: const Color(0xFFD1D5DB),
       );
     } else if (isBooked) {
-      content = const Text(
-        'Đặt',
-        style: TextStyle(
+      content = Text(
+        AppLocalizations.of(context).scheduleBookedShort,
+        style: const TextStyle(
           fontSize: 11,
           color: Color(0xFF9CA3AF),
           fontWeight: FontWeight.w500,
@@ -529,24 +533,25 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final l10n = AppLocalizations.of(context);
+    return Row(
       children: [
         _LegendItem(
           color: Colors.white,
-          border: Color(0xFFE5E7EB),
-          label: 'Còn trống',
+          border: const Color(0xFFE5E7EB),
+          label: l10n.scheduleLegendOpen,
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         _LegendItem(
-          color: Color(0xFFF3F4F6),
-          border: Color(0xFFE5E7EB),
-          label: 'Đã đặt',
+          color: const Color(0xFFF3F4F6),
+          border: const Color(0xFFE5E7EB),
+          label: l10n.slotPickerBooked,
         ),
-        SizedBox(width: 16),
+        const SizedBox(width: 16),
         _LegendItem(
-          color: Color(0xFFDCFCE7),
-          border: Color(0xFF16A34A),
-          label: 'Đang chọn',
+          color: const Color(0xFFDCFCE7),
+          border: const Color(0xFF16A34A),
+          label: l10n.scheduleLegendSelected,
         ),
       ],
     );
@@ -607,6 +612,7 @@ class _SelectionCart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final fmt = NumberFormat.decimalPattern('vi_VN');
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -630,7 +636,7 @@ class _SelectionCart extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Đang chọn · $count khung',
+                  l10n.scheduleSelectedCount(count),
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -640,9 +646,9 @@ class _SelectionCart extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: onClearAll,
-                child: const Text(
-                  'Xoá tất cả',
-                  style: TextStyle(
+                child: Text(
+                  l10n.scheduleClearAll,
+                  style: const TextStyle(
                     fontSize: 13,
                     color: Color(0xFF166534),
                     decoration: TextDecoration.underline,
@@ -661,10 +667,10 @@ class _SelectionCart extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Tổng',
-                  style: TextStyle(
+                  l10n.wizardLabelTotal,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF166534),
@@ -691,9 +697,9 @@ class _SelectionCart extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Tiếp tục đặt sân',
-              style: TextStyle(
+            child: Text(
+              l10n.scheduleContinue,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -713,6 +719,7 @@ class _CartGroupSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -720,7 +727,7 @@ class _CartGroupSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Text(
-            _groupHeader(group.date),
+            _groupHeader(l10n, group.date),
             style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -769,29 +776,19 @@ class _CartGroupSection extends StatelessWidget {
     );
   }
 
-  static String _groupHeader(DateTime d) {
+  static String _groupHeader(AppLocalizations l10n, DateTime d) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final diff = DateTime(d.year, d.month, d.day).difference(today).inDays;
     final dd = d.day.toString().padLeft(2, '0');
     final mm = d.month.toString().padLeft(2, '0');
     final label = switch (diff) {
-      0 => 'HÔM NAY',
-      1 => 'MAI',
-      _ => _weekdayFull(d.weekday).toUpperCase(),
+      0 => l10n.bookingsToday,
+      1 => l10n.courtsTomorrow.toUpperCase(),
+      _ => fullWeekday(l10n, d.weekday).toUpperCase(),
     };
     return '$label · $dd/$mm';
   }
-
-  static String _weekdayFull(int w) => switch (w) {
-        1 => 'Thứ hai',
-        2 => 'Thứ ba',
-        3 => 'Thứ tư',
-        4 => 'Thứ năm',
-        5 => 'Thứ sáu',
-        6 => 'Thứ bảy',
-        _ => 'Chủ nhật',
-      };
 }
 
 class _DottedDivider extends StatelessWidget {
@@ -839,27 +836,27 @@ class _EmptyHintCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFFFDE68A)),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.touch_app_outlined, size: 20, color: Color(0xFFB45309)),
-          SizedBox(width: 10),
+          const Icon(Icons.touch_app_outlined, size: 20, color: Color(0xFFB45309)),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Chạm vào ô trống để chọn khung giờ',
-                  style: TextStyle(
+                  AppLocalizations.of(context).scheduleTapHint,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF92400E),
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  'Có thể chọn nhiều khung liên tục để đặt lâu hơn.',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF92400E)),
+                  AppLocalizations.of(context).scheduleMultiHint,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF92400E)),
                 ),
               ],
             ),
@@ -892,15 +889,15 @@ class _EmptyCta extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Row(
+          Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.info_outline, size: 16, color: Color(0xFF6B7280)),
-              SizedBox(width: 6),
+              const Icon(Icons.info_outline, size: 16, color: Color(0xFF6B7280)),
+              const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Chọn ít nhất 1 khung giờ để tiếp tục',
-                  style: TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                  AppLocalizations.of(context).schedulePickAtLeastOne,
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
                 ),
               ),
             ],
@@ -916,9 +913,9 @@ class _EmptyCta extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: const Text(
-              'Tiếp tục đặt sân',
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context).scheduleContinue,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Color(0xFF9CA3AF),

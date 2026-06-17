@@ -1915,6 +1915,120 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không mở được ứng dụng bản đồ'**
   String get courtDetailMapsUnavailable;
+
+  /// No description provided for @courtsOpenMatchSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot mở chơi ghép'**
+  String get courtsOpenMatchSlots;
+
+  /// No description provided for @courtsPriceFrom.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ'**
+  String get courtsPriceFrom;
+
+  /// No description provided for @courtsPerHourSuffix.
+  ///
+  /// In vi, this message translates to:
+  /// **'/giờ'**
+  String get courtsPerHourSuffix;
+
+  /// No description provided for @courtsBookNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân ngay'**
+  String get courtsBookNow;
+
+  /// No description provided for @courtsSoldOutToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hết slot hôm nay'**
+  String get courtsSoldOutToday;
+
+  /// No description provided for @courtsViewUpcoming.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem lịch trống những ngày tới'**
+  String get courtsViewUpcoming;
+
+  /// No description provided for @courtsSlotsLeft.
+  ///
+  /// In vi, this message translates to:
+  /// **'· còn {count}'**
+  String courtsSlotsLeft(int count);
+
+  /// No description provided for @courtsJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tham gia'**
+  String get courtsJoin;
+
+  /// No description provided for @courtsTomorrow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mai'**
+  String get courtsTomorrow;
+
+  /// No description provided for @scheduleTapHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạm vào ô trống để chọn khung giờ'**
+  String get scheduleTapHint;
+
+  /// No description provided for @scheduleMultiHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có thể chọn nhiều khung liên tục để đặt lâu hơn.'**
+  String get scheduleMultiHint;
+
+  /// No description provided for @schedulePickAtLeastOne.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ít nhất 1 khung giờ để tiếp tục'**
+  String get schedulePickAtLeastOne;
+
+  /// No description provided for @commonContinue.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếp tục'**
+  String get commonContinue;
+
+  /// No description provided for @slotPickerTapSelect.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chạm để chọn'**
+  String get slotPickerTapSelect;
+
+  /// No description provided for @slotPickerNoSlotsToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có khung giờ trống trong ngày này.'**
+  String get slotPickerNoSlotsToday;
+
+  /// No description provided for @slotPickerLocked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã khoá'**
+  String get slotPickerLocked;
+
+  /// No description provided for @slotPickerMaintenance.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bảo trì'**
+  String get slotPickerMaintenance;
+
+  /// No description provided for @slotPickerBookNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt ngay'**
+  String get slotPickerBookNow;
+
+  /// No description provided for @courtsDefaultName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Sân thể thao'**
+  String get courtsDefaultName;
 }
 
 class _AppLocalizationsDelegate

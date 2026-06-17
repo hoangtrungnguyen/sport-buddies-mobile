@@ -1,4 +1,5 @@
 import 'package:customer/features/courts/cubit/slot_picker_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -47,9 +48,9 @@ class _SlotPickerScreenState extends State<SlotPickerScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: const Text(
-          'Chọn giờ',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        title: Text(
+          AppLocalizations.of(context).slotPickerTitle,
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -144,6 +145,7 @@ class _LoadedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final dates = _buildDates();
     final selectedDate = dates[selectedDateIndex];
     final daySlots = _slotsForDate(selectedDate);
@@ -189,9 +191,9 @@ class _LoadedBody extends StatelessWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      'Khung giờ',
-                      style: TextStyle(
+                    Text(
+                      l10n.wizardLabelSlots,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
                         color: Color(0xFF111827),
@@ -199,7 +201,7 @@ class _LoadedBody extends StatelessWidget {
                     ),
                     const Spacer(),
                     Text(
-                      'Chạm để chọn',
+                      l10n.slotPickerTapSelect,
                       style: TextStyle(
                         fontSize: 12,
                         color: const Color(0xFF6B7280).withValues(alpha: 0.9),
@@ -211,7 +213,8 @@ class _LoadedBody extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
                 child: Text(
-                  '${daySlots.where((s) => s.isAvailable).length} slot trống',
+                  l10n.availabilityOpenSlots(
+                      daySlots.where((s) => s.isAvailable).length),
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -359,16 +362,16 @@ class _DirectionsCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Row(
-                        children: const [
-                          Icon(
+                        children: [
+                          const Icon(
                             Icons.navigation_outlined,
                             size: 14,
                             color: Color(0xFF15803D),
                           ),
-                          SizedBox(width: 4),
+                          const SizedBox(width: 4),
                           Text(
-                            'Chỉ đường',
-                            style: TextStyle(
+                            AppLocalizations.of(context).slotPickerDirections,
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF15803D),
@@ -410,6 +413,7 @@ class _GroupSlotsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: Column(
@@ -419,10 +423,10 @@ class _GroupSlotsSection extends StatelessWidget {
           const SizedBox(height: 20),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Slot mở chơi ghép',
-                  style: TextStyle(
+                  l10n.courtsOpenMatchSlots,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF111827),
@@ -449,7 +453,7 @@ class _GroupSlotsSection extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${groupSlots.length} slot',
+                      l10n.courtDetailSlotCount(groupSlots.length),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -462,9 +466,9 @@ class _GroupSlotsSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          const Text(
-            'Chạm để xem chi tiết & xin chơi cùng',
-            style: TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+          Text(
+            l10n.slotPickerOpenHelper,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
           ),
           const SizedBox(height: 12),
           ...groupSlots.map(
@@ -508,10 +512,11 @@ class _GroupSlotRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final key = slot.sportType.toLowerCase();
     final color = _sportColors[key] ?? const Color(0xFF374151);
     final left = slot.maxPlayers - slot.currentPlayers;
-    final timeLabel = _buildTimeLabel(slot.startTime, slot.endTime);
+    final timeLabel = _buildTimeLabel(l10n, slot.startTime, slot.endTime);
 
     final icon = _sportIcon(slot.sportType);
     return GestureDetector(
@@ -563,7 +568,8 @@ class _GroupSlotRow extends StatelessWidget {
                           size: 14, color: Color(0xFF6B7280)),
                       const SizedBox(width: 4),
                       Text(
-                        '${slot.currentPlayers}/${slot.maxPlayers} người',
+                        l10n.slotsJoinedCount(
+                            slot.currentPlayers, slot.maxPlayers),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -572,7 +578,7 @@ class _GroupSlotRow extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '· còn $left',
+                        l10n.courtsSlotsLeft(left),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -592,14 +598,15 @@ class _GroupSlotRow extends StatelessWidget {
     );
   }
 
-  static String _buildTimeLabel(DateTime start, DateTime end) {
+  static String _buildTimeLabel(
+      AppLocalizations l10n, DateTime start, DateTime end) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final slotDay = DateTime(start.year, start.month, start.day);
     final diff = slotDay.difference(today).inDays;
     final prefix = switch (diff) {
-      0 => 'Hôm nay',
-      1 => 'Mai',
+      0 => l10n.scheduleToday,
+      1 => l10n.courtsTomorrow,
       _ => DateFormat('EEE', 'vi').format(start),
     };
     final fmt = DateFormat('HH:mm');
@@ -631,7 +638,9 @@ class _ErrorView extends StatelessWidget {
               style: const TextStyle(color: Color(0xFF6B7280)),
             ),
             const SizedBox(height: 16),
-            TextButton(onPressed: onRetry, child: const Text('Thử lại')),
+            TextButton(
+                onPressed: onRetry,
+                child: Text(AppLocalizations.of(context).commonRetry)),
           ],
         ),
       ),
@@ -646,13 +655,13 @@ class _EmptySlots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Center(
         child: Text(
-          'Không có khung giờ trống trong ngày này.',
+          AppLocalizations.of(context).slotPickerNoSlotsToday,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+          style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
         ),
       ),
     );
@@ -669,7 +678,9 @@ class _CourtContextLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = courtName?.isNotEmpty == true ? courtName! : 'Sân thể thao';
+    final name = courtName?.isNotEmpty == true
+        ? courtName!
+        : AppLocalizations.of(context).courtsDefaultName;
     return Container(
       width: double.infinity,
       color: Colors.white,
@@ -754,10 +765,11 @@ class _DateTabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final topLabel = isToday
-        ? 'Hôm nay'
+        ? l10n.scheduleToday
         : isTomorrow
-            ? 'Mai'
+            ? l10n.courtsTomorrow
             : _weekdayShort(date.weekday);
     final dayNum = date.day.toString();
     return GestureDetector(
@@ -862,15 +874,17 @@ class _SlotTile extends StatelessWidget {
   static final _timeFmt = DateFormat('HH:mm');
 
   /// Label shown instead of price on non-open slots.
-  static String _statusLabel(String status) => switch (status) {
-        'booked' => 'Đã đặt',
-        'blocked' => 'Đã khoá',
-        'maintenance' => 'Bảo trì',
+  static String _statusLabel(AppLocalizations l10n, String status) =>
+      switch (status) {
+        'booked' => l10n.slotPickerBooked,
+        'blocked' => l10n.slotPickerLocked,
+        'maintenance' => l10n.slotPickerMaintenance,
         _ => '',
       };
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final available = slot.isAvailable;
     final timeLabel =
         '${_timeFmt.format(slot.startTime.toLocal())} – ${_timeFmt.format(slot.endTime.toLocal())}';
@@ -927,7 +941,7 @@ class _SlotTile extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              available ? priceLabel : _statusLabel(slot.status),
+              available ? priceLabel : _statusLabel(l10n, slot.status),
               style: TextStyle(
                 fontSize: available ? 15 : 12,
                 fontWeight: FontWeight.w800,
@@ -980,6 +994,7 @@ class _BottomCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final fmt = NumberFormat.decimalPattern('vi_VN');
     final enabled = onContinue != null;
     final hours = durationMinutes / 60;
@@ -1014,8 +1029,9 @@ class _BottomCta extends StatelessWidget {
               children: [
                 Text(
                   selected == null
-                      ? 'Chưa chọn khung'
-                      : '1 khung đã chọn · $hoursLabel giờ',
+                      ? l10n.slotPickerNoSelection
+                      : l10n.slotPickerSelectedCount(
+                          1, l10n.wizardHours(hoursLabel)),
                   style: const TextStyle(
                     fontSize: 12,
                     color: Color(0xFF6B7280),
@@ -1048,7 +1064,7 @@ class _BottomCta extends StatelessWidget {
               ),
             ),
             child: Text(
-              selected == null ? 'Tiếp tục' : 'Đặt ngay',
+              selected == null ? l10n.commonContinue : l10n.slotPickerBookNow,
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
