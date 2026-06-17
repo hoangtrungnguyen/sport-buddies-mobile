@@ -3,16 +3,13 @@ import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:dashboard/features/requests/bloc/requests_bloc.dart';
 import 'package:dashboard/features/requests/model/booking_request.dart';
-import 'package:dashboard/features/setup/bloc/court_bloc.dart';
-import 'package:dashboard/features/setup/bloc/court_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:material_symbols_icons/symbols.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../nav_model.dart';
 import 'brand_tile.dart';
+import 'nav_drawer_footer.dart';
 
 /// Live pending-requests badge override for the `/requests` destination.
 int? _liveRequestsBadge(BuildContext context) {
@@ -88,16 +85,7 @@ class NavDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-              child: Column(
-                children: const [
-                  _UserCard(),
-                  SizedBox(height: 10),
-                  _TrialCard(),
-                ],
-              ),
-            ),
+            const NavDrawerFooter(),
           ],
         ),
       ),
@@ -276,148 +264,3 @@ class _NavBadge extends StatelessWidget {
   }
 }
 
-class _UserCard extends StatelessWidget {
-  const _UserCard();
-
-  /// Display name for the signed-in owner, sourced from Supabase auth.
-  /// Supabase exposes no profile table for owners, so we prefer a name in
-  /// `user_metadata` (if the backend ever sets one) and otherwise fall back
-  /// to the email's local part. Never the old hardcoded placeholder.
-  static String _displayName(User? user) {
-    final meta = user?.userMetadata;
-    final metaName =
-        (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
-            as String?;
-    if (metaName != null && metaName.trim().isNotEmpty) return metaName.trim();
-    final email = user?.email ?? '';
-    if (email.contains('@')) return email.split('@').first;
-    return email.isNotEmpty ? email : 'Chủ sân';
-  }
-
-  /// 1–2 letter avatar initials derived from [name].
-  static String _initials(String name) {
-    final parts =
-        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) {
-      final p = parts.first;
-      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
-    }
-    return (parts.first[0] + parts.last[0]).toUpperCase();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final user = Supabase.instance.client.auth.currentUser;
-    final name = _displayName(user);
-    final initials = _initials(name);
-
-    final courtCount = context.select<CourtBloc, int>((bloc) {
-      final s = bloc.state;
-      return s is CourtLoaded ? s.courts.length : 0;
-    });
-    final subtitle = courtCount > 0 ? 'Chủ sân · $courtCount sân' : 'Chủ sân';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: scheme.tertiaryContainer,
-            child: Text(
-              initials,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: scheme.onTertiaryContainer,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Symbols.logout, size: 20),
-            color: scheme.onSurfaceVariant,
-            tooltip: 'Đăng xuất',
-            onPressed: () async {
-              try {
-                await Supabase.instance.client.auth.signOut();
-              } catch (_) {}
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrialCard extends StatelessWidget {
-  const _TrialCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Gói miễn phí 3 tháng',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: scheme.onPrimaryContainer,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Hết hạn 04/08/2026',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onPrimaryContainer),
-                ),
-              ),
-              InkWell(
-                onTap: () {},
-                child: Text(
-                  'Nâng cấp',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: scheme.onPrimaryContainer,
-                    fontWeight: FontWeight.w700,
-                    decoration: TextDecoration.underline,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
