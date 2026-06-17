@@ -720,5 +720,14 @@
   "bookingDetailAccept": "Chấp nhận",
   "@bookingDetailAccept": {},
   "bookingDetailManagePlayers": "Quản lý người chơi",
-  "@bookingDetailManagePlayers": {}
+  "@bookingDetailManagePlayers": {},
+
+  "courtDetailOpenAddressIn": "Mở địa chỉ bằng",
+  "@courtDetailOpenAddressIn": {},
+  "courtDetailAppleMaps": "Apple Maps",
+  "@courtDetailAppleMaps": {},
+  "courtDetailGoogleMaps": "Google Maps",
+  "@courtDetailGoogleMaps": {},
+  "courtDetailMapsUnavailable": "Không mở được ứng dụng bản đồ",
+  "@courtDetailMapsUnavailable": {}
 }

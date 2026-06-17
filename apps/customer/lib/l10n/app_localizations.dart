@@ -1891,6 +1891,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Quản lý người chơi'**
   String get bookingDetailManagePlayers;
+
+  /// No description provided for @courtDetailOpenAddressIn.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở địa chỉ bằng'**
+  String get courtDetailOpenAddressIn;
+
+  /// No description provided for @courtDetailAppleMaps.
+  ///
+  /// In vi, this message translates to:
+  /// **'Apple Maps'**
+  String get courtDetailAppleMaps;
+
+  /// No description provided for @courtDetailGoogleMaps.
+  ///
+  /// In vi, this message translates to:
+  /// **'Google Maps'**
+  String get courtDetailGoogleMaps;
+
+  /// No description provided for @courtDetailMapsUnavailable.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không mở được ứng dụng bản đồ'**
+  String get courtDetailMapsUnavailable;
 }
 
 class _AppLocalizationsDelegate

@@ -1007,4 +1007,16 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get bookingDetailManagePlayers => 'Quản lý người chơi';
+
+  @override
+  String get courtDetailOpenAddressIn => 'Mở địa chỉ bằng';
+
+  @override
+  String get courtDetailAppleMaps => 'Apple Maps';
+
+  @override
+  String get courtDetailGoogleMaps => 'Google Maps';
+
+  @override
+  String get courtDetailMapsUnavailable => 'Không mở được ứng dụng bản đồ';
 }

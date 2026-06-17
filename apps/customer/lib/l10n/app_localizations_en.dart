@@ -1005,4 +1005,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingDetailManagePlayers => 'Manage players';
+
+  @override
+  String get courtDetailOpenAddressIn => 'Open address in';
+
+  @override
+  String get courtDetailAppleMaps => 'Apple Maps';
+
+  @override
+  String get courtDetailGoogleMaps => 'Google Maps';
+
+  @override
+  String get courtDetailMapsUnavailable => 'Couldn\'t open a maps app';
 }

@@ -720,5 +720,14 @@
   "bookingDetailAccept": "Accept",
   "@bookingDetailAccept": {},
   "bookingDetailManagePlayers": "Manage players",
-  "@bookingDetailManagePlayers": {}
+  "@bookingDetailManagePlayers": {},
+
+  "courtDetailOpenAddressIn": "Open address in",
+  "@courtDetailOpenAddressIn": {},
+  "courtDetailAppleMaps": "Apple Maps",
+  "@courtDetailAppleMaps": {},
+  "courtDetailGoogleMaps": "Google Maps",
+  "@courtDetailGoogleMaps": {},
+  "courtDetailMapsUnavailable": "Couldn't open a maps app",
+  "@courtDetailMapsUnavailable": {}
 }
