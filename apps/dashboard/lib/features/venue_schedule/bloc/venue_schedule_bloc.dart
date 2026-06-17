@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../model/models.dart';
 import '../repository/schedule_repository.dart';
+import '../repository/schedule_time_utils.dart';
 import '../service/schedule_service.dart';
 import '../util/schedule_format.dart';
 import 'venue_schedule_event.dart';
@@ -291,41 +292,38 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
         // Same rules as `createRecurringSlots`: sessions already in the
         // past are skipped, and a failed session doesn't abort the rest —
         // the shortfall surfaces as one predictable rejection below.
-        final anchorWeek = mondayOf(req.date ?? state.focusedDate);
-        final now = _now();
-        var sessions = 0;
+        final sessions = recurringBlockSessions(
+          anchorWeek: mondayOf(req.date ?? state.focusedDate),
+          weekdays: event.weekdays,
+          weeks: event.weeks,
+          startHour: req.startHour,
+          now: _now(),
+        );
+        var done = 0;
         var failures = 0;
         String? failureMessage;
-        for (var w = 0; w < event.weeks; w++) {
-          for (final weekday in event.weekdays) {
-            final date = DateTime(
-              anchorWeek.year,
-              anchorWeek.month,
-              anchorWeek.day + w * 7 + weekday,
+        for (final session in sessions) {
+          try {
+            await _service.blockTime(
+              req.copyWith(date: session.date, weekday: session.weekday),
             );
-            if (_atHour(date, req.startHour).isBefore(now)) continue;
-            try {
-              await _service.blockTime(
-                req.copyWith(date: date, weekday: weekday),
-              );
-              sessions++;
-            } on ScheduleRepositoryException catch (e) {
-              failures++;
-              failureMessage ??= e.message;
-            } on Exception {
-              // Already logged by the repository; counted in the summary.
-              failures++;
-            }
+            done++;
+          } on ScheduleRepositoryException catch (e) {
+            failures++;
+            failureMessage ??= e.message;
+          } on Exception {
+            // Already logged by the repository; counted in the summary.
+            failures++;
           }
         }
         if (failures > 0) {
-          throw ScheduleRepositoryException(sessions == 0
+          throw ScheduleRepositoryException(done == 0
               ? (failureMessage ??
                   'Không khoá được khung giờ nào — vui lòng thử lại.')
-              : 'Chỉ khoá được $sessions/${sessions + failures} phiên — '
+              : 'Chỉ khoá được $done/${done + failures} phiên — '
                   '${failureMessage ?? 'một số phiên bị lỗi'}.');
         }
-        toast = 'Đã tạo $sessions slot · $kind · $venue';
+        toast = 'Đã tạo $done slot · $kind · $venue';
       } else {
         await _service.blockTime(req);
         toast = 'Đã tạo $kind · $venue · ${hourLabel(req.startHour)}';
@@ -543,11 +541,6 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
   }
 
   static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-
-  /// Local [date] at decimal [hour] (`19.5` → 19:30) — the repository's
-  /// session-start math, reused by the recurring-block past-session skip.
-  static DateTime _atHour(DateTime date, double hour) => DateTime(
-      date.year, date.month, date.day, hour.floor(), ((hour % 1) * 60).round());
 
   /// Steps [d] by [delta] months, clamping the day-of-month so e.g. Jan 31
   /// +1 month lands on Feb 28/29 instead of overflowing into March.

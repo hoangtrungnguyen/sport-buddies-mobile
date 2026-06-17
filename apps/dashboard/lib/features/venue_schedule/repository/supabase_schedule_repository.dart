@@ -274,89 +274,34 @@ class SupabaseScheduleRepository implements ScheduleRepository {
           'Loại slot này chưa được hỗ trợ trên dữ liệu thật.');
     }
     try {
-      // Server-side batches: `POST /api/courts/{id}/recurrence`. The
-      // endpoint expects UTC weekday keys / HH:MM times / YYYY-MM-DD dates,
-      // so the local wall-clock session is converted instant-by-instant —
-      // including the day shift when the local start maps to the previous
-      // UTC day (UTC+7 sessions starting before 07:00 local).
-      //
-      // The local anchor window matches the old client-side loop:
-      // [Monday of the anchor week, Monday + weeks*7 - 1] — clamped to
-      // today so a mid-week anchor never back-fills past days, and PAST
-      // today when today's session start has already elapsed (the server
-      // creates past slots without complaint; the old loop skipped past
-      // sessions by full datetime, as the recurring-block path still does).
-      final anchorWeek = mondayOf(resolveDate(req.date, req.weekday));
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      var fromLocal = anchorWeek.isBefore(today) ? today : anchorWeek;
-      if (fromLocal == today && atHour(today, req.startHour).isBefore(now)) {
-        fromLocal = DateTime(today.year, today.month, today.day + 1);
-      }
-      final untilLocal = DateTime(
-          anchorWeek.year, anchorWeek.month, anchorWeek.day + weeks * 7 - 1);
-      if (untilLocal.isBefore(fromLocal)) {
-        throw ScheduleRepositoryException(
-            'Khoảng lặp lại đã trôi qua — hãy chọn tuần hiện tại hoặc sau.');
-      }
+      // Server-side batches: `POST /api/courts/{id}/recurrence`. The endpoint
+      // expects UTC weekday keys / HH:MM times / YYYY-MM-DD dates, so the local
+      // wall-clock session is planned into UTC windows up front (day-shift,
+      // boundary guards and ≤90-day chunking all live in [planRecurrence]).
+      final plan = planRecurrence(
+        anchorWeek: mondayOf(resolveDate(req.date, req.weekday)),
+        startHour: req.startHour,
+        endHour: req.endHour,
+        weekdays: weekdays,
+        weeks: weeks,
+        now: DateTime.now(),
+      );
 
-      final startLocal = atHour(fromLocal, req.startHour);
-      final startUtc = startLocal.toUtc();
-      final endUtc = atHour(fromLocal, req.endHour).toUtc();
-      // PRE-VALIDATION: the endpoint expresses a session as HH:MM times
-      // within ONE UTC day, so a session that crosses UTC midnight — or
-      // ends exactly on it, making end_time ("00:00") <= start_time — is
-      // inexpressible and the server rejects it with 400. Locally (UTC+7)
-      // that is any session spanning, or ending exactly at, 07:00. Throw a
-      // specific reason instead of the generic invalid-input message; the
-      // single-slot create handles these windows fine (full datetimes).
-      if (endUtc.hour * 60 + endUtc.minute <=
-          startUtc.hour * 60 + startUtc.minute) {
-        final boundary = (startLocal.timeZoneOffset.inMinutes / 60.0 + 24) % 24;
-        throw ScheduleRepositoryException(
-            'Lịch lặp lại không hỗ trợ khung giờ kéo dài qua hoặc kết thúc '
-            'đúng ${hourLabel(boundary)} (giới hạn máy chủ) — hãy tạo từng '
-            'slot riêng lẻ.');
-      }
-
-      // Whole days between the local date and the UTC date of the same
-      // instant (-1, 0 or +1) — applied to the weekday keys and date bounds.
-      final dayShift = DateTime.utc(startUtc.year, startUtc.month, startUtc.day)
-          .difference(
-              DateTime.utc(startLocal.year, startLocal.month, startLocal.day))
-          .inDays;
-      const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-      final daysOfWeek = [
-        for (final w in {...weekdays}) dayKeys[(w + dayShift + 7) % 7],
-      ];
-      final startTime = hhmm(startUtc);
-      final endTime = hhmm(endUtc);
-
-      // The endpoint caps one call at 90 days (`until_date - from_date`,
-      // server `_MAX_RECURRENCE_DAYS = 90` → 400 beyond), so long
-      // recurrences (weeks >= 14) are sent as consecutive ≤ 90-day windows.
-      // Non-atomic across windows — same as the legacy per-session loop: a
-      // mid-batch failure keeps what earlier windows created and surfaces a
-      // partial-summary rejection; the bloc refreshes the grid so the
+      // Windows are POSTed in sequence — non-atomic, like the legacy per-session
+      // loop: a mid-batch failure keeps what earlier windows created and
+      // surfaces a partial-summary rejection; the bloc refreshes the grid so the
       // created slots show.
-      const maxChunkDays = 90;
       var createdTotal = 0;
-      var chunkStart = fromLocal;
-      while (!chunkStart.isAfter(untilLocal)) {
-        final cap = DateTime(
-            chunkStart.year, chunkStart.month, chunkStart.day + maxChunkDays);
-        final chunkEnd = cap.isAfter(untilLocal) ? untilLocal : cap;
+      for (final window in plan.windows) {
         final ApiRecurrenceResult result;
         try {
           result = await _api.createRecurringSlots(
             courtId: req.venueId,
-            daysOfWeek: daysOfWeek,
-            startTime: startTime,
-            endTime: endTime,
-            fromDate: ymd(DateTime(
-                chunkStart.year, chunkStart.month, chunkStart.day + dayShift)),
-            untilDate: ymd(DateTime(
-                chunkEnd.year, chunkEnd.month, chunkEnd.day + dayShift)),
+            daysOfWeek: plan.daysOfWeek,
+            startTime: plan.startTime,
+            endTime: plan.endTime,
+            fromDate: window.fromDate,
+            untilDate: window.untilDate,
           );
         } on ScheduleRepositoryException catch (e) {
           if (createdTotal == 0) rethrow;
@@ -364,7 +309,6 @@ class SupabaseScheduleRepository implements ScheduleRepository {
               'Chỉ tạo được $createdTotal slot — ${e.message}');
         }
         createdTotal += result.created;
-        chunkStart = DateTime(chunkEnd.year, chunkEnd.month, chunkEnd.day + 1);
       }
 
       // The server silently skips overlapping / out-of-hours occurrences;
@@ -377,6 +321,10 @@ class SupabaseScheduleRepository implements ScheduleRepository {
             'hoạt động.');
       }
       return createdTotal;
+    } on RecurrencePlanException catch (e) {
+      // Pure-planning reject (elapsed window / unexpressible UTC-boundary
+      // session) → user-facing recoverable rejection.
+      throw ScheduleRepositoryException(e.message);
     } on ScheduleRepositoryException {
       rethrow;
     } catch (e, st) {

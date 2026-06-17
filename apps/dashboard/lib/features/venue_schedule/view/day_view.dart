@@ -9,6 +9,7 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import '../bloc/venue_schedule_bloc.dart';
 import '../model/models.dart';
 import '../util/schedule_format.dart';
+import '../widgets/day_grid_chrome.dart';
 import '../widgets/day_grid_internals.dart';
 import '../widgets/day_grid_metrics.dart';
 import '../widgets/mouse_vertical_drag.dart';
@@ -105,115 +106,9 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   /// pinned at the viewport top.
   Widget _grid(List<Venue> venues, List<Slot> slots, DateTime focusedDate) {
     return StickyGridHeader(
-      header: _header(venues, slots),
+      header: DayGridHeader(venues: venues, slots: slots),
       body: _body(venues, slots, focusedDate),
       maxStick: kBodyHeight,
-    );
-  }
-
-  // ---------------------------------------------------------------------
-  // Header row — [64px corner] + N venue heads (`.day-head`)
-  // ---------------------------------------------------------------------
-
-  Widget _header(List<Venue> venues, List<Slot> slots) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.neutral50,
-        border: Border(bottom: BorderSide(color: AppColors.neutral200)),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Corner cell over the time gutter.
-            Container(
-              width: kGutterWidth,
-              decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: AppColors.neutral200)),
-              ),
-            ),
-            for (var i = 0; i < venues.length; i++)
-              Expanded(
-                child: _venueHead(
-                  venues[i],
-                  slots,
-                  isLast: i == venues.length - 1,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 9px venue dot + name (Sora 14/700) + sport (11 n-500) + `<N> slot`
-  /// (mono 11/700) — `.day-col-head`.
-  Widget _venueHead(Venue venue, List<Slot> slots, {required bool isLast}) {
-    final count = slots
-        .where(
-          (s) => s.venueId == venue.id && kBookedStates.contains(s.state),
-        )
-        .length;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-      decoration: isLast
-          ? null
-          : const BoxDecoration(
-              border: Border(right: BorderSide(color: AppColors.neutral200)),
-            ),
-      child: Row(
-        children: [
-          Container(
-            width: 9,
-            height: 9,
-            decoration: BoxDecoration(
-              color: Color(venue.colorValue),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  venue.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.sora(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.14, // -.01em
-                    color: AppColors.neutral900,
-                    height: 1.25,
-                  ),
-                ),
-                const SizedBox(height: 1),
-                Text(
-                  venue.sportLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    color: AppColors.neutral500,
-                    height: 1.25,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '$count slot',
-            style: GoogleFonts.jetBrainsMono(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.neutral600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -229,7 +124,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _timeGutter(),
+              const DayTimeGutter(),
               for (var i = 0; i < venues.length; i++)
                 Expanded(
                   child: _venueColumn(
@@ -241,41 +136,6 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
             ],
           ),
           ..._nowLine(focusedDate),
-        ],
-      ),
-    );
-  }
-
-  /// 17 stacked `06:00..22:00` labels, mono 10.5 n-400, right-aligned, 60px
-  /// rows with a top hairline (`.day-gutter .ghr`).
-  Widget _timeGutter() {
-    return Container(
-      width: kGutterWidth,
-      decoration: const BoxDecoration(
-        border: Border(right: BorderSide(color: AppColors.neutral200)),
-      ),
-      child: Column(
-        children: [
-          for (var h = kFirstHour; h <= kLastHour; h++)
-            Container(
-              height: kHourPx,
-              alignment: Alignment.topRight,
-              padding: const EdgeInsets.fromLTRB(8, 3, 8, 0),
-              decoration: h == kFirstHour
-                  ? null
-                  : const BoxDecoration(
-                      border:
-                          Border(top: BorderSide(color: AppColors.neutral100)),
-                    ),
-              child: Text(
-                hourLabel(h.toDouble()),
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 10.5,
-                  color: AppColors.neutral400,
-                  height: 1.25,
-                ),
-              ),
-            ),
         ],
       ),
     );

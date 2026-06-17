@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
@@ -336,15 +335,15 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // -- Loại slot / Loại chặn (seg-pick radio cards) --
-        Text(_isBlock ? 'Loại chặn' : 'Loại slot', style: _labelStyle),
+        Text(_isBlock ? 'Loại chặn' : 'Loại slot', style: sheetLabelStyle),
         const SizedBox(height: 7),
         _buildKindPicker(),
         const SizedBox(height: 16),
 
         // -- Sân --
-        Text('Sân', style: _labelStyle),
+        Text('Sân', style: sheetLabelStyle),
         const SizedBox(height: 7),
-        _select<String>(
+        SheetSelect<String>(
           value: widget.venues.any((v) => v.id == _venueId) ? _venueId : null,
           options: [for (final v in widget.venues) v.id],
           labelOf: (id) {
@@ -357,12 +356,12 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
         const SizedBox(height: 16),
 
         // -- Giờ bắt đầu & thời lượng --
-        Text('Giờ bắt đầu & thời lượng', style: _labelStyle),
+        Text('Giờ bắt đầu & thời lượng', style: sheetLabelStyle),
         const SizedBox(height: 7),
         Row(
           children: [
             Expanded(
-              child: _select<double>(
+              child: SheetSelect<double>(
                 value: _start,
                 options: _startOptions,
                 labelOf: hourLabel,
@@ -371,7 +370,7 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: _select<double>(
+              child: SheetSelect<double>(
                 value: _dur,
                 options: _durOptions,
                 labelOf: _durLabel,
@@ -392,7 +391,7 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
               ),
             ],
           ),
-          style: _hintStyle,
+          style: sheetHintStyle,
         ),
         const SizedBox(height: 16),
 
@@ -404,9 +403,9 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Số người tối đa', style: _labelStyle),
+                    Text('Số người tối đa', style: sheetLabelStyle),
                     const SizedBox(height: 7),
-                    _numberField(
+                    SheetNumberField(
                       controller: _capController,
                       onChanged: (v) =>
                           setState(() => _cap = int.tryParse(v) ?? 0),
@@ -419,9 +418,9 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Giá / người', style: _labelStyle),
+                    Text('Giá / người', style: sheetLabelStyle),
                     const SizedBox(height: 7),
-                    _numberField(
+                    SheetNumberField(
                       controller: _priceController,
                       onChanged: (v) =>
                           setState(() => _price = int.tryParse(v) ?? 0),
@@ -472,7 +471,7 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Lặp lại nhiều buổi', style: _labelStyle),
+            Text('Lặp lại nhiều buổi', style: sheetLabelStyle),
             ToggleButton(
               label: _repeat ? 'BẬT' : 'TẮT',
               on: _repeat,
@@ -485,7 +484,7 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
         ),
         if (_repeat) ...[
           const SizedBox(height: 7),
-          Text('Chọn các thứ trong tuần', style: _hintStyle),
+          Text('Chọn các thứ trong tuần', style: sheetHintStyle),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -500,9 +499,9 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
             ],
           ),
           const SizedBox(height: 14),
-          Text('Số tuần', style: _labelStyle),
+          Text('Số tuần', style: sheetLabelStyle),
           const SizedBox(height: 7),
-          _numberField(
+          SheetNumberField(
             controller: _weeksController,
             // `Math.max(1, +e.target.value)` in the jsx.
             onChanged: (v) => setState(() {
@@ -511,93 +510,15 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
             }),
           ),
           const SizedBox(height: 12),
-          _buildBatchPreview(),
+          BatchPreview(
+            sessions: _sessions,
+            days: _days,
+            weeks: _weeks,
+            start: _start,
+            dur: _dur,
+          ),
         ],
       ],
-    );
-  }
-
-  /// `.batch-preview` — "Sẽ tạo N slot · T3, T5 · 4 tuần · HH:MM–HH:MM" +
-  /// up to 3 "weekday · tuần k" chips per selected weekday.
-  Widget _buildBatchPreview() {
-    final dayList = _days.isEmpty
-        ? '—'
-        : _days.map((i) => weekdayShortLabels[i]).join(', ');
-    // Chips grouped per weekday like the jsx: min(weeks, 3) per day, then a
-    // "+X nữa" overflow chip.
-    final chips = <String>[
-      for (final di in _days)
-        for (var w = 0; w < (_weeks > 3 ? 3 : _weeks); w++)
-          '${weekdayShortLabels[di]} · tuần ${w + 1}',
-    ];
-    if (_sessions > _days.length * 3) {
-      chips.add('+${_sessions - _days.length * 3} nữa');
-    }
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.primary50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primaryLight),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text.rich(
-            TextSpan(
-              text: 'Sẽ tạo ',
-              children: [
-                TextSpan(
-                  text: '$_sessions slot',
-                  // <strong> renders in the display font (Sora).
-                  style: GoogleFonts.sora(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark,
-                  ),
-                ),
-                TextSpan(
-                  text: ' · $dayList · $_weeks tuần · '
-                      '${hourLabel(_start)}–${hourLabel(_start + _dur)}',
-                ),
-              ],
-            ),
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12.5,
-              color: AppColors.primaryDark,
-              height: 1.5,
-            ),
-          ),
-          if (chips.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                for (final chip in chips)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: AppColors.primaryLight),
-                    ),
-                    child: Text(
-                      chip,
-                      style: GoogleFonts.jetBrainsMono(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryDark,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ],
-      ),
     );
   }
 
@@ -632,104 +553,6 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Form-control helpers (`.form-field`, `.select`, `.input` in the CSS)
-  // ---------------------------------------------------------------------------
-
-  TextStyle get _labelStyle => GoogleFonts.plusJakartaSans(
-        fontSize: 12.5,
-        fontWeight: FontWeight.w600,
-        color: AppColors.neutral700,
-      );
-
-  TextStyle get _hintStyle => GoogleFonts.plusJakartaSans(
-        fontSize: 11.5,
-        color: AppColors.neutral500,
-        height: 1.4,
-      );
-
   /// "1.5" → "1.5 giờ", "2.0" → "2 giờ".
   static String _durLabel(double d) => '${d % 1 == 0 ? d.toInt() : d} giờ';
-
-  /// `.select` — 40px white field, 1px `--n-200` border, radius 9.
-  Widget _select<T>({
-    required T? value,
-    required List<T> options,
-    required String Function(T) labelOf,
-    required ValueChanged<T> onChanged,
-  }) {
-    return Container(
-      height: 40,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(9),
-        border: Border.all(color: AppColors.neutral200),
-      ),
-      child: Center(
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<T>(
-            value: value,
-            isExpanded: true,
-            isDense: true,
-            borderRadius: BorderRadius.circular(9),
-            dropdownColor: Colors.white,
-            icon: const Icon(
-              Icons.keyboard_arrow_down,
-              size: 18,
-              color: AppColors.neutral500,
-            ),
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13.5,
-              color: AppColors.neutral900,
-            ),
-            items: [
-              for (final option in options)
-                DropdownMenuItem(
-                  value: option,
-                  child: Text(labelOf(option), overflow: TextOverflow.ellipsis),
-                ),
-            ],
-            onChanged: (v) {
-              if (v != null) onChanged(v);
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// `.input` (number) — digits only, focus border `--primary`.
-  Widget _numberField({
-    required TextEditingController controller,
-    required ValueChanged<String> onChanged,
-  }) {
-    return SizedBox(
-      height: 40,
-      child: TextFormField(
-        controller: controller,
-        onChanged: onChanged,
-        keyboardType: TextInputType.number,
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 13.5,
-          color: AppColors.neutral900,
-        ),
-        decoration: InputDecoration(
-          isDense: true,
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          enabledBorder: _fieldBorder(AppColors.neutral200),
-          focusedBorder: _fieldBorder(AppColors.primary),
-        ),
-      ),
-    );
-  }
-
-  static OutlineInputBorder _fieldBorder(Color color) => OutlineInputBorder(
-        borderRadius: BorderRadius.circular(9),
-        borderSide: BorderSide(color: color),
-      );
 }
