@@ -155,8 +155,10 @@ extension HomeStatePatterns on HomeState {
     TResult Function()? initial,
     TResult Function()? loading,
     TResult Function(
+            HomeSummary summary,
             List<HomeKpi> kpis,
             List<PendingRequest> requests,
+            int requestsTotal,
             List<UpcomingSession> upcoming,
             List<RevenueDay> weeklyRevenue,
             List<CourtStatusRow> courtStatus)?
@@ -171,8 +173,14 @@ extension HomeStatePatterns on HomeState {
       case HomeLoading() when loading != null:
         return loading();
       case HomeLoaded() when loaded != null:
-        return loaded(_that.kpis, _that.requests, _that.upcoming,
-            _that.weeklyRevenue, _that.courtStatus);
+        return loaded(
+            _that.summary,
+            _that.kpis,
+            _that.requests,
+            _that.requestsTotal,
+            _that.upcoming,
+            _that.weeklyRevenue,
+            _that.courtStatus);
       case HomeFailure() when failure != null:
         return failure(_that.message);
       case _:
@@ -198,8 +206,10 @@ extension HomeStatePatterns on HomeState {
     required TResult Function() initial,
     required TResult Function() loading,
     required TResult Function(
+            HomeSummary summary,
             List<HomeKpi> kpis,
             List<PendingRequest> requests,
+            int requestsTotal,
             List<UpcomingSession> upcoming,
             List<RevenueDay> weeklyRevenue,
             List<CourtStatusRow> courtStatus)
@@ -213,8 +223,14 @@ extension HomeStatePatterns on HomeState {
       case HomeLoading():
         return loading();
       case HomeLoaded():
-        return loaded(_that.kpis, _that.requests, _that.upcoming,
-            _that.weeklyRevenue, _that.courtStatus);
+        return loaded(
+            _that.summary,
+            _that.kpis,
+            _that.requests,
+            _that.requestsTotal,
+            _that.upcoming,
+            _that.weeklyRevenue,
+            _that.courtStatus);
       case HomeFailure():
         return failure(_that.message);
     }
@@ -237,8 +253,10 @@ extension HomeStatePatterns on HomeState {
     TResult? Function()? initial,
     TResult? Function()? loading,
     TResult? Function(
+            HomeSummary summary,
             List<HomeKpi> kpis,
             List<PendingRequest> requests,
+            int requestsTotal,
             List<UpcomingSession> upcoming,
             List<RevenueDay> weeklyRevenue,
             List<CourtStatusRow> courtStatus)?
@@ -252,8 +270,14 @@ extension HomeStatePatterns on HomeState {
       case HomeLoading() when loading != null:
         return loading();
       case HomeLoaded() when loaded != null:
-        return loaded(_that.kpis, _that.requests, _that.upcoming,
-            _that.weeklyRevenue, _that.courtStatus);
+        return loaded(
+            _that.summary,
+            _that.kpis,
+            _that.requests,
+            _that.requestsTotal,
+            _that.upcoming,
+            _that.weeklyRevenue,
+            _that.courtStatus);
       case HomeFailure() when failure != null:
         return failure(_that.message);
       case _:
@@ -306,8 +330,10 @@ class HomeLoading implements HomeState {
 
 class HomeLoaded implements HomeState {
   const HomeLoaded(
-      {required final List<HomeKpi> kpis,
+      {required this.summary,
+      required final List<HomeKpi> kpis,
       required final List<PendingRequest> requests,
+      required this.requestsTotal,
       required final List<UpcomingSession> upcoming,
       required final List<RevenueDay> weeklyRevenue,
       required final List<CourtStatusRow> courtStatus})
@@ -317,6 +343,7 @@ class HomeLoaded implements HomeState {
         _weeklyRevenue = weeklyRevenue,
         _courtStatus = courtStatus;
 
+  final HomeSummary summary;
   final List<HomeKpi> _kpis;
   List<HomeKpi> get kpis {
     if (_kpis is EqualUnmodifiableListView) return _kpis;
@@ -331,6 +358,7 @@ class HomeLoaded implements HomeState {
     return EqualUnmodifiableListView(_requests);
   }
 
+  final int requestsTotal;
   final List<UpcomingSession> _upcoming;
   List<UpcomingSession> get upcoming {
     if (_upcoming is EqualUnmodifiableListView) return _upcoming;
@@ -364,8 +392,11 @@ class HomeLoaded implements HomeState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is HomeLoaded &&
+            (identical(other.summary, summary) || other.summary == summary) &&
             const DeepCollectionEquality().equals(other._kpis, _kpis) &&
             const DeepCollectionEquality().equals(other._requests, _requests) &&
+            (identical(other.requestsTotal, requestsTotal) ||
+                other.requestsTotal == requestsTotal) &&
             const DeepCollectionEquality().equals(other._upcoming, _upcoming) &&
             const DeepCollectionEquality()
                 .equals(other._weeklyRevenue, _weeklyRevenue) &&
@@ -376,15 +407,17 @@ class HomeLoaded implements HomeState {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      summary,
       const DeepCollectionEquality().hash(_kpis),
       const DeepCollectionEquality().hash(_requests),
+      requestsTotal,
       const DeepCollectionEquality().hash(_upcoming),
       const DeepCollectionEquality().hash(_weeklyRevenue),
       const DeepCollectionEquality().hash(_courtStatus));
 
   @override
   String toString() {
-    return 'HomeState.loaded(kpis: $kpis, requests: $requests, upcoming: $upcoming, weeklyRevenue: $weeklyRevenue, courtStatus: $courtStatus)';
+    return 'HomeState.loaded(summary: $summary, kpis: $kpis, requests: $requests, requestsTotal: $requestsTotal, upcoming: $upcoming, weeklyRevenue: $weeklyRevenue, courtStatus: $courtStatus)';
   }
 }
 
@@ -396,11 +429,15 @@ abstract mixin class $HomeLoadedCopyWith<$Res>
       _$HomeLoadedCopyWithImpl;
   @useResult
   $Res call(
-      {List<HomeKpi> kpis,
+      {HomeSummary summary,
+      List<HomeKpi> kpis,
       List<PendingRequest> requests,
+      int requestsTotal,
       List<UpcomingSession> upcoming,
       List<RevenueDay> weeklyRevenue,
       List<CourtStatusRow> courtStatus});
+
+  $HomeSummaryCopyWith<$Res> get summary;
 }
 
 /// @nodoc
@@ -414,13 +451,19 @@ class _$HomeLoadedCopyWithImpl<$Res> implements $HomeLoadedCopyWith<$Res> {
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
+    Object? summary = null,
     Object? kpis = null,
     Object? requests = null,
+    Object? requestsTotal = null,
     Object? upcoming = null,
     Object? weeklyRevenue = null,
     Object? courtStatus = null,
   }) {
     return _then(HomeLoaded(
+      summary: null == summary
+          ? _self.summary
+          : summary // ignore: cast_nullable_to_non_nullable
+              as HomeSummary,
       kpis: null == kpis
           ? _self._kpis
           : kpis // ignore: cast_nullable_to_non_nullable
@@ -429,6 +472,10 @@ class _$HomeLoadedCopyWithImpl<$Res> implements $HomeLoadedCopyWith<$Res> {
           ? _self._requests
           : requests // ignore: cast_nullable_to_non_nullable
               as List<PendingRequest>,
+      requestsTotal: null == requestsTotal
+          ? _self.requestsTotal
+          : requestsTotal // ignore: cast_nullable_to_non_nullable
+              as int,
       upcoming: null == upcoming
           ? _self._upcoming
           : upcoming // ignore: cast_nullable_to_non_nullable
@@ -442,6 +489,16 @@ class _$HomeLoadedCopyWithImpl<$Res> implements $HomeLoadedCopyWith<$Res> {
           : courtStatus // ignore: cast_nullable_to_non_nullable
               as List<CourtStatusRow>,
     ));
+  }
+
+  /// Create a copy of HomeState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $HomeSummaryCopyWith<$Res> get summary {
+    return $HomeSummaryCopyWith<$Res>(_self.summary, (value) {
+      return _then(_self.copyWith(summary: value));
+    });
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:dashboard/config/feature_flags/feature_flag_cubit.dart';
 import 'package:dashboard/config/feature_flags/feature_flag_service.dart';
 import 'package:dashboard/core/router/app_router.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
+import 'package:dashboard/features/home/repository/home_api_client.dart';
 import 'package:dashboard/features/home/repository/home_repository.dart';
 import 'package:dashboard/features/home/repository/home_repository_impl.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
@@ -25,8 +26,12 @@ Future<void> configureDependencies() async {
     () => OwnerAuthRepository(),
   );
 
+  sl.registerLazySingleton<HomeApiClient>(
+    () => HomeApiClient(),
+  );
+
   sl.registerLazySingleton<HomeRepository>(
-    () => HomeRepositoryImpl(),
+    () => HomeRepositoryImpl(sl<HomeApiClient>()),
   );
 
   sl.registerLazySingleton<OwnerCourtRepository>(

@@ -18,26 +18,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onStarted(HomeStarted event, Emitter<HomeState> emit) async {
     emit(const HomeState.loading());
     try {
-      final results = await Future.wait([
-        _repository.getTodayKpis(),
-        _repository.getPendingRequests(),
-        _repository.getUpcomingToday(),
-        _repository.getWeeklyRevenue(),
-        _repository.getCourtStatusToday(),
-      ]);
-
-      final kpis = results[0] as List<HomeKpi>;
-      final requests = results[1] as List<PendingRequest>;
-      final upcoming = results[2] as List<UpcomingSession>;
-      final revenue = results[3] as List<RevenueDay>;
-      final courtStatus = results[4] as List<CourtStatusRow>;
-
+      final o = await _repository.getOverview();
       emit(HomeState.loaded(
-        kpis: kpis,
-        requests: requests,
-        upcoming: upcoming,
-        weeklyRevenue: revenue,
-        courtStatus: courtStatus,
+        summary: o.summary,
+        kpis: o.kpis,
+        requests: o.requests,
+        requestsTotal: o.requestsTotal,
+        upcoming: o.upcoming,
+        weeklyRevenue: o.weeklyRevenue,
+        courtStatus: o.courtStatus,
       ));
     } catch (e) {
       emit(HomeState.failure(e.toString()));
@@ -45,68 +34,45 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onRequestApproved(
-      HomeRequestApproved event, Emitter<HomeState> emit) async {
-    if (state is! HomeLoaded) return;
-    final current = state as HomeLoaded;
-
-    final updatedRequests = current.requests
-        .where((r) => r.id != event.id)
-        .toList();
-
-    // Update pending KPI
-    final updatedKpis = current.kpis.map((kpi) {
-      if (kpi.id == 'pending') {
-        return kpi.copyWith(value: updatedRequests.length.toString());
-      }
-      return kpi;
-    }).toList();
-
-    emit(HomeState.loaded(
-      kpis: updatedKpis,
-      requests: updatedRequests,
-      upcoming: current.upcoming,
-      weeklyRevenue: current.weeklyRevenue,
-      courtStatus: current.courtStatus,
-    ));
-
-    try {
-      await _repository.approveRequest(event.id);
-    } catch (_) {
-      // Restore on error
-      emit(current);
-    }
+      HomeRequestApproved event, Emitter<HomeState> emit) {
+    return _resolve(emit, event.request, _repository.approveRequest);
   }
 
   Future<void> _onRequestDeclined(
-      HomeRequestDeclined event, Emitter<HomeState> emit) async {
+      HomeRequestDeclined event, Emitter<HomeState> emit) {
+    return _resolve(emit, event.request, _repository.declineRequest);
+  }
+
+  /// Optimistically drop [request] from the list + pending counters, then call
+  /// [action]. On failure re-fetch the overview to re-sync (a 409 means the
+  /// item was already resolved elsewhere — HOME_API_HANDOFF §3).
+  Future<void> _resolve(
+    Emitter<HomeState> emit,
+    PendingRequest request,
+    Future<void> Function(PendingRequest) action,
+  ) async {
     if (state is! HomeLoaded) return;
     final current = state as HomeLoaded;
 
-    final updatedRequests = current.requests
-        .where((r) => r.id != event.id)
-        .toList();
+    final updatedRequests =
+        current.requests.where((r) => r.id != request.id).toList();
+    final newTotal =
+        current.requestsTotal > 0 ? current.requestsTotal - 1 : 0;
+    final updatedKpis = [
+      for (final kpi in current.kpis)
+        kpi.id == 'pending' ? kpi.copyWith(value: '$newTotal') : kpi,
+    ];
 
-    // Update pending KPI
-    final updatedKpis = current.kpis.map((kpi) {
-      if (kpi.id == 'pending') {
-        return kpi.copyWith(value: updatedRequests.length.toString());
-      }
-      return kpi;
-    }).toList();
-
-    emit(HomeState.loaded(
-      kpis: updatedKpis,
+    emit(current.copyWith(
       requests: updatedRequests,
-      upcoming: current.upcoming,
-      weeklyRevenue: current.weeklyRevenue,
-      courtStatus: current.courtStatus,
+      requestsTotal: newTotal,
+      kpis: updatedKpis,
     ));
 
     try {
-      await _repository.declineRequest(event.id);
+      await action(request);
     } catch (_) {
-      // Restore on error
-      emit(current);
+      add(const HomeEvent.started());
     }
   }
 }

@@ -528,6 +528,7 @@ class __$HomeKpiCopyWithImpl<$Res> implements _$HomeKpiCopyWith<$Res> {
 /// @nodoc
 mixin _$PendingRequest {
   String get id;
+  PendingKind get kind;
   String get name;
   String get initials;
   String get court;
@@ -551,6 +552,7 @@ mixin _$PendingRequest {
         (other.runtimeType == runtimeType &&
             other is PendingRequest &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.initials, initials) ||
                 other.initials == initials) &&
@@ -563,12 +565,12 @@ mixin _$PendingRequest {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, initials, court, venue,
-      sport, when, price, regular);
+  int get hashCode => Object.hash(runtimeType, id, kind, name, initials, court,
+      venue, sport, when, price, regular);
 
   @override
   String toString() {
-    return 'PendingRequest(id: $id, name: $name, initials: $initials, court: $court, venue: $venue, sport: $sport, when: $when, price: $price, regular: $regular)';
+    return 'PendingRequest(id: $id, kind: $kind, name: $name, initials: $initials, court: $court, venue: $venue, sport: $sport, when: $when, price: $price, regular: $regular)';
   }
 }
 
@@ -580,6 +582,7 @@ abstract mixin class $PendingRequestCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
+      PendingKind kind,
       String name,
       String initials,
       String court,
@@ -604,6 +607,7 @@ class _$PendingRequestCopyWithImpl<$Res>
   @override
   $Res call({
     Object? id = null,
+    Object? kind = null,
     Object? name = null,
     Object? initials = null,
     Object? court = null,
@@ -618,6 +622,10 @@ class _$PendingRequestCopyWithImpl<$Res>
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      kind: null == kind
+          ? _self.kind
+          : kind // ignore: cast_nullable_to_non_nullable
+              as PendingKind,
       name: null == name
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -747,16 +755,34 @@ extension PendingRequestPatterns on PendingRequest {
 
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
-    TResult Function(String id, String name, String initials, String court,
-            String venue, String sport, String when, int price, bool regular)?
+    TResult Function(
+            String id,
+            PendingKind kind,
+            String name,
+            String initials,
+            String court,
+            String venue,
+            String sport,
+            String when,
+            int price,
+            bool regular)?
         $default, {
     required TResult orElse(),
   }) {
     final _that = this;
     switch (_that) {
       case _PendingRequest() when $default != null:
-        return $default(_that.id, _that.name, _that.initials, _that.court,
-            _that.venue, _that.sport, _that.when, _that.price, _that.regular);
+        return $default(
+            _that.id,
+            _that.kind,
+            _that.name,
+            _that.initials,
+            _that.court,
+            _that.venue,
+            _that.sport,
+            _that.when,
+            _that.price,
+            _that.regular);
       case _:
         return orElse();
     }
@@ -777,15 +803,33 @@ extension PendingRequestPatterns on PendingRequest {
 
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
-    TResult Function(String id, String name, String initials, String court,
-            String venue, String sport, String when, int price, bool regular)
+    TResult Function(
+            String id,
+            PendingKind kind,
+            String name,
+            String initials,
+            String court,
+            String venue,
+            String sport,
+            String when,
+            int price,
+            bool regular)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _PendingRequest():
-        return $default(_that.id, _that.name, _that.initials, _that.court,
-            _that.venue, _that.sport, _that.when, _that.price, _that.regular);
+        return $default(
+            _that.id,
+            _that.kind,
+            _that.name,
+            _that.initials,
+            _that.court,
+            _that.venue,
+            _that.sport,
+            _that.when,
+            _that.price,
+            _that.regular);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -805,15 +849,33 @@ extension PendingRequestPatterns on PendingRequest {
 
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(String id, String name, String initials, String court,
-            String venue, String sport, String when, int price, bool regular)?
+    TResult? Function(
+            String id,
+            PendingKind kind,
+            String name,
+            String initials,
+            String court,
+            String venue,
+            String sport,
+            String when,
+            int price,
+            bool regular)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _PendingRequest() when $default != null:
-        return $default(_that.id, _that.name, _that.initials, _that.court,
-            _that.venue, _that.sport, _that.when, _that.price, _that.regular);
+        return $default(
+            _that.id,
+            _that.kind,
+            _that.name,
+            _that.initials,
+            _that.court,
+            _that.venue,
+            _that.sport,
+            _that.when,
+            _that.price,
+            _that.regular);
       case _:
         return null;
     }
@@ -825,6 +887,7 @@ extension PendingRequestPatterns on PendingRequest {
 class _PendingRequest implements PendingRequest {
   const _PendingRequest(
       {required this.id,
+      required this.kind,
       required this.name,
       required this.initials,
       required this.court,
@@ -836,6 +899,8 @@ class _PendingRequest implements PendingRequest {
 
   @override
   final String id;
+  @override
+  final PendingKind kind;
   @override
   final String name;
   @override
@@ -868,6 +933,7 @@ class _PendingRequest implements PendingRequest {
         (other.runtimeType == runtimeType &&
             other is _PendingRequest &&
             (identical(other.id, id) || other.id == id) &&
+            (identical(other.kind, kind) || other.kind == kind) &&
             (identical(other.name, name) || other.name == name) &&
             (identical(other.initials, initials) ||
                 other.initials == initials) &&
@@ -880,12 +946,12 @@ class _PendingRequest implements PendingRequest {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, initials, court, venue,
-      sport, when, price, regular);
+  int get hashCode => Object.hash(runtimeType, id, kind, name, initials, court,
+      venue, sport, when, price, regular);
 
   @override
   String toString() {
-    return 'PendingRequest(id: $id, name: $name, initials: $initials, court: $court, venue: $venue, sport: $sport, when: $when, price: $price, regular: $regular)';
+    return 'PendingRequest(id: $id, kind: $kind, name: $name, initials: $initials, court: $court, venue: $venue, sport: $sport, when: $when, price: $price, regular: $regular)';
   }
 }
 
@@ -899,6 +965,7 @@ abstract mixin class _$PendingRequestCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
+      PendingKind kind,
       String name,
       String initials,
       String court,
@@ -923,6 +990,7 @@ class __$PendingRequestCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   $Res call({
     Object? id = null,
+    Object? kind = null,
     Object? name = null,
     Object? initials = null,
     Object? court = null,
@@ -937,6 +1005,10 @@ class __$PendingRequestCopyWithImpl<$Res>
           ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as String,
+      kind: null == kind
+          ? _self.kind
+          : kind // ignore: cast_nullable_to_non_nullable
+              as PendingKind,
       name: null == name
           ? _self.name
           : name // ignore: cast_nullable_to_non_nullable
@@ -2043,6 +2115,334 @@ class __$CourtStatusRowCopyWithImpl<$Res>
           ? _self.status
           : status // ignore: cast_nullable_to_non_nullable
               as CourtState,
+    ));
+  }
+}
+
+/// @nodoc
+mixin _$HomeSummary {
+  String? get ownerName;
+  int get activeCourts;
+  int get totalVenues;
+
+  /// Create a copy of HomeSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $HomeSummaryCopyWith<HomeSummary> get copyWith =>
+      _$HomeSummaryCopyWithImpl<HomeSummary>(this as HomeSummary, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is HomeSummary &&
+            (identical(other.ownerName, ownerName) ||
+                other.ownerName == ownerName) &&
+            (identical(other.activeCourts, activeCourts) ||
+                other.activeCourts == activeCourts) &&
+            (identical(other.totalVenues, totalVenues) ||
+                other.totalVenues == totalVenues));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, ownerName, activeCourts, totalVenues);
+
+  @override
+  String toString() {
+    return 'HomeSummary(ownerName: $ownerName, activeCourts: $activeCourts, totalVenues: $totalVenues)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $HomeSummaryCopyWith<$Res> {
+  factory $HomeSummaryCopyWith(
+          HomeSummary value, $Res Function(HomeSummary) _then) =
+      _$HomeSummaryCopyWithImpl;
+  @useResult
+  $Res call({String? ownerName, int activeCourts, int totalVenues});
+}
+
+/// @nodoc
+class _$HomeSummaryCopyWithImpl<$Res> implements $HomeSummaryCopyWith<$Res> {
+  _$HomeSummaryCopyWithImpl(this._self, this._then);
+
+  final HomeSummary _self;
+  final $Res Function(HomeSummary) _then;
+
+  /// Create a copy of HomeSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? ownerName = freezed,
+    Object? activeCourts = null,
+    Object? totalVenues = null,
+  }) {
+    return _then(_self.copyWith(
+      ownerName: freezed == ownerName
+          ? _self.ownerName
+          : ownerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      activeCourts: null == activeCourts
+          ? _self.activeCourts
+          : activeCourts // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalVenues: null == totalVenues
+          ? _self.totalVenues
+          : totalVenues // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [HomeSummary].
+extension HomeSummaryPatterns on HomeSummary {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_HomeSummary value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_HomeSummary value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_HomeSummary value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(String? ownerName, int activeCourts, int totalVenues)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary() when $default != null:
+        return $default(_that.ownerName, _that.activeCourts, _that.totalVenues);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(String? ownerName, int activeCourts, int totalVenues)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary():
+        return $default(_that.ownerName, _that.activeCourts, _that.totalVenues);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(String? ownerName, int activeCourts, int totalVenues)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _HomeSummary() when $default != null:
+        return $default(_that.ownerName, _that.activeCourts, _that.totalVenues);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+
+class _HomeSummary implements HomeSummary {
+  const _HomeSummary(
+      {this.ownerName, this.activeCourts = 0, this.totalVenues = 0});
+
+  @override
+  final String? ownerName;
+  @override
+  @JsonKey()
+  final int activeCourts;
+  @override
+  @JsonKey()
+  final int totalVenues;
+
+  /// Create a copy of HomeSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$HomeSummaryCopyWith<_HomeSummary> get copyWith =>
+      __$HomeSummaryCopyWithImpl<_HomeSummary>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _HomeSummary &&
+            (identical(other.ownerName, ownerName) ||
+                other.ownerName == ownerName) &&
+            (identical(other.activeCourts, activeCourts) ||
+                other.activeCourts == activeCourts) &&
+            (identical(other.totalVenues, totalVenues) ||
+                other.totalVenues == totalVenues));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, ownerName, activeCourts, totalVenues);
+
+  @override
+  String toString() {
+    return 'HomeSummary(ownerName: $ownerName, activeCourts: $activeCourts, totalVenues: $totalVenues)';
+  }
+}
+
+/// @nodoc
+abstract mixin class _$HomeSummaryCopyWith<$Res>
+    implements $HomeSummaryCopyWith<$Res> {
+  factory _$HomeSummaryCopyWith(
+          _HomeSummary value, $Res Function(_HomeSummary) _then) =
+      __$HomeSummaryCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String? ownerName, int activeCourts, int totalVenues});
+}
+
+/// @nodoc
+class __$HomeSummaryCopyWithImpl<$Res> implements _$HomeSummaryCopyWith<$Res> {
+  __$HomeSummaryCopyWithImpl(this._self, this._then);
+
+  final _HomeSummary _self;
+  final $Res Function(_HomeSummary) _then;
+
+  /// Create a copy of HomeSummary
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? ownerName = freezed,
+    Object? activeCourts = null,
+    Object? totalVenues = null,
+  }) {
+    return _then(_HomeSummary(
+      ownerName: freezed == ownerName
+          ? _self.ownerName
+          : ownerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      activeCourts: null == activeCourts
+          ? _self.activeCourts
+          : activeCourts // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalVenues: null == totalVenues
+          ? _self.totalVenues
+          : totalVenues // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }

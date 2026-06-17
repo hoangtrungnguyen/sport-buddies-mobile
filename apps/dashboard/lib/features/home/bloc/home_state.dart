@@ -8,8 +8,10 @@ sealed class HomeState with _$HomeState {
   const factory HomeState.initial() = HomeInitial;
   const factory HomeState.loading() = HomeLoading;
   const factory HomeState.loaded({
+    required HomeSummary summary,
     required List<HomeKpi> kpis,
     required List<PendingRequest> requests,
+    required int requestsTotal,
     required List<UpcomingSession> upcoming,
     required List<RevenueDay> weeklyRevenue,
     required List<CourtStatusRow> courtStatus,

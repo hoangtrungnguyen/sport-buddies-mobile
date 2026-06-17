@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../model/home_models.dart';
+import '../../util/home_format.dart';
 
 class GreetingHeader extends StatelessWidget {
-  const GreetingHeader({super.key, required this.requests});
-  final List<PendingRequest> requests;
+  const GreetingHeader({super.key, required this.summary});
+  final HomeSummary summary;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    final hour = DateTime.now().hour;
+    final now = DateTime.now();
+    final hour = now.hour;
     final greeting = hour < 12
         ? 'Chào buổi sáng'
         : hour < 18
             ? 'Chào buổi chiều'
             : 'Chào buổi tối';
+    final name = summary.ownerName;
+    final dateLine =
+        '${weekdayFull(now)}, ${dmy(now)} · ${summary.activeCourts} cụm sân đang hoạt động · ${summary.totalVenues} sân con';
 
     return Wrap(
       spacing: 16,
@@ -27,13 +32,13 @@ class GreetingHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$greeting, anh Minh',
+              Text(name == null ? greeting : '$greeting, $name',
                   style: theme.textTheme.headlineMedium),
               const SizedBox(height: 4),
               Row(
                 children: [
                   Text(
-                    'Thứ Sáu, 12/06/2026 · 5 cụm sân đang hoạt động · 12 sân con',
+                    dateLine,
                     style: theme.textTheme.bodyMedium
                         ?.copyWith(color: scheme.onSurfaceVariant),
                   ),

@@ -24,15 +24,19 @@ class HomeScreen extends StatelessWidget {
                 child: CircularProgressIndicator(),
               ),
             HomeLoaded(
+              :final summary,
               :final kpis,
               :final requests,
+              :final requestsTotal,
               :final upcoming,
               :final weeklyRevenue,
               :final courtStatus,
             ) =>
               _Loaded(
+                summary: summary,
                 kpis: kpis,
                 requests: requests,
+                requestsTotal: requestsTotal,
                 upcoming: upcoming,
                 weeklyRevenue: weeklyRevenue,
                 courtStatus: courtStatus,
@@ -49,15 +53,19 @@ class HomeScreen extends StatelessWidget {
 
 class _Loaded extends StatelessWidget {
   const _Loaded({
+    required this.summary,
     required this.kpis,
     required this.requests,
+    required this.requestsTotal,
     required this.upcoming,
     required this.weeklyRevenue,
     required this.courtStatus,
   });
 
+  final HomeSummary summary;
   final List<HomeKpi> kpis;
   final List<PendingRequest> requests;
+  final int requestsTotal;
   final List<UpcomingSession> upcoming;
   final List<RevenueDay> weeklyRevenue;
   final List<CourtStatusRow> courtStatus;
@@ -72,7 +80,7 @@ class _Loaded extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GreetingHeader(requests: requests),
+              GreetingHeader(summary: summary),
               const SizedBox(height: 16),
               KpiRow(kpis: kpis),
               const SizedBox(height: 16),
@@ -86,7 +94,8 @@ class _Loaded extends StatelessWidget {
                           flex: 155,
                           child: Column(
                             children: [
-                              PendingRequestsPanel(requests: requests),
+                              PendingRequestsPanel(
+                                  requests: requests, total: requestsTotal),
                               const SizedBox(height: 12),
                               UpcomingPanel(upcoming: upcoming),
                             ],
@@ -108,7 +117,8 @@ class _Loaded extends StatelessWidget {
                   }
                   return Column(
                     children: [
-                      PendingRequestsPanel(requests: requests),
+                      PendingRequestsPanel(
+                          requests: requests, total: requestsTotal),
                       const SizedBox(height: 12),
                       UpcomingPanel(upcoming: upcoming),
                       const SizedBox(height: 12),

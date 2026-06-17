@@ -6,6 +6,11 @@ enum KpiTone { primary, tertiary, secondary, warn }
 enum SessionStatus { confirmed, walkin }
 enum CourtState { active, draft }
 
+/// Which backend flow a pending request belongs to — decides the approve /
+/// decline route (`booking` → booking-status PATCH, `joinRequest` →
+/// slot-join-request approve/reject). See HOME_API_HANDOFF §3.
+enum PendingKind { booking, joinRequest }
+
 @freezed
 abstract class HomeKpi with _$HomeKpi {
   const factory HomeKpi({
@@ -26,6 +31,7 @@ abstract class HomeKpi with _$HomeKpi {
 abstract class PendingRequest with _$PendingRequest {
   const factory PendingRequest({
     required String id,
+    required PendingKind kind,
     required String name,
     required String initials,
     required String court,
@@ -67,4 +73,38 @@ abstract class CourtStatusRow with _$CourtStatusRow {
     required int occupancy,
     required CourtState status,
   }) = _CourtStatusRow;
+}
+
+/// Greeting-header context: the owner's name + their active-court / sub-court
+/// counts (`summary` block of the overview payload).
+@freezed
+abstract class HomeSummary with _$HomeSummary {
+  const factory HomeSummary({
+    String? ownerName,
+    @Default(0) int activeCourts,
+    @Default(0) int totalVenues,
+  }) = _HomeSummary;
+}
+
+/// The whole Home screen in one payload — every block of `/api/home/overview`,
+/// parsed and ready for the bloc. [requestsTotal] is the full pending count
+/// (the panel may render fewer items).
+class HomeOverview {
+  const HomeOverview({
+    required this.summary,
+    required this.kpis,
+    required this.requests,
+    required this.requestsTotal,
+    required this.upcoming,
+    required this.weeklyRevenue,
+    required this.courtStatus,
+  });
+
+  final HomeSummary summary;
+  final List<HomeKpi> kpis;
+  final List<PendingRequest> requests;
+  final int requestsTotal;
+  final List<UpcomingSession> upcoming;
+  final List<RevenueDay> weeklyRevenue;
+  final List<CourtStatusRow> courtStatus;
 }

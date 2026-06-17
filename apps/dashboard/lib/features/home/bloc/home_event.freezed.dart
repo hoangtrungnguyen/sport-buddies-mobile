@@ -144,8 +144,8 @@ extension HomeEventPatterns on HomeEvent {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? started,
-    TResult Function(String id)? requestApproved,
-    TResult Function(String id)? requestDeclined,
+    TResult Function(PendingRequest request)? requestApproved,
+    TResult Function(PendingRequest request)? requestDeclined,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -153,9 +153,9 @@ extension HomeEventPatterns on HomeEvent {
       case HomeStarted() when started != null:
         return started();
       case HomeRequestApproved() when requestApproved != null:
-        return requestApproved(_that.id);
+        return requestApproved(_that.request);
       case HomeRequestDeclined() when requestDeclined != null:
-        return requestDeclined(_that.id);
+        return requestDeclined(_that.request);
       case _:
         return orElse();
     }
@@ -177,17 +177,17 @@ extension HomeEventPatterns on HomeEvent {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function() started,
-    required TResult Function(String id) requestApproved,
-    required TResult Function(String id) requestDeclined,
+    required TResult Function(PendingRequest request) requestApproved,
+    required TResult Function(PendingRequest request) requestDeclined,
   }) {
     final _that = this;
     switch (_that) {
       case HomeStarted():
         return started();
       case HomeRequestApproved():
-        return requestApproved(_that.id);
+        return requestApproved(_that.request);
       case HomeRequestDeclined():
-        return requestDeclined(_that.id);
+        return requestDeclined(_that.request);
     }
   }
 
@@ -206,17 +206,17 @@ extension HomeEventPatterns on HomeEvent {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? started,
-    TResult? Function(String id)? requestApproved,
-    TResult? Function(String id)? requestDeclined,
+    TResult? Function(PendingRequest request)? requestApproved,
+    TResult? Function(PendingRequest request)? requestDeclined,
   }) {
     final _that = this;
     switch (_that) {
       case HomeStarted() when started != null:
         return started();
       case HomeRequestApproved() when requestApproved != null:
-        return requestApproved(_that.id);
+        return requestApproved(_that.request);
       case HomeRequestDeclined() when requestDeclined != null:
-        return requestDeclined(_that.id);
+        return requestDeclined(_that.request);
       case _:
         return null;
     }
@@ -246,9 +246,9 @@ class HomeStarted implements HomeEvent {
 /// @nodoc
 
 class HomeRequestApproved implements HomeEvent {
-  const HomeRequestApproved(this.id);
+  const HomeRequestApproved(this.request);
 
-  final String id;
+  final PendingRequest request;
 
   /// Create a copy of HomeEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -262,15 +262,15 @@ class HomeRequestApproved implements HomeEvent {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is HomeRequestApproved &&
-            (identical(other.id, id) || other.id == id));
+            (identical(other.request, request) || other.request == request));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id);
+  int get hashCode => Object.hash(runtimeType, request);
 
   @override
   String toString() {
-    return 'HomeEvent.requestApproved(id: $id)';
+    return 'HomeEvent.requestApproved(request: $request)';
   }
 }
 
@@ -281,7 +281,9 @@ abstract mixin class $HomeRequestApprovedCopyWith<$Res>
           HomeRequestApproved value, $Res Function(HomeRequestApproved) _then) =
       _$HomeRequestApprovedCopyWithImpl;
   @useResult
-  $Res call({String id});
+  $Res call({PendingRequest request});
+
+  $PendingRequestCopyWith<$Res> get request;
 }
 
 /// @nodoc
@@ -296,23 +298,33 @@ class _$HomeRequestApprovedCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? id = null,
+    Object? request = null,
   }) {
     return _then(HomeRequestApproved(
-      null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
+      null == request
+          ? _self.request
+          : request // ignore: cast_nullable_to_non_nullable
+              as PendingRequest,
     ));
+  }
+
+  /// Create a copy of HomeEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PendingRequestCopyWith<$Res> get request {
+    return $PendingRequestCopyWith<$Res>(_self.request, (value) {
+      return _then(_self.copyWith(request: value));
+    });
   }
 }
 
 /// @nodoc
 
 class HomeRequestDeclined implements HomeEvent {
-  const HomeRequestDeclined(this.id);
+  const HomeRequestDeclined(this.request);
 
-  final String id;
+  final PendingRequest request;
 
   /// Create a copy of HomeEvent
   /// with the given fields replaced by the non-null parameter values.
@@ -326,15 +338,15 @@ class HomeRequestDeclined implements HomeEvent {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is HomeRequestDeclined &&
-            (identical(other.id, id) || other.id == id));
+            (identical(other.request, request) || other.request == request));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id);
+  int get hashCode => Object.hash(runtimeType, request);
 
   @override
   String toString() {
-    return 'HomeEvent.requestDeclined(id: $id)';
+    return 'HomeEvent.requestDeclined(request: $request)';
   }
 }
 
@@ -345,7 +357,9 @@ abstract mixin class $HomeRequestDeclinedCopyWith<$Res>
           HomeRequestDeclined value, $Res Function(HomeRequestDeclined) _then) =
       _$HomeRequestDeclinedCopyWithImpl;
   @useResult
-  $Res call({String id});
+  $Res call({PendingRequest request});
+
+  $PendingRequestCopyWith<$Res> get request;
 }
 
 /// @nodoc
@@ -360,14 +374,24 @@ class _$HomeRequestDeclinedCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   $Res call({
-    Object? id = null,
+    Object? request = null,
   }) {
     return _then(HomeRequestDeclined(
-      null == id
-          ? _self.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
+      null == request
+          ? _self.request
+          : request // ignore: cast_nullable_to_non_nullable
+              as PendingRequest,
     ));
+  }
+
+  /// Create a copy of HomeEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $PendingRequestCopyWith<$Res> get request {
+    return $PendingRequestCopyWith<$Res>(_self.request, (value) {
+      return _then(_self.copyWith(request: value));
+    });
   }
 }
 

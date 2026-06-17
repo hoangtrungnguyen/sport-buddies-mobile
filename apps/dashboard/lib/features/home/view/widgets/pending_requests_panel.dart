@@ -8,15 +8,22 @@ import '../../bloc/home_event.dart';
 import '../../model/home_models.dart';
 
 class PendingRequestsPanel extends StatelessWidget {
-  const PendingRequestsPanel({super.key, required this.requests});
+  const PendingRequestsPanel({
+    super.key,
+    required this.requests,
+    required this.total,
+  });
   final List<PendingRequest> requests;
+
+  /// Full pending count (may exceed [requests] when the panel holds a subset).
+  final int total;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final shown = requests.take(4).toList();
-    final remaining = requests.length - shown.length;
+    final remaining = total - shown.length;
 
     return Card(
       elevation: 1,
@@ -35,7 +42,7 @@ class PendingRequestsPanel extends StatelessWidget {
                     children: [
                       Text('Yêu cầu cần xử lý',
                           style: theme.textTheme.titleMedium),
-                      Text('${requests.length} yêu cầu',
+                      Text('$total yêu cầu',
                           style: theme.textTheme.bodySmall
                               ?.copyWith(color: scheme.onSurfaceVariant)),
                     ],
@@ -48,7 +55,7 @@ class PendingRequestsPanel extends StatelessWidget {
                     color: scheme.secondaryContainer,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('${requests.length}',
+                  child: Text('$total',
                       style: TextStyle(
                         fontSize: 12,
                         color: scheme.onSecondaryContainer,
@@ -159,7 +166,9 @@ class _RequestRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${request.court} · ${request.venue} · ${request.sport}',
+                  [request.court, request.venue, request.sport]
+                      .where((p) => p.isNotEmpty)
+                      .join(' · '),
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: scheme.onSurfaceVariant),
                   maxLines: 1,
@@ -187,7 +196,7 @@ class _RequestRow extends StatelessWidget {
             width: 36,
             child: TextButton(
               onPressed: () =>
-                  context.read<HomeBloc>().add(HomeEvent.requestDeclined(request.id)),
+                  context.read<HomeBloc>().add(HomeEvent.requestDeclined(request)),
               style: TextButton.styleFrom(padding: EdgeInsets.zero),
               child: const Text('Từ chối', style: TextStyle(fontSize: 12)),
             ),
@@ -196,7 +205,7 @@ class _RequestRow extends StatelessWidget {
             width: 36,
             child: FilledButton(
               onPressed: () =>
-                  context.read<HomeBloc>().add(HomeEvent.requestApproved(request.id)),
+                  context.read<HomeBloc>().add(HomeEvent.requestApproved(request)),
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(36, 36),
