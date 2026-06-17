@@ -9,31 +9,11 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import '../bloc/venue_schedule_bloc.dart';
 import '../model/models.dart';
 import '../util/schedule_format.dart';
+import '../widgets/day_grid_internals.dart';
+import '../widgets/day_grid_metrics.dart';
 import '../widgets/mouse_vertical_drag.dart';
 import '../widgets/slot_block.dart';
 import '../widgets/sticky_grid_header.dart';
-
-/// Grid geometry (handoff "Spacing": 60px per hour, 64px gutter, hours 6–22).
-const double _hourPx = 60;
-const double _gutterWidth = 64;
-const int _firstHour = 6;
-const int _lastHour = 22;
-const int _rowCount = _lastHour - _firstHour + 1; // 17 rows: 06:00..22:00
-const double _bodyHeight = _rowCount * _hourPx; // 1020
-
-/// Below 1024px the grid scrolls horizontally with this minimum width.
-const double _hScrollBreakpoint = 1024;
-const double _minGridWidth = 720;
-
-/// Header `<N> slot` counts actual bookings, not blocks/empties — mirrors the
-/// prototype's `['confirmed','pending','fixed','public','private']`.
-const Set<SlotState> _bookedStates = {
-  SlotState.confirmed,
-  SlotState.pending,
-  SlotState.fixed,
-  SlotState.open,
-  SlotState.private,
-};
 
 /// "Ngày" view — every venue of the court side-by-side as resource columns
 /// for [VenueScheduleState.focusedDate] (`DayView` / `.day-grid` in the
@@ -61,7 +41,7 @@ class VenueScheduleDayView extends StatefulWidget {
 
 class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   /// In-flight drag-to-block, or null.
-  _Drag? _drag;
+  DayDrag? _drag;
 
   /// Hovered slot id — its block is reordered last in its column's Stack so
   /// it paints above siblings (`.sc-slot:hover { z-index: 4 }`).
@@ -105,11 +85,11 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
             builder: (context, constraints) {
               final grid = _grid(venues, slots, state.focusedDate);
               // ≤1024px: horizontal scroll, grid keeps a 720px floor.
-              if (viewportWidth >= _hScrollBreakpoint) return grid;
+              if (viewportWidth >= kHScrollBreakpoint) return grid;
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: SizedBox(
-                  width: math.max(_minGridWidth, constraints.maxWidth),
+                  width: math.max(kMinGridWidth, constraints.maxWidth),
                   child: grid,
                 ),
               );
@@ -127,7 +107,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
     return StickyGridHeader(
       header: _header(venues, slots),
       body: _body(venues, slots, focusedDate),
-      maxStick: _bodyHeight,
+      maxStick: kBodyHeight,
     );
   }
 
@@ -147,7 +127,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
           children: [
             // Corner cell over the time gutter.
             Container(
-              width: _gutterWidth,
+              width: kGutterWidth,
               decoration: const BoxDecoration(
                 border: Border(right: BorderSide(color: AppColors.neutral200)),
               ),
@@ -171,7 +151,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   Widget _venueHead(Venue venue, List<Slot> slots, {required bool isLast}) {
     final count = slots
         .where(
-          (s) => s.venueId == venue.id && _bookedStates.contains(s.state),
+          (s) => s.venueId == venue.id && kBookedStates.contains(s.state),
         )
         .length;
     return Container(
@@ -243,7 +223,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
 
   Widget _body(List<Venue> venues, List<Slot> slots, DateTime focusedDate) {
     return SizedBox(
-      height: _bodyHeight,
+      height: kBodyHeight,
       child: Stack(
         children: [
           Row(
@@ -270,18 +250,18 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   /// rows with a top hairline (`.day-gutter .ghr`).
   Widget _timeGutter() {
     return Container(
-      width: _gutterWidth,
+      width: kGutterWidth,
       decoration: const BoxDecoration(
         border: Border(right: BorderSide(color: AppColors.neutral200)),
       ),
       child: Column(
         children: [
-          for (var h = _firstHour; h <= _lastHour; h++)
+          for (var h = kFirstHour; h <= kLastHour; h++)
             Container(
-              height: _hourPx,
+              height: kHourPx,
               alignment: Alignment.topRight,
               padding: const EdgeInsets.fromLTRB(8, 3, 8, 0),
-              decoration: h == _firstHour
+              decoration: h == kFirstHour
                   ? null
                   : const BoxDecoration(
                       border:
@@ -339,17 +319,17 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
           child: Stack(
             children: [
               const Positioned.fill(
-                child: CustomPaint(painter: _HourLinesPainter()),
+                child: CustomPaint(painter: HourLinesPainter()),
               ),
               for (final slot in ordered)
                 Positioned(
                   key: ValueKey(slot.id),
-                  top: (slot.startHour - _firstHour) * _hourPx + 2,
+                  top: (slot.startHour - kFirstHour) * kHourPx + 2,
                   left: 4,
                   right: 4,
                   child: SlotBlock(
                     slot: slot,
-                    height: slot.durationHours * _hourPx,
+                    height: slot.durationHours * kHourPx,
                     onHoverChanged: (hovered) => setState(() {
                       if (hovered) {
                         _hoveredSlotId = slot.id;
@@ -376,8 +356,8 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
 
   /// `hourFromY`: 30-minute snap — `6 + floor(relY / 60 × 2) / 2`.
   double _hourFromY(double dy) {
-    final rel = (dy / _hourPx).clamp(0.0, _rowCount.toDouble());
-    return _firstHour + (rel * 2).floor() / 2;
+    final rel = (dy / kHourPx).clamp(0.0, kRowCount.toDouble());
+    return kFirstHour + (rel * 2).floor() / 2;
   }
 
   /// Whether a press at [dy] lands on an existing slot block — the prototype
@@ -385,8 +365,8 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   /// need no guard: the block's own recognizer wins the gesture arena.
   bool _hitsSlot(List<Slot> venueSlots, double dy) {
     for (final slot in venueSlots) {
-      final top = (slot.startHour - _firstHour) * _hourPx + 2;
-      final height = math.max(slot.durationHours * _hourPx - 4, 22.0);
+      final top = (slot.startHour - kFirstHour) * kHourPx + 2;
+      final height = math.max(slot.durationHours * kHourPx - 4, 22.0);
       if (dy >= top && dy <= top + height) return true;
     }
     return false;
@@ -404,7 +384,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
     if (_hitsSlot(venueSlots, dy)) return;
     final startHour = _hourFromY(dy);
     setState(() {
-      _drag = _Drag(
+      _drag = DayDrag(
         venueId: venue.id,
         startHour: startHour,
         currentHour: startHour + 0.5,
@@ -441,17 +421,17 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
   }
 
   /// Translucent indigo band with a live `HH:MM–HH:MM` label (`.drag-band`).
-  Widget _dragBand(_Drag drag) {
+  Widget _dragBand(DayDrag drag) {
     final start = math.min(drag.startHour, drag.currentHour);
     final end = math.max(drag.startHour, drag.currentHour);
     return Positioned(
-      top: (start - _firstHour) * _hourPx,
+      top: (start - kFirstHour) * kHourPx,
       left: 4,
       right: 4,
-      height: (end - start) * _hourPx,
+      height: (end - start) * kHourPx,
       child: IgnorePointer(
         child: CustomPaint(
-          painter: const _DragBandPainter(),
+          painter: const DragBandPainter(),
           child: Center(
             child: Text(
               '${hourLabel(start)}–${hourLabel(end)}',
@@ -478,11 +458,11 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
         now.day == focusedDate.day;
     if (!isToday) return const [];
     final nowHour = now.hour + now.minute / 60;
-    if (nowHour < _firstHour || nowHour > _lastHour) return const [];
-    final top = (nowHour - _firstHour) * _hourPx;
+    if (nowHour < kFirstHour || nowHour > kLastHour) return const [];
+    final top = (nowHour - kFirstHour) * kHourPx;
     return [
       Positioned(
-        left: _gutterWidth,
+        left: kGutterWidth,
         right: 0,
         top: top,
         height: 2,
@@ -492,7 +472,7 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
       ),
       // 8px dot hanging off the gutter edge (`.day-now::before`).
       Positioned(
-        left: _gutterWidth - 4,
+        left: kGutterWidth - 4,
         top: top - 3,
         width: 8,
         height: 8,
@@ -505,98 +485,4 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
       ),
     ];
   }
-}
-
-/// In-flight drag-to-block on one venue column.
-class _Drag {
-  _Drag({
-    required this.venueId,
-    required this.startHour,
-    required this.currentHour,
-  });
-
-  final String venueId;
-  final double startHour;
-  double currentHour;
-}
-
-/// 1px n-100 hairline at the bottom of every 60px hour row — the
-/// `repeating-linear-gradient` background of `.day-col`.
-class _HourLinesPainter extends CustomPainter {
-  const _HourLinesPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = AppColors.neutral100
-      ..strokeWidth = 1;
-    for (var row = 1; row <= _rowCount; row++) {
-      final y = row * _hourPx - 0.5;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_HourLinesPainter oldDelegate) => false;
-}
-
-/// `.drag-band` paint: 45° indigo stripes (`rgba(99,102,241,.18)`/`.3`, 6px
-/// bands) inside an 8px rounded rect with a 1.5px dashed `#6366F1` border.
-class _DragBandPainter extends CustomPainter {
-  const _DragBandPainter();
-
-  static const Color _stripeA = Color(0x2E6366F1); // rgba(99,102,241,.18)
-  static const Color _stripeB = Color(0x4D6366F1); // rgba(99,102,241,.30)
-  static const Color _borderColor = Color(0xFF6366F1);
-  static const double _bandWidth = 6;
-  static const double _dashLength = 4;
-  static const double _gapLength = 3;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(8));
-
-    // Base coat + 45° darker bands (same construction as the slot stripes).
-    canvas
-      ..save()
-      ..clipRRect(rrect)
-      ..drawRect(rect, Paint()..color = _stripeA)
-      ..translate(rect.center.dx, rect.center.dy)
-      // CSS angle is clockwise from north; canvas rotation is from +x.
-      ..rotate((45 - 90) * math.pi / 180);
-    final reach = size.longestSide;
-    const period = _bandWidth * 2;
-    final bandPaint = Paint()..color = _stripeB;
-    for (var x = -(reach / period).ceil() * period; x < reach; x += period) {
-      canvas.drawRect(
-        Rect.fromLTRB(x + _bandWidth, -reach, x + period, reach),
-        bandPaint,
-      );
-    }
-    canvas.restore();
-
-    // 1.5px dashed border.
-    final borderPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..color = _borderColor;
-    final source = Path()..addRRect(rrect.deflate(0.75));
-    for (final metric in source.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        canvas.drawPath(
-          metric.extractPath(
-            distance,
-            math.min(distance + _dashLength, metric.length),
-          ),
-          borderPaint,
-        );
-        distance += _dashLength + _gapLength;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_DragBandPainter oldDelegate) => false;
 }

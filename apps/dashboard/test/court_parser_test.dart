@@ -95,6 +95,18 @@ void main() {
       expect(r.venues.single.indoor, isTrue);
     });
 
+    test('keeps early-open / late-close hours (5h–23h)', () async {
+      // Regression: the prompt used to cap hours at 6–22, so "mở 5h đến 23h"
+      // came back null. The mapping itself must pass any hour through.
+      final inner = jsonEncode({'name': 'Sân X', 'openHour': 5, 'closeHour': 23});
+      final (service, _) = _serviceWith(_gemini(inner));
+
+      final r = await service.parse('Sân X mở 5h đến 23h');
+
+      expect(r.openHour, 5);
+      expect(r.closeHour, 23);
+    });
+
     test('sends the configured key to the generateContent endpoint', () async {
       final (service, adapter) = _serviceWith(_gemini('{"name":"X"}'));
 

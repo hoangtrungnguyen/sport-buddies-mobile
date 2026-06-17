@@ -1,16 +1,15 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../model/models.dart';
-import '../style/slot_state_style.dart';
 import '../util/schedule_format.dart';
 import '../widgets/mouse_vertical_drag.dart';
-import '../widgets/slot_block.dart' show slotHoverSaturationMatrix;
 import '../widgets/sticky_grid_header.dart';
+import '../widgets/week_grid_metrics.dart';
+import '../widgets/week_slot_block.dart';
 
 /// Week view of the "Lịch sân" screen — ONE venue across a Monday-based week
 /// (`WeekView` in `schedule-views.jsx`, `.week-grid` in `schedule-styles.css`).
@@ -71,49 +70,12 @@ class WeekView extends StatefulWidget {
   State<WeekView> createState() => _WeekViewState();
 }
 
-// ---------------------------------------------------------------------------
-// Grid constants (`schedule-styles.css` `:root` + `SC_HOURS`)
-// ---------------------------------------------------------------------------
-
-/// `--hour-px` — row height per hour.
-const double _hourPx = 60;
-
-/// `--time-gutter`.
-const double _gutterWidth = 64;
-
-/// Operating hours 06:00–22:00 inclusive (`SC_HOURS` = 17 labels).
-const int _firstHour = 6;
-const int _hourCount = 17;
-
-/// Body height = `SC_HOURS.length × HPX` = 1020px.
-const double _bodyHeight = _hourCount * _hourPx;
-
-/// `.week-head, .week-body { min-width: 760px; }` under the 1024px breakpoint.
-const double _minGridWidth = 760;
-
-/// `.week-col.today` faint wash — `rgba(34,197,94,.03)`.
-const Color _todayColumnWash = Color(0x0822C55E);
-
-/// `--shadow-md: 0 4px 12px rgba(17,24,39,.06)` — slot hover elevation.
-const BoxShadow _shadowMd = BoxShadow(
-  color: Color(0x0F111827),
-  offset: Offset(0, 4),
-  blurRadius: 12,
-);
-
-/// Pointer y (local to a column) → decimal hour snapped DOWN to 30 minutes.
-/// Replicates `hourFromY`: `6 + Math.floor(clamp(y/HPX, 0, 17) * 2) / 2`.
-double _hourFromDy(double dy) {
-  final rel = (dy / _hourPx).clamp(0.0, _hourCount.toDouble());
-  return _firstHour + (rel * 2).floorToDouble() / 2;
-}
-
 class _WeekViewState extends State<WeekView> {
   /// Live drag-to-block range, while the pointer is down on a column.
   ({int weekday, double startHour, double curHour})? _drag;
 
   void _startDrag(int weekday, DragStartDetails details) {
-    final h = _hourFromDy(details.localPosition.dy);
+    final h = hourFromDy(details.localPosition.dy);
     setState(
       () => _drag = (weekday: weekday, startHour: h, curHour: h + 0.5),
     );
@@ -125,7 +87,7 @@ class _WeekViewState extends State<WeekView> {
     // Band only extends downward, min 0.5h — `Math.max(startH + 0.5, …)`.
     final h = math.max(
       drag.startHour + 0.5,
-      _hourFromDy(details.localPosition.dy),
+      hourFromDy(details.localPosition.dy),
     );
     setState(
       () => _drag =
@@ -170,7 +132,7 @@ class _WeekViewState extends State<WeekView> {
     // day-cells row pins to the viewport top while the page scrolls the
     // 1020px grid.
     final grid = StickyGridHeader(
-      maxStick: _bodyHeight,
+      maxStick: kBodyHeight,
       // ---- Header: [64px corner] + 7 day cells (`.week-head`) ------------
       header: Container(
         decoration: const BoxDecoration(
@@ -182,7 +144,7 @@ class _WeekViewState extends State<WeekView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Container(
-                width: _gutterWidth,
+                width: kGutterWidth,
                 decoration: const BoxDecoration(
                   border: Border(
                     right: BorderSide(color: AppColors.neutral200),
@@ -204,7 +166,7 @@ class _WeekViewState extends State<WeekView> {
       ),
       // ---- Body: [64px gutter] + 7 columns (`.week-body`) ----------------
       body: SizedBox(
-        height: _bodyHeight,
+        height: kBodyHeight,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -249,7 +211,7 @@ class _WeekViewState extends State<WeekView> {
               ? SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: SizedBox(
-                    width: math.max(_minGridWidth, constraints.maxWidth - 2),
+                    width: math.max(kMinGridWidth, constraints.maxWidth - 2),
                     child: grid,
                   ),
                 )
@@ -323,15 +285,15 @@ class _TimeGutter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: _gutterWidth,
+      width: kGutterWidth,
       decoration: const BoxDecoration(
         border: Border(right: BorderSide(color: AppColors.neutral200)),
       ),
       child: Column(
         children: [
-          for (var i = 0; i < _hourCount; i++)
+          for (var i = 0; i < kHourCount; i++)
             Container(
-              height: _hourPx,
+              height: kHourPx,
               alignment: Alignment.topRight,
               padding: const EdgeInsets.fromLTRB(8, 3, 8, 0),
               decoration: i == 0
@@ -342,7 +304,7 @@ class _TimeGutter extends StatelessWidget {
                       ),
                     ),
               child: Text(
-                '${'${_firstHour + i}'.padLeft(2, '0')}:00',
+                '${'${kFirstHour + i}'.padLeft(2, '0')}:00',
                 style: GoogleFonts.jetBrainsMono(
                   fontSize: 10.5,
                   color: AppColors.neutral400,
@@ -412,12 +374,12 @@ class _WeekDayColumnState extends State<_WeekDayColumn> {
       onCancel: widget.onDragCancel,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTapUp: (d) => widget.onEmptyTapped(_hourFromDy(d.localPosition.dy)),
+        onTapUp: (d) => widget.onEmptyTapped(hourFromDy(d.localPosition.dy)),
         child: Container(
           // Keep children off the 1px right border (CSS border-box).
           padding: widget.isLast ? null : const EdgeInsets.only(right: 1),
           decoration: BoxDecoration(
-            color: widget.isToday ? _todayColumnWash : null,
+            color: widget.isToday ? kTodayColumnWash : null,
             border: widget.isLast
                 ? null
                 : const Border(right: BorderSide(color: AppColors.neutral200)),
@@ -432,10 +394,10 @@ class _WeekDayColumnState extends State<_WeekDayColumn> {
                     // `top = (start − 6) × HPX + 2` — inset 3px in Week view.
                     left: 3,
                     right: 3,
-                    top: (slot.startHour - _firstHour) * _hourPx + 2,
+                    top: (slot.startHour - kFirstHour) * kHourPx + 2,
                     // `height = max(dur × HPX − 4, 22)`.
-                    height: math.max(slot.durationHours * _hourPx - 4, 22),
-                    child: _WeekSlotBlock(
+                    height: math.max(slot.durationHours * kHourPx - 4, 22),
+                    child: WeekSlotBlock(
                       slot: slot,
                       onTap: () => widget.onSlotTapped(slot),
                       onHoverChanged: (hovered) => setState(() {
@@ -451,10 +413,10 @@ class _WeekDayColumnState extends State<_WeekDayColumn> {
                   Positioned(
                     left: 4,
                     right: 4,
-                    top: (math.min(drag.startHour, drag.curHour) - _firstHour) *
-                        _hourPx,
-                    height: (drag.curHour - drag.startHour).abs() * _hourPx,
-                    child: _DragBand(
+                    top: (math.min(drag.startHour, drag.curHour) - kFirstHour) *
+                        kHourPx,
+                    height: (drag.curHour - drag.startHour).abs() * kHourPx,
+                    child: DragBand(
                       startHour: math.min(drag.startHour, drag.curHour),
                       endHour: math.max(drag.startHour, drag.curHour),
                     ),
@@ -476,9 +438,9 @@ class _HourLinesPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = AppColors.neutral100;
-    for (var k = 1; k <= _hourCount; k++) {
+    for (var k = 1; k <= kHourCount; k++) {
       canvas.drawRect(
-        Rect.fromLTWH(0, k * _hourPx - 1, size.width, 1),
+        Rect.fromLTWH(0, k * kHourPx - 1, size.width, 1),
         paint,
       );
     }
@@ -486,334 +448,4 @@ class _HourLinesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_HourLinesPainter oldDelegate) => false;
-}
-
-// ---------------------------------------------------------------------------
-// Slot block — compact Week variant (`.week-col .sc-slot`)
-// ---------------------------------------------------------------------------
-
-class _WeekSlotBlock extends StatefulWidget {
-  const _WeekSlotBlock({
-    required this.slot,
-    required this.onTap,
-    this.onHoverChanged,
-  });
-
-  final Slot slot;
-  final VoidCallback onTap;
-
-  /// Hover enter/exit — lets the column raise the hovered block above its
-  /// siblings (`.sc-slot:hover { z-index: 4 }`).
-  final ValueChanged<bool>? onHoverChanged;
-
-  @override
-  State<_WeekSlotBlock> createState() => _WeekSlotBlockState();
-}
-
-class _WeekSlotBlockState extends State<_WeekSlotBlock> {
-  bool _hovered = false;
-
-  /// `filter: saturate(1.08)` on hover (`.sc-slot:hover`).
-  Widget _saturateOnHover(Widget child) => _hovered
-      ? ColorFiltered(
-          colorFilter: const ColorFilter.matrix(slotHoverSaturationMatrix),
-          child: child,
-        )
-      : child;
-
-  @override
-  Widget build(BuildContext context) {
-    final slot = widget.slot;
-    // Content thresholds use the raw (unclamped) `dur × HPX`, like the jsx.
-    final rawHeight = slot.durationHours * _hourPx;
-    final style = _hovered && slot.state == SlotState.empty
-        ? emptySlotHoverStyle
-        : slotStateStyles[slot.state]!;
-    final showTime = rawHeight > 40;
-    final showCap = slot.capacity != null && rawHeight > 30;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() => _hovered = true);
-        widget.onHoverChanged?.call(true);
-      },
-      onExit: (_) {
-        setState(() => _hovered = false);
-        widget.onHoverChanged?.call(false);
-      },
-      // Absorb MOUSE drags so drag-to-block never starts on a slot
-      // (`if (e.target.closest('.sc-slot')) return` in the jsx); touch
-      // pans fall through so the page stays scrollable.
-      child: MouseVerticalDrag(
-        onStart: (_) {},
-        onUpdate: (_) {},
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: Transform.translate(
-            offset: _hovered ? const Offset(0, -1) : Offset.zero,
-            child: Container(
-              decoration: _hovered
-                  ? BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [_shadowMd],
-                    )
-                  : null,
-              child: _saturateOnHover(CustomPaint(
-                painter: _SlotDecorationPainter.fromStyle(style),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // Unbounded height + clip = CSS `overflow: hidden`.
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    slotStateIcons[slot.state],
-                                    size: 12,
-                                    color: style.text.withValues(alpha: 0.85),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      slot.label,
-                                      style: GoogleFonts.sora(
-                                        // Compact: 10.5px name (`.week-col`).
-                                        fontSize: 10.5,
-                                        fontWeight:
-                                            slot.state == SlotState.empty
-                                                ? FontWeight.w600
-                                                : FontWeight.w700,
-                                        height: 1.25,
-                                        color: style.text,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (showTime)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    '${hourLabel(slot.startHour)}–'
-                                    '${hourLabel(slot.endHour)}',
-                                    style: GoogleFonts.jetBrainsMono(
-                                      // Compact: 9px time (`.week-col .s-time`).
-                                      fontSize: 9,
-                                      height: 1.25,
-                                      color: style.text.withValues(alpha: 0.85),
-                                    ),
-                                  ),
-                                ),
-                              // Compact mode: no subtitle line in Week view.
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (showCap)
-                        Positioned(
-                          right: 6,
-                          bottom: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xB3FFFFFF),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              // Never "0/N" — joined count has no DB column.
-                              slot.capacityLabel!,
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: style.text,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              )),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Drag-to-block band (`.drag-band`)
-// ---------------------------------------------------------------------------
-
-class _DragBand extends StatelessWidget {
-  const _DragBand({required this.startHour, required this.endHour});
-
-  final double startHour;
-  final double endHour;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: CustomPaint(
-        painter: const _SlotDecorationPainter(
-          bg: Color(0x00000000),
-          border: Color(0xFF6366F1),
-          dashed: true,
-          // 45° indigo stripes — rgba(99,102,241,.18) / rgba(99,102,241,.3).
-          stripeA: Color(0x2E6366F1),
-          stripeB: Color(0x4D6366F1),
-          stripeBand: 6,
-          stripeAngleDeg: 45,
-        ),
-        child: Center(
-          child: Text(
-            '${hourLabel(startHour)}–${hourLabel(endHour)}',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF3730A3),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Slot-chrome painter — rounded 8px box, 1.5px solid/dashed border, optional
-// diagonal stripes (CSS `repeating-linear-gradient`) and 3px left accent bar.
-// ---------------------------------------------------------------------------
-
-class _SlotDecorationPainter extends CustomPainter {
-  const _SlotDecorationPainter({
-    required this.bg,
-    required this.border,
-    this.dashed = false,
-    this.stripeA,
-    this.stripeB,
-    this.stripeBand = 0,
-    this.stripeAngleDeg = 0,
-    this.accentLeft,
-  });
-
-  _SlotDecorationPainter.fromStyle(SlotStateStyle style)
-      : this(
-          bg: style.bg,
-          border: style.border,
-          dashed: style.dashed,
-          stripeA: style.striped.colorA,
-          stripeB: style.striped.colorB,
-          stripeBand: style.striped.bandWidth,
-          stripeAngleDeg: style.striped.angleDeg,
-          accentLeft: style.accentLeft,
-        );
-
-  final Color bg;
-  final Color border;
-  final bool dashed;
-  final Color? stripeA;
-  final Color? stripeB;
-  final double stripeBand;
-  final double stripeAngleDeg;
-  final Color? accentLeft;
-
-  static const double _radius = 8;
-  static const double _strokeWidth = 1.5;
-  static const double _dashLength = 4;
-  static const double _gapLength = 3;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(_radius),
-    );
-
-    canvas.drawRRect(rrect, Paint()..color = bg);
-
-    final stripeA = this.stripeA;
-    final stripeB = this.stripeB;
-    if (stripeA != null && stripeB != null && stripeBand > 0) {
-      // CSS gradient angle: 0deg = up, clockwise → direction (sin a, −cos a).
-      final rad = stripeAngleDeg * math.pi / 180;
-      final period = Offset(math.sin(rad), -math.cos(rad)) * (stripeBand * 2);
-      final paint = Paint()
-        ..shader = ui.Gradient.linear(
-          Offset.zero,
-          period,
-          [stripeA, stripeA, stripeB, stripeB],
-          [0, 0.5, 0.5, 1],
-          TileMode.repeated,
-        );
-      canvas.save();
-      canvas.clipRRect(rrect);
-      canvas.drawRect(Offset.zero & size, paint);
-      canvas.restore();
-    }
-
-    final accentLeft = this.accentLeft;
-    if (accentLeft != null) {
-      // `.st-fixed::before` — 3px solid bar hugging the left edge.
-      canvas.save();
-      canvas.clipRRect(rrect);
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, 3, size.height),
-        Paint()..color = accentLeft,
-      );
-      canvas.restore();
-    }
-
-    // Border strokes inside the bounds (CSS border-box).
-    final borderRRect = rrect.deflate(_strokeWidth / 2);
-    final borderPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeWidth
-      ..color = border;
-    if (!dashed) {
-      canvas.drawRRect(borderRRect, borderPaint);
-    } else {
-      final path = Path()..addRRect(borderRRect);
-      for (final metric in path.computeMetrics()) {
-        var distance = 0.0;
-        while (distance < metric.length) {
-          canvas.drawPath(
-            metric.extractPath(distance, distance + _dashLength),
-            borderPaint,
-          );
-          distance += _dashLength + _gapLength;
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_SlotDecorationPainter oldDelegate) =>
-      bg != oldDelegate.bg ||
-      border != oldDelegate.border ||
-      dashed != oldDelegate.dashed ||
-      stripeA != oldDelegate.stripeA ||
-      stripeB != oldDelegate.stripeB ||
-      stripeBand != oldDelegate.stripeBand ||
-      stripeAngleDeg != oldDelegate.stripeAngleDeg ||
-      accentLeft != oldDelegate.accentLeft;
 }

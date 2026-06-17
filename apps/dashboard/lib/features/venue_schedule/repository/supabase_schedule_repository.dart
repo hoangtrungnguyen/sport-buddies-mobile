@@ -4,13 +4,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../model/models.dart';
 import '../util/schedule_format.dart';
 import 'schedule_api_client.dart';
+import 'schedule_mappers.dart';
 import 'schedule_repository.dart';
+import 'schedule_time_utils.dart';
 
 /// Cached owner court: raw id + operating hours + the mapped [Venue].
 typedef _OwnerCourt = ({String id, int openHour, int closeHour, Venue venue});
 
-/// A `[start, end)` datetime range (local) — used by the block-gap math.
-typedef _Range = ({DateTime start, DateTime end});
 
 /// Production [ScheduleRepository] — real data only.
 ///
@@ -30,7 +30,7 @@ typedef _Range = ({DateTime start, DateTime end});
 /// Column contracts mirror the verified repositories:
 /// - `slots(id, court_id, start_at, end_at, status, blocked_reason,
 ///   max_players)`; the write endpoints
-///   return the same columns, so API responses reuse [_slotFromRow].
+///   return the same columns, so API responses reuse [slotFromRow].
 /// - `courts(id, name, operating_hours, price_per_hour)` + embedded
 ///   `venues(sport_type)` — `OwnerCourtRepository` / the requests read path.
 /// - `bookings` rows are selected as `*` and parsed defensively, like
@@ -56,15 +56,6 @@ class SupabaseScheduleRepository implements ScheduleRepository {
   static const _courtCols =
       'id, name, operating_hours, price_per_hour, venues(sport_type)';
 
-  /// Venue dot palette (design handoff) — assigned to courts by stable index
-  /// (courts are ordered by name, so the colour is consistent across loads).
-  static const List<int> _palette = [
-    0xFF16A34A,
-    0xFF0EA5E9,
-    0xFFF97316,
-    0xFFA855F7,
-    0xFFEC4899,
-  ];
 
   /// Owner courts, fetched once and reused by the read paths (`getVenues`
   /// refreshes it on every screen load). Keyed by [_courtsCacheUid] — the
@@ -75,47 +66,6 @@ class SupabaseScheduleRepository implements ScheduleRepository {
   /// `auth.uid()` the cache was built for (see [_courtsCache]).
   String? _courtsCacheUid;
 
-  // ---------------------------------------------------------------------------
-  // slots.status ↔ SlotState mapping
-  // ---------------------------------------------------------------------------
-
-  /// `slots.status` literals (Postgres enum:
-  /// `open | booked | pending | owner | blocked | maintenance`).
-  static const _statusOpen = 'open';
-  static const _statusBooked = 'booked';
-  static const _statusPending = 'pending';
-  static const _statusOwner = 'owner';
-  static const _statusBlocked = 'blocked';
-  static const _statusMaintenance = 'maintenance';
-
-  /// DB → display state. `fixed`/`open`/`private` never occur from real data
-  /// (no DB representation yet — see [kMatchmakingEnabled]).
-  ///
-  /// NOTE: the slot-sync trigger (`trg_sync_slot_status_from_booking`,
-  /// snb-backend-core migration 0017) marks a slot `booked` as soon as a
-  /// booking is INSERTED — even while the booking is still pending — so a
-  /// literal `pending` slot status is not expected from the backend. The
-  /// mapping keeps the branch defensively; the authoritative pending
-  /// detection happens in [_applyBooking] from `bookings.status`.
-  static SlotState _stateFromStatus(String status) => switch (status) {
-        _statusBooked => SlotState.confirmed,
-        _statusPending => SlotState.pending,
-        _statusOwner => SlotState.owner,
-        _statusBlocked => SlotState.locked,
-        _statusMaintenance => SlotState.maintenance,
-        _ => SlotState.empty, // 'open' — bookable, no customer yet
-      };
-
-  /// Vietnamese state-label fallback when no real customer name exists —
-  /// same vocabulary as the legacy schedule screen; never a fabricated name.
-  static const Map<SlotState, String> _fallbackLabels = {
-    SlotState.empty: 'Slot trống',
-    SlotState.confirmed: 'Đã đặt',
-    SlotState.pending: 'Chờ duyệt',
-    SlotState.owner: 'Sân của tôi',
-    SlotState.maintenance: 'Bảo trì',
-    SlotState.locked: 'Đã khoá',
-  };
 
   // ---------------------------------------------------------------------------
   // Reads
@@ -168,7 +118,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
           .order('start_at');
       return _enrichFromBookings([
         for (final r in rows as List)
-          _slotFromRow((r as Map).cast<String, dynamic>()),
+          slotFromRow((r as Map).cast<String, dynamic>()),
       ]);
     } on ScheduleRepositoryException {
       rethrow;
@@ -194,7 +144,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
           .order('start_at');
       return _enrichFromBookings([
         for (final r in rows as List)
-          _slotFromRow((r as Map).cast<String, dynamic>()),
+          slotFromRow((r as Map).cast<String, dynamic>()),
       ]);
     } on ScheduleRepositoryException {
       rethrow;
@@ -229,14 +179,14 @@ class SupabaseScheduleRepository implements ScheduleRepository {
             .from('slots')
             .select('court_id, start_at, end_at, status')
             .inFilter('court_id', [for (final c in courts) c.id])
-            .inFilter('status', const [_statusBooked, _statusPending])
+            .inFilter('status', const [kStatusBooked, kStatusPending])
             .gte('start_at', gridStart.toUtc().toIso8601String())
             .lt('start_at', gridEnd.toUtc().toIso8601String());
         for (final r in rows as List) {
           final row = (r as Map).cast<String, dynamic>();
           final start = DateTime.parse(row['start_at'] as String).toLocal();
           final end = DateTime.parse(row['end_at'] as String).toLocal();
-          final key = _dayKey(start);
+          final key = dayKey(start);
           busyHours[key] =
               (busyHours[key] ?? 0) + end.difference(start).inMinutes / 60.0;
           bookings[key] = (bookings[key] ?? 0) + 1;
@@ -255,7 +205,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
         final date =
             DateTime(gridStart.year, gridStart.month, gridStart.day + i);
         final inMonth = date.month == month.month && date.year == month.year;
-        final key = _dayKey(date);
+        final key = dayKey(date);
         final occ = (!inMonth || operatingHours == 0)
             ? 0.0
             : ((busyHours[key] ?? 0) / operatingHours).clamp(0.0, 1.0);
@@ -295,14 +245,14 @@ class SupabaseScheduleRepository implements ScheduleRepository {
           'Loại slot này chưa được hỗ trợ trên dữ liệu thật.');
     }
     try {
-      final date = _resolveDate(req.date, req.weekday);
+      final date = resolveDate(req.date, req.weekday);
       // `POST /api/courts/slots`, status defaults to 'open' server-side.
       final created = await _api.createSlot(
         courtId: req.venueId,
-        startAt: _atHour(date, req.startHour),
-        endAt: _atHour(date, req.endHour),
+        startAt: atHour(date, req.startHour),
+        endAt: atHour(date, req.endHour),
       );
-      return _slotFromRow(created.json);
+      return slotFromRow(created.json);
     } on ScheduleRepositoryException {
       rethrow;
     } catch (e, st) {
@@ -336,11 +286,11 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       // today when today's session start has already elapsed (the server
       // creates past slots without complaint; the old loop skipped past
       // sessions by full datetime, as the recurring-block path still does).
-      final anchorWeek = mondayOf(_resolveDate(req.date, req.weekday));
+      final anchorWeek = mondayOf(resolveDate(req.date, req.weekday));
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
       var fromLocal = anchorWeek.isBefore(today) ? today : anchorWeek;
-      if (fromLocal == today && _atHour(today, req.startHour).isBefore(now)) {
+      if (fromLocal == today && atHour(today, req.startHour).isBefore(now)) {
         fromLocal = DateTime(today.year, today.month, today.day + 1);
       }
       final untilLocal = DateTime(
@@ -350,9 +300,9 @@ class SupabaseScheduleRepository implements ScheduleRepository {
             'Khoảng lặp lại đã trôi qua — hãy chọn tuần hiện tại hoặc sau.');
       }
 
-      final startLocal = _atHour(fromLocal, req.startHour);
+      final startLocal = atHour(fromLocal, req.startHour);
       final startUtc = startLocal.toUtc();
-      final endUtc = _atHour(fromLocal, req.endHour).toUtc();
+      final endUtc = atHour(fromLocal, req.endHour).toUtc();
       // PRE-VALIDATION: the endpoint expresses a session as HH:MM times
       // within ONE UTC day, so a session that crosses UTC midnight — or
       // ends exactly on it, making end_time ("00:00") <= start_time — is
@@ -379,8 +329,8 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       final daysOfWeek = [
         for (final w in {...weekdays}) dayKeys[(w + dayShift + 7) % 7],
       ];
-      final startTime = _hhmm(startUtc);
-      final endTime = _hhmm(endUtc);
+      final startTime = hhmm(startUtc);
+      final endTime = hhmm(endUtc);
 
       // The endpoint caps one call at 90 days (`until_date - from_date`,
       // server `_MAX_RECURRENCE_DAYS = 90` → 400 beyond), so long
@@ -403,9 +353,9 @@ class SupabaseScheduleRepository implements ScheduleRepository {
             daysOfWeek: daysOfWeek,
             startTime: startTime,
             endTime: endTime,
-            fromDate: _ymd(DateTime(
+            fromDate: ymd(DateTime(
                 chunkStart.year, chunkStart.month, chunkStart.day + dayShift)),
-            untilDate: _ymd(DateTime(
+            untilDate: ymd(DateTime(
                 chunkEnd.year, chunkEnd.month, chunkEnd.day + dayShift)),
           );
         } on ScheduleRepositoryException catch (e) {
@@ -439,17 +389,17 @@ class SupabaseScheduleRepository implements ScheduleRepository {
   @override
   Future<void> blockTime(BlockTimeRequest req) async {
     try {
-      final date = _resolveDate(req.date, req.weekday);
-      final startAt = _atHour(date, req.startHour);
-      final endAt = _atHour(date, req.endHour);
+      final date = resolveDate(req.date, req.weekday);
+      final startAt = atHour(date, req.startHour);
+      final endAt = atHour(date, req.endHour);
       final note = req.note?.trim();
       // Exact API status per block kind — the block endpoint accepts
       // `status ∈ {blocked, maintenance, owner}` (default blocked), so every
       // row keeps its true kind and the note rides along verbatim.
       final kindStatus = switch (req.blockType) {
-        SlotState.maintenance => _statusMaintenance,
-        SlotState.owner => _statusOwner,
-        _ => _statusBlocked,
+        SlotState.maintenance => kStatusMaintenance,
+        SlotState.owner => kStatusOwner,
+        _ => kStatusBlocked,
       };
 
       // READ (direct DB): everything overlapping `[startAt, endAt)` on this
@@ -469,7 +419,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       // the backend's own 409 only fires per 'booked' slot, and 'pending'
       // bookings ride on slots the trigger already marked 'booked'.
       if (overlaps.any((r) =>
-          r['status'] == _statusBooked || r['status'] == _statusPending)) {
+          r['status'] == kStatusBooked || r['status'] == kStatusPending)) {
         throw ScheduleRepositoryException(
             'Khung giờ này có lịch đã đặt hoặc chờ duyệt — không thể khoá.');
       }
@@ -478,7 +428,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       // ENTIRETY (a status flip cannot split a row), silently blocking hours
       // the owner did not select — reject instead and let them re-align.
       for (final r in overlaps) {
-        if (r['status'] != _statusOpen) continue;
+        if (r['status'] != kStatusOpen) continue;
         final s = DateTime.parse(r['start_at'] as String).toLocal();
         final e = DateTime.parse(r['end_at'] as String).toLocal();
         if (s.isBefore(startAt) || e.isAfter(endAt)) {
@@ -504,7 +454,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       // grid refresh, which keeps the calendar truthful; a server-side
       // batch block endpoint would remove the window entirely.
       for (final r in overlaps) {
-        if (r['status'] != _statusOpen) continue;
+        if (r['status'] != kStatusOpen) continue;
         await _api.blockSlot(
           r['id'] as String,
           status: kindStatus,
@@ -517,7 +467,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       // keep their exact status via the create `status` field ('owner'
       // implies `is_owner_slot` server-side) and carry the note verbatim —
       // no follow-up calls needed.
-      for (final gap in _uncoveredRanges(startAt, endAt, overlaps)) {
+      for (final gap in uncoveredRanges(startAt, endAt, overlaps)) {
         await _api.createSlot(
           courtId: req.venueId,
           startAt: gap.start,
@@ -564,7 +514,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
             'Đã duyệt yêu cầu, nhưng slot không còn hiển thị — hãy tải lại '
             'lịch.');
       }
-      final refreshed = await _enrichFromBookings([_slotFromRow(row)]);
+      final refreshed = await _enrichFromBookings([slotFromRow(row)]);
       return refreshed.first;
     } on ScheduleRepositoryException {
       rethrow;
@@ -609,12 +559,12 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       if (row == null) {
         throw ScheduleRepositoryException('Slot không còn tồn tại.');
       }
-      switch (row['status'] as String? ?? _statusOpen) {
-        case _statusBlocked || _statusOwner || _statusMaintenance:
+      switch (row['status'] as String? ?? kStatusOpen) {
+        case kStatusBlocked || kStatusOwner || kStatusMaintenance:
           // "Mở khoá giờ này" — `PATCH .../unblock` restores 'open' and
           // clears the reason (accepts any non-booked status; verified live).
           await _api.unblockSlot(slotId);
-        case _statusBooked || _statusPending:
+        case kStatusBooked || kStatusPending:
           // "Huỷ" a booking: resolve the active bookings row (READ), then
           // pending/confirmed→cancelled. The SERVER restores the slot to
           // 'open' itself (verified live) — the legacy manual slot-restore
@@ -673,7 +623,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
         id: row['id'] as String,
         openHour: openHour ?? 6,
         closeHour: closeHour ?? 22,
-        venue: _venueFromCourt(
+        venue: venueFromCourt(
           row,
           courts.length,
           openHour: openHour,
@@ -686,97 +636,11 @@ class SupabaseScheduleRepository implements ScheduleRepository {
     return courts;
   }
 
-  /// Maps one `courts` row to the feature's [Venue] — every field derived
-  /// from real columns; nothing invented.
-  static Venue _venueFromCourt(
-    Map<String, dynamic> row,
-    int index, {
-    int? openHour,
-    int? closeHour,
-  }) {
-    final name = (row['name'] as String?)?.trim() ?? '';
-    final sportTypes = _venueSportTypes(row['venues']);
-    return Venue(
-      id: row['id'] as String,
-      name: name,
-      shortCode: _shortCode(name),
-      // The enum is non-null: derive it from the court's venues' sport_type
-      // strings; football is the neutral default (it only drives the "MÔN"
-      // chips — sportLabel below is the displayed text and stays real).
-      sport: _sportFromLabels(sportTypes),
-      sportLabel: sportTypes.join(' · '),
-      colorValue: _palette[index % _palette.length],
-      pricePerHour: _asInt(row['price_per_hour']) ?? 0,
-      // Raw parsed values (no 06–22 fallback) — consumers decide their own
-      // fallback so an absent operating window is never presented as real.
-      openHour: openHour,
-      closeHour: closeHour,
-    );
-  }
-
-  /// Distinct `venues.sport_type` strings of a court's embedded venues.
-  /// Tolerates both PostgREST shapes (list for one-to-many, map when single).
-  static List<String> _venueSportTypes(Object? venues) {
-    final list = venues is List ? venues : (venues is Map ? [venues] : const []);
-    final out = <String>[];
-    for (final v in list) {
-      if (v is! Map) continue;
-      final s = (v['sport_type'] as String?)?.trim();
-      if (s != null && s.isNotEmpty && !out.contains(s)) out.add(s);
-    }
-    return out;
-  }
-
-  static SportType _sportFromLabels(List<String> labels) {
-    final joined = labels.join(' ').toLowerCase();
-    if (joined.contains('pickle')) return SportType.pickleball;
-    if (joined.contains('tennis')) return SportType.tennis;
-    return SportType.football;
-  }
-
-  /// "Sân 1" → "S1", "Pickleball A" → "PA", single word → first two letters.
-  static String _shortCode(String name) {
-    final words =
-        name.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
-    if (words.isEmpty) return '';
-    if (words.length == 1) {
-      final w = words.first;
-      return w.substring(0, w.length < 2 ? w.length : 2).toUpperCase();
-    }
-    return words.map((w) => w[0]).take(3).join().toUpperCase();
-  }
 
   // ---------------------------------------------------------------------------
   // Slot mapping & enrichment
   // ---------------------------------------------------------------------------
 
-  /// Maps one `slots` row to the feature's [Slot]. Times are converted to
-  /// LOCAL for the decimal-hour grid; `weekday` is 0=Mon..6=Sun of the local
-  /// date. `players`/`price`/`payment`/`bookingCode` start null — the DB has
-  /// no such slot columns ([_enrichFromBookings] may fill label/price).
-  static Slot _slotFromRow(Map<String, dynamic> row) {
-    final start = DateTime.parse(row['start_at'] as String).toLocal();
-    final end = DateTime.parse(row['end_at'] as String).toLocal();
-    final state = _stateFromStatus(row['status'] as String? ?? _statusOpen);
-    final date = DateTime(start.year, start.month, start.day);
-    final blockedReason = (row['blocked_reason'] as String?)?.trim();
-    return Slot(
-      id: row['id'] as String,
-      venueId: row['court_id'] as String,
-      state: state,
-      startHour: start.hour + start.minute / 60.0,
-      durationHours: end.difference(start).inMinutes / 60.0,
-      date: date,
-      weekday: date.weekday - 1,
-      // The owner's reason on a locked hour, else the state label.
-      label: (state == SlotState.locked &&
-              blockedReason != null &&
-              blockedReason.isNotEmpty)
-          ? blockedReason
-          : _fallbackLabels[state]!,
-      capacity: (row['max_players'] as num?)?.toInt(),
-    );
-  }
 
   /// Batched label/price enrichment for booked/pending slots: ONE `bookings`
   /// query per page load (never per slot). Fills the customer name as the
@@ -785,7 +649,7 @@ class SupabaseScheduleRepository implements ScheduleRepository {
   ///
   /// Also the authoritative pending detection: the slot-sync trigger marks a
   /// slot `booked` on booking INSERT while the booking itself is still
-  /// `pending` (see [_stateFromStatus]), so the display state is overridden
+  /// `pending` (see [stateFromStatus]), so the display state is overridden
   /// from the resolved booking row — without this every awaiting-approval
   /// booking would render as "Đã đặt" and approve/reject would be dead.
   Future<List<Slot>> _enrichFromBookings(List<Slot> slots) async {
@@ -814,11 +678,11 @@ class SupabaseScheduleRepository implements ScheduleRepository {
         final kept = bySlot[slotId];
         // First (= newest) row wins; an active pending/confirmed row beats
         // an inactive (completed) one regardless of age.
-        if (kept == null || (!_isActiveBooking(kept) && _isActiveBooking(row))) {
+        if (kept == null || (!isActiveBooking(kept) && isActiveBooking(row))) {
           bySlot[slotId] = row;
         }
       }
-      return [for (final s in slots) _applyBooking(s, bySlot[s.id])];
+      return [for (final s in slots) applyBooking(s, bySlot[s.id])];
     } catch (e, st) {
       // Enrichment is decoration only — a failure here (e.g. RLS on
       // bookings) must not blank the whole calendar. Logged, then the
@@ -829,38 +693,6 @@ class SupabaseScheduleRepository implements ScheduleRepository {
     }
   }
 
-  /// Whether a bookings row is the live one behind its slot (vs. e.g. a
-  /// leftover 'completed' row of an earlier booking).
-  static bool _isActiveBooking(Map<String, dynamic> row) =>
-      row['status'] == 'pending' || row['status'] == 'confirmed';
-
-  /// Applies one bookings row onto its slot — same defensive parsing as
-  /// `BookingRequest.fromRow` (`customer_name` for walk-ins; explicit
-  /// `total_price`/`price`/`amount` only — no derived price math).
-  ///
-  /// `bookings.status` overrides the display state (see
-  /// [_enrichFromBookings]): a pending booking shows "Chờ duyệt" even though
-  /// the trigger already flipped the slot to `booked`.
-  static Slot _applyBooking(Slot slot, Map<String, dynamic>? booking) {
-    if (booking == null) return slot;
-    final state = switch (booking['status']) {
-      'pending' => SlotState.pending,
-      'confirmed' => SlotState.confirmed,
-      _ => slot.state,
-    };
-    final name = (booking['customer_name'] as String?)?.trim();
-    final total = _asInt(
-        booking['total_price'] ?? booking['price'] ?? booking['amount']);
-    return slot.copyWith(
-      state: state,
-      label: (name != null && name.isNotEmpty)
-          ? name
-          // Re-derive the state label when the override changed the state
-          // (the row label was computed from slots.status).
-          : (state == slot.state ? slot.label : _fallbackLabels[state]!),
-      price: (total != null && total > 0) ? total : null,
-    );
-  }
 
   /// Resolves the pending bookings row behind a pending slot. Throws a
   /// [ScheduleRepositoryException] when none exists (already handled, or the
@@ -900,61 +732,4 @@ class SupabaseScheduleRepository implements ScheduleRepository {
     return (rows.first as Map)['id'].toString();
   }
 
-  // ---------------------------------------------------------------------------
-  // Small helpers
-  // ---------------------------------------------------------------------------
-
-  /// Sub-ranges of `[start, end)` not covered by any of [rows] (slot rows with
-  /// `start_at`/`end_at`) — the holes [blockTime] fills with inserts.
-  static List<_Range> _uncoveredRanges(
-    DateTime start,
-    DateTime end,
-    List<Map<String, dynamic>> rows,
-  ) {
-    final covered = <_Range>[];
-    for (final r in rows) {
-      final s = DateTime.parse(r['start_at'] as String).toLocal();
-      final e = DateTime.parse(r['end_at'] as String).toLocal();
-      final cs = s.isAfter(start) ? s : start;
-      final ce = e.isBefore(end) ? e : end;
-      if (ce.isAfter(cs)) covered.add((start: cs, end: ce));
-    }
-    covered.sort((a, b) => a.start.compareTo(b.start));
-    final gaps = <_Range>[];
-    var cursor = start;
-    for (final c in covered) {
-      if (c.start.isAfter(cursor)) gaps.add((start: cursor, end: c.start));
-      if (c.end.isAfter(cursor)) cursor = c.end;
-    }
-    if (cursor.isBefore(end)) gaps.add((start: cursor, end: end));
-    return gaps;
-  }
-
-  /// Defaults a missing date like the create/block sheets expect: weekday →
-  /// that day of the current week, otherwise today.
-  static DateTime _resolveDate(DateTime? date, int? weekday) {
-    if (date != null) return DateTime(date.year, date.month, date.day);
-    final now = DateTime.now();
-    if (weekday != null) {
-      final monday = mondayOf(now);
-      return DateTime(monday.year, monday.month, monday.day + weekday);
-    }
-    return DateTime(now.year, now.month, now.day);
-  }
-
-  /// Local [date] at decimal [hour] (`19.5` → 19:30).
-  static DateTime _atHour(DateTime date, double hour) => DateTime(
-      date.year, date.month, date.day, hour.floor(), ((hour % 1) * 60).round());
-
-  /// `HH:MM` of [d] — the recurrence endpoint's time format.
-  static String _hhmm(DateTime d) =>
-      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-  /// `YYYY-MM-DD` of [d] — the recurrence endpoint's date format.
-  static String _ymd(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
-  static String _dayKey(DateTime d) => '${d.year}-${d.month}-${d.day}';
-
-  static int? _asInt(Object? v) => v is num ? v.round() : null;
 }
