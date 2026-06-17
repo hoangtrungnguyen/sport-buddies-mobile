@@ -1,8 +1,8 @@
 # Fastlane pipeline for the SportBuddies customer app (Android).
 #
 # Lanes:
-#   fastlane android build       — flutter release APK (envied codegen must
-#                                  already be done; see deploy-customer-app.sh)
+#   fastlane android build       — flutter release APK (config injected via
+#                                  --dart-define-from-file; see deploy-customer-app.sh)
 #   fastlane android distribute  — build + upload to Firebase App Distribution
 #
 # Required env for :distribute
@@ -63,14 +63,27 @@ def require_environment!
   environment
 end
 
+# Compile-time config (SUPABASE_URL, API_BASE_URL, …) is read by env.dart via
+# String.fromEnvironment, so it must be passed to `flutter build`. The deploy
+# script writes apps/customer/.<ENVIRONMENT>.env and points DART_DEFINE_FROM_FILE
+# at it; --dart-define=ENVIRONMENT (separate) selects the flavor name.
+def dart_define_args(environment)
+  args = ["--dart-define=ENVIRONMENT=#{environment}"]
+  define_file = ENV["DART_DEFINE_FROM_FILE"].to_s
+  unless define_file.empty?
+    UI.user_error!("DART_DEFINE_FROM_FILE not found: #{define_file}") unless File.exist?(define_file)
+    args << "--dart-define-from-file=#{define_file}"
+  end
+  args
+end
+
 platform :android do
   desc "Build the Flutter release APK"
   lane :build do
     environment = require_environment!
     UI.message("Building APK (ENVIRONMENT=#{environment})...")
     Dir.chdir(app_root) do
-      sh("flutter", "build", "apk", "--release",
-         "--dart-define=ENVIRONMENT=#{environment}")
+      sh("flutter", "build", "apk", "--release", *dart_define_args(environment))
     end
   end
 
@@ -117,7 +130,7 @@ platform :ios do
     UI.message("Building IPA (ENVIRONMENT=#{environment})...")
     Dir.chdir(app_root) do
       sh("flutter", "build", "ipa", "--release",
-         "--dart-define=ENVIRONMENT=#{environment}",
+         *dart_define_args(environment),
          "--export-options-plist=ios/ExportOptionsAdHoc.plist")
     end
   end
