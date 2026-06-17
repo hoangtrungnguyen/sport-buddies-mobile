@@ -11,6 +11,7 @@ import '../service/court_info_parser_service.dart';
 import '../util/court_format.dart';
 import '../util/maps_url.dart';
 import 'widgets/ai_assist_sheet.dart';
+import 'widgets/court_form_ai_fill.dart';
 import 'widgets/court_form_chrome.dart';
 import 'widgets/court_form_fields.dart';
 import 'widgets/court_widgets.dart';
@@ -37,7 +38,8 @@ class CourtFormScreen extends StatefulWidget {
   State<CourtFormScreen> createState() => _CourtFormScreenState();
 }
 
-class _CourtFormScreenState extends State<CourtFormScreen> {
+class _CourtFormScreenState extends State<CourtFormScreen>
+    with CourtFormAiFill<CourtFormScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _nameCtrl;
   late final TextEditingController _phoneCtrl;
@@ -54,12 +56,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   bool _saving = false;
   bool _descBusy = false;
   String? _error;
-
-  /// Keys whose value was written by AI and not yet manually edited.
-  final Set<String> _aiFilled = {};
-
-  /// Keys currently showing the one-shot tertiaryContainer pulse.
-  final Set<String> _pulse = {};
 
   final _parser = CourtInfoParserService();
 
@@ -95,20 +91,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     final lat = coords.lat.toStringAsFixed(6);
     final lng = coords.lng.toStringAsFixed(6);
     if (_latCtrl.text == lat && _lngCtrl.text == lng) return;
-    setState(() {
-      _latCtrl.text = lat;
-      _lngCtrl.text = lng;
-      _pulse
-        ..add(_K.location)
-        ..add(_K.maps);
-    });
-    Future.delayed(const Duration(milliseconds: 1600), () {
-      if (mounted) {
-        setState(() => _pulse
-          ..remove(_K.location)
-          ..remove(_K.maps));
-      }
-    });
+    _latCtrl.text = lat;
+    _lngCtrl.text = lng;
+    flashFields({_K.location, _K.maps});
   }
 
   @override
@@ -122,10 +107,6 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
     _mapsCtrl.dispose();
     _descCtrl.dispose();
     super.dispose();
-  }
-
-  void _clearMark(String key) {
-    if (_aiFilled.remove(key)) setState(() {});
   }
 
   void _applyAi(CourtParseResult r) {
@@ -165,16 +146,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       filled.add(_K.hours);
     }
 
-    setState(() {
-      _aiFilled.addAll(filled);
-      _pulse
-        ..clear()
-        ..addAll(filled);
-    });
-    // Clear the pulse highlight after the one-shot flash.
-    Future.delayed(const Duration(milliseconds: 1600), () {
-      if (mounted) setState(() => _pulse.clear());
-    });
+    flashFields(filled, markFilled: true);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -205,14 +177,8 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
         venueNames: const [],
       );
       if (!mounted) return;
-      setState(() {
-        _descCtrl.text = desc;
-        _aiFilled.add(_K.description);
-        _pulse.add(_K.description);
-      });
-      Future.delayed(const Duration(milliseconds: 1600), () {
-        if (mounted) setState(() => _pulse.remove(_K.description));
-      });
+      _descCtrl.text = desc;
+      flashFields({_K.description}, markFilled: true);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -374,9 +340,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                     controller: _nameCtrl,
                     label: 'Tên sân *',
                     fieldKey: _K.name,
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
+                    aiFilled: aiFilled,
+                    pulse: pulse,
+                    onManualEdit: clearAiMark,
                     validator: (v) => (v?.trim().isEmpty ?? true)
                         ? 'Bắt buộc — nhập tên sân'
                         : null,
@@ -387,9 +353,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                     fieldKey: _K.phone,
                     leading: Symbols.call,
                     keyboardType: TextInputType.phone,
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
+                    aiFilled: aiFilled,
+                    pulse: pulse,
+                    onManualEdit: clearAiMark,
                   ),
                 ),
 
@@ -403,9 +369,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   controller: _addressCtrl,
                   label: 'Địa chỉ *',
                   fieldKey: _K.address,
-                  aiFilled: _aiFilled,
-                  pulse: _pulse,
-                  onManualEdit: _clearMark,
+                  aiFilled: aiFilled,
+                  pulse: pulse,
+                  onManualEdit: clearAiMark,
                   validator: (v) => (v?.trim().isEmpty ?? true)
                       ? 'Bắt buộc — nhập địa chỉ'
                       : null,
@@ -417,9 +383,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   fieldKey: _K.maps,
                   leading: Symbols.map,
                   keyboardType: TextInputType.url,
-                  aiFilled: _aiFilled,
-                  pulse: _pulse,
-                  onManualEdit: _clearMark,
+                  aiFilled: aiFilled,
+                  pulse: pulse,
+                  onManualEdit: clearAiMark,
                   helperText: 'Dán link Google Maps — toạ độ tự điền bên dưới',
                   validator: (v) {
                     final t = v?.trim() ?? '';
@@ -437,9 +403,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                     fieldKey: _K.location,
                     readOnly: true,
                     leading: Symbols.my_location,
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
+                    aiFilled: aiFilled,
+                    pulse: pulse,
+                    onManualEdit: clearAiMark,
                     helperText: 'Tự động từ link Maps',
                   ),
                   right: AiField(
@@ -448,9 +414,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                     fieldKey: _K.location,
                     readOnly: true,
                     leading: Symbols.my_location,
-                    aiFilled: _aiFilled,
-                    pulse: _pulse,
-                    onManualEdit: _clearMark,
+                    aiFilled: aiFilled,
+                    pulse: pulse,
+                    onManualEdit: clearAiMark,
                     helperText: 'Tự động từ link Maps',
                   ),
                 ),
@@ -466,9 +432,9 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   label: 'Mô tả',
                   fieldKey: _K.description,
                   maxLines: 3,
-                  aiFilled: _aiFilled,
-                  pulse: _pulse,
-                  onManualEdit: _clearMark,
+                  aiFilled: aiFilled,
+                  pulse: pulse,
+                  onManualEdit: clearAiMark,
                 ),
                 const SizedBox(height: 10),
                 Align(
@@ -497,7 +463,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   title: 'Tiện ích',
                   subtitle: 'Chọn các tiện ích sân có',
                 ),
-                if (_aiFilled.contains(_K.amenities)) const AiHint(),
+                if (aiFilled.contains(_K.amenities)) const AiHint(),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -516,7 +482,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                             } else {
                               _selectedAmenities.remove(a);
                             }
-                            _aiFilled.remove(_K.amenities);
+                            aiFilled.remove(_K.amenities);
                           }),
                         ),
                       ),
@@ -529,7 +495,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                   title: 'Giờ hoạt động',
                   subtitle: 'Khung giờ nhận khách trong ngày',
                 ),
-                if (_aiFilled.contains(_K.hours)) const AiHint(),
+                if (aiFilled.contains(_K.hours)) const AiHint(),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 480),
                   child: Row(
@@ -541,7 +507,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                           value: _openHour,
                           onChanged: (v) => setState(() {
                             _openHour = v;
-                            _aiFilled.remove(_K.hours);
+                            aiFilled.remove(_K.hours);
                           }),
                         ),
                       ),
@@ -553,7 +519,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
                           value: _closeHour,
                           onChanged: (v) => setState(() {
                             _closeHour = v;
-                            _aiFilled.remove(_K.hours);
+                            aiFilled.remove(_K.hours);
                           }),
                         ),
                       ),
