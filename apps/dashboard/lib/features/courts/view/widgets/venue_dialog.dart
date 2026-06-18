@@ -92,11 +92,13 @@ class _VenueDialogState extends State<_VenueDialog> {
       nav.pop();
       messenger.showSnackBar(SnackBar(
           content: Text(_isEdit ? 'Đã lưu thay đổi' : 'Đã thêm sân con')));
-    } catch (_) {
+    } catch (e) {
+      // Surface the real cause (e.g. PostgREST permission / RLS message) — the
+      // repository already logs it; a bare "thử lại" hides why the save failed.
       if (mounted) {
         setState(() => _saving = false);
         messenger.showSnackBar(
-            const SnackBar(content: Text('Không thể lưu. Thử lại nhé.')));
+            SnackBar(content: Text('Không thể lưu: $e')));
       }
     }
   }
