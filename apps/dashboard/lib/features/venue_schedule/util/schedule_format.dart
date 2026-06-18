@@ -3,6 +3,8 @@
 /// time labels).
 library;
 
+import 'package:dashboard/core/format/currency.dart';
+
 /// Vietnamese weekday labels, index 0 = Monday (`SC_DAYS` in the prototype).
 const List<String> weekdayShortLabels = [
   'T2',
@@ -29,16 +31,7 @@ String hourLabel(double hour) {
 }
 
 /// VND amount, thousands-grouped vi-VN style + `đ`: `525000 → "525.000đ"`.
-String vnd(int amount) {
-  final digits = amount.abs().toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) buf.write('.');
-    buf.write(digits[i]);
-  }
-  buf.write('đ');
-  return '${amount < 0 ? '-' : ''}$buf';
-}
+String vnd(int amount) => vndAmount(amount);
 
 /// Compact VND: `4200000 → "4,2tr"`, `4000000 → "4tr"`, `70000 → "70k"`,
 /// `500 → "500"`.

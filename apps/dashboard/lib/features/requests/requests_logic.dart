@@ -5,6 +5,8 @@
 // Flutter. Operates only on the [BookingRequest] domain model, so none of this
 // depends on the (assumed) Supabase column contract.
 
+import 'package:dashboard/core/format/currency.dart';
+
 import 'model/booking_request.dart';
 
 /// Page size for the request list (OWNER-27 AC: "Paginated (4 per page)").
@@ -164,18 +166,8 @@ String dayHeading(DateTime localDay) {
 }
 
 /// Formats a whole-VND [amount] with `.` thousands separators and a trailing
-/// `đ`, e.g. `1.200.000đ`. Done by hand (not `intl`) so it needs no locale data
-/// and stays trivially testable.
-String formatVnd(int amount) {
-  final neg = amount < 0;
-  final digits = amount.abs().toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) buf.write('.');
-    buf.write(digits[i]);
-  }
-  return '${neg ? '-' : ''}$buf' 'đ';
-}
+/// `đ`, e.g. `1.200.000đ`.
+String formatVnd(int amount) => vndAmount(amount);
 
 // ---------------------------------------------------------------------------
 // Date helpers

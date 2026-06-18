@@ -3,6 +3,8 @@
 /// time ranges, Vietnamese date labels, avatar initials) are built here.
 library;
 
+import 'package:dashboard/core/format/currency.dart';
+
 const List<String> _weekdayShort = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 
 const List<String> _weekdayFull = [
@@ -16,16 +18,7 @@ const List<String> _weekdayFull = [
 ];
 
 /// VND amount, thousands-grouped vi-VN style + `đ`: `4250000 → "4.250.000đ"`.
-String vndCurrency(int amount) {
-  final digits = amount.abs().toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < digits.length; i++) {
-    if (i > 0 && (digits.length - i) % 3 == 0) buf.write('.');
-    buf.write(digits[i]);
-  }
-  buf.write('đ');
-  return '${amount < 0 ? '-' : ''}$buf';
-}
+String vndCurrency(int amount) => vndAmount(amount);
 
 /// `HH:MM` of a local [d].
 String hhmm(DateTime d) =>
