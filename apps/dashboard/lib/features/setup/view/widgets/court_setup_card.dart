@@ -35,128 +35,138 @@ class CourtSetupCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Name row
-            Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: court.isActive
-                        ? AppColors.primary
-                        : AppColors.neutral300,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        court.name,
-                        style: GoogleFonts.sora(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: court.isActive
-                              ? AppColors.neutral900
-                              : AppColors.neutral400,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      if (court.address != null && court.address!.isNotEmpty)
-                        Text(
-                          court.address!,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12.5,
-                            color: AppColors.neutral500,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-                ),
-                if (!court.isActive)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      'Ngưng hoạt động',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutral500,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            _nameRow(),
             const SizedBox(height: 14),
             const Divider(height: 1, color: AppColors.neutral100),
             const SizedBox(height: 12),
-
-            // Info chips
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                _Chip(
-                  icon: Icons.access_time_rounded,
-                  label:
-                      '${_fmtHour(court.openHour)} – ${_fmtHour(court.closeHour)}',
-                ),
-              ],
-            ),
+            _infoChips(),
             const SizedBox(height: 14),
-
-            // Actions
-            Row(
-              children: [
-                const Spacer(),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.edit_outlined, size: 14),
-                  label: const Text('Sửa'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.neutral700,
-                    side: const BorderSide(color: AppColors.neutral200),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    textStyle: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  onPressed: onEdit,
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor:
-                        court.isActive ? AppColors.danger : AppColors.primary,
-                    side: BorderSide(
-                      color: court.isActive
-                          ? AppColors.danger.withValues(alpha: 0.4)
-                          : AppColors.primary.withValues(alpha: 0.4),
-                    ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8)),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    textStyle: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w600, fontSize: 13),
-                  ),
-                  onPressed: onToggleActive,
-                  child: Text(court.isActive ? 'Ngưng' : 'Kích hoạt'),
-                ),
-              ],
-            ),
+            _actions(),
           ],
         ),
       ),
+    );
+  }
+
+  /// Status dot + name/address, with the "Ngưng hoạt động" badge when inactive.
+  Widget _nameRow() {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: court.isActive ? AppColors.primary : AppColors.neutral300,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                court.name,
+                style: GoogleFonts.sora(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: court.isActive
+                      ? AppColors.neutral900
+                      : AppColors.neutral400,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (court.address != null && court.address!.isNotEmpty)
+                Text(
+                  court.address!,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    color: AppColors.neutral500,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+            ],
+          ),
+        ),
+        if (!court.isActive)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.neutral200,
+              borderRadius: BorderRadius.circular(99),
+            ),
+            child: Text(
+              'Ngưng hoạt động',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutral500,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Operating-hours chip (the only chip for now).
+  Widget _infoChips() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _Chip(
+          icon: Icons.access_time_rounded,
+          label: '${_fmtHour(court.openHour)} – ${_fmtHour(court.closeHour)}',
+        ),
+      ],
+    );
+  }
+
+  /// Sửa + Ngưng/Kích hoạt action buttons.
+  Widget _actions() {
+    return Row(
+      children: [
+        const Spacer(),
+        OutlinedButton.icon(
+          icon: const Icon(Icons.edit_outlined, size: 14),
+          label: const Text('Sửa'),
+          style: _actionStyle(
+            foreground: AppColors.neutral700,
+            side: const BorderSide(color: AppColors.neutral200),
+          ),
+          onPressed: onEdit,
+        ),
+        const SizedBox(width: 8),
+        OutlinedButton(
+          style: _actionStyle(
+            foreground:
+                court.isActive ? AppColors.danger : AppColors.primary,
+            side: BorderSide(
+              color: court.isActive
+                  ? AppColors.danger.withValues(alpha: 0.4)
+                  : AppColors.primary.withValues(alpha: 0.4),
+            ),
+          ),
+          onPressed: onToggleActive,
+          child: Text(court.isActive ? 'Ngưng' : 'Kích hoạt'),
+        ),
+      ],
+    );
+  }
+
+  /// Shared outlined-action button style — the two buttons differ only in
+  /// [foreground] colour and [side].
+  ButtonStyle _actionStyle({
+    required Color foreground,
+    required BorderSide side,
+  }) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: foreground,
+      side: side,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      textStyle: GoogleFonts.plusJakartaSans(
+          fontWeight: FontWeight.w600, fontSize: 13),
     );
   }
 }
