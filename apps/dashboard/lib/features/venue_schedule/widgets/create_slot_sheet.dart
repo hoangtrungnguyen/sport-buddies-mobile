@@ -3,9 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../model/models.dart';
-import '../style/slot_state_style.dart';
 import '../util/schedule_format.dart';
 import 'create_slot_controls.dart';
+import 'create_slot_kind_picker.dart';
 import 'side_sheet.dart';
 
 /// Which flavour of the sheet is open — `init.mode` in the prototype's
@@ -86,15 +86,6 @@ class CreateSlotSheet extends StatefulWidget {
   State<CreateSlotSheet> createState() => _CreateSlotSheetState();
 }
 
-/// One radio card of the type picker (`createKinds` / `blockKinds`).
-class _KindOption {
-  const _KindOption(this.state, this.title, this.description);
-
-  final SlotState state;
-  final String title;
-  final String description;
-}
-
 class _CreateSlotSheetState extends State<CreateSlotSheet> {
   // Type-picker catalogues — copy from the prototype's `createKinds` /
   // `blockKinds` ('public' in the jsx == SlotState.open).
@@ -102,19 +93,19 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
   // TODO(BCORE-321/326): "Slot mở (ghép)" / "Slot riêng" are gated behind
   // [kMatchmakingEnabled] — the DB has no representation for them yet, so
   // only "Slot trống" can be created from real data.
-  static const List<_KindOption> _createKinds = [
-    _KindOption(SlotState.empty, 'Slot trống', 'Mở giờ trống để khách tự đặt'),
+  static const List<KindOption> _createKinds = [
+    KindOption(SlotState.empty, 'Slot trống', 'Mở giờ trống để khách tự đặt'),
     if (kMatchmakingEnabled) ...[
-      _KindOption(SlotState.open, 'Slot mở (ghép)',
+      KindOption(SlotState.open, 'Slot mở (ghép)',
           'Khách lẻ ghép đội tới khi đủ người'),
-      _KindOption(
+      KindOption(
           SlotState.private, 'Slot riêng', 'Giữ chỗ, không hiển thị công khai'),
     ],
   ];
-  static const List<_KindOption> _blockKinds = [
-    _KindOption(SlotState.locked, 'Khoá giờ', 'Đóng cửa, không nhận đặt'),
-    _KindOption(SlotState.maintenance, 'Bảo trì', 'Sửa chữa, vệ sinh sân'),
-    _KindOption(SlotState.owner, 'Sân của tôi', 'Dùng cá nhân / nội bộ'),
+  static const List<KindOption> _blockKinds = [
+    KindOption(SlotState.locked, 'Khoá giờ', 'Đóng cửa, không nhận đặt'),
+    KindOption(SlotState.maintenance, 'Bảo trì', 'Sửa chữa, vệ sinh sân'),
+    KindOption(SlotState.owner, 'Sân của tôi', 'Dùng cá nhân / nội bộ'),
   ];
 
   late SlotState _kind;
@@ -177,7 +168,7 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
   /// `sessions = repeat ? days.length * weeks : 1`.
   int get _sessions => _repeat ? _days.length * _weeks : 1;
 
-  List<_KindOption> get _kinds => _isBlock ? _blockKinds : _createKinds;
+  List<KindOption> get _kinds => _isBlock ? _blockKinds : _createKinds;
 
   /// `SC_HOURS.flatMap(h => [h, h + 0.5])` — 06:00 … 22:30 in 30-min steps.
   List<double> get _startOptions {
@@ -334,30 +325,60 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // -- Loại slot / Loại chặn (seg-pick radio cards) --
-        Text(_isBlock ? 'Loại chặn' : 'Loại slot', style: sheetLabelStyle),
-        const SizedBox(height: 7),
-        _buildKindPicker(),
-        const SizedBox(height: 16),
-
-        // -- Sân --
-        Text('Sân', style: sheetLabelStyle),
-        const SizedBox(height: 7),
-        SheetSelect<String>(
-          value: widget.venues.any((v) => v.id == _venueId) ? _venueId : null,
-          options: [for (final v in widget.venues) v.id],
-          labelOf: (id) {
-            final v = widget.venues.firstWhere((v) => v.id == id);
-            // sportLabel may be empty when the court has no venues yet.
-            return v.sportLabel.isEmpty ? v.name : '${v.name} · ${v.sportLabel}';
-          },
-          onChanged: (id) => setState(() => _venueId = id),
+        _field(
+          _isBlock ? 'Loại chặn' : 'Loại slot',
+          KindPicker(
+            options: _kinds,
+            active: _kind,
+            onSelect: (s) => setState(() => _kind = s),
+          ),
         ),
         const SizedBox(height: 16),
+        _field('Sân', _buildVenueSelect()),
+        const SizedBox(height: 16),
+        _field('Giờ bắt đầu & thời lượng', _buildTimeSection()),
+        const SizedBox(height: 16),
+        if (showOpenExtras) ...[
+          _buildOpenExtras(),
+          const SizedBox(height: 16),
+        ],
+        _buildRepeatSection(),
+      ],
+    );
+  }
 
-        // -- Giờ bắt đầu & thời lượng --
-        Text('Giờ bắt đầu & thời lượng', style: sheetLabelStyle),
+  /// Repeated body scaffold: a label, a 7px gap, then [child] — the
+  /// `.field` block in the prototype's drawer body.
+  Widget _field(String label, Widget child) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: sheetLabelStyle),
         const SizedBox(height: 7),
+        child,
+      ],
+    );
+  }
+
+  /// "Sân" dropdown — venue id → "name · sport" (or just name when the court
+  /// has no venues yet).
+  Widget _buildVenueSelect() {
+    return SheetSelect<String>(
+      value: widget.venues.any((v) => v.id == _venueId) ? _venueId : null,
+      options: [for (final v in widget.venues) v.id],
+      labelOf: (id) {
+        final v = widget.venues.firstWhere((v) => v.id == id);
+        return v.sportLabel.isEmpty ? v.name : '${v.name} · ${v.sportLabel}';
+      },
+      onChanged: (id) => setState(() => _venueId = id),
+    );
+  }
+
+  /// Start + duration selects, with the derived "Kết thúc lúc HH:MM" hint.
+  Widget _buildTimeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           children: [
             Expanded(
@@ -380,7 +401,6 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
           ],
         ),
         const SizedBox(height: 6),
-        // "Kết thúc lúc <strong>HH:MM</strong>"
         Text.rich(
           TextSpan(
             text: 'Kết thúc lúc ',
@@ -393,72 +413,34 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
           ),
           style: sheetHintStyle,
         ),
-        const SizedBox(height: 16),
-
-        // -- Open-slot extras (Create + open only) --
-        if (showOpenExtras) ...[
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Số người tối đa', style: sheetLabelStyle),
-                    const SizedBox(height: 7),
-                    SheetNumberField(
-                      controller: _capController,
-                      onChanged: (v) =>
-                          setState(() => _cap = int.tryParse(v) ?? 0),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Giá / người', style: sheetLabelStyle),
-                    const SizedBox(height: 7),
-                    SheetNumberField(
-                      controller: _priceController,
-                      onChanged: (v) =>
-                          setState(() => _price = int.tryParse(v) ?? 0),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // -- Lặp lại nhiều buổi --
-        _buildRepeatSection(),
       ],
     );
   }
 
-  /// `seg-pick` — 3 equal radio cards, stretched to the tallest.
-  Widget _buildKindPicker() {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (var i = 0; i < _kinds.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            Expanded(
-              child: KindCard(
-                active: _kind == _kinds[i].state,
-                icon: slotStateIcons[_kinds[i].state]!,
-                title: _kinds[i].title,
-                description: _kinds[i].description,
-                onTap: () => setState(() => _kind = _kinds[i].state),
-              ),
+  /// Open-slot extras (Create + open only): max players + price/person.
+  Widget _buildOpenExtras() {
+    return Row(
+      children: [
+        Expanded(
+          child: _field(
+            'Số người tối đa',
+            SheetNumberField(
+              controller: _capController,
+              onChanged: (v) => setState(() => _cap = int.tryParse(v) ?? 0),
             ),
-          ],
-        ],
-      ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _field(
+            'Giá / người',
+            SheetNumberField(
+              controller: _priceController,
+              onChanged: (v) => setState(() => _price = int.tryParse(v) ?? 0),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -499,15 +481,16 @@ class _CreateSlotSheetState extends State<CreateSlotSheet> {
             ],
           ),
           const SizedBox(height: 14),
-          Text('Số tuần', style: sheetLabelStyle),
-          const SizedBox(height: 7),
-          SheetNumberField(
-            controller: _weeksController,
-            // `Math.max(1, +e.target.value)` in the jsx.
-            onChanged: (v) => setState(() {
-              final parsed = int.tryParse(v) ?? 1;
-              _weeks = parsed < 1 ? 1 : parsed;
-            }),
+          _field(
+            'Số tuần',
+            SheetNumberField(
+              controller: _weeksController,
+              // `Math.max(1, +e.target.value)` in the jsx.
+              onChanged: (v) => setState(() {
+                final parsed = int.tryParse(v) ?? 1;
+                _weeks = parsed < 1 ? 1 : parsed;
+              }),
+            ),
           ),
           const SizedBox(height: 12),
           BatchPreview(

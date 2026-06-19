@@ -6,6 +6,7 @@ import '../repository/schedule_time_utils.dart';
 import '../service/schedule_service.dart';
 import '../util/schedule_format.dart';
 import 'venue_schedule_event.dart';
+import 'venue_schedule_logic.dart';
 import 'venue_schedule_state.dart';
 
 export 'venue_schedule_event.dart';
@@ -23,7 +24,7 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
   })  : _service = service,
         _now = now ?? DateTime.now,
         super(VenueScheduleState(
-            focusedDate: _dateOnly((now ?? DateTime.now)()))) {
+            focusedDate: dateOnly((now ?? DateTime.now)()))) {
     on<VenueScheduleStarted>(_onStarted);
     on<VenueScheduleViewChanged>(_onViewChanged);
     on<VenueScheduleDateMoved>(_onDateMoved);
@@ -110,7 +111,7 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
     final moved = switch (state.view) {
       ScheduleView.day => DateTime(d.year, d.month, d.day + event.delta),
       ScheduleView.week => DateTime(d.year, d.month, d.day + event.delta * 7),
-      ScheduleView.month => _stepMonth(d, event.delta),
+      ScheduleView.month => stepMonth(d, event.delta),
     };
     emit(state.copyWith(focusedDate: moved));
     await _refreshActiveView(emit);
@@ -120,7 +121,7 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
     VenueScheduleTodayPressed event,
     Emitter<VenueScheduleState> emit,
   ) async {
-    emit(state.copyWith(focusedDate: _dateOnly(_now())));
+    emit(state.copyWith(focusedDate: dateOnly(_now())));
     await _refreshActiveView(emit);
   }
 
@@ -148,40 +149,28 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
   }
 
   // ---------------------------------------------------------------------------
-  // Filters — live, client-side, no refetch
+  // Filters — live, client-side, no refetch. Both delegate to the pure
+  // [toggleFilterSet] (empty set ≡ "all"); see its doc for the chip semantics.
   // ---------------------------------------------------------------------------
-  //
-  // Prototype `toggleSet`: every chip starts ACTIVE (full set) and a tap
-  // removes/adds one; an emptied set resets to "all". Our empty set ≡ "all",
-  // so expand an empty set before toggling and normalise a full set back to
-  // empty — the chips then render exactly like the jsx.
 
   void _onSportFilterToggled(
     VenueScheduleSportFilterToggled event,
     Emitter<VenueScheduleState> emit,
   ) {
-    final next = state.sportFilter.isEmpty
-        ? SportType.values.toSet()
-        : Set<SportType>.of(state.sportFilter);
-    next.contains(event.sport)
-        ? next.remove(event.sport)
-        : next.add(event.sport);
-    if (next.length == SportType.values.length) next.clear();
-    emit(state.copyWith(sportFilter: next));
+    emit(state.copyWith(
+      sportFilter:
+          toggleFilterSet(state.sportFilter, event.sport, SportType.values),
+    ));
   }
 
   void _onStateFilterToggled(
     VenueScheduleStateFilterToggled event,
     Emitter<VenueScheduleState> emit,
   ) {
-    final next = state.stateFilter.isEmpty
-        ? SlotState.values.toSet()
-        : Set<SlotState>.of(state.stateFilter);
-    next.contains(event.state)
-        ? next.remove(event.state)
-        : next.add(event.state);
-    if (next.length == SlotState.values.length) next.clear();
-    emit(state.copyWith(stateFilter: next));
+    emit(state.copyWith(
+      stateFilter:
+          toggleFilterSet(state.stateFilter, event.state, SlotState.values),
+    ));
   }
 
   // ---------------------------------------------------------------------------
@@ -236,7 +225,7 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
   ) async {
     emit(state.copyWith(
       view: ScheduleView.day,
-      focusedDate: _dateOnly(event.date),
+      focusedDate: dateOnly(event.date),
     ));
     await _refreshActiveView(emit);
   }
@@ -287,42 +276,7 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
     try {
       final String toast;
       if (event.repeat && event.weekdays.isNotEmpty) {
-        // Prototype parity: recurrence applies to block mode too — one
-        // block per selected weekday × week, anchored on the prefill week.
-        // Same rules as `createRecurringSlots`: sessions already in the
-        // past are skipped, and a failed session doesn't abort the rest —
-        // the shortfall surfaces as one predictable rejection below.
-        final sessions = recurringBlockSessions(
-          anchorWeek: mondayOf(req.date ?? state.focusedDate),
-          weekdays: event.weekdays,
-          weeks: event.weeks,
-          startHour: req.startHour,
-          now: _now(),
-        );
-        var done = 0;
-        var failures = 0;
-        String? failureMessage;
-        for (final session in sessions) {
-          try {
-            await _service.blockTime(
-              req.copyWith(date: session.date, weekday: session.weekday),
-            );
-            done++;
-          } on ScheduleRepositoryException catch (e) {
-            failures++;
-            failureMessage ??= e.message;
-          } on Exception {
-            // Already logged by the repository; counted in the summary.
-            failures++;
-          }
-        }
-        if (failures > 0) {
-          throw ScheduleRepositoryException(done == 0
-              ? (failureMessage ??
-                  'Không khoá được khung giờ nào — vui lòng thử lại.')
-              : 'Chỉ khoá được $done/${done + failures} phiên — '
-                  '${failureMessage ?? 'một số phiên bị lỗi'}.');
-        }
+        final done = await _runRecurringBlocks(req, event);
         toast = 'Đã tạo $done slot · $kind · $venue';
       } else {
         await _service.blockTime(req);
@@ -516,6 +470,50 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
     }
   }
 
+  /// Recurring block: one `blockTime` per selected weekday × week, anchored on
+  /// the prefill week. Prototype parity with `createRecurringSlots` — past
+  /// sessions are skipped and a failed session doesn't abort the rest; any
+  /// shortfall surfaces as a single [ScheduleRepositoryException] (nothing
+  /// blocked → generic message; some blocked → "Chỉ khoá được x/y…"). Returns
+  /// the number of sessions actually blocked.
+  Future<int> _runRecurringBlocks(
+    BlockTimeRequest req,
+    VenueScheduleBlockSubmitted event,
+  ) async {
+    final sessions = recurringBlockSessions(
+      anchorWeek: mondayOf(req.date ?? state.focusedDate),
+      weekdays: event.weekdays,
+      weeks: event.weeks,
+      startHour: req.startHour,
+      now: _now(),
+    );
+    var done = 0;
+    var failures = 0;
+    String? failureMessage;
+    for (final session in sessions) {
+      try {
+        await _service.blockTime(
+          req.copyWith(date: session.date, weekday: session.weekday),
+        );
+        done++;
+      } on ScheduleRepositoryException catch (e) {
+        failures++;
+        failureMessage ??= e.message;
+      } on Exception {
+        // Already logged by the repository; counted in the summary.
+        failures++;
+      }
+    }
+    if (failures > 0) {
+      throw ScheduleRepositoryException(done == 0
+          ? (failureMessage ??
+              'Không khoá được khung giờ nào — vui lòng thử lại.')
+          : 'Chỉ khoá được $done/${done + failures} phiên — '
+              '${failureMessage ?? 'một số phiên bị lỗi'}.');
+    }
+    return done;
+  }
+
   /// The concrete date a tapped/dragged cell refers to: Week view passes a
   /// weekday (0=Mon..6=Sun) within the focused week, Day view means the
   /// focused date itself.
@@ -538,15 +536,5 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
       if (v.id == venueId) return v.name;
     }
     return venueId;
-  }
-
-  static DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
-
-  /// Steps [d] by [delta] months, clamping the day-of-month so e.g. Jan 31
-  /// +1 month lands on Feb 28/29 instead of overflowing into March.
-  static DateTime _stepMonth(DateTime d, int delta) {
-    final first = DateTime(d.year, d.month + delta);
-    final lastDay = DateTime(first.year, first.month + 1, 0).day;
-    return DateTime(first.year, first.month, d.day > lastDay ? lastDay : d.day);
   }
 }

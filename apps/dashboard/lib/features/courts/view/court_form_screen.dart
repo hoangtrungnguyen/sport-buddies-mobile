@@ -328,223 +328,12 @@ class _CourtFormScreenState extends State<CourtFormScreen>
                   const SizedBox(height: 12),
                   ErrorBanner(_error!),
                 ],
-
-                // 1) Thông tin cơ bản
-                const SectionHeader(
-                  icon: Symbols.badge,
-                  title: 'Thông tin cơ bản',
-                  subtitle: 'Tên hiển thị và liên hệ của sân',
-                ),
-                TwoCol(
-                  left: AiField(
-                    controller: _nameCtrl,
-                    label: 'Tên sân *',
-                    fieldKey: _K.name,
-                    aiFilled: aiFilled,
-                    pulse: pulse,
-                    onManualEdit: clearAiMark,
-                    validator: (v) => (v?.trim().isEmpty ?? true)
-                        ? 'Bắt buộc — nhập tên sân'
-                        : null,
-                  ),
-                  right: AiField(
-                    controller: _phoneCtrl,
-                    label: 'Số điện thoại',
-                    fieldKey: _K.phone,
-                    leading: Symbols.call,
-                    keyboardType: TextInputType.phone,
-                    aiFilled: aiFilled,
-                    pulse: pulse,
-                    onManualEdit: clearAiMark,
-                  ),
-                ),
-
-                // 2) Vị trí
-                const SectionHeader(
-                  icon: Symbols.location_on,
-                  title: 'Vị trí',
-                  subtitle: 'Địa chỉ và toạ độ để khách tìm đường',
-                ),
-                AiField(
-                  controller: _addressCtrl,
-                  label: 'Địa chỉ *',
-                  fieldKey: _K.address,
-                  aiFilled: aiFilled,
-                  pulse: pulse,
-                  onManualEdit: clearAiMark,
-                  validator: (v) => (v?.trim().isEmpty ?? true)
-                      ? 'Bắt buộc — nhập địa chỉ'
-                      : null,
-                ),
-                const SizedBox(height: 16),
-                AiField(
-                  controller: _mapsCtrl,
-                  label: 'Google Maps URL',
-                  fieldKey: _K.maps,
-                  leading: Symbols.map,
-                  keyboardType: TextInputType.url,
-                  aiFilled: aiFilled,
-                  pulse: pulse,
-                  onManualEdit: clearAiMark,
-                  helperText: 'Dán link Google Maps — toạ độ tự điền bên dưới',
-                  validator: (v) {
-                    final t = v?.trim() ?? '';
-                    if (t.isEmpty) return null;
-                    return t.startsWith('http')
-                        ? null
-                        : 'URL phải bắt đầu bằng http';
-                  },
-                ),
-                const SizedBox(height: 16),
-                TwoCol(
-                  left: AiField(
-                    controller: _latCtrl,
-                    label: 'Vĩ độ (lat)',
-                    fieldKey: _K.location,
-                    readOnly: true,
-                    leading: Symbols.my_location,
-                    aiFilled: aiFilled,
-                    pulse: pulse,
-                    onManualEdit: clearAiMark,
-                    helperText: 'Tự động từ link Maps',
-                  ),
-                  right: AiField(
-                    controller: _lngCtrl,
-                    label: 'Kinh độ (lng)',
-                    fieldKey: _K.location,
-                    readOnly: true,
-                    leading: Symbols.my_location,
-                    aiFilled: aiFilled,
-                    pulse: pulse,
-                    onManualEdit: clearAiMark,
-                    helperText: 'Tự động từ link Maps',
-                  ),
-                ),
-
-                // 3) Mô tả
-                const SectionHeader(
-                  icon: Symbols.description,
-                  title: 'Mô tả',
-                  subtitle: 'Giới thiệu ngắn hiển thị cho khách',
-                ),
-                AiField(
-                  controller: _descCtrl,
-                  label: 'Mô tả',
-                  fieldKey: _K.description,
-                  maxLines: 3,
-                  aiFilled: aiFilled,
-                  pulse: pulse,
-                  onManualEdit: clearAiMark,
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ActionChip(
-                    avatar: _descBusy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Icon(Symbols.auto_awesome,
-                            size: 18, color: scheme.tertiary),
-                    label: Text(_descBusy
-                        ? 'AI đang viết…'
-                        : (_descCtrl.text.trim().isEmpty
-                            ? 'Viết mô tả bằng AI'
-                            : 'Viết lại bằng AI')),
-                    onPressed: _descBusy ? null : _writeDescription,
-                  ),
-                ),
-
-                // 4) Tiện ích
-                const SectionHeader(
-                  icon: Symbols.category,
-                  title: 'Tiện ích',
-                  subtitle: 'Chọn các tiện ích sân có',
-                ),
-                if (aiFilled.contains(_K.amenities)) const AiHint(),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final a in kAmenities)
-                      Semantics(
-                        label: 'amenity-chip-$a',
-                        button: true,
-                        child: FilterChip(
-                          avatar: Icon(amenityIcon(a), size: 18),
-                          label: Text(a),
-                          selected: _selectedAmenities.contains(a),
-                          onSelected: (sel) => setState(() {
-                            if (sel) {
-                              _selectedAmenities.add(a);
-                            } else {
-                              _selectedAmenities.remove(a);
-                            }
-                            aiFilled.remove(_K.amenities);
-                          }),
-                        ),
-                      ),
-                  ],
-                ),
-
-                // 5) Giờ hoạt động
-                const SectionHeader(
-                  icon: Symbols.schedule,
-                  title: 'Giờ hoạt động',
-                  subtitle: 'Khung giờ nhận khách trong ngày',
-                ),
-                if (aiFilled.contains(_K.hours)) const AiHint(),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 480),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: HourDropdown(
-                          label: 'Mở cửa',
-                          icon: Symbols.wb_twilight,
-                          value: _openHour,
-                          onChanged: (v) => setState(() {
-                            _openHour = v;
-                            aiFilled.remove(_K.hours);
-                          }),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: HourDropdown(
-                          label: 'Đóng cửa',
-                          icon: Symbols.bedtime,
-                          value: _closeHour,
-                          onChanged: (v) => setState(() {
-                            _closeHour = v;
-                            aiFilled.remove(_K.hours);
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (_isEdit) ...[
-                  const SectionHeader(
-                    icon: Symbols.grid_view,
-                    title: 'Sân con',
-                    subtitle: 'Quản lý các sân con bên trong cụm sân',
-                  ),
-                  OutlinedButton.icon(
-                    icon: const Icon(Symbols.grid_view, size: 18),
-                    label: const Text('Quản lý sân con'),
-                    onPressed: () => context.go('/courts/${widget.court!.id}'),
-                  ),
-                  const SizedBox(height: 20),
-                  ActiveToggle(
-                    isActive: _isActive,
-                    saving: _saving,
-                    onChanged: (v) => setState(() => _isActive = v),
-                  ),
-                ],
+                ..._basicInfoSection(),
+                ..._locationSection(),
+                ..._descriptionSection(scheme),
+                ..._amenitiesSection(),
+                ..._hoursSection(),
+                if (_isEdit) ..._subCourtsSection(context),
               ],
             ),
           ),
@@ -558,6 +347,240 @@ class _CourtFormScreenState extends State<CourtFormScreen>
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Form sections — each returns the header + fields for one card of the form.
+  // They stay private State methods (not standalone widgets) because every
+  // field is wired to this State's controllers + AI-mark helpers.
+  // ---------------------------------------------------------------------------
+
+  /// 1) Thông tin cơ bản — name + phone.
+  List<Widget> _basicInfoSection() => [
+        const SectionHeader(
+          icon: Symbols.badge,
+          title: 'Thông tin cơ bản',
+          subtitle: 'Tên hiển thị và liên hệ của sân',
+        ),
+        TwoCol(
+          left: AiField(
+            controller: _nameCtrl,
+            label: 'Tên sân *',
+            fieldKey: _K.name,
+            aiFilled: aiFilled,
+            pulse: pulse,
+            onManualEdit: clearAiMark,
+            validator: (v) => (v?.trim().isEmpty ?? true)
+                ? 'Bắt buộc — nhập tên sân'
+                : null,
+          ),
+          right: AiField(
+            controller: _phoneCtrl,
+            label: 'Số điện thoại',
+            fieldKey: _K.phone,
+            leading: Symbols.call,
+            keyboardType: TextInputType.phone,
+            aiFilled: aiFilled,
+            pulse: pulse,
+            onManualEdit: clearAiMark,
+          ),
+        ),
+      ];
+
+  /// 2) Vị trí — address + Maps URL + (read-only) lat/lng.
+  List<Widget> _locationSection() => [
+        const SectionHeader(
+          icon: Symbols.location_on,
+          title: 'Vị trí',
+          subtitle: 'Địa chỉ và toạ độ để khách tìm đường',
+        ),
+        AiField(
+          controller: _addressCtrl,
+          label: 'Địa chỉ *',
+          fieldKey: _K.address,
+          aiFilled: aiFilled,
+          pulse: pulse,
+          onManualEdit: clearAiMark,
+          validator: (v) => (v?.trim().isEmpty ?? true)
+              ? 'Bắt buộc — nhập địa chỉ'
+              : null,
+        ),
+        const SizedBox(height: 16),
+        AiField(
+          controller: _mapsCtrl,
+          label: 'Google Maps URL',
+          fieldKey: _K.maps,
+          leading: Symbols.map,
+          keyboardType: TextInputType.url,
+          aiFilled: aiFilled,
+          pulse: pulse,
+          onManualEdit: clearAiMark,
+          helperText: 'Dán link Google Maps — toạ độ tự điền bên dưới',
+          validator: (v) {
+            final t = v?.trim() ?? '';
+            if (t.isEmpty) return null;
+            return t.startsWith('http')
+                ? null
+                : 'URL phải bắt đầu bằng http';
+          },
+        ),
+        const SizedBox(height: 16),
+        TwoCol(
+          left: AiField(
+            controller: _latCtrl,
+            label: 'Vĩ độ (lat)',
+            fieldKey: _K.location,
+            readOnly: true,
+            leading: Symbols.my_location,
+            aiFilled: aiFilled,
+            pulse: pulse,
+            onManualEdit: clearAiMark,
+            helperText: 'Tự động từ link Maps',
+          ),
+          right: AiField(
+            controller: _lngCtrl,
+            label: 'Kinh độ (lng)',
+            fieldKey: _K.location,
+            readOnly: true,
+            leading: Symbols.my_location,
+            aiFilled: aiFilled,
+            pulse: pulse,
+            onManualEdit: clearAiMark,
+            helperText: 'Tự động từ link Maps',
+          ),
+        ),
+      ];
+
+  /// 3) Mô tả — description field + AI write/rewrite chip.
+  List<Widget> _descriptionSection(ColorScheme scheme) => [
+        const SectionHeader(
+          icon: Symbols.description,
+          title: 'Mô tả',
+          subtitle: 'Giới thiệu ngắn hiển thị cho khách',
+        ),
+        AiField(
+          controller: _descCtrl,
+          label: 'Mô tả',
+          fieldKey: _K.description,
+          maxLines: 3,
+          aiFilled: aiFilled,
+          pulse: pulse,
+          onManualEdit: clearAiMark,
+        ),
+        const SizedBox(height: 10),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: ActionChip(
+            avatar: _descBusy
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(Symbols.auto_awesome,
+                    size: 18, color: scheme.tertiary),
+            label: Text(_descBusy
+                ? 'AI đang viết…'
+                : (_descCtrl.text.trim().isEmpty
+                    ? 'Viết mô tả bằng AI'
+                    : 'Viết lại bằng AI')),
+            onPressed: _descBusy ? null : _writeDescription,
+          ),
+        ),
+      ];
+
+  /// 4) Tiện ích — amenity filter chips.
+  List<Widget> _amenitiesSection() => [
+        const SectionHeader(
+          icon: Symbols.category,
+          title: 'Tiện ích',
+          subtitle: 'Chọn các tiện ích sân có',
+        ),
+        if (aiFilled.contains(_K.amenities)) const AiHint(),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final a in kAmenities)
+              Semantics(
+                label: 'amenity-chip-$a',
+                button: true,
+                child: FilterChip(
+                  avatar: Icon(amenityIcon(a), size: 18),
+                  label: Text(a),
+                  selected: _selectedAmenities.contains(a),
+                  onSelected: (sel) => setState(() {
+                    if (sel) {
+                      _selectedAmenities.add(a);
+                    } else {
+                      _selectedAmenities.remove(a);
+                    }
+                    aiFilled.remove(_K.amenities);
+                  }),
+                ),
+              ),
+          ],
+        ),
+      ];
+
+  /// 5) Giờ hoạt động — open/close hour dropdowns.
+  List<Widget> _hoursSection() => [
+        const SectionHeader(
+          icon: Symbols.schedule,
+          title: 'Giờ hoạt động',
+          subtitle: 'Khung giờ nhận khách trong ngày',
+        ),
+        if (aiFilled.contains(_K.hours)) const AiHint(),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Row(
+            children: [
+              Expanded(
+                child: HourDropdown(
+                  label: 'Mở cửa',
+                  icon: Symbols.wb_twilight,
+                  value: _openHour,
+                  onChanged: (v) => setState(() {
+                    _openHour = v;
+                    aiFilled.remove(_K.hours);
+                  }),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: HourDropdown(
+                  label: 'Đóng cửa',
+                  icon: Symbols.bedtime,
+                  value: _closeHour,
+                  onChanged: (v) => setState(() {
+                    _closeHour = v;
+                    aiFilled.remove(_K.hours);
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+
+  /// Sân con + active toggle — edit mode only (a created court has no id yet).
+  List<Widget> _subCourtsSection(BuildContext context) => [
+        const SectionHeader(
+          icon: Symbols.grid_view,
+          title: 'Sân con',
+          subtitle: 'Quản lý các sân con bên trong cụm sân',
+        ),
+        OutlinedButton.icon(
+          icon: const Icon(Symbols.grid_view, size: 18),
+          label: const Text('Quản lý sân con'),
+          onPressed: () => context.go('/courts/${widget.court!.id}'),
+        ),
+        const SizedBox(height: 20),
+        ActiveToggle(
+          isActive: _isActive,
+          saving: _saving,
+          onChanged: (v) => setState(() => _isActive = v),
+        ),
+      ];
 
   /// Leave the form: edit returns to its court's detail, create returns to the
   /// courts list. Uses go() so the shell location updates (it hides its top bar

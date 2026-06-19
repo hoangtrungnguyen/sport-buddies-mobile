@@ -7,6 +7,7 @@ import 'package:dashboard/features/setup/model/owner_court.dart';
 import 'package:dio/dio.dart';
 
 import '../model/court_parse_result.dart';
+import 'court_parser_mappers.dart';
 
 export '../model/court_parse_result.dart';
 
@@ -58,7 +59,7 @@ count (e.g. "4 sân pickleball giá 120k"), emit one numbered venue per court
     final raw = await _generate([
       {'text': '$_courtPrompt\n\nContent:\n$text'},
     ]);
-    return _parseCourtJson(raw);
+    return parseCourtJson(raw);
   }
 
   /// Link tab. Client-side regex parse (lat/lng/name/url) wins over an LLM pass
@@ -88,7 +89,7 @@ count (e.g. "4 sân pickleball giá 120k"), emit one numbered venue per court
         },
       },
     ]);
-    return _parseCourtJson(raw);
+    return parseCourtJson(raw);
   }
 
   /// Reduced schema — venue-only bulk extraction.
@@ -104,8 +105,8 @@ $text''';
     final raw = await _generate([
       {'text': prompt},
     ]);
-    final json = _decode(raw);
-    return _parseVenues(json['venues']);
+    final json = decodeCourtJson(raw);
+    return parseVenues(json['venues']);
   }
 
   /// Inline "Viết mô tả bằng AI" — composes from current form values.
@@ -153,10 +154,10 @@ MỖI lượt trả lời PHẢI có 2 phần:
         },
     ];
     final raw = await _generateContents(contents, jsonMime: false);
-    final visible = _stripJsonBlock(raw);
+    final visible = stripJsonBlock(raw);
     CourtParseResult? snapshot;
     try {
-      snapshot = _parseCourtJson(raw);
+      snapshot = parseCourtJson(raw);
     } catch (_) {/* snapshot optional */}
     return ChatTurn(
       reply: visible.isEmpty ? 'Đã ghi nhận!' : visible,
@@ -256,75 +257,4 @@ MỖI lượt trả lời PHẢI có 2 phần:
     }
   }
 
-  // -------------------------------------------------------------------------
-  // JSON → models
-  // -------------------------------------------------------------------------
-
-  Map<String, dynamic> _decode(String raw) {
-    // Take the first { … last } to survive stray prose around the JSON.
-    final a = raw.indexOf('{');
-    final b = raw.lastIndexOf('}');
-    final slice = (a != -1 && b > a) ? raw.substring(a, b + 1) : raw;
-    try {
-      return jsonDecode(slice) as Map<String, dynamic>;
-    } on FormatException catch (e, st) {
-      appLogger.e('JSON decode error: ${e.message}', error: e, stackTrace: st);
-      throw StateError('AI không trả về JSON hợp lệ.');
-    }
-  }
-
-  CourtParseResult _parseCourtJson(String raw) {
-    final json = _decode(raw);
-    return CourtParseResult(
-      name: _str(json['name']),
-      address: _str(json['address']),
-      lat: _num(json['lat'])?.toDouble(),
-      lng: _num(json['lng'])?.toDouble(),
-      googleMapsUrl: _str(json['googleMapsUrl']),
-      phone: _str(json['phone']),
-      description: _str(json['description']),
-      amenities: (json['amenities'] as List<dynamic>? ?? [])
-          .whereType<String>()
-          .where(kAmenities.contains)
-          .toList(),
-      openHour: _int(json['openHour']),
-      closeHour: _int(json['closeHour']),
-      venues: _parseVenues(json['venues']),
-    );
-  }
-
-  List<VenueParseResult> _parseVenues(dynamic raw) {
-    if (raw is! List) return const [];
-    final out = <VenueParseResult>[];
-    for (final v in raw) {
-      if (v is! Map) continue;
-      final name = _str(v['name']);
-      if (name == null) continue;
-      final sport = _str(v['sportType']);
-      out.add(VenueParseResult(
-        name: name,
-        sportType: (sport != null && kSportTypes.contains(sport))
-            ? sport
-            : kSportTypes.first,
-        pricePerHour: _int(v['pricePerHour']) ?? 0,
-        indoor: v['indoor'] == true,
-      ));
-    }
-    return out;
-  }
-
-  static String _stripJsonBlock(String text) => text
-      .replaceAll(RegExp(r'```json[\s\S]*?```'), '')
-      .replaceAll(RegExp(r'```[\s\S]*?```'), '')
-      .trim();
-
-  static String? _str(dynamic v) {
-    if (v == null) return null;
-    final s = v.toString().trim();
-    return s.isEmpty || s.toLowerCase() == 'null' ? null : s;
-  }
-
-  static num? _num(dynamic v) => v is num ? v : null;
-
-  static int? _int(dynamic v) => v is int ? v : (v is num ? v.toInt() : null);
 }
