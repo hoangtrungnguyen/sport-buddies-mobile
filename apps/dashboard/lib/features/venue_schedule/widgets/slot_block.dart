@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -111,7 +112,7 @@ class _SlotBlockState extends State<SlotBlock> {
                 : const <BoxShadow>[],
           ),
           child: _saturateOnHover(CustomPaint(
-            painter: SlotDecorationPainter(style: style),
+            painter: SlotDecorationPainter.fromStyle(style),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Stack(
@@ -246,17 +247,59 @@ class _SlotBlockState extends State<SlotBlock> {
   }
 }
 
-/// Paints a [SlotStateStyle] box: tinted (or diagonally striped) fill, 1.5px
-/// solid/dashed border, optional 3px left accent bar — all inside a rounded
-/// rect of [radius]. Shared by [SlotBlock] and the legend swatches.
+/// Paints slot chrome: a tinted (or diagonally striped) fill, a 1.5px
+/// solid/dashed border, and an optional 3px left accent bar — all inside a
+/// rounded rect of [radius]. THE canonical slot painter, shared by the Day
+/// [SlotBlock], the Week view's compact block, the drag-to-block band, and the
+/// legend swatches.
+///
+/// Two ways to build it: raw colours (the drag band passes its own indigo
+/// stripes) or [SlotDecorationPainter.fromStyle] for a [SlotStateStyle]. The
+/// stripes replicate CSS `repeating-linear-gradient(<angle>, A 0..w, B w..2w)`
+/// via a repeated linear-gradient shader — both A and B bands are painted, so
+/// styles where A == bg (every striped slot state) and the two-tone drag band
+/// both render correctly.
 class SlotDecorationPainter extends CustomPainter {
   const SlotDecorationPainter({
-    required this.style,
+    required this.bg,
+    required this.border,
+    this.dashed = false,
+    this.stripeA,
+    this.stripeB,
+    this.stripeBand = 0,
+    this.stripeAngleDeg = 0,
+    this.accentLeft,
     this.radius = 8,
     this.borderWidth = 1.5,
   });
 
-  final SlotStateStyle style;
+  /// Build from a [SlotStateStyle]; [radius]/[borderWidth] override the box
+  /// metrics (e.g. the 4px legend swatches).
+  SlotDecorationPainter.fromStyle(
+    SlotStateStyle style, {
+    double radius = 8,
+    double borderWidth = 1.5,
+  }) : this(
+          bg: style.bg,
+          border: style.border,
+          dashed: style.dashed,
+          stripeA: style.striped.colorA,
+          stripeB: style.striped.colorB,
+          stripeBand: style.striped.bandWidth,
+          stripeAngleDeg: style.striped.angleDeg,
+          accentLeft: style.accentLeft,
+          radius: radius,
+          borderWidth: borderWidth,
+        );
+
+  final Color bg;
+  final Color border;
+  final bool dashed;
+  final Color? stripeA;
+  final Color? stripeB;
+  final double stripeBand;
+  final double stripeAngleDeg;
+  final Color? accentLeft;
   final double radius;
   final double borderWidth;
 
@@ -270,22 +313,38 @@ class SlotDecorationPainter extends CustomPainter {
       Radius.circular(radius),
     );
 
-    // Base coat — for striped states this is the lighter band colour.
-    canvas.drawRRect(rrect, Paint()..color = style.bg);
+    canvas.drawRRect(rrect, Paint()..color = bg);
 
-    if (style.striped != SlotStripe.none) {
-      _paintStripes(canvas, rrect, style.striped);
+    final stripeA = this.stripeA;
+    final stripeB = this.stripeB;
+    if (stripeA != null && stripeB != null && stripeBand > 0) {
+      // CSS gradient angle: 0deg = up, clockwise → direction (sin a, −cos a).
+      final rad = stripeAngleDeg * math.pi / 180;
+      final period = Offset(math.sin(rad), -math.cos(rad)) * (stripeBand * 2);
+      final paint = Paint()
+        ..shader = ui.Gradient.linear(
+          Offset.zero,
+          period,
+          [stripeA, stripeA, stripeB, stripeB],
+          [0, 0.5, 0.5, 1],
+          TileMode.repeated,
+        );
+      canvas
+        ..save()
+        ..clipRRect(rrect)
+        ..drawRect(Offset.zero & size, paint)
+        ..restore();
     }
 
     // 3px left accent bar (`.st-fixed::before`), clipped by the radius.
-    final accent = style.accentLeft;
-    if (accent != null) {
+    final accentLeft = this.accentLeft;
+    if (accentLeft != null) {
       canvas
         ..save()
         ..clipRRect(rrect)
         ..drawRect(
           Rect.fromLTWH(0, 0, 3, size.height),
-          Paint()..color = accent,
+          Paint()..color = accentLeft,
         )
         ..restore();
     }
@@ -293,61 +352,35 @@ class SlotDecorationPainter extends CustomPainter {
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth
-      ..color = style.border;
+      ..color = border;
     final borderRRect = rrect.deflate(borderWidth / 2);
-    if (style.dashed) {
-      canvas.drawPath(_dashedRRectPath(borderRRect), borderPaint);
-    } else {
+    if (!dashed) {
       canvas.drawRRect(borderRRect, borderPaint);
-    }
-  }
-
-  /// `repeating-linear-gradient(<angle>, A 0..w, B w..2w)` — paints the B
-  /// bands over the base coat at the stripe's CSS angle.
-  void _paintStripes(Canvas canvas, RRect rrect, SlotStripe stripe) {
-    final rect = rrect.outerRect;
-    canvas
-      ..save()
-      ..clipRRect(rrect)
-      ..translate(rect.center.dx, rect.center.dy)
-      // CSS angle is clockwise from north; canvas rotation is from +x.
-      ..rotate((stripe.angleDeg - 90) * math.pi / 180);
-
-    // Over-cover the rotated area in both axes.
-    final reach = rect.size.longestSide;
-    final period = stripe.bandWidth * 2;
-    final bandPaint = Paint()..color = stripe.colorB!;
-    for (var x = -(reach / period).ceil() * period; x < reach; x += period) {
-      canvas.drawRect(
-        Rect.fromLTRB(x + stripe.bandWidth, -reach, x + period, reach),
-        bandPaint,
-      );
-    }
-    canvas.restore();
-  }
-
-  Path _dashedRRectPath(RRect rrect) {
-    final source = Path()..addRRect(rrect);
-    final dashed = Path();
-    for (final metric in source.computeMetrics()) {
-      var distance = 0.0;
-      while (distance < metric.length) {
-        dashed.addPath(
-          metric.extractPath(
-            distance,
-            math.min(distance + _dashLength, metric.length),
-          ),
-          Offset.zero,
-        );
-        distance += _dashLength + _gapLength;
+    } else {
+      final path = Path()..addRRect(borderRRect);
+      for (final metric in path.computeMetrics()) {
+        var distance = 0.0;
+        while (distance < metric.length) {
+          canvas.drawPath(
+            metric.extractPath(distance, distance + _dashLength),
+            borderPaint,
+          );
+          distance += _dashLength + _gapLength;
+        }
       }
     }
-    return dashed;
   }
 
   @override
   bool shouldRepaint(SlotDecorationPainter oldDelegate) =>
-      oldDelegate.style != style ||
-      oldDelegate.radius != radius ||
-      oldDelegate.borderWidth != borderWidth;
+      bg != oldDelegate.bg ||
+      border != oldDelegate.border ||
+      dashed != oldDelegate.dashed ||
+      stripeA != oldDelegate.stripeA ||
+      stripeB != oldDelegate.stripeB ||
+      stripeBand != oldDelegate.stripeBand ||
+      stripeAngleDeg != oldDelegate.stripeAngleDeg ||
+      accentLeft != oldDelegate.accentLeft ||
+      radius != oldDelegate.radius ||
+      borderWidth != oldDelegate.borderWidth;
 }

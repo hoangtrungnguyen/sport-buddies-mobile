@@ -1,6 +1,3 @@
-import 'dart:math' as math;
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -8,7 +5,7 @@ import '../model/models.dart';
 import '../style/slot_state_style.dart';
 import '../util/schedule_format.dart';
 import 'mouse_vertical_drag.dart';
-import 'slot_block.dart' show slotHoverSaturationMatrix;
+import 'slot_block.dart' show SlotDecorationPainter, slotHoverSaturationMatrix;
 import 'week_grid_metrics.dart';
 
 class WeekSlotBlock extends StatefulWidget {
@@ -216,123 +213,4 @@ class DragBand extends StatelessWidget {
       ),
     );
   }
-}
-
-// ---------------------------------------------------------------------------
-// Slot-chrome painter — rounded 8px box, 1.5px solid/dashed border, optional
-// diagonal stripes (CSS `repeating-linear-gradient`) and 3px left accent bar.
-// ---------------------------------------------------------------------------
-
-class SlotDecorationPainter extends CustomPainter {
-  const SlotDecorationPainter({
-    required this.bg,
-    required this.border,
-    this.dashed = false,
-    this.stripeA,
-    this.stripeB,
-    this.stripeBand = 0,
-    this.stripeAngleDeg = 0,
-    this.accentLeft,
-  });
-
-  SlotDecorationPainter.fromStyle(SlotStateStyle style)
-      : this(
-          bg: style.bg,
-          border: style.border,
-          dashed: style.dashed,
-          stripeA: style.striped.colorA,
-          stripeB: style.striped.colorB,
-          stripeBand: style.striped.bandWidth,
-          stripeAngleDeg: style.striped.angleDeg,
-          accentLeft: style.accentLeft,
-        );
-
-  final Color bg;
-  final Color border;
-  final bool dashed;
-  final Color? stripeA;
-  final Color? stripeB;
-  final double stripeBand;
-  final double stripeAngleDeg;
-  final Color? accentLeft;
-
-  static const double _radius = 8;
-  static const double _strokeWidth = 1.5;
-  static const double _dashLength = 4;
-  static const double _gapLength = 3;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rrect = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(_radius),
-    );
-
-    canvas.drawRRect(rrect, Paint()..color = bg);
-
-    final stripeA = this.stripeA;
-    final stripeB = this.stripeB;
-    if (stripeA != null && stripeB != null && stripeBand > 0) {
-      // CSS gradient angle: 0deg = up, clockwise → direction (sin a, −cos a).
-      final rad = stripeAngleDeg * math.pi / 180;
-      final period = Offset(math.sin(rad), -math.cos(rad)) * (stripeBand * 2);
-      final paint = Paint()
-        ..shader = ui.Gradient.linear(
-          Offset.zero,
-          period,
-          [stripeA, stripeA, stripeB, stripeB],
-          [0, 0.5, 0.5, 1],
-          TileMode.repeated,
-        );
-      canvas.save();
-      canvas.clipRRect(rrect);
-      canvas.drawRect(Offset.zero & size, paint);
-      canvas.restore();
-    }
-
-    final accentLeft = this.accentLeft;
-    if (accentLeft != null) {
-      // `.st-fixed::before` — 3px solid bar hugging the left edge.
-      canvas.save();
-      canvas.clipRRect(rrect);
-      canvas.drawRect(
-        Rect.fromLTWH(0, 0, 3, size.height),
-        Paint()..color = accentLeft,
-      );
-      canvas.restore();
-    }
-
-    // Border strokes inside the bounds (CSS border-box).
-    final borderRRect = rrect.deflate(_strokeWidth / 2);
-    final borderPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = _strokeWidth
-      ..color = border;
-    if (!dashed) {
-      canvas.drawRRect(borderRRect, borderPaint);
-    } else {
-      final path = Path()..addRRect(borderRRect);
-      for (final metric in path.computeMetrics()) {
-        var distance = 0.0;
-        while (distance < metric.length) {
-          canvas.drawPath(
-            metric.extractPath(distance, distance + _dashLength),
-            borderPaint,
-          );
-          distance += _dashLength + _gapLength;
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(SlotDecorationPainter oldDelegate) =>
-      bg != oldDelegate.bg ||
-      border != oldDelegate.border ||
-      dashed != oldDelegate.dashed ||
-      stripeA != oldDelegate.stripeA ||
-      stripeB != oldDelegate.stripeB ||
-      stripeBand != oldDelegate.stripeBand ||
-      stripeAngleDeg != oldDelegate.stripeAngleDeg ||
-      accentLeft != oldDelegate.accentLeft;
 }

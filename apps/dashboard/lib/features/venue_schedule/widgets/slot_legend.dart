@@ -49,8 +49,8 @@ class SlotLegend extends StatelessWidget {
           width: 13,
           height: 13,
           child: CustomPaint(
-            painter: SlotDecorationPainter(
-              style: slotStateStyles[state]!,
+            painter: SlotDecorationPainter.fromStyle(
+              slotStateStyles[state]!,
               radius: 4,
             ),
           ),
