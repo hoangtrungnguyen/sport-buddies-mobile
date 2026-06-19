@@ -100,3 +100,92 @@ class AuthErrorBanner extends StatelessWidget {
     );
   }
 }
+
+/// Field scaffold shared by the auth forms: an [AuthFieldLabel], a 6px gap,
+/// then [child] wrapped in its [semanticsLabel] [Semantics] node. Pass
+/// [labelTrailing] to put a widget at the right of the label row (e.g. the
+/// login screen's "Quên mật khẩu?" link).
+class AuthFieldGroup extends StatelessWidget {
+  const AuthFieldGroup({
+    super.key,
+    required this.label,
+    required this.semanticsLabel,
+    required this.child,
+    this.labelTrailing,
+  });
+
+  final String label;
+  final String semanticsLabel;
+  final Widget child;
+  final Widget? labelTrailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (labelTrailing == null)
+          AuthFieldLabel(label: label)
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [AuthFieldLabel(label: label), labelTrailing!],
+          ),
+        const SizedBox(height: 6),
+        Semantics(label: semanticsLabel, textField: true, child: child),
+      ],
+    );
+  }
+}
+
+/// Obscured password [TextFormField] with a visibility-toggle suffix — the
+/// input shared by the login and signup password fields. The label/semantics
+/// are the caller's responsibility (usually via [AuthFieldGroup]).
+class AuthObscureField extends StatelessWidget {
+  const AuthObscureField({
+    super.key,
+    required this.controller,
+    required this.obscure,
+    required this.onToggle,
+    required this.hint,
+    required this.textInputAction,
+    required this.autofillHints,
+    required this.validator,
+    this.onSubmitted,
+  });
+
+  final TextEditingController controller;
+  final bool obscure;
+  final VoidCallback onToggle;
+  final String hint;
+  final TextInputAction textInputAction;
+  final List<String> autofillHints;
+  final FormFieldValidator<String> validator;
+  final VoidCallback? onSubmitted;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      textInputAction: textInputAction,
+      autofillHints: autofillHints,
+      style: GoogleFonts.plusJakartaSans(fontSize: 14),
+      onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted!(),
+      decoration: InputDecoration(
+        hintText: hint,
+        suffixIcon: IconButton(
+          icon: Icon(
+            obscure
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+            size: 18,
+            color: AppColors.neutral400,
+          ),
+          onPressed: onToggle,
+        ),
+      ),
+      validator: validator,
+    );
+  }
+}

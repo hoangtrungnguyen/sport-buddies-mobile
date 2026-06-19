@@ -122,24 +122,11 @@ class SignupFormPanel extends StatelessWidget {
     );
   }
 
-  /// Shared field scaffold: label, 6px gap, then the [input] wrapped in the
-  /// field's [Semantics] node.
-  Widget _fieldGroup(String label, String semanticsLabel, Widget input) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        AuthFieldLabel(label: label),
-        const SizedBox(height: 6),
-        Semantics(label: semanticsLabel, textField: true, child: input),
-      ],
-    );
-  }
-
   Widget _emailField() {
-    return _fieldGroup(
-      'Email',
-      'signup-email-field',
-      TextFormField(
+    return AuthFieldGroup(
+      label: 'Email',
+      semanticsLabel: 'signup-email-field',
+      child: TextFormField(
         controller: emailCtrl,
         keyboardType:
             kIsWeb ? TextInputType.text : TextInputType.emailAddress,
@@ -152,8 +139,8 @@ class SignupFormPanel extends StatelessWidget {
     );
   }
 
-  /// Obscured password field with a visibility toggle — shared by the password
-  /// and confirm-password fields, which differ only in their wiring.
+  /// Obscured password field — shared by the password and confirm-password
+  /// fields, which differ only in their wiring.
   Widget _passwordField({
     required String label,
     required String semanticsLabel,
@@ -165,30 +152,18 @@ class SignupFormPanel extends StatelessWidget {
     required FormFieldValidator<String> validator,
     VoidCallback? onSubmitted,
   }) {
-    return _fieldGroup(
-      label,
-      semanticsLabel,
-      TextFormField(
+    return AuthFieldGroup(
+      label: label,
+      semanticsLabel: semanticsLabel,
+      child: AuthObscureField(
         controller: controller,
-        obscureText: obscure,
+        obscure: obscure,
+        onToggle: onToggle,
+        hint: hint,
         textInputAction: action,
         autofillHints: const [AutofillHints.newPassword],
-        style: GoogleFonts.plusJakartaSans(fontSize: 14),
-        onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
-        decoration: InputDecoration(
-          hintText: hint,
-          suffixIcon: IconButton(
-            icon: Icon(
-              obscure
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined,
-              size: 18,
-              color: AppColors.neutral400,
-            ),
-            onPressed: onToggle,
-          ),
-        ),
         validator: validator,
+        onSubmitted: onSubmitted,
       ),
     );
   }

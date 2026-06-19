@@ -96,24 +96,11 @@ class LoginFormPanel extends StatelessWidget {
     );
   }
 
-  /// Shared field scaffold: label, 6px gap, then the [input] wrapped in the
-  /// field's [Semantics] node.
-  Widget _fieldGroup(String label, String semanticsLabel, Widget input) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        AuthFieldLabel(label: label),
-        const SizedBox(height: 6),
-        Semantics(label: semanticsLabel, textField: true, child: input),
-      ],
-    );
-  }
-
   Widget _emailField() {
-    return _fieldGroup(
-      'Email',
-      'login-email-field',
-      TextFormField(
+    return AuthFieldGroup(
+      label: 'Email',
+      semanticsLabel: 'login-email-field',
+      child: TextFormField(
         controller: emailCtrl,
         keyboardType:
             kIsWeb ? TextInputType.text : TextInputType.emailAddress,
@@ -130,68 +117,44 @@ class LoginFormPanel extends StatelessWidget {
   }
 
   /// Label row (with the "Quên mật khẩu?" support link) + the obscured
-  /// password field with a visibility toggle.
+  /// password field.
   Widget _passwordField(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const AuthFieldLabel(label: 'Mật khẩu'),
-            Semantics(
-              label: 'login-forgot-password-btn',
-              button: true,
-              child: TextButton(
-                onPressed: () => showContactSupportDialog(context),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  'Quên mật khẩu?',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
+    return AuthFieldGroup(
+      label: 'Mật khẩu',
+      semanticsLabel: 'login-password-field',
+      labelTrailing: Semantics(
+        label: 'login-forgot-password-btn',
+        button: true,
+        child: TextButton(
+          onPressed: () => showContactSupportDialog(context),
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Quên mật khẩu?',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
             ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Semantics(
-          label: 'login-password-field',
-          textField: true,
-          child: TextFormField(
-            controller: passCtrl,
-            obscureText: obscure,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            style: GoogleFonts.plusJakartaSans(fontSize: 14),
-            onFieldSubmitted: (_) => onSubmit(),
-            decoration: InputDecoration(
-              hintText: 'Nhập mật khẩu',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscure
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  size: 18,
-                  color: AppColors.neutral400,
-                ),
-                onPressed: onToggleObscure,
-              ),
-            ),
-            validator: (v) {
-              if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu.';
-              return null;
-            },
           ),
         ),
-      ],
+      ),
+      child: AuthObscureField(
+        controller: passCtrl,
+        obscure: obscure,
+        onToggle: onToggleObscure,
+        hint: 'Nhập mật khẩu',
+        textInputAction: TextInputAction.done,
+        autofillHints: const [AutofillHints.password],
+        onSubmitted: onSubmit,
+        validator: (v) {
+          if (v == null || v.isEmpty) return 'Vui lòng nhập mật khẩu.';
+          return null;
+        },
+      ),
     );
   }
 
