@@ -106,101 +106,109 @@ class _VenueDialogState extends State<_VenueDialog> {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final priceVal = int.tryParse(_price.text.trim());
     return AlertDialog(
       icon: CircleAvatar(
         radius: 24,
         backgroundColor: scheme.secondaryContainer,
-        child: Icon(Symbols.sports_tennis,
-            color: scheme.onSecondaryContainer),
+        child:
+            Icon(Symbols.sports_tennis, color: scheme.onSecondaryContainer),
       ),
       title: Text(_isEdit ? 'Sửa sân con' : 'Thêm sân con'),
-      content: SizedBox(
-        width: 380,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _name,
-              autofocus: true,
-              decoration: const InputDecoration(labelText: 'Tên sân con'),
-              onChanged: (_) => setState(() {}),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _sport,
-              decoration: const InputDecoration(labelText: 'Môn thể thao'),
-              items: [
-                for (final s in kSportTypes)
-                  DropdownMenuItem(value: s, child: Text(s)),
-              ],
-              onChanged: (v) => setState(() => _sport = v ?? _sport),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _price,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: 'Giá / giờ',
-                      helperText: priceVal != null && priceVal > 0
-                          ? formatPricePerHour(priceVal)
-                          : null,
-                    ),
-                    onChanged: (_) => setState(() {}),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 110,
-                  child: TextField(
-                    controller: _capacity,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Sức chứa'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(
-                  value: true,
-                  icon: Icon(Symbols.roofing, size: 18),
-                  label: Text('Trong nhà'),
-                ),
-                ButtonSegment(
-                  value: false,
-                  icon: Icon(Symbols.sunny, size: 18),
-                  label: Text('Ngoài trời'),
-                ),
-              ],
-              selected: {_indoor},
-              onSelectionChanged: (s) {
-                setState(() => _indoor = s.first);
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.of(context).pop(),
-          child: const Text('Huỷ'),
-        ),
-        FilledButton(
-          onPressed: (_saving || _name.text.trim().isEmpty) ? null : _save,
-          child: _saving
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2))
-              : const Text('Lưu'),
-        ),
-      ],
+      content: _content(),
+      actions: _actions(),
     );
+  }
+
+  /// Name + sport + price/capacity + indoor-outdoor form fields.
+  Widget _content() {
+    final priceVal = int.tryParse(_price.text.trim());
+    return SizedBox(
+      width: 380,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _name,
+            autofocus: true,
+            decoration: const InputDecoration(labelText: 'Tên sân con'),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            initialValue: _sport,
+            decoration: const InputDecoration(labelText: 'Môn thể thao'),
+            items: [
+              for (final s in kSportTypes)
+                DropdownMenuItem(value: s, child: Text(s)),
+            ],
+            onChanged: (v) => setState(() => _sport = v ?? _sport),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _price,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Giá / giờ',
+                    helperText: priceVal != null && priceVal > 0
+                        ? formatPricePerHour(priceVal)
+                        : null,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SizedBox(
+                width: 110,
+                child: TextField(
+                  controller: _capacity,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Sức chứa'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(
+                value: true,
+                icon: Icon(Symbols.roofing, size: 18),
+                label: Text('Trong nhà'),
+              ),
+              ButtonSegment(
+                value: false,
+                icon: Icon(Symbols.sunny, size: 18),
+                label: Text('Ngoài trời'),
+              ),
+            ],
+            selected: {_indoor},
+            onSelectionChanged: (s) => setState(() => _indoor = s.first),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Huỷ + Lưu dialog actions.
+  List<Widget> _actions() {
+    return [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.of(context).pop(),
+        child: const Text('Huỷ'),
+      ),
+      FilledButton(
+        onPressed: (_saving || _name.text.trim().isEmpty) ? null : _save,
+        child: _saving
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2))
+            : const Text('Lưu'),
+      ),
+    ];
   }
 }
