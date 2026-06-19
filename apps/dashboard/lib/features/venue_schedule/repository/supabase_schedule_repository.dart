@@ -342,65 +342,20 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       final startAt = atHour(date, req.startHour);
       final endAt = atHour(date, req.endHour);
       final note = req.note?.trim();
-      // Exact API status per block kind — the block endpoint accepts
-      // `status ∈ {blocked, maintenance, owner}` (default blocked), so every
-      // row keeps its true kind and the note rides along verbatim.
-      final kindStatus = switch (req.blockType) {
-        SlotState.maintenance => kStatusMaintenance,
-        SlotState.owner => kStatusOwner,
-        _ => kStatusBlocked,
-      };
+      final kindStatus = _kindStatusFor(req.blockType);
 
-      // READ (direct DB): everything overlapping `[startAt, endAt)` on this
-      // court, any status.
-      final rows = await _client
-          .from('slots')
-          .select(_slotCols)
-          .eq('court_id', req.venueId)
-          .lt('start_at', endAt.toUtc().toIso8601String())
-          .gt('end_at', startAt.toUtc().toIso8601String());
-      final overlaps =
-          [for (final r in rows as List) (r as Map).cast<String, dynamic>()];
+      final overlaps = await _overlappingSlots(req.venueId, startAt, endAt);
+      _assertBlockable(overlaps, startAt, endAt);
 
-      // Never block over a customer booking — a per-slot guard, checked up
-      // front because one range can span several slots. Kept client-side
-      // BEFORE any API call:
-      // the backend's own 409 only fires per 'booked' slot, and 'pending'
-      // bookings ride on slots the trigger already marked 'booked'.
-      if (overlaps.any((r) =>
-          r['status'] == kStatusBooked || r['status'] == kStatusPending)) {
-        throw ScheduleRepositoryException(
-            'Khung giờ này có lịch đã đặt hoặc chờ duyệt — không thể khoá.');
-      }
-
-      // An OPEN slot only partially inside the range would be flipped in its
-      // ENTIRETY (a status flip cannot split a row), silently blocking hours
-      // the owner did not select — reject instead and let them re-align.
-      for (final r in overlaps) {
-        if (r['status'] != kStatusOpen) continue;
-        final s = DateTime.parse(r['start_at'] as String).toLocal();
-        final e = DateTime.parse(r['end_at'] as String).toLocal();
-        if (s.isBefore(startAt) || e.isAfter(endAt)) {
-          throw ScheduleRepositoryException(
-              'Khung giờ chồng một phần slot trống '
-              '${hourLabel(s.hour + s.minute / 60.0)}–'
-              '${hourLabel(e.hour + e.minute / 60.0)} — '
-              'hãy chọn trùng ranh giới slot.');
-        }
-      }
-
-      // Flip overlapping OPEN slots via `PATCH .../block` (one call per
-      // slot) with the exact kind status; the owner's note (when any) is the
-      // stored reason. A slot booked between the select above and the PATCH
-      // surfaces as the endpoint's 409 ("đã đặt... không thể khoá") — the
-      // legacy race guard, enforced atomically server-side.
+      // Flip overlapping OPEN slots via `PATCH .../block` (one call per slot)
+      // with the exact kind status; the owner's note (when any) is the stored
+      // reason. A slot booked between the read and the PATCH surfaces as the
+      // endpoint's 409 — the race guard, enforced atomically server-side.
       //
       // NOTE: this fan-out (one read + N block PATCHes + M creates below,
-      // sequential, multiplied by the bloc's recurring-block loop) replaced
-      // 1-2 batched DB statements and is NON-ATOMIC: each call is bounded
-      // by the client's 15s timeouts but a mid-loop failure leaves the
-      // range half-blocked. Mitigated by the bloc's rejection toast +
-      // grid refresh, which keeps the calendar truthful; a server-side
+      // sequential, multiplied by the bloc's recurring-block loop) is
+      // NON-ATOMIC: a mid-loop failure leaves the range half-blocked.
+      // Mitigated by the bloc's rejection toast + grid refresh; a server-side
       // batch block endpoint would remove the window entirely.
       for (final r in overlaps) {
         if (r['status'] != kStatusOpen) continue;
@@ -412,10 +367,9 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       }
 
       // Create block slots over the sub-ranges no existing slot covers, so
-      // the whole requested range reads as blocked on the grid. Gap rows
-      // keep their exact status via the create `status` field ('owner'
-      // implies `is_owner_slot` server-side) and carry the note verbatim —
-      // no follow-up calls needed.
+      // the whole requested range reads as blocked on the grid. Gap rows keep
+      // their exact status via the create `status` field ('owner' implies
+      // `is_owner_slot` server-side) and carry the note verbatim.
       for (final gap in uncoveredRanges(startAt, endAt, overlaps)) {
         await _api.createSlot(
           courtId: req.venueId,
@@ -431,6 +385,60 @@ class SupabaseScheduleRepository implements ScheduleRepository {
       appLogger.e('SupabaseScheduleRepository.blockTime',
           error: e, stackTrace: st);
       rethrow;
+    }
+  }
+
+  /// Block-endpoint status for a block kind — `{blocked, maintenance, owner}`
+  /// (default blocked), so every row keeps its true kind.
+  String _kindStatusFor(SlotState blockType) => switch (blockType) {
+        SlotState.maintenance => kStatusMaintenance,
+        SlotState.owner => kStatusOwner,
+        _ => kStatusBlocked,
+      };
+
+  /// READ (direct DB): every slot overlapping `[startAt, endAt)` on this
+  /// court, any status.
+  Future<List<Map<String, dynamic>>> _overlappingSlots(
+    String venueId,
+    DateTime startAt,
+    DateTime endAt,
+  ) async {
+    final rows = await _client
+        .from('slots')
+        .select(_slotCols)
+        .eq('court_id', venueId)
+        .lt('start_at', endAt.toUtc().toIso8601String())
+        .gt('end_at', startAt.toUtc().toIso8601String());
+    return [for (final r in rows as List) (r as Map).cast<String, dynamic>()];
+  }
+
+  /// Pre-flight guards for a block over `[startAt, endAt)`, both enforced
+  /// client-side before any write so the UI shows a reason:
+  /// - never block over a customer booking (the backend's own 409 only fires
+  ///   per 'booked' slot; 'pending' rides on slots already marked 'booked');
+  /// - never flip an OPEN slot that only partially overlaps — a status flip
+  ///   can't split a row, so it would silently block unselected hours.
+  void _assertBlockable(
+    List<Map<String, dynamic>> overlaps,
+    DateTime startAt,
+    DateTime endAt,
+  ) {
+    if (overlaps.any((r) =>
+        r['status'] == kStatusBooked || r['status'] == kStatusPending)) {
+      throw ScheduleRepositoryException(
+          'Khung giờ này có lịch đã đặt hoặc chờ duyệt — không thể khoá.');
+    }
+    for (final r in overlaps) {
+      if (r['status'] != kStatusOpen) continue;
+      final s = DateTime.parse(r['start_at'] as String).toLocal();
+      final e = DateTime.parse(r['end_at'] as String).toLocal();
+      if (s.isBefore(startAt) || e.isAfter(endAt)) {
+        throw ScheduleRepositoryException(
+            'Khung giờ chồng một phần slot trống '
+            '${hourLabel(s.hour + s.minute / 60.0)}–'
+            '${hourLabel(e.hour + e.minute / 60.0)} — '
+            'hãy chọn trùng ranh giới slot.');
+      }
     }
   }
 
