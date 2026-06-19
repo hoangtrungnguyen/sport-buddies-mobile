@@ -2,7 +2,6 @@ import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:dashboard/features/auth/bloc/signup_bloc.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
-import 'package:dashboard/features/auth/view/forgot_password_screen.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
 import 'package:dashboard/features/auth/view/signup_screen.dart';
 import 'package:dashboard/features/home/bloc/home_bloc.dart';
@@ -53,7 +52,7 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
 }
 
 GoRouter buildRouter() {
-  const publicPaths = {'/login', '/signup', '/forgot-password'};
+  const publicPaths = {'/login', '/signup'};
 
   AuthBloc createAuthBloc() {
     SupabaseClient? client;
@@ -99,17 +98,6 @@ GoRouter buildRouter() {
           child: const SignupScreen(),
         ),
       ),
-      // UNUSED: reachable by direct URL only. The "Quên mật khẩu?" button now
-      // opens showContactSupportDialog instead of routing here. Tracking: Plane
-      // OWNER-55 (Cancelled).
-      GoRoute(
-        path: '/forgot-password',
-        builder: (context, state) => BlocProvider(
-          create: (_) => createAuthBloc(),
-          child: const ForgotPasswordScreen(),
-        ),
-      ),
-
       // Authenticated shell — sidebar + topbar + content.
       ShellRoute(
         builder: (context, state, child) => MultiRepositoryProvider(
