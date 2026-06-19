@@ -133,67 +133,8 @@ class _WeekViewState extends State<WeekView> {
     // 1020px grid.
     final grid = StickyGridHeader(
       maxStick: kBodyHeight,
-      // ---- Header: [64px corner] + 7 day cells (`.week-head`) ------------
-      header: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.neutral50,
-          border: Border(bottom: BorderSide(color: AppColors.neutral200)),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(
-                width: kGutterWidth,
-                decoration: const BoxDecoration(
-                  border: Border(
-                    right: BorderSide(color: AppColors.neutral200),
-                  ),
-                ),
-              ),
-              for (var i = 0; i < 7; i++)
-                Expanded(
-                  child: _WeekDayHeaderCell(
-                    dow: weekdayShortLabels[i],
-                    dayOfMonth: dates[i].day,
-                    isToday: isToday(dates[i]),
-                    isLast: i == 6,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-      // ---- Body: [64px gutter] + 7 columns (`.week-body`) ----------------
-      body: SizedBox(
-        height: kBodyHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const _TimeGutter(),
-            for (var i = 0; i < 7; i++)
-              Expanded(
-                child: _WeekDayColumn(
-                  isToday: isToday(dates[i]),
-                  isLast: i == 6,
-                  slots: widget.slots
-                      .where((s) => s.weekday == i)
-                      .toList(growable: false),
-                  drag: _drag != null && _drag!.weekday == i
-                      ? (startHour: _drag!.startHour, curHour: _drag!.curHour)
-                      : null,
-                  onSlotTapped: widget.onSlotTapped,
-                  onEmptyTapped: (h) =>
-                      widget.onEmptyCellTapped(venue.id, h, i),
-                  onDragStart: (d) => _startDrag(i, d),
-                  onDragUpdate: _updateDrag,
-                  onDragEnd: (_) => _endDrag(),
-                  onDragCancel: _cancelDrag,
-                ),
-              ),
-          ],
-        ),
-      ),
+      header: _weekHeader(dates, isToday),
+      body: _weekBody(venue, dates, isToday),
     );
 
     // `.week-grid` card; under 1024px it scrolls horizontally (min 760px).
@@ -218,6 +159,75 @@ class _WeekViewState extends State<WeekView> {
               : grid,
         );
       },
+    );
+  }
+
+  /// Sticky header: [64px corner] + 7 day cells (`.week-head`).
+  Widget _weekHeader(List<DateTime> dates, bool Function(DateTime) isToday) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.neutral50,
+        border: Border(bottom: BorderSide(color: AppColors.neutral200)),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              width: kGutterWidth,
+              decoration: const BoxDecoration(
+                border:
+                    Border(right: BorderSide(color: AppColors.neutral200)),
+              ),
+            ),
+            for (var i = 0; i < 7; i++)
+              Expanded(
+                child: _WeekDayHeaderCell(
+                  dow: weekdayShortLabels[i],
+                  dayOfMonth: dates[i].day,
+                  isToday: isToday(dates[i]),
+                  isLast: i == 6,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Scrollable body: [64px gutter] + 7 day columns (`.week-body`).
+  Widget _weekBody(
+    Venue venue,
+    List<DateTime> dates,
+    bool Function(DateTime) isToday,
+  ) {
+    return SizedBox(
+      height: kBodyHeight,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _TimeGutter(),
+          for (var i = 0; i < 7; i++)
+            Expanded(
+              child: _WeekDayColumn(
+                isToday: isToday(dates[i]),
+                isLast: i == 6,
+                slots: widget.slots
+                    .where((s) => s.weekday == i)
+                    .toList(growable: false),
+                drag: _drag != null && _drag!.weekday == i
+                    ? (startHour: _drag!.startHour, curHour: _drag!.curHour)
+                    : null,
+                onSlotTapped: widget.onSlotTapped,
+                onEmptyTapped: (h) => widget.onEmptyCellTapped(venue.id, h, i),
+                onDragStart: (d) => _startDrag(i, d),
+                onDragUpdate: _updateDrag,
+                onDragEnd: (_) => _endDrag(),
+                onDragCancel: _cancelDrag,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
