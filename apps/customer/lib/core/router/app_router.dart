@@ -42,9 +42,7 @@ import 'package:customer/features/booking/wizard/presentation/booking_wizard_pag
 import 'package:customer/features/court/domain/booking_draft.dart';
 import 'package:customer/features/bookings/booking_detail_screen.dart';
 import 'package:customer/features/bookings/my_bookings_screen.dart';
-import 'package:customer/features/courts/court_detail_screen.dart';
 import 'package:customer/features/courts/schedule/court_schedule_overview_screen.dart';
-import 'package:customer/features/courts/cubit/court_detail_cubit.dart';
 import 'package:customer/features/courts/cubit/slot_picker_cubit.dart';
 import 'package:customer/features/courts/slot_picker_screen.dart';
 import 'package:customer/features/discovery/court_repository_impl.dart';
@@ -213,20 +211,6 @@ GoRouter buildRouter() {
         path: '/bookings/:id',
         builder: (context, state) => BookingDetailPage(
           bookingId: state.pathParameters['id']!,
-        ),
-      ),
-      GoRoute(
-        path: '/court/:id',
-        pageBuilder: (context, state) => _fadePage(
-          state,
-          BlocProvider(
-            create: (_) => CourtDetailCubit(
-              SupabaseCourtRepository(client: Supabase.instance.client),
-              slotRepository:
-                  SupabaseSlotRepository(client: Supabase.instance.client),
-            ),
-            child: CourtDetailScreen(courtId: state.pathParameters['id']!),
-          ),
         ),
       ),
       GoRoute(

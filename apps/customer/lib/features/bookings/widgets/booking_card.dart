@@ -42,7 +42,7 @@ class BookingCard extends StatelessWidget {
 
   VoidCallback _actionTap(BuildContext context) {
     return switch (booking.action) {
-      'rebook' when booking.courtId != null => () => context.push('/court/${booking.courtId}'),
+      'rebook' when booking.courtId != null => () => context.push('/browse/court/${booking.courtId}'),
       'detail' => () => context.push('/bookings/${booking.id}'),
       'cancel' => () => _confirmCancel(context),
       _ => () {},
