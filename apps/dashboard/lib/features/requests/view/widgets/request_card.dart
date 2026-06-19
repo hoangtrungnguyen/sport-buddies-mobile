@@ -26,130 +26,11 @@ class RequestCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              _Avatar(name: request.customerName, greyed: cancelled),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            request.customerName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.neutral900,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          request.code,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.neutral400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.place_rounded,
-                            size: 13, color: AppColors.neutral400),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            request.courtName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5, color: AppColors.neutral500),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const Icon(Icons.schedule_rounded,
-                            size: 13, color: AppColors.neutral400),
-                        const SizedBox(width: 4),
-                        Text(
-                          timeRange(request.startAt.toLocal(),
-                              request.endAt.toLocal()),
-                          style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12.5, color: AppColors.neutral500),
-                        ),
-                      ],
-                    ),
-                    if (request.venueName.isNotEmpty ||
-                        request.sportType.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          const Icon(Icons.sports_rounded,
-                              size: 13, color: AppColors.neutral400),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              [
-                                if (request.venueName.isNotEmpty)
-                                  request.venueName,
-                                if (request.sportType.isNotEmpty)
-                                  request.sportType,
-                              ].join(' · '),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12.5,
-                                  color: AppColors.neutral500),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _StatusBadge(status: request.status),
-                  // OWNER-45: "Tự động" label for auto-approved confirmed bookings.
-                  if (request.isAutoApproved && request.isConfirmed) ...[
-                    const SizedBox(height: 4),
-                    _AutoLabel(),
-                  ],
-                ],
-              ),
-            ],
-          ),
+          _header(cancelled),
           // Phone is revealed only after approval (OWNER-28).
           if (phone != null) ...[
             const SizedBox(height: 10),
-            Semantics(
-              label: 'requests-phone-${request.id}',
-              child: Row(
-                children: [
-                  const Icon(Icons.phone_rounded,
-                      size: 14, color: Color(0xFF166534)),
-                  const SizedBox(width: 6),
-                  Text(
-                    phone,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutral700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _phoneRow(phone),
           ],
           // Approve / reject actions appear only while pending (OWNER-28/29).
           if (request.isPending) ...[
@@ -167,6 +48,139 @@ class RequestCard extends StatelessWidget {
     // Cancelled bookings are de-emphasized (reduced opacity), per OWNER-27 AC.
     return cancelled ? Opacity(opacity: 0.55, child: labelled) : labelled;
   }
+
+  /// Avatar + customer info + status column.
+  Widget _header(bool cancelled) {
+    return Row(
+      children: [
+        _Avatar(name: request.customerName, greyed: cancelled),
+        const SizedBox(width: 12),
+        Expanded(child: _customerInfo()),
+        const SizedBox(width: 10),
+        _statusColumn(),
+      ],
+    );
+  }
+
+  /// Name + code, then the court/time and optional venue/sport meta rows.
+  Widget _customerInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Flexible(
+              child: Text(
+                request.customerName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutral900,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              request.code,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.neutral400,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _metaIcon(Icons.place_rounded),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                request.courtName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: _metaStyle,
+              ),
+            ),
+            const SizedBox(width: 10),
+            _metaIcon(Icons.schedule_rounded),
+            const SizedBox(width: 4),
+            Text(
+              timeRange(request.startAt.toLocal(), request.endAt.toLocal()),
+              style: _metaStyle,
+            ),
+          ],
+        ),
+        if (request.venueName.isNotEmpty || request.sportType.isNotEmpty) ...[
+          const SizedBox(height: 3),
+          Row(
+            children: [
+              _metaIcon(Icons.sports_rounded),
+              const SizedBox(width: 4),
+              Flexible(
+                child: Text(
+                  [
+                    if (request.venueName.isNotEmpty) request.venueName,
+                    if (request.sportType.isNotEmpty) request.sportType,
+                  ].join(' · '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: _metaStyle,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Status badge, plus the "Tự động" label for auto-approved confirmed
+  /// bookings (OWNER-45).
+  Widget _statusColumn() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _StatusBadge(status: request.status),
+        if (request.isAutoApproved && request.isConfirmed) ...[
+          const SizedBox(height: 4),
+          _AutoLabel(),
+        ],
+      ],
+    );
+  }
+
+  /// Revealed customer phone (shown only after approval, OWNER-28).
+  Widget _phoneRow(String phone) {
+    return Semantics(
+      label: 'requests-phone-${request.id}',
+      child: Row(
+        children: [
+          const Icon(Icons.phone_rounded, size: 14, color: Color(0xFF166534)),
+          const SizedBox(width: 6),
+          Text(
+            phone,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.neutral700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The neutral leading icon shared by the meta rows.
+  Widget _metaIcon(IconData icon) =>
+      Icon(icon, size: 13, color: AppColors.neutral400);
+
+  /// Shared text style for the court / time / venue meta lines.
+  TextStyle get _metaStyle =>
+      GoogleFonts.plusJakartaSans(fontSize: 12.5, color: AppColors.neutral500);
 }
 
 class _Avatar extends StatelessWidget {
