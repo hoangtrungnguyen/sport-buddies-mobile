@@ -14,7 +14,8 @@ final class NotificationsLoaded extends NotificationsState {
   final List<AppNotification> items;
 }
 
-final class NotificationsError extends NotificationsState with AppExceptionMixin {
+final class NotificationsError extends NotificationsState
+    with AppExceptionMixin {
   const NotificationsError(this.message, {this.stackTrace});
 
   @override

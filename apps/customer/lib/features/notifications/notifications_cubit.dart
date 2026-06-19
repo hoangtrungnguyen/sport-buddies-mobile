@@ -59,8 +59,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final s = state;
     if (s is! NotificationsLoaded) return;
     final updated = [
-      for (final n in s.items)
-        n.unread && match(n) ? n.copyAsRead() : n,
+      for (final n in s.items) n.unread && match(n) ? n.copyAsRead() : n,
     ];
     emit(NotificationsLoaded(updated));
   }
@@ -73,12 +72,14 @@ class NotificationsCubit extends Cubit<NotificationsState> {
         return;
       }
 
-      final rows = await _client
-          .from('notifications')
-          .select('id, type, title, body, read, created_at')
-          .eq('user_id', userId)
-          .order('created_at', ascending: false)
-          .limit(50) as List<dynamic>;
+      final rows =
+          await _client
+                  .from('notifications')
+                  .select('id, type, title, body, read, created_at')
+                  .eq('user_id', userId)
+                  .order('created_at', ascending: false)
+                  .limit(50)
+              as List<dynamic>;
 
       final now = DateTime.now();
       final items = rows
@@ -121,8 +122,7 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   }
 
   static AppNotification _mapRow(Map<String, dynamic> r, DateTime now) {
-    final created =
-        DateTime.parse(r['created_at'] as String).toLocal();
+    final created = DateTime.parse(r['created_at'] as String).toLocal();
     return AppNotification(
       id: r['id'] as String,
       type: _mapType(r['type'] as String? ?? ''),
@@ -139,16 +139,16 @@ class NotificationsCubit extends Cubit<NotificationsState> {
   /// Maps the DB `type` text to a [NotifType]. Unknown types fall back to
   /// [NotifType.reminder] so the row still renders.
   static NotifType _mapType(String t) => switch (t) {
-        'booking_request' || 'join_request' => NotifType.joinRequest,
-        'booking_confirmed' || 'booking_created' => NotifType.bookingConfirmed,
-        'reminder' => NotifType.reminder,
-        'player_joined' => NotifType.playerJoined,
-        'join_approved' => NotifType.joinApproved,
-        'join_rejected' => NotifType.joinRejected,
-        'cancelled' || 'booking_cancelled' => NotifType.cancelled,
-        'series' || 'series_reminder' => NotifType.series,
-        _ => NotifType.reminder,
-      };
+    'booking_request' || 'join_request' => NotifType.joinRequest,
+    'booking_confirmed' || 'booking_created' => NotifType.bookingConfirmed,
+    'reminder' => NotifType.reminder,
+    'player_joined' => NotifType.playerJoined,
+    'join_approved' => NotifType.joinApproved,
+    'join_rejected' => NotifType.joinRejected,
+    'cancelled' || 'booking_cancelled' => NotifType.cancelled,
+    'series' || 'series_reminder' => NotifType.series,
+    _ => NotifType.reminder,
+  };
 
   static NotifDay _dayBucket(DateTime created, DateTime now) {
     final d = DateTime(created.year, created.month, created.day);

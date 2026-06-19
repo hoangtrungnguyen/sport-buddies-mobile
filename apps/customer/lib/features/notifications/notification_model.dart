@@ -37,12 +37,12 @@ class AppNotification {
 
   /// Same notification, marked read — for optimistic UI updates.
   AppNotification copyAsRead() => AppNotification(
-        id: id,
-        type: type,
-        title: title,
-        body: body,
-        time: time,
-        day: day,
-        unread: false,
-      );
+    id: id,
+    type: type,
+    title: title,
+    body: body,
+    time: time,
+    day: day,
+    unread: false,
+  );
 }
