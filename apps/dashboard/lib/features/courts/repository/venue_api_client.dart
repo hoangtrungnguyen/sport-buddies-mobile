@@ -63,7 +63,10 @@ class VenueApiClient {
         'name': name,
         'sport_type': sportType,
         'capacity': capacity,
-        'price_per_hour': pricePerHour,
+        // The API types price_per_hour as a decimal STRING (OpenAPI:
+        // type:string, format:decimal, pattern ^-?\d{0,10}(?:\.\d{0,2})?$),
+        // not a JSON number — send it as a string to satisfy validation.
+        'price_per_hour': pricePerHour.toString(),
       },
       okStatuses: const {200, 201},
       conflictMessage: 'Sân con này đã tồn tại — hãy tải lại danh sách.',
