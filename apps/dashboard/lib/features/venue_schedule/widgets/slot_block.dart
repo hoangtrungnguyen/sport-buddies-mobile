@@ -116,81 +116,9 @@ class _SlotBlockState extends State<SlotBlock> {
               borderRadius: BorderRadius.circular(8),
               child: Stack(
                 children: [
-                  // Natural-height content, clipped by the box (`overflow:
-                  // hidden`) instead of erroring when the slot is short.
-                  Positioned.fill(
-                    child: OverflowBox(
-                      alignment: Alignment.topLeft,
-                      minHeight: 0,
-                      maxHeight: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 8,
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _nameRow(slot, style),
-                            if (showTime)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  '${hourLabel(slot.startHour)}–'
-                                  '${hourLabel(slot.endHour)}',
-                                  style: GoogleFonts.jetBrainsMono(
-                                    fontSize: widget.compact ? 9 : 10,
-                                    color: style.text.withValues(alpha: 0.85),
-                                    height: 1.25,
-                                  ),
-                                ),
-                              ),
-                            if (showSubtitle)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 1),
-                                child: Text(
-                                  slot.subtitle!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
-                                    color: style.text.withValues(alpha: 0.8),
-                                    height: 1.25,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (showCapacity)
-                    Positioned(
-                      right: 6,
-                      bottom: 5,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          // rgba(255,255,255,.7)
-                          color: const Color(0xB3FFFFFF),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                        child: Text(
-                          // Never "0/N" — joined count has no DB column yet.
-                          slot.capacityLabel!,
-                          style: GoogleFonts.jetBrainsMono(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            color: style.text,
-                            height: 1.25,
-                          ),
-                        ),
-                      ),
-                    ),
+                  _content(slot, style,
+                      showTime: showTime, showSubtitle: showSubtitle),
+                  if (showCapacity) _capacityBadge(slot, style),
                 ],
               ),
             ),
@@ -208,6 +136,85 @@ class _SlotBlockState extends State<SlotBlock> {
           child: child,
         )
       : child;
+
+  /// Natural-height content (name + optional time + optional subtitle),
+  /// clipped by the box (`overflow: hidden`) instead of erroring when the
+  /// slot is short.
+  Widget _content(
+    Slot slot,
+    SlotStateStyle style, {
+    required bool showTime,
+    required bool showSubtitle,
+  }) {
+    return Positioned.fill(
+      child: OverflowBox(
+        alignment: Alignment.topLeft,
+        minHeight: 0,
+        maxHeight: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _nameRow(slot, style),
+              if (showTime)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text(
+                    '${hourLabel(slot.startHour)}–${hourLabel(slot.endHour)}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: widget.compact ? 9 : 10,
+                      color: style.text.withValues(alpha: 0.85),
+                      height: 1.25,
+                    ),
+                  ),
+                ),
+              if (showSubtitle)
+                Padding(
+                  padding: const EdgeInsets.only(top: 1),
+                  child: Text(
+                    slot.subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      color: style.text.withValues(alpha: 0.8),
+                      height: 1.25,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Bottom-right capacity pill ("tối đa N" — never "0/N").
+  Widget _capacityBadge(Slot slot, SlotStateStyle style) {
+    return Positioned(
+      right: 6,
+      bottom: 5,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          // rgba(255,255,255,.7)
+          color: const Color(0xB3FFFFFF),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          slot.capacityLabel!,
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w800,
+            color: style.text,
+            height: 1.25,
+          ),
+        ),
+      ),
+    );
+  }
 
   /// State icon (12px, 0.85 opacity) + slot label.
   Widget _nameRow(Slot slot, SlotStateStyle style) {
