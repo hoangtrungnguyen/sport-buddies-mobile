@@ -41,95 +41,8 @@ class NotificationPanel extends StatelessWidget {
 
                 return Column(
                   children: [
-                    // Header
-                    Container(
-                      height: 60,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      decoration: const BoxDecoration(
-                        border: Border(
-                            bottom: BorderSide(color: AppColors.neutral200)),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Thông báo',
-                            style: GoogleFonts.sora(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.neutral900,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (unread > 0)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 7, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: AppColors.danger,
-                                borderRadius: BorderRadius.circular(99),
-                              ),
-                              child: Text(
-                                '$unread mới',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          const Spacer(),
-                          if (unread > 0)
-                            TextButton(
-                              onPressed: () => context
-                                  .read<NotificationBloc>()
-                                  .add(const NotificationEvent
-                                      .markAllReadRequested()),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 6),
-                                foregroundColor: AppColors.neutral600,
-                                textStyle: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w500),
-                              ),
-                              child: const Text('Đánh dấu đã đọc'),
-                            ),
-                          const SizedBox(width: 4),
-                          InkWell(
-                            borderRadius: BorderRadius.circular(6),
-                            onTap: onClose,
-                            child: const Padding(
-                              padding: EdgeInsets.all(6),
-                              child: Icon(Icons.close_rounded,
-                                  size: 18, color: AppColors.neutral500),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Body
-                    Expanded(
-                      child: switch (state) {
-                        NotificationInitial() || NotificationLoading() =>
-                          const Center(
-                              child: CircularProgressIndicator(
-                                  color: AppColors.primary)),
-                        NotificationLoaded() when notifs.isEmpty =>
-                          _EmptyState(),
-                        NotificationLoaded() => ListView.builder(
-                            itemCount: notifs.length,
-                            itemBuilder: (_, i) =>
-                                _NotifItem(notif: notifs[i]),
-                          ),
-                        NotificationFailure(:final message) => Center(
-                            child: Text(message,
-                                style: GoogleFonts.plusJakartaSans(
-                                    color: AppColors.neutral500,
-                                    fontSize: 13)),
-                          ),
-                      },
-                    ),
+                    _header(context, unread),
+                    Expanded(child: _body(state, notifs)),
                   ],
                 );
               },
@@ -138,6 +51,93 @@ class NotificationPanel extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Panel header: title, unread badge, "mark all read" action and close.
+  Widget _header(BuildContext context, int unread) {
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.neutral200)),
+      ),
+      child: Row(
+        children: [
+          Text(
+            'Thông báo',
+            style: GoogleFonts.sora(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutral900,
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (unread > 0) _unreadBadge(unread),
+          const Spacer(),
+          if (unread > 0)
+            TextButton(
+              onPressed: () => context
+                  .read<NotificationBloc>()
+                  .add(const NotificationEvent.markAllReadRequested()),
+              style: TextButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                foregroundColor: AppColors.neutral600,
+                textStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5, fontWeight: FontWeight.w500),
+              ),
+              child: const Text('Đánh dấu đã đọc'),
+            ),
+          const SizedBox(width: 4),
+          InkWell(
+            borderRadius: BorderRadius.circular(6),
+            onTap: onClose,
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.neutral500),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Red "N mới" unread-count pill.
+  Widget _unreadBadge(int unread) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.danger,
+        borderRadius: BorderRadius.circular(99),
+      ),
+      child: Text(
+        '$unread mới',
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  /// Panel body, switched on the load state: spinner / empty / list / error.
+  Widget _body(NotificationState state, List<AppNotification> notifs) {
+    return switch (state) {
+      NotificationInitial() || NotificationLoading() => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary)),
+      NotificationLoaded() when notifs.isEmpty => _EmptyState(),
+      NotificationLoaded() => ListView.builder(
+          itemCount: notifs.length,
+          itemBuilder: (_, i) => _NotifItem(notif: notifs[i]),
+        ),
+      NotificationFailure(:final message) => Center(
+          child: Text(message,
+              style: GoogleFonts.plusJakartaSans(
+                  color: AppColors.neutral500, fontSize: 13)),
+        ),
+    };
   }
 }
 
