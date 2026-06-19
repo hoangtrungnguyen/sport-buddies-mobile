@@ -85,93 +85,93 @@ class _WeekSlotBlockState extends State<WeekSlotBlock> {
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Unbounded height + clip = CSS `overflow: hidden`.
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        top: 0,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 6,
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    slotStateIcons[slot.state],
-                                    size: 12,
-                                    color: style.text.withValues(alpha: 0.85),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      slot.label,
-                                      style: GoogleFonts.sora(
-                                        // Compact: 10.5px name (`.week-col`).
-                                        fontSize: 10.5,
-                                        fontWeight:
-                                            slot.state == SlotState.empty
-                                                ? FontWeight.w600
-                                                : FontWeight.w700,
-                                        height: 1.25,
-                                        color: style.text,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (showTime)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 2),
-                                  child: Text(
-                                    '${hourLabel(slot.startHour)}–'
-                                    '${hourLabel(slot.endHour)}',
-                                    style: GoogleFonts.jetBrainsMono(
-                                      // Compact: 9px time (`.week-col .s-time`).
-                                      fontSize: 9,
-                                      height: 1.25,
-                                      color: style.text.withValues(alpha: 0.85),
-                                    ),
-                                  ),
-                                ),
-                              // Compact mode: no subtitle line in Week view.
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (showCap)
-                        Positioned(
-                          right: 6,
-                          bottom: 5,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xB3FFFFFF),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              // Never "0/N" — joined count has no DB column.
-                              slot.capacityLabel!,
-                              style: GoogleFonts.jetBrainsMono(
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w800,
-                                color: style.text,
-                              ),
-                            ),
-                          ),
-                        ),
+                      _content(slot, style, showTime: showTime),
+                      if (showCap) _capacityBadge(slot, style),
                     ],
                   ),
                 ),
               )),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Slot icon + label, and the time line when the block is tall enough.
+  /// Unbounded height + the parent clip mimic CSS `overflow: hidden`.
+  Widget _content(Slot slot, SlotStateStyle style, {required bool showTime}) {
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  slotStateIcons[slot.state],
+                  size: 12,
+                  color: style.text.withValues(alpha: 0.85),
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    slot.label,
+                    style: GoogleFonts.sora(
+                      // Compact: 10.5px name (`.week-col`).
+                      fontSize: 10.5,
+                      fontWeight: slot.state == SlotState.empty
+                          ? FontWeight.w600
+                          : FontWeight.w700,
+                      height: 1.25,
+                      color: style.text,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (showTime)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(
+                  '${hourLabel(slot.startHour)}–${hourLabel(slot.endHour)}',
+                  style: GoogleFonts.jetBrainsMono(
+                    // Compact: 9px time (`.week-col .s-time`).
+                    fontSize: 9,
+                    height: 1.25,
+                    color: style.text.withValues(alpha: 0.85),
+                  ),
+                ),
+              ),
+            // Compact mode: no subtitle line in Week view.
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Bottom-right capacity pill ("tối đa N" — never "0/N").
+  Widget _capacityBadge(Slot slot, SlotStateStyle style) {
+    return Positioned(
+      right: 6,
+      bottom: 5,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+        decoration: BoxDecoration(
+          color: const Color(0xB3FFFFFF),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          slot.capacityLabel!,
+          style: GoogleFonts.jetBrainsMono(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w800,
+            color: style.text,
           ),
         ),
       ),
