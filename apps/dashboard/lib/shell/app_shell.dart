@@ -44,71 +44,14 @@ class _AppShellState extends State<AppShell> {
 
     final Widget shell;
     if (width >= 1100) {
-      // Expanded — standard inline NavigationDrawer.
-      shell = Scaffold(
-        backgroundColor: scheme.surface,
-        body: Row(
-          children: [
-            NavDrawer(
-                selected: selected,
-                management: managementNav,
-                system: systemNav),
-            Expanded(
-              child: Column(
-                children: [
-                  if (!isSub) TopBar(location: location, onBellTap: _openNotif),
-                  Expanded(child: widget.child),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+      shell = _expandedShell(scheme, location, selected, managementNav,
+          systemNav, isSub: isSub);
     } else if (width >= 600) {
-      // Medium — icon-only NavigationRail.
-      shell = Scaffold(
-        backgroundColor: scheme.surface,
-        body: Row(
-          children: [
-            NavRail(selected: selected, items: allNav),
-            Expanded(
-              child: Column(
-                children: [
-                  if (!isSub)
-                    TopBar(
-                        location: location,
-                        onBellTap: _openNotif,
-                        showSearch: false),
-                  Expanded(child: widget.child),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+      shell =
+          _mediumShell(scheme, location, selected, allNav, isSub: isSub);
     } else {
-      // Compact — bottom NavigationBar + modal drawer for the full list.
-      shell = Scaffold(
-        backgroundColor: scheme.surface,
-        drawer: Drawer(
-          backgroundColor: scheme.surfaceContainerLow,
-          width: 280,
-          shape: const RoundedRectangleBorder(),
-          child: NavDrawer(
-              selected: selected,
-              management: managementNav,
-              system: systemNav,
-              inDrawer: true),
-        ),
-        body: Column(
-          children: [
-            if (!isSub)
-              TopBar(location: location, isMobile: true, onBellTap: _openNotif),
-            Expanded(child: widget.child),
-          ],
-        ),
-        bottomNavigationBar: BottomBar(location: location, items: bottomNav),
-      );
+      shell = _compactShell(scheme, location, selected, managementNav,
+          systemNav, bottomNav, isSub: isSub);
     }
 
     return Stack(
@@ -119,6 +62,101 @@ class _AppShellState extends State<AppShell> {
         if (showFab)
           Positioned(right: 24, bottom: fabBottom, child: const AppFab()),
       ],
+    );
+  }
+
+  /// Top bar (unless this is a sub-screen) above the routed child — the body
+  /// content shared by the expanded and medium tiers.
+  Widget _content(Widget? topBar) {
+    return Column(
+      children: [
+        if (topBar != null) topBar,
+        Expanded(child: widget.child),
+      ],
+    );
+  }
+
+  /// Expanded (≥1100) — standard inline NavigationDrawer.
+  Widget _expandedShell(
+    ColorScheme scheme,
+    String location,
+    int selected,
+    List<NavItem> management,
+    List<NavItem> system, {
+    required bool isSub,
+  }) {
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      body: Row(
+        children: [
+          NavDrawer(
+              selected: selected, management: management, system: system),
+          Expanded(
+            child: _content(
+              isSub ? null : TopBar(location: location, onBellTap: _openNotif),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Medium (≥600) — icon-only NavigationRail.
+  Widget _mediumShell(
+    ColorScheme scheme,
+    String location,
+    int selected,
+    List<NavItem> allNav, {
+    required bool isSub,
+  }) {
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      body: Row(
+        children: [
+          NavRail(selected: selected, items: allNav),
+          Expanded(
+            child: _content(
+              isSub
+                  ? null
+                  : TopBar(
+                      location: location,
+                      onBellTap: _openNotif,
+                      showSearch: false),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Compact (<600) — bottom NavigationBar + modal drawer for the full list.
+  Widget _compactShell(
+    ColorScheme scheme,
+    String location,
+    int selected,
+    List<NavItem> management,
+    List<NavItem> system,
+    List<NavItem> bottomNav, {
+    required bool isSub,
+  }) {
+    return Scaffold(
+      backgroundColor: scheme.surface,
+      drawer: Drawer(
+        backgroundColor: scheme.surfaceContainerLow,
+        width: 280,
+        shape: const RoundedRectangleBorder(),
+        child: NavDrawer(
+            selected: selected,
+            management: management,
+            system: system,
+            inDrawer: true),
+      ),
+      body: _content(
+        isSub
+            ? null
+            : TopBar(location: location, isMobile: true, onBellTap: _openNotif),
+      ),
+      bottomNavigationBar: BottomBar(location: location, items: bottomNav),
     );
   }
 }
