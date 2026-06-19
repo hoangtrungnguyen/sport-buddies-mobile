@@ -19,6 +19,8 @@ import 'package:customer/features/discovery/discovery_style.dart';
 import 'package:customer/features/discovery/widgets/court_card.dart';
 import 'package:customer/features/discovery/widgets/filter_sheet.dart';
 import 'package:customer/features/discovery/widgets/search_overlay.dart';
+import 'package:customer/features/discovery/widgets/discovery_header.dart';
+import 'package:customer/features/discovery/widgets/discovery_sections.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:customer/features/discovery/location_cubit.dart';
 import 'package:customer/features/discovery/location_state.dart';
@@ -40,10 +42,7 @@ class DiscoveryListScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => DiscoveryFilterCubit(),
-      child: const Scaffold(
-        backgroundColor: mdN50,
-        body: _DiscoveryContent(),
-      ),
+      child: const Scaffold(backgroundColor: mdN50, body: _DiscoveryContent()),
     );
   }
 }
@@ -67,17 +66,18 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
     return BlocConsumer<DiscoveryCubit, DiscoveryState>(
       listener: (context, state) {
         if (state is DiscoveryError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       builder: (context, mapState) {
         return BlocBuilder<DiscoveryFilterCubit, DiscoveryFilterState>(
           builder: (context, filterState) {
             final userPos = _getUserPos(context);
-            final allCourts =
-                mapState is DiscoveryLoaded ? mapState.courts : <CourtAvailability>[];
+            final allCourts = mapState is DiscoveryLoaded
+                ? mapState.courts
+                : <CourtAvailability>[];
             final filtered = mapState is DiscoveryLoaded
                 ? mapState.applyFilter(
                     sports: filterState.selectedSports,
@@ -90,15 +90,23 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
             // Single source of truth: distance-sorted (nearest first).
             final listCourts = [...filtered];
             if (userPos != null) {
-              listCourts.sort((a, b) => courtDistanceKm(a, userPos)!
-                  .compareTo(courtDistanceKm(b, userPos)!));
+              listCourts.sort(
+                (a, b) => courtDistanceKm(
+                  a,
+                  userPos,
+                )!.compareTo(courtDistanceKm(b, userPos)!),
+              );
             }
 
-            final openSlots =
-                filtered.fold(0, (sum, c) => sum + c.openSlotCount);
-            final isLoading = mapState is DiscoveryLoading || mapState is DiscoveryInitial;
+            final openSlots = filtered.fold(
+              0,
+              (sum, c) => sum + c.openSlotCount,
+            );
+            final isLoading =
+                mapState is DiscoveryLoading || mapState is DiscoveryInitial;
             final isEmpty = mapState is DiscoveryLoaded && filtered.isEmpty;
-            final isAllFull = mapState is DiscoveryLoaded &&
+            final isAllFull =
+                mapState is DiscoveryLoaded &&
                 filtered.isNotEmpty &&
                 filtered.every((c) => c.openSlotCount == 0);
 
@@ -106,7 +114,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
               children: [
                 Column(
                   children: [
-                    _DiscoveryHeader(
+                    DiscoveryHeader(
                       courtCount: filtered.length,
                       openSlots: openSlots,
                       isLoading: isLoading,
@@ -164,7 +172,7 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
       return const Center(child: CircularProgressIndicator(color: mdPrimary));
     }
     if (isEmpty) {
-      return _EmptyState(
+      return EmptyState(
         onlyOpen: onlyOpen,
         onExpand: () {
           final cubit = context.read<DiscoveryFilterCubit>();
@@ -178,13 +186,13 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 150),
       children: [
         if (isAllFull) ...[
-          _AllFullBanner(
+          AllFullBanner(
             courtCount: courts.length,
             onSlots: () => context.go('/slots'),
           ),
           const SizedBox(height: 12),
         ],
-        _CountLine(courtCount: courts.length, openSlots: openSlots),
+        CountLine(courtCount: courts.length, openSlots: openSlots),
         const SizedBox(height: 10),
         ...courts.map(
           (c) => Padding(
@@ -228,8 +236,10 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
 
   static LatLng? _getUserPos(BuildContext context) {
     try {
-      final state =
-          BlocProvider.of<LocationCubit>(context, listen: false).state;
+      final state = BlocProvider.of<LocationCubit>(
+        context,
+        listen: false,
+      ).state;
       if (state is LocationLoaded && !state.isDefault) {
         return LatLng(state.center.latitude, state.center.longitude);
       }
@@ -237,344 +247,3 @@ class _DiscoveryContentState extends State<_DiscoveryContent> {
     return null;
   }
 }
-
-// ---------------------------------------------------------------------------
-// _DiscoveryHeader
-// ---------------------------------------------------------------------------
-
-class _DiscoveryHeader extends StatelessWidget {
-  const _DiscoveryHeader({
-    required this.courtCount,
-    required this.openSlots,
-    required this.isLoading,
-    required this.isEmpty,
-    required this.onSearch,
-    required this.onOpenFilter,
-    required this.onNotifications,
-  });
-
-  final int courtCount;
-  final int openSlots;
-  final bool isLoading;
-  final bool isEmpty;
-  final VoidCallback onSearch;
-  final VoidCallback onOpenFilter;
-  final VoidCallback onNotifications;
-
-  String _subtitle(AppLocalizations l10n) {
-    if (isLoading) return l10n.discoveryUpdating;
-    if (isEmpty) return l10n.discoveryNoMatch;
-    return l10n.discoverySubtitle(courtCount, openSlots);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final topPad = MediaQuery.of(context).padding.top;
-    return Container(
-      color: mdSurface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(16, topPad + 12, 8, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.discoveryTitle,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: mdOnSurface,
-                          height: 1.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _subtitle(l10n),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: mdOnSurfaceVariant,
-                          height: 1.4,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                _HeaderIconButton(
-                  label: l10n.commonFilter,
-                  icon: Icons.tune,
-                  onTap: onOpenFilter,
-                ),
-                const SizedBox(width: 8),
-                _HeaderIconButton(
-                  label: l10n.commonSearch,
-                  icon: Icons.search,
-                  onTap: onSearch,
-                ),
-                const SizedBox(width: 8),
-                _HeaderIconButton(
-                  label: l10n.commonNotifications,
-                  icon: Icons.notifications_none,
-                  onTap: onNotifications,
-                ),
-                const SizedBox(width: 8),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(height: 1, color: mdOutlineVariant),
-        ],
-      ),
-    );
-  }
-}
-
-class _HeaderIconButton extends StatelessWidget {
-  const _HeaderIconButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: label,
-      button: true,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(99),
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: mdOutlineVariant),
-            color: mdSurface,
-          ),
-          child: Icon(icon, size: 20, color: mdOnSurfaceVariant),
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// _CountLine
-// ---------------------------------------------------------------------------
-
-class _CountLine extends StatelessWidget {
-  const _CountLine({required this.courtCount, required this.openSlots});
-
-  final int courtCount;
-  final int openSlots;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text.rich(
-          TextSpan(
-            children: [
-              TextSpan(
-                text: l10n.discoveryCourtsCount(courtCount),
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: mdOnSurfaceVariant,
-                ),
-              ),
-              TextSpan(
-                text: ' · ${l10n.availabilityOpenSlots(openSlots)}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: mdOnSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Text(
-          l10n.discoverySortNearest,
-          style: const TextStyle(fontSize: 13, color: mdOnSurfaceVariant),
-        ),
-      ],
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// _AllFullBanner
-// ---------------------------------------------------------------------------
-
-class _AllFullBanner extends StatelessWidget {
-  const _AllFullBanner({required this.courtCount, required this.onSlots});
-
-  final int courtCount;
-  final VoidCallback onSlots;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-      decoration: BoxDecoration(
-        color: warningBg,
-        border: Border.all(color: warningBorder),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Color(0xFFF59E0B),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              l10n.discoveryAllFullTitle,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: warningText,
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: onSlots,
-            child: Text(
-              l10n.discoveryAllFullAction,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: warningText,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// _EmptyState (doc 02 §6)
-// ---------------------------------------------------------------------------
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({
-    required this.onlyOpen,
-    required this.onExpand,
-    required this.onReset,
-  });
-
-  final bool onlyOpen;
-  final VoidCallback onExpand;
-  final VoidCallback onReset;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(32, 0, 32, 60),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: mdSurfaceContainerHigh,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.search_off,
-                  size: 32, color: mdOnSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              onlyOpen ? l10n.discoveryEmptyNoOpen : l10n.discoveryEmptyNoCourts,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: mdOnSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.discoveryEmptyBody,
-              style: const TextStyle(
-                  fontSize: 13, color: mdOnSurfaceVariant, height: 1.4),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: onExpand,
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: mdOutlineVariant),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(mdCornerFull),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      l10n.discoveryEmptyExpand,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: mdOnSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: onReset,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: mdPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(mdCornerFull),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: Text(
-                      l10n.discoveryEmptyResetFilters,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: mdOnPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
