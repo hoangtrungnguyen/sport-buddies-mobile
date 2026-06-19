@@ -71,12 +71,14 @@ class HomeApiClient {
     );
   }
 
-  /// `PATCH /api/slot-join-requests/{id}/approve` (empty body).
+  /// `POST /api/slot-join-requests/{id}/approve` (empty body). NB: approve is
+  /// POST while reject is PATCH — verified against the live API schema (the
+  /// handoff incorrectly listed both as PATCH).
   Future<void> approveJoinRequest(String id) {
     return _send(
-      'PATCH',
+      'POST',
       '/api/slot-join-requests/$id/approve',
-      okStatuses: const {200},
+      okStatuses: const {200, 201},
       conflictMessage: 'Yêu cầu đã được xử lý ở nơi khác — đang tải lại.',
     );
   }

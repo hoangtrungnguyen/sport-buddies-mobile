@@ -9,6 +9,7 @@ import 'package:dashboard/features/notifications/repository/notification_reposit
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
+import 'package:dashboard/features/courts/repository/venue_api_client.dart';
 import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
 import 'package:dashboard/features/venue_schedule/repository/schedule_api_client.dart';
@@ -38,8 +39,12 @@ Future<void> configureDependencies() async {
     () => OwnerCourtRepository(Supabase.instance.client),
   );
 
+  sl.registerLazySingleton<VenueApiClient>(
+    () => VenueApiClient(),
+  );
+
   sl.registerLazySingleton<VenueRepository>(
-    () => VenueRepository(Supabase.instance.client),
+    () => VenueRepository(Supabase.instance.client, sl<VenueApiClient>()),
   );
 
   sl.registerLazySingleton<NotificationRepository>(

@@ -2,6 +2,7 @@ import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../model/venue.dart';
+import 'venue_api_client.dart';
 
 /// Lightweight per-court rollup used by the My-courts grid.
 class CourtVenueSummary {
@@ -10,8 +11,14 @@ class CourtVenueSummary {
 }
 
 class VenueRepository {
-  const VenueRepository(this._client);
+  const VenueRepository(this._client, this._api);
+
+  /// Reads stay direct-to-Supabase (RLS scopes `venues` to the owner's courts).
   final SupabaseClient _client;
+
+  /// Writes go through the Django backend (ownership + model enforced
+  /// server-side), like the schedule feature's slot writes.
+  final VenueApiClient _api;
 
   static const _cols =
       'id, court_id, name, sport_type, capacity, price_per_hour, status, indoor';
@@ -60,6 +67,9 @@ class VenueRepository {
     }
   }
 
+  /// Creates a sub-court via `POST /api/courts/{courtId}/venues` (owner only).
+  /// [indoor] is accepted for source-compat but not sent — the `venues` table
+  /// has no `indoor` column yet, so the API does not model it.
   Future<Venue> create({
     required String courtId,
     required String name,
@@ -69,19 +79,13 @@ class VenueRepository {
     bool indoor = false,
   }) async {
     try {
-      final row = await _client
-          .from('venues')
-          .insert({
-            'court_id': courtId,
-            'name': name,
-            'sport_type': sportType,
-            'capacity': capacity,
-            'price_per_hour': pricePerHour,
-            'status': 'active',
-            'indoor': indoor,
-          })
-          .select(_cols)
-          .single();
+      final row = await _api.createVenue(
+        courtId: courtId,
+        name: name,
+        sportType: sportType,
+        capacity: capacity,
+        pricePerHour: pricePerHour,
+      );
       return Venue.fromJson(row);
     } catch (e, st) {
       appLogger.e('VenueRepository.create', error: e, stackTrace: st);
