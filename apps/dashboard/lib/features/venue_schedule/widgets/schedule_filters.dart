@@ -51,38 +51,10 @@ class ScheduleFilters extends StatelessWidget {
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const _FilterLabel('MÔN'),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      for (final sport in SportType.values)
-                        _FilterChip(
-                          label: sport.label,
-                          // Empty set ≡ "all" — render every chip active,
-                          // like the prototype's full default set.
-                          active: state.sportFilter.isEmpty ||
-                              state.sportFilter.contains(sport),
-                          onTap: () => onSportToggled(sport),
-                        ),
-                    ],
-                  ),
+                  _sportChips(),
                   if (state.view == ScheduleView.week) ...[
                     const _FilterLabel('SÂN'),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: [
-                        // ALL venues (prototype `SC_COURTS.map`) — the sport
-                        // filter must not hide the selected venue's chip.
-                        for (final venue in state.venues)
-                          _FilterChip(
-                            label: venue.name,
-                            active: venue.id == state.selectedVenueId,
-                            leading: _VenueDot(color: Color(venue.colorValue)),
-                            onTap: () => onVenueSelected(venue.id),
-                          ),
-                      ],
-                    ),
+                    _venueChips(),
                   ],
                 ],
               ),
@@ -98,26 +70,65 @@ class ScheduleFilters extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             const _FilterLabel('TRẠNG THÁI'),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: [
-                // Only states real data can produce; fixed/open/private stay
-                // gated until matchmaking exists (TODO BCORE-321/326).
-                for (final slotState in SlotState.values)
-                  if (kMatchmakingEnabled ||
-                      !kMatchmakingOnlyStates.contains(slotState))
-                    _FilterChip(
-                      label: slotStateShortLabels[slotState]!,
-                      active: state.stateFilter.isEmpty ||
-                          state.stateFilter.contains(slotState),
-                      leading: _StateSwatch(style: slotStateStyles[slotState]!),
-                      onTap: () => onStateToggled(slotState),
-                    ),
-              ],
-            ),
+            _stateChips(),
           ],
         ),
+      ],
+    );
+  }
+
+  /// "MÔN" sport chips — empty filter ≡ "all" (every chip active).
+  Widget _sportChips() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final sport in SportType.values)
+          _FilterChip(
+            label: sport.label,
+            active: state.sportFilter.isEmpty ||
+                state.sportFilter.contains(sport),
+            onTap: () => onSportToggled(sport),
+          ),
+      ],
+    );
+  }
+
+  /// "SÂN" venue chips (Week view) — ALL venues so the sport filter never
+  /// hides the selected venue's chip.
+  Widget _venueChips() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final venue in state.venues)
+          _FilterChip(
+            label: venue.name,
+            active: venue.id == state.selectedVenueId,
+            leading: _VenueDot(color: Color(venue.colorValue)),
+            onTap: () => onVenueSelected(venue.id),
+          ),
+      ],
+    );
+  }
+
+  /// "TRẠNG THÁI" chips — only states real data can produce; fixed/open/private
+  /// stay gated until matchmaking exists (TODO BCORE-321/326).
+  Widget _stateChips() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final slotState in SlotState.values)
+          if (kMatchmakingEnabled ||
+              !kMatchmakingOnlyStates.contains(slotState))
+            _FilterChip(
+              label: slotStateShortLabels[slotState]!,
+              active: state.stateFilter.isEmpty ||
+                  state.stateFilter.contains(slotState),
+              leading: _StateSwatch(style: slotStateStyles[slotState]!),
+              onTap: () => onStateToggled(slotState),
+            ),
       ],
     );
   }
