@@ -26,22 +26,7 @@ class CourtInfoCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: scheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(Symbols.stadium,
-                      size: 22, color: scheme.onSecondaryContainer),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Text(court.name, style: theme.textTheme.titleMedium)),
-              ],
-            ),
+            _header(theme, scheme),
             const SizedBox(height: 12),
             CourtStatusChip(
               status: court.isActive
@@ -51,61 +36,108 @@ class CourtInfoCard extends StatelessWidget {
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 12),
-            if (court.address != null && court.address!.isNotEmpty)
-              _InfoRow(icon: Symbols.location_on, text: court.address!),
-            if (court.lat != null && court.lng != null)
-              _InfoRow(
-                icon: Symbols.my_location,
-                text:
-                    '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
-              ),
-            if ((court.additionalInfo['phone'] as String?)?.isNotEmpty ?? false)
-              _InfoRow(
-                  icon: Symbols.call,
-                  text: court.additionalInfo['phone'] as String),
-            _InfoRow(
-              icon: Symbols.schedule,
-              text:
-                  '${formatHour(court.openHour)} – ${formatHour(court.closeHour)}',
-            ),
-            if (court.amenities.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final a in court.amenities)
-                    Chip(
-                      avatar: Icon(amenityIcon(a), size: 16),
-                      label: Text(a),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                ],
-              ),
-            ],
-            if (court.description != null && court.description!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(court.description!,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: scheme.onSurfaceVariant, height: 1.5)),
-            ],
+            ..._infoRows(),
+            ..._amenities(),
+            ..._description(theme, scheme),
             const SizedBox(height: 16),
             const Divider(),
             const SizedBox(height: 12),
             _AutoApproveRow(court: court),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                icon: const Icon(Symbols.edit, size: 18),
-                label: const Text('Chỉnh sửa thông tin sân'),
-                onPressed: () =>
-                    context.go('/courts/${court.id}/edit', extra: court),
-              ),
-            ),
+            _editButton(context),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Stadium icon tile + court name.
+  Widget _header(ThemeData theme, ColorScheme scheme) {
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: scheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(Symbols.stadium,
+              size: 22, color: scheme.onSecondaryContainer),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Text(court.name, style: theme.textTheme.titleMedium)),
+      ],
+    );
+  }
+
+  /// Address, coordinates, phone (each when present) and operating hours.
+  List<Widget> _infoRows() {
+    return [
+      if (court.address != null && court.address!.isNotEmpty)
+        _InfoRow(icon: Symbols.location_on, text: court.address!),
+      if (court.lat != null && court.lng != null)
+        _InfoRow(
+          icon: Symbols.my_location,
+          text:
+              '${court.lat!.toStringAsFixed(5)}, ${court.lng!.toStringAsFixed(5)}',
+        ),
+      if ((court.additionalInfo['phone'] as String?)?.isNotEmpty ?? false)
+        _InfoRow(
+            icon: Symbols.call,
+            text: court.additionalInfo['phone'] as String),
+      _InfoRow(
+        icon: Symbols.schedule,
+        text:
+            '${formatHour(court.openHour)} – ${formatHour(court.closeHour)}',
+      ),
+    ];
+  }
+
+  /// Amenity chips — empty when the court lists none.
+  List<Widget> _amenities() {
+    if (court.amenities.isEmpty) return const [];
+    return [
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
+        children: [
+          for (final a in court.amenities)
+            Chip(
+              avatar: Icon(amenityIcon(a), size: 16),
+              label: Text(a),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+        ],
+      ),
+    ];
+  }
+
+  /// Description paragraph — empty when the court has none.
+  List<Widget> _description(ThemeData theme, ColorScheme scheme) {
+    if (court.description == null || court.description!.isEmpty) {
+      return const [];
+    }
+    return [
+      const SizedBox(height: 12),
+      Text(court.description!,
+          style: theme.textTheme.bodyMedium
+              ?.copyWith(color: scheme.onSurfaceVariant, height: 1.5)),
+    ];
+  }
+
+  /// "Chỉnh sửa thông tin sân" full-width action.
+  Widget _editButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        icon: const Icon(Symbols.edit, size: 18),
+        label: const Text('Chỉnh sửa thông tin sân'),
+        onPressed: () =>
+            context.go('/courts/${court.id}/edit', extra: court),
       ),
     );
   }
