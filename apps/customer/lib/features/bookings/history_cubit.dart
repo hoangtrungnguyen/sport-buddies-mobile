@@ -24,16 +24,17 @@ class HistoryCubit extends Cubit<HistoryState> {
         return;
       }
 
-      final rows = await _client
-          .from('bookings')
-          .select(
-            'id, status, total_price, '
-            'slots!inner(start_at, end_at, courts!inner(id, name, sport_types))',
-          )
-          .eq('user_id', userId)
-          .inFilter('status', ['completed', 'cancelled'])
-          .order('start_at', ascending: false, referencedTable: 'slots')
-          as List<dynamic>;
+      final rows =
+          await _client
+                  .from('bookings')
+                  .select(
+                    'id, status, total_price, '
+                    'slots!inner(start_at, end_at, courts!inner(id, name, sport_types))',
+                  )
+                  .eq('user_id', userId)
+                  .inFilter('status', ['completed', 'cancelled'])
+                  .order('start_at', ascending: false, referencedTable: 'slots')
+              as List<dynamic>;
 
       final items = rows.cast<Map<String, dynamic>>().map((row) {
         final slot = row['slots'] as Map<String, dynamic>;

@@ -34,7 +34,8 @@ class JoinRequest {
   final String createdAt;
 
   factory JoinRequest.fromJson(Map<String, dynamic> json) {
-    final customer = (json['customers'] ?? json['profiles']) as Map<String, dynamic>?;
+    final customer =
+        (json['customers'] ?? json['profiles']) as Map<String, dynamic>?;
     return JoinRequest(
       id: json['id'] as String,
       slotId: json['slot_id'] as String,
@@ -98,13 +99,12 @@ class BookingDetailLoaded extends BookingDetailState {
   BookingDetailLoaded copyWith({
     Set<String>? processing,
     String? actionError,
-  }) =>
-      BookingDetailLoaded(
-        booking: booking,
-        joinRequests: joinRequests,
-        processing: processing ?? this.processing,
-        actionError: actionError,
-      );
+  }) => BookingDetailLoaded(
+    booking: booking,
+    joinRequests: joinRequests,
+    processing: processing ?? this.processing,
+    actionError: actionError,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -118,11 +118,11 @@ class BookingDetailLoaded extends BookingDetailState {
 
   @override
   int get hashCode => Object.hash(
-        booking,
-        Object.hashAll(joinRequests),
-        Object.hashAllUnordered(processing),
-        actionError,
-      );
+    booking,
+    Object.hashAll(joinRequests),
+    Object.hashAllUnordered(processing),
+    actionError,
+  );
 
   static bool _listEquals(List<JoinRequest> a, List<JoinRequest> b) {
     if (a.length != b.length) return false;

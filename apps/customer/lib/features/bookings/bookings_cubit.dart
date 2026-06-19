@@ -62,13 +62,15 @@ class BookingsCubit extends Cubit<BookingsState> {
 
       final now = DateTime.now().toUtc().toIso8601String();
 
-      final response = await client
-          .from('bookings')
-          .select('*, slots!inner(*, courts(*))')
-          .eq('user_id', userId)
-          .inFilter('status', ['pending', 'confirmed'])
-          .gte('slots.start_at', now)
-          .order('start_at', referencedTable: 'slots') as List<dynamic>;
+      final response =
+          await client
+                  .from('bookings')
+                  .select('*, slots!inner(*, courts(*))')
+                  .eq('user_id', userId)
+                  .inFilter('status', ['pending', 'confirmed'])
+                  .gte('slots.start_at', now)
+                  .order('start_at', referencedTable: 'slots')
+              as List<dynamic>;
 
       final bookings = response
           .cast<Map<String, dynamic>>()
@@ -95,11 +97,13 @@ class BookingsCubit extends Cubit<BookingsState> {
     String userId,
   ) async {
     try {
-      final response = await client
-          .from('slot_join_requests')
-          .select('id, status, requested_at, slots!inner(*, courts(*))')
-          .eq('user_id', userId)
-          .order('requested_at', ascending: false) as List<dynamic>;
+      final response =
+          await client
+                  .from('slot_join_requests')
+                  .select('id, status, requested_at, slots!inner(*, courts(*))')
+                  .eq('user_id', userId)
+                  .order('requested_at', ascending: false)
+              as List<dynamic>;
 
       return response
           .cast<Map<String, dynamic>>()
@@ -107,8 +111,11 @@ class BookingsCubit extends Cubit<BookingsState> {
           .map(JoinedSlotRequest.fromJson)
           .toList();
     } catch (e, st) {
-      appLogger.w('BookingsCubit._loadJoinRequests failed',
-          error: e, stackTrace: st);
+      appLogger.w(
+        'BookingsCubit._loadJoinRequests failed',
+        error: e,
+        stackTrace: st,
+      );
       return const [];
     }
   }

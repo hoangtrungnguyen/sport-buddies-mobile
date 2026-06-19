@@ -18,11 +18,7 @@ import 'package:intl/intl.dart';
 import 'booking_model.dart';
 
 class BookingTile extends StatelessWidget {
-  const BookingTile({
-    super.key,
-    required this.booking,
-    this.onCancel,
-  });
+  const BookingTile({super.key, required this.booking, this.onCancel});
 
   final Booking booking;
 
@@ -40,8 +36,7 @@ class BookingTile extends StatelessWidget {
     final startStr = DateFormat('HH:mm').format(slot.startTime);
     final endStr = DateFormat('HH:mm').format(slot.endTime);
 
-    final showCancelButton =
-        booking.status == 'pending' && onCancel != null;
+    final showCancelButton = booking.status == 'pending' && onCancel != null;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -56,16 +51,14 @@ class BookingTile extends StatelessWidget {
                 children: [
                   Text(
                     slot.court.name,
-                    style: textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(dateStr, style: textTheme.bodyMedium),
                   const SizedBox(height: 2),
-                  Text(
-                    '$startStr – $endStr',
-                    style: textTheme.bodySmall,
-                  ),
+                  Text('$startStr – $endStr', style: textTheme.bodySmall),
                   if (booking.sessionNumber != null &&
                       booking.totalSessions != null) ...[
                     const SizedBox(height: 4),

@@ -49,8 +49,11 @@ class BookingsLoaded extends BookingsState {
   }
 
   /// Returns a copy of this state with an updated [selectedStatus].
-  BookingsLoaded copyWithFilter(String? status) =>
-      BookingsLoaded(bookings, selectedStatus: status, joinRequests: joinRequests);
+  BookingsLoaded copyWithFilter(String? status) => BookingsLoaded(
+    bookings,
+    selectedStatus: status,
+    joinRequests: joinRequests,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -63,10 +66,10 @@ class BookingsLoaded extends BookingsState {
 
   @override
   int get hashCode => Object.hash(
-        Object.hashAll(bookings),
-        Object.hashAll(joinRequests),
-        selectedStatus,
-      );
+    Object.hashAll(bookings),
+    Object.hashAll(joinRequests),
+    selectedStatus,
+  );
 
   static bool _listEquals<T>(List<T> a, List<T> b) {
     if (a.length != b.length) return false;

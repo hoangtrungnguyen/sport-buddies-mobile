@@ -30,7 +30,10 @@ class BookingCard extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.commonConfirm, style: const TextStyle(color: mdError)),
+            child: Text(
+              l10n.commonConfirm,
+              style: const TextStyle(color: mdError),
+            ),
           ),
         ],
       ),
@@ -42,7 +45,9 @@ class BookingCard extends StatelessWidget {
 
   VoidCallback _actionTap(BuildContext context) {
     return switch (booking.action) {
-      'rebook' when booking.courtId != null => () => context.push('/browse/court/${booking.courtId}'),
+      'rebook' when booking.courtId != null => () => context.push(
+        '/browse/court/${booking.courtId}',
+      ),
       'detail' => () => context.push('/bookings/${booking.id}'),
       'cancel' => () => _confirmCancel(context),
       _ => () {},
@@ -51,7 +56,9 @@ class BookingCard extends StatelessWidget {
 
   VoidCallback? _cardTap(BuildContext context) {
     return switch (booking.status) {
-      BookingStatus.pending  => () => context.push('/booking/awaiting/${booking.id}'),
+      BookingStatus.pending => () => context.push(
+        '/booking/awaiting/${booking.id}',
+      ),
       BookingStatus.confirmed => () => context.push('/bookings/${booking.id}'),
       BookingStatus.completed || BookingStatus.cancelled => null,
     };
@@ -72,7 +79,11 @@ class BookingCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: mdOutlineVariant),
           boxShadow: const [
-            BoxShadow(color: Color(0x14000000), blurRadius: 3, offset: Offset(0, 1)),
+            BoxShadow(
+              color: Color(0x14000000),
+              blurRadius: 3,
+              offset: Offset(0, 1),
+            ),
           ],
         ),
         child: ClipRRect(
@@ -164,11 +175,18 @@ class BookingCard extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.access_time, size: 15, color: mdOnSurfaceVariant),
+                            const Icon(
+                              Icons.access_time,
+                              size: 15,
+                              color: mdOnSurfaceVariant,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               booking.time,
-                              style: const TextStyle(fontSize: 13, color: mdOnSurfaceVariant),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: mdOnSurfaceVariant,
+                              ),
                             ),
                             if (booking.slots > 1) ...[
                               const SizedBox(width: 8),
@@ -189,7 +207,9 @@ class BookingCard extends StatelessWidget {
                         if (booking.action != null)
                           _ActionButton(
                             label: actionLabel(
-                                AppLocalizations.of(context), booking.action!),
+                              AppLocalizations.of(context),
+                              booking.action!,
+                            ),
                             danger: booking.actionDanger,
                             onTap: _actionTap(context),
                           ),
@@ -200,7 +220,9 @@ class BookingCard extends StatelessWidget {
               ),
               // Role rail
               Positioned(
-                top: 0, bottom: 0, left: 0,
+                top: 0,
+                bottom: 0,
+                left: 0,
                 child: Container(width: 4, color: railColor),
               ),
             ],
@@ -223,7 +245,8 @@ class _RoleLine extends StatelessWidget {
       return Row(
         children: [
           Container(
-            width: 18, height: 18,
+            width: 18,
+            height: 18,
             decoration: BoxDecoration(
               color: booking.hostColor ?? mdOnSurfaceVariant,
               shape: BoxShape.circle,
@@ -231,7 +254,11 @@ class _RoleLine extends StatelessWidget {
             child: Center(
               child: Text(
                 booking.hostInitials ?? '?',
-                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
           ),
@@ -239,7 +266,11 @@ class _RoleLine extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.bookingsJoinedHost(booking.hostName ?? ''),
-              style: const TextStyle(fontSize: 12, color: mdSecondary, fontWeight: FontWeight.w700),
+              style: const TextStyle(
+                fontSize: 12,
+                color: mdSecondary,
+                fontWeight: FontWeight.w700,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -255,7 +286,11 @@ class _RoleLine extends StatelessWidget {
           booking.players != null
               ? l10n.bookingsHostWithPlayers(booking.players!)
               : l10n.bookingsHost,
-          style: const TextStyle(fontSize: 12, color: mdPrimary, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            fontSize: 12,
+            color: mdPrimary,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ],
     );
@@ -263,7 +298,11 @@ class _RoleLine extends StatelessWidget {
 }
 
 class _SportIconBox extends StatelessWidget {
-  const _SportIconBox({required this.sport, required this.slots, required this.iconBg});
+  const _SportIconBox({
+    required this.sport,
+    required this.slots,
+    required this.iconBg,
+  });
 
   final SportType sport;
   final int slots;
@@ -278,15 +317,23 @@ class _SportIconBox extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            width: 48, height: 48,
-            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(12)),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Center(
-              child: Text(bookingSportEmoji(sport), style: const TextStyle(fontSize: 22)),
+              child: Text(
+                bookingSportEmoji(sport),
+                style: const TextStyle(fontSize: 22),
+              ),
             ),
           ),
           if (slots > 1)
             Positioned(
-              top: -4, right: -4,
+              top: -4,
+              right: -4,
               child: Container(
                 constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -298,7 +345,11 @@ class _SportIconBox extends StatelessWidget {
                 child: Text(
                   '$slots',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w800),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ),
@@ -340,7 +391,11 @@ class _TypeBadge extends StatelessWidget {
 }
 
 class _M3Badge extends StatelessWidget {
-  const _M3Badge({required this.status, required this.role, this.overrideToken});
+  const _M3Badge({
+    required this.status,
+    required this.role,
+    this.overrideToken,
+  });
 
   final BookingStatus status;
   final BookingRole role;
@@ -353,10 +408,21 @@ class _M3Badge extends StatelessWidget {
         ? overrideLabel(l10n, overrideToken!)
         : statusLabel(l10n, status, role);
     final (bg, fg, dot) = switch (status) {
-      BookingStatus.confirmed => (mdPrimaryContainer, mdOnPrimaryContainer, mdPrimary),
-      BookingStatus.pending   => (mdTertiaryContainer, mdOnTertiaryContainer, mdTertiary),
-      BookingStatus.completed ||
-      BookingStatus.cancelled => (mdSurfaceContainerHighest, mdOnSurfaceVariant, mdOnSurfaceVariant),
+      BookingStatus.confirmed => (
+        mdPrimaryContainer,
+        mdOnPrimaryContainer,
+        mdPrimary,
+      ),
+      BookingStatus.pending => (
+        mdTertiaryContainer,
+        mdOnTertiaryContainer,
+        mdTertiary,
+      ),
+      BookingStatus.completed || BookingStatus.cancelled => (
+        mdSurfaceContainerHighest,
+        mdOnSurfaceVariant,
+        mdOnSurfaceVariant,
+      ),
     };
     return Container(
       height: 24,
@@ -365,9 +431,20 @@ class _M3Badge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: dot, shape: BoxShape.circle)),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+          ),
           const SizedBox(width: 5),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: fg)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: fg,
+            ),
+          ),
         ],
       ),
     );
@@ -384,11 +461,18 @@ class _MultiSlotBadge extends StatelessWidget {
     return Container(
       height: 20,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(color: mdPrimaryContainer, borderRadius: BorderRadius.circular(99)),
+      decoration: BoxDecoration(
+        color: mdPrimaryContainer,
+        borderRadius: BorderRadius.circular(99),
+      ),
       child: Center(
         child: Text(
           AppLocalizations.of(context).bookingsExtraSlots(extraSlots),
-          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: mdOnPrimaryContainer),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: mdOnPrimaryContainer,
+          ),
         ),
       ),
     );
@@ -396,7 +480,11 @@ class _MultiSlotBadge extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.label, required this.danger, required this.onTap});
+  const _ActionButton({
+    required this.label,
+    required this.danger,
+    required this.onTap,
+  });
 
   final String label;
   final bool danger;

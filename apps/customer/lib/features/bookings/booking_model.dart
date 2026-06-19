@@ -63,7 +63,8 @@ abstract class Booking with _$Booking {
     double? totalPrice,
   }) = _Booking;
 
-  factory Booking.fromJson(Map<String, dynamic> json) => _$BookingFromJson(json);
+  factory Booking.fromJson(Map<String, dynamic> json) =>
+      _$BookingFromJson(json);
 }
 
 /// A play-together join request the current player has made on an open slot.

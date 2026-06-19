@@ -65,42 +65,45 @@ class BookingView {
 }
 
 Color bookingSportColor(SportType sport) => switch (sport) {
-      SportType.pickleball => const Color(0xFF0EA5E9),
-      SportType.football => const Color(0xFF16A34A),
-      SportType.badminton => const Color(0xFFEAB308),
-      SportType.tennis => const Color(0xFFEF4444),
-    };
+  SportType.pickleball => const Color(0xFF0EA5E9),
+  SportType.football => const Color(0xFF16A34A),
+  SportType.badminton => const Color(0xFFEAB308),
+  SportType.tennis => const Color(0xFFEF4444),
+};
 
 String bookingSportEmoji(SportType sport) => switch (sport) {
-      SportType.pickleball => '🏓',
-      SportType.football => '⚽',
-      SportType.badminton => '🏸',
-      SportType.tennis => '🎾',
-    };
+  SportType.pickleball => '🏓',
+  SportType.football => '⚽',
+  SportType.badminton => '🏸',
+  SportType.tennis => '🎾',
+};
 
 // ---------------------------------------------------------------------------
 // Booking → BookingView display mapper
 // ---------------------------------------------------------------------------
 
 SportType _parseSport(String raw) => switch (raw.toLowerCase().trim()) {
-      'football' || 'soccer' || 'bóng đá' => SportType.football,
-      'badminton' || 'cầu lông' => SportType.badminton,
-      'tennis' => SportType.tennis,
-      _ => SportType.pickleball,
-    };
+  'football' || 'soccer' || 'bóng đá' => SportType.football,
+  'badminton' || 'cầu lông' => SportType.badminton,
+  'tennis' => SportType.tennis,
+  _ => SportType.pickleball,
+};
 
 BookingStatus _parseStatus(String raw) => switch (raw) {
-      'pending' => BookingStatus.pending,
-      'confirmed' => BookingStatus.confirmed,
-      'completed' => BookingStatus.completed,
-      'cancelled' => BookingStatus.cancelled,
-      _ => BookingStatus.pending,
-    };
+  'pending' => BookingStatus.pending,
+  'confirmed' => BookingStatus.confirmed,
+  'completed' => BookingStatus.completed,
+  'cancelled' => BookingStatus.cancelled,
+  _ => BookingStatus.pending,
+};
 
 final _bookingDateFmt = DateFormat('dd/MM');
 final _bookingTimeFmt = DateFormat('HH:mm');
-final _bookingPriceFmt =
-    NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+final _bookingPriceFmt = NumberFormat.currency(
+  locale: 'vi_VN',
+  symbol: '',
+  decimalDigits: 0,
+);
 
 extension BookingDisplay on Booking {
   BookingView toBookingView() {
@@ -129,8 +132,7 @@ extension BookingDisplay on Booking {
       courtName: slot.court.name,
       sport: sport,
       detail: _bookingDateFmt.format(start),
-      time:
-          '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
+      time: '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
       price: priceLabel,
       status: mappedStatus,
       type: type,
@@ -167,8 +169,7 @@ extension JoinRequestDisplay on JoinedSlotRequest {
       courtName: slot.court.name,
       sport: sport,
       detail: _bookingDateFmt.format(start),
-      time:
-          '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
+      time: '${_bookingTimeFmt.format(start)} – ${_bookingTimeFmt.format(end)}',
       price: '—',
       status: mappedStatus,
       type: BookingType.oneOff,
@@ -178,4 +179,3 @@ extension JoinRequestDisplay on JoinedSlotRequest {
     );
   }
 }
-

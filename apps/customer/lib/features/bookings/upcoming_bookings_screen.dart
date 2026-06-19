@@ -30,8 +30,7 @@ class UpcomingBookingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) =>
-          BookingsCubit(Supabase.instance.client)..loadUpcoming(),
+      create: (_) => BookingsCubit(Supabase.instance.client)..loadUpcoming(),
       child: const UpcomingBookingsScreen(),
     );
   }
@@ -49,17 +48,16 @@ class UpcomingBookingsScreen extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             BookingsLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             BookingsCancelling() => const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
+            ),
             BookingsLoaded() => _LoadedBody(state: state),
             BookingsError(:final message) => _ErrorState(
-                message: message,
-                onRetry: () =>
-                    context.read<BookingsCubit>().loadUpcoming(),
-              ),
+              message: message,
+              onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
+            ),
           };
         },
       ),
@@ -125,10 +123,7 @@ class _CancellableBookingTile extends StatelessWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text(
-              'Xác nhận',
-              style: TextStyle(color: Colors.red),
-            ),
+            child: const Text('Xác nhận', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -153,10 +148,9 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No upcoming bookings',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(color: Colors.grey),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey),
           ),
           const SizedBox(height: 8),
           const Text(
@@ -183,10 +177,7 @@ class _ErrorState extends StatelessWidget {
         children: [
           Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );

@@ -30,14 +30,12 @@ import 'booking_detail_state.dart';
 
 class BookingDetailCubit extends Cubit<BookingDetailState> {
   BookingDetailCubit(this._client, {BookingApiClient? apiClient})
-      : _api = apiClient,
-        super(const BookingDetailLoading());
+    : _api = apiClient,
+      super(const BookingDetailLoading());
 
   /// Fake constructor for tests — allows starting from an arbitrary initial
   /// state without requiring a real [SupabaseClient].
-  BookingDetailCubit.fake(super.initial)
-      : _client = null,
-        _api = null;
+  BookingDetailCubit.fake(super.initial) : _client = null, _api = null;
 
   // Nullable so the fake constructor can leave it unset.
   final SupabaseClient? _client;
@@ -77,7 +75,8 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
     Booking? existingBooking,
   }) async {
     // Preserve existing booking from loaded state if not provided.
-    final currentBooking = existingBooking ??
+    final currentBooking =
+        existingBooking ??
         (state is BookingDetailLoaded
             ? (state as BookingDetailLoaded).booking
             : null);
@@ -89,28 +88,28 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
     try {
       final client = _client;
       if (client == null) {
-        emit(BookingDetailLoaded(
-          booking: currentBooking,
-          joinRequests: const [],
-        ));
+        emit(
+          BookingDetailLoaded(booking: currentBooking, joinRequests: const []),
+        );
         return;
       }
 
-      final response = await client
-          .from('slot_join_requests')
-          .select('*, customers(*)')
-          .eq('slot_id', slotId)
-          .order('requested_at') as List<dynamic>;
+      final response =
+          await client
+                  .from('slot_join_requests')
+                  .select('*, customers(*)')
+                  .eq('slot_id', slotId)
+                  .order('requested_at')
+              as List<dynamic>;
 
       final requests = response
           .cast<Map<String, dynamic>>()
           .map(JoinRequest.fromJson)
           .toList();
 
-      emit(BookingDetailLoaded(
-        booking: currentBooking,
-        joinRequests: requests,
-      ));
+      emit(
+        BookingDetailLoaded(booking: currentBooking, joinRequests: requests),
+      );
     } catch (e, st) {
       emit(BookingDetailError(e.toString(), stackTrace: st));
     }
@@ -148,16 +147,24 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
       // request moves out of "pending" into the participant list.
       await loadJoinRequests(slotId, existingBooking: s.booking);
     } on NoConnectionException {
-      emit(s.copyWith(
-        processing: s.processing.difference({joinRequestId}),
-        actionError: 'Không có kết nối mạng. Vui lòng thử lại.',
-      ));
+      emit(
+        s.copyWith(
+          processing: s.processing.difference({joinRequestId}),
+          actionError: 'Không có kết nối mạng. Vui lòng thử lại.',
+        ),
+      );
     } catch (e, st) {
-      appLogger.e('BookingDetailCubit._processRequest', error: e, stackTrace: st);
-      emit(s.copyWith(
-        processing: s.processing.difference({joinRequestId}),
-        actionError: 'Không xử lý được yêu cầu, thử lại sau.',
-      ));
+      appLogger.e(
+        'BookingDetailCubit._processRequest',
+        error: e,
+        stackTrace: st,
+      );
+      emit(
+        s.copyWith(
+          processing: s.processing.difference({joinRequestId}),
+          actionError: 'Không xử lý được yêu cầu, thử lại sau.',
+        ),
+      );
     }
   }
 }

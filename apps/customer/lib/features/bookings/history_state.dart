@@ -47,16 +47,20 @@ class HistoryBookingItem {
 
   static final _timeFmt = DateFormat('HH:mm');
   static final _dateFmt = DateFormat('dd/MM');
-  static final _priceFmt =
-      NumberFormat.currency(locale: 'vi_VN', symbol: '', decimalDigits: 0);
+  static final _priceFmt = NumberFormat.currency(
+    locale: 'vi_VN',
+    symbol: '',
+    decimalDigits: 0,
+  );
 
   BookingStatus get bookingStatus => dbStatus == 'completed'
       ? BookingStatus.completed
       : BookingStatus.cancelled;
 
   BookingView toBookingView() {
-    final price =
-        totalPrice != null ? '${_priceFmt.format(totalPrice!).trim()}đ' : '—';
+    final price = totalPrice != null
+        ? '${_priceFmt.format(totalPrice!).trim()}đ'
+        : '—';
 
     return BookingView(
       id: id,
