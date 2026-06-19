@@ -1,6 +1,7 @@
 // Sport chip row for the court detail screen.
 // Extracted from court_detail_page.dart.
 
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/court.dart';
@@ -16,6 +17,7 @@ class SportChips extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -24,7 +26,7 @@ class SportChips extends StatelessWidget {
           _Chip(
             selected: i == 0,
             icon: SportStyle.icon(sports[i]),
-            label: SportStyle.label(sports[i]),
+            label: SportStyle.label(l10n, sports[i]),
             scheme: scheme,
             text: text,
           ),

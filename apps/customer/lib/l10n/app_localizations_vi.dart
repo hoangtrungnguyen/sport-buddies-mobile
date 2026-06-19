@@ -1238,4 +1238,15 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get sportBasketball => 'Bóng rổ';
+
+  @override
+  String get browseOpenMatchSlots => 'Slot mở chơi ghép';
+
+  @override
+  String browseSlotsLeft(int count) {
+    return 'còn $count';
+  }
+
+  @override
+  String get browseJoin => 'Tham gia';
 }

@@ -1235,4 +1235,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sportBasketball => 'Basketball';
+
+  @override
+  String get browseOpenMatchSlots => 'Open match slots';
+
+  @override
+  String browseSlotsLeft(int count) {
+    return '$count left';
+  }
+
+  @override
+  String get browseJoin => 'Join';
 }

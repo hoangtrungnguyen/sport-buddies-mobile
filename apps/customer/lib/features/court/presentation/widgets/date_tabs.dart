@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../../theme/app_tokens.dart';
@@ -59,7 +60,9 @@ class _DateTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final dayLabel = isToday ? 'Hôm nay' : _weekdays[date.weekday - 1];
+    final dayLabel = isToday
+        ? AppLocalizations.of(context).scheduleToday
+        : _weekdays[date.weekday - 1];
     final fg = active ? scheme.onPrimary : scheme.onSurfaceVariant;
 
     return Material(
@@ -81,7 +84,11 @@ class _DateTab extends StatelessWidget {
               children: [
                 Text(
                   dayLabel,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: fg),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: fg,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(

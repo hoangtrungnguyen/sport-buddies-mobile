@@ -82,7 +82,11 @@ ThemeData buildBrowsePickTheme() {
         textStyle: textTheme.labelLarge,
       ),
     ),
-    dividerTheme: DividerThemeData(color: scheme.outlineVariant, thickness: 1, space: 1),
+    dividerTheme: DividerThemeData(
+      color: scheme.outlineVariant,
+      thickness: 1,
+      space: 1,
+    ),
   );
 }
 
@@ -90,11 +94,11 @@ ThemeData buildBrowsePickTheme() {
 TextTheme _buildTextTheme(ColorScheme scheme) {
   final onSurface = scheme.onSurface;
   TextStyle sora(double size, double height, FontWeight w) => GoogleFonts.sora(
-        fontSize: size,
-        height: height / size,
-        fontWeight: w,
-        color: onSurface,
-      );
+    fontSize: size,
+    height: height / size,
+    fontWeight: w,
+    color: onSurface,
+  );
   TextStyle jakarta(double size, double height, FontWeight w, double spacing) =>
       GoogleFonts.plusJakartaSans(
         fontSize: size,
@@ -134,18 +138,18 @@ class BrowsePickTheme extends StatelessWidget {
 /// Bespoke number/price display styles (Sora, tabular) — not M3 roles.
 extension BrowsePickTextStyles on TextTheme {
   TextStyle priceMedium(ColorScheme s) => GoogleFonts.sora(
-        fontSize: 18,
-        height: 24 / 18,
-        fontWeight: FontWeight.w800,
-        color: s.onSurface,
-        fontFeatures: AppTokens.tnum,
-      );
+    fontSize: 18,
+    height: 24 / 18,
+    fontWeight: FontWeight.w800,
+    color: s.onSurface,
+    fontFeatures: AppTokens.tnum,
+  );
 
   TextStyle priceLarge(ColorScheme s) => GoogleFonts.sora(
-        fontSize: 28,
-        height: 34 / 28,
-        fontWeight: FontWeight.w700,
-        color: s.onSurface,
-        fontFeatures: AppTokens.tnum,
-      );
+    fontSize: 28,
+    height: 34 / 28,
+    fontWeight: FontWeight.w700,
+    color: s.onSurface,
+    fontFeatures: AppTokens.tnum,
+  );
 }

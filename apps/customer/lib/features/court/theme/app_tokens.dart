@@ -16,11 +16,18 @@ abstract final class AppTokens {
   static const double cornerXl = 28;
   static const double cornerFull = 9999;
 
-  static const BorderRadius radiusSm = BorderRadius.all(Radius.circular(cornerSm));
-  static const BorderRadius radiusMd = BorderRadius.all(Radius.circular(cornerMd));
-  static const BorderRadius radiusLg = BorderRadius.all(Radius.circular(cornerLg));
-  static const BorderRadius radiusFull =
-      BorderRadius.all(Radius.circular(cornerFull));
+  static const BorderRadius radiusSm = BorderRadius.all(
+    Radius.circular(cornerSm),
+  );
+  static const BorderRadius radiusMd = BorderRadius.all(
+    Radius.circular(cornerMd),
+  );
+  static const BorderRadius radiusLg = BorderRadius.all(
+    Radius.circular(cornerLg),
+  );
+  static const BorderRadius radiusFull = BorderRadius.all(
+    Radius.circular(cornerFull),
+  );
 
   // ── Component sizes (doc 01 §5) ────────────────────────────────────────
   static const double buttonInlineHeight = 40;
@@ -43,7 +50,12 @@ abstract final class AppTokens {
   // ── Elevation (doc 01 §4) ──────────────────────────────────────────────
   static const List<BoxShadow> elev1 = [
     BoxShadow(color: Color(0x14000000), blurRadius: 2, offset: Offset(0, 1)),
-    BoxShadow(color: Color(0x0D000000), blurRadius: 3, spreadRadius: 1, offset: Offset(0, 1)),
+    BoxShadow(
+      color: Color(0x0D000000),
+      blurRadius: 3,
+      spreadRadius: 1,
+      offset: Offset(0, 1),
+    ),
   ];
 
   /// Tabular figures — every number/time/price uses these (doc 01 §2).

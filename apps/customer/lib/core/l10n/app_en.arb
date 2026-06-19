@@ -1086,5 +1086,17 @@
   "slotsRequestRejected": "Request declined",
   "@slotsRequestRejected": {},
   "sportBasketball": "Basketball",
-  "@sportBasketball": {}
+  "@sportBasketball": {},
+  "browseOpenMatchSlots": "Open match slots",
+  "@browseOpenMatchSlots": {},
+  "browseSlotsLeft": "{count} left",
+  "@browseSlotsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "browseJoin": "Join",
+  "@browseJoin": {}
 }

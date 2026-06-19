@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,7 +30,7 @@ class PlaceholderPage extends StatelessWidget {
               title: Text(title),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
-                tooltip: 'Quay lại',
+                tooltip: AppLocalizations.of(context).commonBack,
                 onPressed: () => context.pop(),
               ),
             ),
@@ -39,13 +40,19 @@ class PlaceholderPage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.construction_rounded,
-                        size: 48, color: scheme.onSurfaceVariant),
+                    Icon(
+                      Icons.construction_rounded,
+                      size: 48,
+                      color: scheme.onSurfaceVariant,
+                    ),
                     const SizedBox(height: 16),
-                    Text(subtitle,
-                        textAlign: TextAlign.center,
-                        style: text.bodyMedium
-                            ?.copyWith(color: scheme.onSurfaceVariant)),
+                    Text(
+                      subtitle,
+                      textAlign: TextAlign.center,
+                      style: text.bodyMedium?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),

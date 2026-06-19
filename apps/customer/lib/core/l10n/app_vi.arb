@@ -1086,5 +1086,17 @@
   "slotsRequestRejected": "Yêu cầu bị từ chối",
   "@slotsRequestRejected": {},
   "sportBasketball": "Bóng rổ",
-  "@sportBasketball": {}
+  "@sportBasketball": {},
+  "browseOpenMatchSlots": "Slot mở chơi ghép",
+  "@browseOpenMatchSlots": {},
+  "browseSlotsLeft": "còn {count}",
+  "@browseSlotsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "browseJoin": "Tham gia",
+  "@browseJoin": {}
 }

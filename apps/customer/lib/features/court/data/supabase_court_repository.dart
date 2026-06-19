@@ -50,8 +50,11 @@ class SupabaseBrowseCourtRepository implements CourtRepository {
           .lt('start_at', endOfDay.toUtc().toIso8601String());
       return (rows as List).length;
     } catch (e, st) {
-      appLogger.e('SupabaseBrowseCourtRepository._openSlotsToday',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'SupabaseBrowseCourtRepository._openSlotsToday',
+        error: e,
+        stackTrace: st,
+      );
       return 0;
     }
   }
@@ -95,6 +98,7 @@ List<Sport> parseSports(dynamic raw) {
   return sports.isEmpty ? const [Sport.multi] : sports;
 }
 
-int _toInt(dynamic v) => v == null ? 0 : (num.tryParse(v.toString())?.round() ?? 0);
+int _toInt(dynamic v) =>
+    v == null ? 0 : (num.tryParse(v.toString())?.round() ?? 0);
 double _toDouble(dynamic v) =>
     v == null ? 0 : (num.tryParse(v.toString())?.toDouble() ?? 0);

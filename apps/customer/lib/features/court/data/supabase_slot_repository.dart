@@ -53,7 +53,9 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
     return ScheduleDay(
       date: date,
       hourLabels: [for (final s in slots) _hm(s.start)],
-      rows: {centerId: [for (final s in slots) s.status]},
+      rows: {
+        centerId: [for (final s in slots) s.status],
+      },
     );
   }
 
@@ -62,7 +64,9 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
     final now = DateTime.now().toUtc();
     final rows = await _client
         .from('slots')
-        .select('id, start_at, end_at, max_players, courts!inner(name, sport_types)')
+        .select(
+          'id, start_at, end_at, max_players, courts!inner(name, sport_types)',
+        )
         .eq('court_id', courtId)
         .eq('access_policy', 'open')
         .gte('start_at', now.toIso8601String())
@@ -70,9 +74,9 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
         .limit(10);
 
     final list = (rows as List);
-    final joinedBySlot = await _participantCounts(
-      [for (final r in list) r['id'] as String],
-    );
+    final joinedBySlot = await _participantCounts([
+      for (final r in list) r['id'] as String,
+    ]);
 
     final result = list.map((r) {
       final court = (r['courts'] as Map<String, dynamic>?) ?? const {};
@@ -106,8 +110,11 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
           .single();
       return num.tryParse('${row['price_per_hour']}')?.round() ?? 0;
     } catch (e, st) {
-      appLogger.e('SupabaseBrowseSlotRepository._courtPricePerHour',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'SupabaseBrowseSlotRepository._courtPricePerHour',
+        error: e,
+        stackTrace: st,
+      );
       return 0;
     }
   }
@@ -127,8 +134,11 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
       }
       return counts;
     } catch (e, st) {
-      appLogger.e('SupabaseBrowseSlotRepository._participantCounts',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'SupabaseBrowseSlotRepository._participantCounts',
+        error: e,
+        stackTrace: st,
+      );
       return const {};
     }
   }
@@ -137,10 +147,10 @@ class SupabaseBrowseSlotRepository implements SlotRepository {
 /// Real slot statuses are open/booked/blocked/owner/maintenance; the picker
 /// grid only distinguishes bookable (open) from greyed (everything else).
 CellStatus _cellStatus(String? status) => switch (status) {
-      'open' => CellStatus.open,
-      'booked' => CellStatus.booked,
-      _ => CellStatus.blocked,
-    };
+  'open' => CellStatus.open,
+  'booked' => CellStatus.booked,
+  _ => CellStatus.blocked,
+};
 
 String _hm(DateTime t) =>
     '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
@@ -155,7 +165,8 @@ String _timeLabel(DateTime start, DateTime end) {
   } else if (d == today.add(const Duration(days: 1))) {
     day = 'Mai';
   } else {
-    day = '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
+    day =
+        '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
   }
   return '$day · ${_hm(start)} – ${_hm(end)}';
 }

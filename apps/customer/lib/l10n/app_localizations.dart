@@ -2299,6 +2299,24 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bóng rổ'**
   String get sportBasketball;
+
+  /// No description provided for @browseOpenMatchSlots.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot mở chơi ghép'**
+  String get browseOpenMatchSlots;
+
+  /// No description provided for @browseSlotsLeft.
+  ///
+  /// In vi, this message translates to:
+  /// **'còn {count}'**
+  String browseSlotsLeft(int count);
+
+  /// No description provided for @browseJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tham gia'**
+  String get browseJoin;
 }
 
 class _AppLocalizationsDelegate

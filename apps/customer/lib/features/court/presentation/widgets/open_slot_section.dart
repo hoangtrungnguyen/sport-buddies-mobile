@@ -1,3 +1,4 @@
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -30,20 +31,23 @@ class OpenSlotSection extends StatelessWidget {
     if (slots.isEmpty) return const SizedBox.shrink();
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Text('Slot mở chơi ghép', style: text.titleMedium),
+            Text(l10n.browseOpenMatchSlots, style: text.titleMedium),
             const SizedBox(width: 8),
             CountBadge(label: '${slots.length} slot'),
           ],
         ),
         const SizedBox(height: 4),
-        Text(helper,
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(
+          helper,
+          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 12),
         for (var i = 0; i < slots.length; i++) ...[
           if (i > 0) const SizedBox(height: 10),
@@ -64,6 +68,7 @@ class _OpenSlotCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final sportColor = SportStyle.color(slot.sport);
 
     void open() => context.push('/browse/slot/${slot.id}');
@@ -90,8 +95,11 @@ class _OpenSlotCard extends StatelessWidget {
                     color: sportColor.withValues(alpha: 0.1),
                     borderRadius: AppTokens.radiusMd,
                   ),
-                  child: Icon(SportStyle.icon(slot.sport),
-                      size: 24, color: sportColor),
+                  child: Icon(
+                    SportStyle.icon(slot.sport),
+                    size: 24,
+                    color: sportColor,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -110,11 +118,14 @@ class _OpenSlotCard extends StatelessWidget {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.group_outlined,
-                              size: 14, color: scheme.onSurfaceVariant),
+                          Icon(
+                            Icons.group_outlined,
+                            size: 14,
+                            color: scheme.onSurfaceVariant,
+                          ),
                           const SizedBox(width: 4),
                           Text(
-                            '${slot.joined}/${slot.max} người',
+                            l10n.slotsPlayersFraction(slot.joined, slot.max),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -124,7 +135,7 @@ class _OpenSlotCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '· còn ${slot.placesLeft}',
+                            '· ${l10n.browseSlotsLeft(slot.placesLeft)}',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -139,10 +150,7 @@ class _OpenSlotCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 if (trailing == OpenSlotTrailing.joinButton)
-                  FilledButton(
-                    onPressed: open,
-                    child: const Text('Tham gia'),
-                  )
+                  FilledButton(onPressed: open, child: Text(l10n.browseJoin))
                 else
                   Icon(Icons.chevron_right, color: scheme.onSurfaceVariant),
               ],
