@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/court_repository.dart';
-import '../data/fake_court_repository.dart';
-import '../data/fake_slot_repository.dart';
 import '../domain/court.dart';
 import '../domain/time_slot.dart';
 import '../theme/app_tokens.dart';
@@ -21,23 +19,21 @@ class CourtDetailPage extends StatefulWidget {
   const CourtDetailPage({
     super.key,
     required this.courtId,
-    this.courtRepository,
-    this.slotRepository,
+    required this.courtRepository,
+    required this.slotRepository,
   });
 
   final String courtId;
-  final CourtRepository? courtRepository;
-  final SlotRepository? slotRepository;
+  final CourtRepository courtRepository;
+  final SlotRepository slotRepository;
 
   @override
   State<CourtDetailPage> createState() => _CourtDetailPageState();
 }
 
 class _CourtDetailPageState extends State<CourtDetailPage> {
-  late final CourtRepository _courtRepo =
-      widget.courtRepository ?? FakeCourtRepository();
-  late final SlotRepository _slotRepo =
-      widget.slotRepository ?? FakeSlotRepository();
+  late final CourtRepository _courtRepo = widget.courtRepository;
+  late final SlotRepository _slotRepo = widget.slotRepository;
 
   late final Future<(Court, List<OpenGroupSlot>)> _future = _load();
 
