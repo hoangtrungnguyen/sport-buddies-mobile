@@ -52,177 +52,200 @@ class SignupFormPanel extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Tạo tài khoản',
-                    style: GoogleFonts.sora(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 28,
-                      letterSpacing: -0.5,
-                      color: AppColors.neutral900,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Đăng ký tài khoản chủ sân để bắt đầu với SportBuddies.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: AppColors.neutral500,
-                      height: 1.5,
-                    ),
-                  ),
+                  _header(),
                   const SizedBox(height: 32),
-
-                  // Error banner
                   if (errorMsg != null) ...[
                     AuthErrorBanner(message: errorMsg!),
                     const SizedBox(height: 16),
                   ],
-
-                  // Email
-                  const AuthFieldLabel(label: 'Email'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'signup-email-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: emailCtrl,
-                      keyboardType: kIsWeb
-                          ? TextInputType.text
-                          : TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.email],
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: const InputDecoration(
-                        hintText: 'chusan@example.com',
-                      ),
-                      validator: validateEmail,
-                    ),
+                  _emailField(),
+                  const SizedBox(height: 16),
+                  _passwordField(
+                    label: 'Mật khẩu',
+                    semanticsLabel: 'signup-password-field',
+                    controller: passCtrl,
+                    obscure: obscurePass,
+                    onToggle: onTogglePass,
+                    hint: 'Ít nhất 8 ký tự, gồm chữ và số',
+                    action: TextInputAction.next,
+                    validator: validateSignupPassword,
                   ),
                   const SizedBox(height: 16),
-
-                  // Password
-                  const AuthFieldLabel(label: 'Mật khẩu'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'signup-password-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: passCtrl,
-                      obscureText: obscurePass,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.newPassword],
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: 'Ít nhất 8 ký tự, gồm chữ và số',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscurePass
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            size: 18,
-                            color: AppColors.neutral400,
-                          ),
-                          onPressed: onTogglePass,
-                        ),
-                      ),
-                      validator: validateSignupPassword,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Confirm password
-                  const AuthFieldLabel(label: 'Xác nhận mật khẩu'),
-                  const SizedBox(height: 6),
-                  Semantics(
-                    label: 'signup-confirm-password-field',
-                    textField: true,
-                    child: TextFormField(
-                      controller: confirmCtrl,
-                      obscureText: obscureConfirm,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: const [AutofillHints.newPassword],
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14),
-                      onFieldSubmitted: (_) => onSubmit(),
-                      decoration: InputDecoration(
-                        hintText: 'Nhập lại mật khẩu',
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            obscureConfirm
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            size: 18,
-                            color: AppColors.neutral400,
-                          ),
-                          onPressed: onToggleConfirm,
-                        ),
-                      ),
-                      validator: (v) =>
-                          validateConfirmPassword(passCtrl.text, v),
-                    ),
+                  _passwordField(
+                    label: 'Xác nhận mật khẩu',
+                    semanticsLabel: 'signup-confirm-password-field',
+                    controller: confirmCtrl,
+                    obscure: obscureConfirm,
+                    onToggle: onToggleConfirm,
+                    hint: 'Nhập lại mật khẩu',
+                    action: TextInputAction.done,
+                    onSubmitted: onSubmit,
+                    validator: (v) => validateConfirmPassword(passCtrl.text, v),
                   ),
                   const SizedBox(height: 24),
-
-                  // Submit
-                  Semantics(
-                    label: 'signup-submit-btn',
-                    button: true,
-                    child: ElevatedButton(
-                      onPressed: loading ? null : onSubmit,
-                      child: loading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Text('Đăng ký'),
-                    ),
-                  ),
-
+                  _submitButton(),
                   const SizedBox(height: 20),
-
-                  // Back-to-login link
-                  Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Đã có tài khoản? ',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            color: AppColors.neutral500,
-                          ),
-                        ),
-                        Semantics(
-                          label: 'signup-to-login-btn',
-                          button: true,
-                          child: TextButton(
-                            onPressed: () => goToLogin(context),
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: Text(
-                              'Đăng nhập',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _loginLink(context),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// "Tạo tài khoản" title + subtitle.
+  Widget _header() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Tạo tài khoản',
+          style: GoogleFonts.sora(
+            fontWeight: FontWeight.w800,
+            fontSize: 28,
+            letterSpacing: -0.5,
+            color: AppColors.neutral900,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Đăng ký tài khoản chủ sân để bắt đầu với SportBuddies.',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: AppColors.neutral500,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Shared field scaffold: label, 6px gap, then the [input] wrapped in the
+  /// field's [Semantics] node.
+  Widget _fieldGroup(String label, String semanticsLabel, Widget input) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AuthFieldLabel(label: label),
+        const SizedBox(height: 6),
+        Semantics(label: semanticsLabel, textField: true, child: input),
+      ],
+    );
+  }
+
+  Widget _emailField() {
+    return _fieldGroup(
+      'Email',
+      'signup-email-field',
+      TextFormField(
+        controller: emailCtrl,
+        keyboardType:
+            kIsWeb ? TextInputType.text : TextInputType.emailAddress,
+        textInputAction: TextInputAction.next,
+        autofillHints: const [AutofillHints.email],
+        style: GoogleFonts.plusJakartaSans(fontSize: 14),
+        decoration: const InputDecoration(hintText: 'chusan@example.com'),
+        validator: validateEmail,
+      ),
+    );
+  }
+
+  /// Obscured password field with a visibility toggle — shared by the password
+  /// and confirm-password fields, which differ only in their wiring.
+  Widget _passwordField({
+    required String label,
+    required String semanticsLabel,
+    required TextEditingController controller,
+    required bool obscure,
+    required VoidCallback onToggle,
+    required String hint,
+    required TextInputAction action,
+    required FormFieldValidator<String> validator,
+    VoidCallback? onSubmitted,
+  }) {
+    return _fieldGroup(
+      label,
+      semanticsLabel,
+      TextFormField(
+        controller: controller,
+        obscureText: obscure,
+        textInputAction: action,
+        autofillHints: const [AutofillHints.newPassword],
+        style: GoogleFonts.plusJakartaSans(fontSize: 14),
+        onFieldSubmitted: onSubmitted == null ? null : (_) => onSubmitted(),
+        decoration: InputDecoration(
+          hintText: hint,
+          suffixIcon: IconButton(
+            icon: Icon(
+              obscure
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+              size: 18,
+              color: AppColors.neutral400,
+            ),
+            onPressed: onToggle,
+          ),
+        ),
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _submitButton() {
+    return Semantics(
+      label: 'signup-submit-btn',
+      button: true,
+      child: ElevatedButton(
+        onPressed: loading ? null : onSubmit,
+        child: loading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : const Text('Đăng ký'),
+      ),
+    );
+  }
+
+  Widget _loginLink(BuildContext context) {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Đã có tài khoản? ',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: AppColors.neutral500,
+            ),
+          ),
+          Semantics(
+            label: 'signup-to-login-btn',
+            button: true,
+            child: TextButton(
+              onPressed: () => goToLogin(context),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(
+                'Đăng nhập',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
