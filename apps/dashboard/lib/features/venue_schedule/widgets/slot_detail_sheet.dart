@@ -137,7 +137,47 @@ class SlotDetailSheet extends StatelessWidget {
   // ---- drawer-body --------------------------------------------------------
 
   Widget _buildBody() {
-    final rows = <({String label, Widget value})>[
+    final rows = _detailRows();
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          StateBanner(state: slot.state),
+          for (var i = 0; i < rows.length; i++)
+            DetailRow(
+              label: rows[i].label,
+              value: rows[i].value,
+              divider: i < rows.length - 1,
+            ),
+          // Contextual info card for open / empty slots.
+          if (slot.state == SlotState.open)
+            InfoCard(
+              strong: 'Slot ghép mở',
+              text: ' — khách lẻ có thể tham gia tới khi đủ '
+                  '${slot.capacity ?? 0} người. Hiện đã có '
+                  '${slot.players ?? 0} người.',
+            ),
+          if (slot.state == SlotState.empty)
+            InfoCard(
+              strong: 'Slot trống',
+              // No matchmaking mention while the feature is gated
+              // (TODO BCORE-321/326).
+              text: kMatchmakingEnabled
+                  ? ' — đang chờ khách đặt. Bạn có thể mở công khai để '
+                      'ghép đội hoặc khoá giờ này.'
+                  : ' — đang chờ khách đặt. Bạn có thể khoá giờ này nếu '
+                      'không nhận khách.',
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// The label/value detail rows for the current slot — order matters, and
+  /// each entry is included only when its field is present.
+  List<({String label, Widget value})> _detailRows() {
+    return <({String label, Widget value})>[
       if (slot.bookingCode != null)
         (
           label: 'Mã',
@@ -188,47 +228,33 @@ class SlotDetailSheet extends StatelessWidget {
           ),
         ),
     ];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          StateBanner(state: slot.state),
-          for (var i = 0; i < rows.length; i++)
-            DetailRow(
-              label: rows[i].label,
-              value: rows[i].value,
-              divider: i < rows.length - 1,
-            ),
-          // Contextual info card for open / empty slots.
-          if (slot.state == SlotState.open)
-            InfoCard(
-              strong: 'Slot ghép mở',
-              text: ' — khách lẻ có thể tham gia tới khi đủ '
-                  '${slot.capacity ?? 0} người. Hiện đã có '
-                  '${slot.players ?? 0} người.',
-            ),
-          if (slot.state == SlotState.empty)
-            InfoCard(
-              strong: 'Slot trống',
-              // No matchmaking mention while the feature is gated
-              // (TODO BCORE-321/326).
-              text: kMatchmakingEnabled
-                  ? ' — đang chờ khách đặt. Bạn có thể mở công khai để '
-                      'ghép đội hoặc khoá giờ này.'
-                  : ' — đang chờ khách đặt. Bạn có thể khoá giờ này nếu '
-                      'không nhận khách.',
-            ),
-        ],
-      ),
-    );
   }
 
   // ---- drawer-foot --------------------------------------------------------
 
   Widget _buildFoot() {
-    final actions = switch (slot.state) {
+    final actions = _footActions();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+      decoration: const BoxDecoration(
+        color: AppColors.neutral50,
+        border: Border(top: BorderSide(color: AppColors.neutral100)),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < actions.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            Expanded(child: actions[i]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// The footer action buttons for the slot's current state (approve/reject,
+  /// book, cancel/reschedule/call, or unblock).
+  List<Widget> _footActions() {
+    return switch (slot.state) {
       SlotState.pending => [
           SheetButton(
             label: 'Từ chối',
@@ -290,22 +316,6 @@ class SlotDetailSheet extends StatelessWidget {
           ),
         ],
     };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-      decoration: const BoxDecoration(
-        color: AppColors.neutral50,
-        border: Border(top: BorderSide(color: AppColors.neutral100)),
-      ),
-      child: Row(
-        children: [
-          for (var i = 0; i < actions.length; i++) ...[
-            if (i > 0) const SizedBox(width: 10),
-            Expanded(child: actions[i]),
-          ],
-        ],
-      ),
-    );
   }
 
   /// `1.5 → "1.5h"`, `1.0 → "1h"` — mirrors the prototype's `` `${dur}h` ``.
