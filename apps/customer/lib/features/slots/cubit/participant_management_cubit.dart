@@ -4,12 +4,10 @@ import 'package:customer/features/slots/cubit/participant_management_state.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class ParticipantManagementCubit
-    extends Cubit<ParticipantManagementState> {
-  ParticipantManagementCubit({
-    required BookingApiClient api,
-  })  : _api = api,
-        super(ParticipantManagementLoading());
+class ParticipantManagementCubit extends Cubit<ParticipantManagementState> {
+  ParticipantManagementCubit({required BookingApiClient api})
+    : _api = api,
+      super(ParticipantManagementLoading());
 
   final BookingApiClient _api;
 
@@ -38,17 +36,21 @@ class ParticipantManagementCubit
             : DateTime.now().add(const Duration(hours: 1)),
       );
 
-      emit(ParticipantManagementLoaded(
-        confirmed: confirmed,
-        pending: pending,
-        maxPlayers: maxPlayers,
-        slot: slot,
-      ));
+      emit(
+        ParticipantManagementLoaded(
+          confirmed: confirmed,
+          pending: pending,
+          maxPlayers: maxPlayers,
+          slot: slot,
+        ),
+      );
     } on BookingApiException catch (e) {
       appLogger.e('Failed to load participants: $e');
-      emit(ParticipantManagementError(
-        e.detail ?? 'Không thể tải danh sách người chơi',
-      ));
+      emit(
+        ParticipantManagementError(
+          e.detail ?? 'Không thể tải danh sách người chơi',
+        ),
+      );
     } catch (e) {
       appLogger.e('Unexpected error loading participants: $e');
       emit(ParticipantManagementError('Có lỗi xảy ra'));
@@ -63,7 +65,11 @@ class ParticipantManagementCubit
             id: p['id'] as String? ?? '',
             name: p['name'] as String? ?? 'Unknown',
             avatarColor: _colorFromString(p['avatar_color'] as String?),
-            initials: (p['name'] as String? ?? '?').split(' ').map((s) => s[0]).join().toUpperCase(),
+            initials: (p['name'] as String? ?? '?')
+                .split(' ')
+                .map((s) => s[0])
+                .join()
+                .toUpperCase(),
             subtitle: p['subtitle'] as String?,
             isHost: p['is_host'] as bool? ?? false,
           ),
@@ -78,7 +84,11 @@ class ParticipantManagementCubit
             id: r['id'] as String? ?? '',
             name: r['name'] as String? ?? 'Unknown',
             avatarColor: _colorFromString(r['avatar_color'] as String?),
-            initials: (r['name'] as String? ?? '?').split(' ').map((s) => s[0]).join().toUpperCase(),
+            initials: (r['name'] as String? ?? '?')
+                .split(' ')
+                .map((s) => s[0])
+                .join()
+                .toUpperCase(),
             rating: (r['rating'] as num?)?.toDouble() ?? 0.0,
             gamesPlayed: r['games_played'] as int? ?? 0,
             timeAgo: r['time_ago'] as String? ?? 'Recently',
@@ -157,12 +167,14 @@ class ParticipantManagementCubit
       ),
     ];
 
-    emit(ParticipantManagementLoaded(
-      confirmed: confirmed,
-      pending: pending,
-      maxPlayers: 4,
-      slot: slot,
-    ));
+    emit(
+      ParticipantManagementLoaded(
+        confirmed: confirmed,
+        pending: pending,
+        maxPlayers: 4,
+        slot: slot,
+      ),
+    );
   }
 
   Future<void> approve(JoinRequest request) async {
@@ -180,18 +192,22 @@ class ParticipantManagementCubit
         subtitle: '⭐ ${request.rating} · ${request.gamesPlayed} trận',
       );
 
-      emit(s.copyWith(
-        confirmed: [...s.confirmed, newParticipant],
-        pending: s.pending.where((r) => r.id != request.id).toList(),
-        toastMessage: 'Đã chấp nhận ${request.name}',
-        toastDanger: false,
-      ));
+      emit(
+        s.copyWith(
+          confirmed: [...s.confirmed, newParticipant],
+          pending: s.pending.where((r) => r.id != request.id).toList(),
+          toastMessage: 'Đã chấp nhận ${request.name}',
+          toastDanger: false,
+        ),
+      );
     } on BookingApiException catch (e) {
       appLogger.e('Failed to approve: $e');
-      emit(s.copyWith(
-        toastMessage: 'Lỗi: ${e.detail ?? 'Không thể chấp nhận'}',
-        toastDanger: true,
-      ));
+      emit(
+        s.copyWith(
+          toastMessage: 'Lỗi: ${e.detail ?? 'Không thể chấp nhận'}',
+          toastDanger: true,
+        ),
+      );
     }
   }
 
@@ -202,17 +218,21 @@ class ParticipantManagementCubit
     try {
       await _api.rejectJoinRequest(request.id);
 
-      emit(s.copyWith(
-        pending: s.pending.where((r) => r.id != request.id).toList(),
-        toastMessage: 'Đã từ chối ${request.name}',
-        toastDanger: true,
-      ));
+      emit(
+        s.copyWith(
+          pending: s.pending.where((r) => r.id != request.id).toList(),
+          toastMessage: 'Đã từ chối ${request.name}',
+          toastDanger: true,
+        ),
+      );
     } on BookingApiException catch (e) {
       appLogger.e('Failed to reject: $e');
-      emit(s.copyWith(
-        toastMessage: 'Lỗi: ${e.detail ?? 'Không thể từ chối'}',
-        toastDanger: true,
-      ));
+      emit(
+        s.copyWith(
+          toastMessage: 'Lỗi: ${e.detail ?? 'Không thể từ chối'}',
+          toastDanger: true,
+        ),
+      );
     }
   }
 
@@ -232,11 +252,13 @@ class ParticipantManagementCubit
       ),
     );
 
-    emit(s.copyWith(
-      confirmed: s.confirmed.where((p) => p.id != participantId).toList(),
-      toastMessage: 'Đã gỡ ${removed.name}',
-      toastDanger: true,
-    ));
+    emit(
+      s.copyWith(
+        confirmed: s.confirmed.where((p) => p.id != participantId).toList(),
+        toastMessage: 'Đã gỡ ${removed.name}',
+        toastDanger: true,
+      ),
+    );
   }
 
   void clearToast() {

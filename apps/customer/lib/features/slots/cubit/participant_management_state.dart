@@ -97,8 +97,9 @@ final class ParticipantManagementLoaded extends ParticipantManagementState {
       pending: pending ?? this.pending,
       maxPlayers: maxPlayers ?? this.maxPlayers,
       slot: slot ?? this.slot,
-      toastMessage:
-          toastMessage == _sentinel ? this.toastMessage : toastMessage as String?,
+      toastMessage: toastMessage == _sentinel
+          ? this.toastMessage
+          : toastMessage as String?,
       toastDanger: toastDanger ?? this.toastDanger,
     );
   }

@@ -20,8 +20,7 @@ final class SlotListLoaded extends SlotListState {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is SlotListLoaded &&
-          _listEquals(other.slots, slots));
+      (other is SlotListLoaded && _listEquals(other.slots, slots));
 
   @override
   int get hashCode => Object.hashAll(slots);

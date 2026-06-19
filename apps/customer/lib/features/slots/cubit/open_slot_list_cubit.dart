@@ -39,8 +39,8 @@ class SlotListCubit extends Cubit<SlotListState> {
   void clear() => emit(const SlotListInitial());
 
   static String _message(AppFailure f) => switch (f) {
-        NetworkFailure() => 'Không có kết nối mạng.',
-        ServerFailure(:final code) => 'Lỗi máy chủ ($code).',
-        AuthFailure(:final message) => 'Lỗi xác thực: $message',
-      };
+    NetworkFailure() => 'Không có kết nối mạng.',
+    ServerFailure(:final code) => 'Lỗi máy chủ ($code).',
+    AuthFailure(:final message) => 'Lỗi xác thực: $message',
+  };
 }

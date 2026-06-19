@@ -7,11 +7,9 @@ import 'package:spb_core/spb_core.dart';
 part 'slot_detail_state.dart';
 
 class SlotDetailCubit extends Cubit<SlotDetailState> {
-  SlotDetailCubit(
-    this._repository, {
-    required BookingApiClient apiClient,
-  })  : _api = apiClient,
-        super(const SlotDetailInitial());
+  SlotDetailCubit(this._repository, {required BookingApiClient apiClient})
+    : _api = apiClient,
+      super(const SlotDetailInitial());
 
   final SlotRepository _repository;
   final BookingApiClient _api;
@@ -38,8 +36,11 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
       appLogger.w('SlotDetailCubit._fetchJoinStatus: no connection');
       return SlotJoinStatus.none;
     } catch (e, st) {
-      appLogger.w('SlotDetailCubit._fetchJoinStatus failed',
-          error: e, stackTrace: st);
+      appLogger.w(
+        'SlotDetailCubit._fetchJoinStatus failed',
+        error: e,
+        stackTrace: st,
+      );
       return SlotJoinStatus.none;
     }
   }
@@ -57,16 +58,20 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
       // player sees their request rather than a hard error.
       emit(s.copyWith(joining: false, joinStatus: SlotJoinStatus.pending));
     } on NoConnectionException {
-      emit(s.copyWith(
-        joining: false,
-        errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
-      ));
+      emit(
+        s.copyWith(
+          joining: false,
+          errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
+        ),
+      );
     } catch (e, st) {
       appLogger.e('SlotDetailCubit.requestToJoin', error: e, stackTrace: st);
-      emit(s.copyWith(
-        joining: false,
-        errorMessage: 'Không gửi được yêu cầu, thử lại sau.',
-      ));
+      emit(
+        s.copyWith(
+          joining: false,
+          errorMessage: 'Không gửi được yêu cầu, thử lại sau.',
+        ),
+      );
     }
   }
 
@@ -78,34 +83,44 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
     emit(s.copyWith(signalingLastMinute: true));
     try {
       await _api.signalLastMinuteCapacity(slotId);
-      emit(s.copyWith(
-        signalingLastMinute: false,
-        errorMessage: 'Đã thông báo khả năng ghép cuối cùng.',
-      ));
+      emit(
+        s.copyWith(
+          signalingLastMinute: false,
+          errorMessage: 'Đã thông báo khả năng ghép cuối cùng.',
+        ),
+      );
     } on NoConnectionException {
-      emit(s.copyWith(
-        signalingLastMinute: false,
-        errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
-      ));
+      emit(
+        s.copyWith(
+          signalingLastMinute: false,
+          errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
+        ),
+      );
     } catch (e, st) {
-      appLogger.e('SlotDetailCubit.signalLastMinuteCapacity', error: e, stackTrace: st);
-      emit(s.copyWith(
-        signalingLastMinute: false,
-        errorMessage: 'Không gửi được thông báo, thử lại sau.',
-      ));
+      appLogger.e(
+        'SlotDetailCubit.signalLastMinuteCapacity',
+        error: e,
+        stackTrace: st,
+      );
+      emit(
+        s.copyWith(
+          signalingLastMinute: false,
+          errorMessage: 'Không gửi được thông báo, thử lại sau.',
+        ),
+      );
     }
   }
 
   static SlotJoinStatus _parseJoinStatus(String? raw) => switch (raw) {
-        'pending' => SlotJoinStatus.pending,
-        'approved' => SlotJoinStatus.approved,
-        'rejected' => SlotJoinStatus.rejected,
-        _ => SlotJoinStatus.none,
-      };
+    'pending' => SlotJoinStatus.pending,
+    'approved' => SlotJoinStatus.approved,
+    'rejected' => SlotJoinStatus.rejected,
+    _ => SlotJoinStatus.none,
+  };
 
   static String _message(AppFailure f) => switch (f) {
-        NetworkFailure() => 'Không có kết nối mạng.',
-        ServerFailure(code: final c) => 'Lỗi máy chủ ($c).',
-        AuthFailure(message: final m) => 'Lỗi xác thực: $m',
-      };
+    NetworkFailure() => 'Không có kết nối mạng.',
+    ServerFailure(code: final c) => 'Lỗi máy chủ ($c).',
+    AuthFailure(message: final m) => 'Lỗi xác thực: $m',
+  };
 }

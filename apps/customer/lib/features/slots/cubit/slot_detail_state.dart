@@ -43,14 +43,13 @@ final class SlotDetailLoaded extends SlotDetailState {
     bool? joining,
     bool? signalingLastMinute,
     String? errorMessage,
-  }) =>
-      SlotDetailLoaded(
-        slot,
-        joinStatus: joinStatus ?? this.joinStatus,
-        joining: joining ?? this.joining,
-        signalingLastMinute: signalingLastMinute ?? this.signalingLastMinute,
-        errorMessage: errorMessage,
-      );
+  }) => SlotDetailLoaded(
+    slot,
+    joinStatus: joinStatus ?? this.joinStatus,
+    joining: joining ?? this.joining,
+    signalingLastMinute: signalingLastMinute ?? this.signalingLastMinute,
+    errorMessage: errorMessage,
+  );
 }
 
 final class SlotDetailError extends SlotDetailState with AppExceptionMixin {

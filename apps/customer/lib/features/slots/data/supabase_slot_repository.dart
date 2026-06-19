@@ -4,8 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Supabase-backed [SlotRepository] implementation.
 class SupabaseSlotRepository implements SlotRepository {
-  SupabaseSlotRepository({required SupabaseClient client})
-      : _client = client;
+  SupabaseSlotRepository({required SupabaseClient client}) : _client = client;
 
   final SupabaseClient _client;
 
@@ -26,8 +25,9 @@ class SupabaseSlotRepository implements SlotRepository {
   static Map<String, dynamic> _mapRow(Map<String, dynamic> row) {
     final court = row['courts'] as Map<String, dynamic>?;
     final sportTypes = court?['sport_types'] as List<dynamic>? ?? [];
-    final sportType =
-        sportTypes.isNotEmpty ? sportTypes.first as String? ?? 'badminton' : 'badminton';
+    final sportType = sportTypes.isNotEmpty
+        ? sportTypes.first as String? ?? 'badminton'
+        : 'badminton';
     final participantData = row['slot_participants'] as List<dynamic>? ?? [];
     final currentPlayers = participantData.isNotEmpty
         ? int.tryParse(participantData.first['count'].toString()) ?? 0
@@ -60,7 +60,9 @@ class SupabaseSlotRepository implements SlotRepository {
         .order('start_at', ascending: true);
 
     return (rows as List<dynamic>)
-        .map<Map<String, dynamic>>((row) => _mapRow(row as Map<String, dynamic>))
+        .map<Map<String, dynamic>>(
+          (row) => _mapRow(row as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -91,7 +93,9 @@ class SupabaseSlotRepository implements SlotRepository {
           .order('start_at', ascending: true);
 
       final slots = (rows as List<dynamic>)
-          .map<Slot>((row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)))
+          .map<Slot>(
+            (row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)),
+          )
           .toList();
       return Success(slots);
     } on PostgrestException catch (e) {
@@ -121,7 +125,9 @@ class SupabaseSlotRepository implements SlotRepository {
 
   @override
   Future<Result<List<Slot>>> fetchScheduleSlots(
-      List<String> courtIds, DateTime date) async {
+    List<String> courtIds,
+    DateTime date,
+  ) async {
     if (courtIds.isEmpty) return const Success([]);
     try {
       final dayStart = DateTime(date.year, date.month, date.day).toUtc();
@@ -136,7 +142,9 @@ class SupabaseSlotRepository implements SlotRepository {
           .order('start_at', ascending: true);
 
       final slots = (rows as List<dynamic>)
-          .map<Slot>((row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)))
+          .map<Slot>(
+            (row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)),
+          )
           .toList();
       return Success(slots);
     } on PostgrestException catch (e) {
@@ -160,7 +168,9 @@ class SupabaseSlotRepository implements SlotRepository {
           .order('start_at', ascending: true);
 
       final slots = (rows as List<dynamic>)
-          .map<Slot>((row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)))
+          .map<Slot>(
+            (row) => Slot.fromJson(_mapRow(row as Map<String, dynamic>)),
+          )
           .toList();
 
       return Success(slots);
