@@ -1,6 +1,9 @@
 import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/access_control_cubit.dart';
 import 'package:customer/features/booking/state/access_control_state.dart';
+import 'package:customer/features/booking/widgets/access_success_circle.dart';
+import 'package:customer/features/booking/widgets/access_policy_card.dart';
+import 'package:customer/features/booking/widgets/access_slot_taken_sheet.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -92,7 +95,7 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
-            builder: (sheetCtx) => _SlotTakenSheet(
+            builder: (sheetCtx) => SlotTakenSheet(
               onPickAnother: () {
                 Navigator.of(sheetCtx).pop();
                 context.go('/court/${widget.courtId}/slots');
@@ -148,7 +151,7 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                         ),
                         child: Row(
                           children: [
-                            const _SuccessCircle(),
+                            const SuccessCircle(),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -193,7 +196,7 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _PolicyCard(
+                      PolicyCard(
                         value: 'closed',
                         label: l10n.wizardPrivate,
                         description: l10n.wizardPrivateDesc,
@@ -201,14 +204,14 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                         onTap: isSaving ? null : () => _setPolicy('closed'),
                       ),
                       const SizedBox(height: 10),
-                      _PolicyCard(
+                      PolicyCard(
                         value: 'open',
                         label: l10n.wizardOpen,
                         description: l10n.wizardOpenDesc,
                         selected: _policy == 'open',
                         onTap: isSaving ? null : () => _setPolicy('open'),
                         child: _policy == 'open'
-                            ? _MaxPlayersStepper(
+                            ? MaxPlayersStepper(
                                 value: _maxPlayers,
                                 onIncrement: isSaving
                                     ? null
@@ -257,299 +260,6 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
           ),
         );
       },
-    );
-  }
-}
-
-class _SuccessCircle extends StatelessWidget {
-  const _SuccessCircle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: const BoxDecoration(
-        color: Color(0xFF16A34A),
-        shape: BoxShape.circle,
-      ),
-      child: const Icon(Icons.check_rounded, size: 18, color: Colors.white),
-    );
-  }
-}
-
-class _PolicyCard extends StatelessWidget {
-  const _PolicyCard({
-    required this.value,
-    required this.label,
-    required this.description,
-    required this.selected,
-    required this.onTap,
-    this.child,
-  });
-
-  final String value;
-  final String label;
-  final String description;
-  final bool selected;
-  final VoidCallback? onTap;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFFF0FDF4) : const Color(0xFFF9FAFB),
-          border: Border.all(
-            color: selected ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
-            width: selected ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _RadioCircle(selected: selected),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: selected
-                          ? const Color(0xFF15803D)
-                          : const Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF6B7280),
-                    ),
-                  ),
-                  if (child != null) ...[const SizedBox(height: 14), child!],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RadioCircle extends StatelessWidget {
-  const _RadioCircle({required this.selected});
-
-  final bool selected;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 22,
-      height: 22,
-      margin: const EdgeInsets.only(top: 2),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: selected ? const Color(0xFF16A34A) : Colors.white,
-        border: Border.all(
-          color: selected ? const Color(0xFF16A34A) : const Color(0xFFD1D5DB),
-          width: 2,
-        ),
-      ),
-      child: selected
-          ? const Center(
-              child: SizedBox(
-                width: 8,
-                height: 8,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            )
-          : null,
-    );
-  }
-}
-
-class _MaxPlayersStepper extends StatelessWidget {
-  const _MaxPlayersStepper({
-    required this.value,
-    required this.onIncrement,
-    required this.onDecrement,
-  });
-
-  final int value;
-  final VoidCallback? onIncrement;
-  final VoidCallback? onDecrement;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            AppLocalizations.of(context).wizardMaxPlayers,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF374151),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _StepperButton(
-                icon: Icons.remove,
-                onTap: onDecrement,
-                active: false,
-              ),
-              Expanded(
-                child: Text(
-                  '$value',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-              ),
-              _StepperButton(icon: Icons.add, onTap: onIncrement, active: true),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            AppLocalizations.of(context).wizardMaxPlayersHint,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StepperButton extends StatelessWidget {
-  const _StepperButton({
-    required this.icon,
-    required this.onTap,
-    required this.active,
-  });
-
-  final IconData icon;
-  final VoidCallback? onTap;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFF16A34A) : Colors.white,
-          border: Border.all(
-            color: active ? const Color(0xFF16A34A) : const Color(0xFFE5E7EB),
-          ),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: active ? Colors.white : const Color(0xFF6B7280),
-        ),
-      ),
-    );
-  }
-}
-
-class _SlotTakenSheet extends StatelessWidget {
-  const _SlotTakenSheet({required this.onPickAnother});
-
-  final VoidCallback onPickAnother;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFEF3C7),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.warning_amber_rounded,
-                size: 40,
-                color: Color(0xFFF59E0B),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.accessSlotTakenTitle,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF111827),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.accessSlotTakenBody,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                height: 1.5,
-                color: Color(0xFF6B7280),
-              ),
-            ),
-            const SizedBox(height: 28),
-            FilledButton(
-              onPressed: onPickAnother,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-                backgroundColor: const Color(0xFF16A34A),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: Text(
-                l10n.wizardPickAnotherTime,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
