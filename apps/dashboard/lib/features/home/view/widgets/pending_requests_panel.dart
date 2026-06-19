@@ -30,76 +30,86 @@ class PendingRequestsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
-            child: Row(
+          _header(context, theme, scheme),
+          const Divider(height: 1),
+          if (shown.isEmpty)
+            _emptyState(theme, scheme)
+          else
+            ...shown.map((req) => _RequestRow(request: req)),
+          if (remaining > 0) _remainingLink(context, remaining),
+        ],
+      ),
+    );
+  }
+
+  /// Title + total count badge + "Xem tất cả" link.
+  Widget _header(BuildContext context, ThemeData theme, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+      child: Row(
+        children: [
+          Icon(Symbols.inbox, size: 20, color: scheme.onSurfaceVariant),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Symbols.inbox, size: 20, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Yêu cầu cần xử lý',
-                          style: theme.textTheme.titleMedium),
-                      Text('$total yêu cầu',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: scheme.onSurfaceVariant)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: scheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text('$total',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: scheme.onSecondaryContainer,
-                        fontWeight: FontWeight.w600,
-                      )),
-                ),
-                const SizedBox(width: 4),
-                TextButton(
-                  onPressed: () => context.go('/requests'),
-                  child: const Text('Xem tất cả'),
-                ),
+                Text('Yêu cầu cần xử lý', style: theme.textTheme.titleMedium),
+                Text('$total yêu cầu',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: scheme.onSurfaceVariant)),
               ],
             ),
           ),
-          const Divider(height: 1),
-          if (shown.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(Symbols.task_alt,
-                        size: 36, color: scheme.primary),
-                    const SizedBox(height: 12),
-                    Text('Đã xử lý hết yêu cầu',
-                        style: theme.textTheme.titleSmall),
-                  ],
-                ),
-              ),
-            )
-          else
-            ...shown.map((req) => _RequestRow(request: req)),
-          if (remaining > 0)
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Center(
-                child: TextButton.icon(
-                  icon: const Icon(Symbols.arrow_forward, size: 18),
-                  label: Text('Còn $remaining yêu cầu khác'),
-                  onPressed: () => context.go('/requests'),
-                ),
-              ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: scheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(8),
             ),
+            child: Text('$total',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: scheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                )),
+          ),
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: () => context.go('/requests'),
+            child: const Text('Xem tất cả'),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// "Đã xử lý hết yêu cầu" empty state.
+  Widget _emptyState(ThemeData theme, ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Symbols.task_alt, size: 36, color: scheme.primary),
+            const SizedBox(height: 12),
+            Text('Đã xử lý hết yêu cầu', style: theme.textTheme.titleSmall),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// "Còn N yêu cầu khác" link to the full requests screen.
+  Widget _remainingLink(BuildContext context, int remaining) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Center(
+        child: TextButton.icon(
+          icon: const Icon(Symbols.arrow_forward, size: 18),
+          label: Text('Còn $remaining yêu cầu khác'),
+          onPressed: () => context.go('/requests'),
+        ),
       ),
     );
   }
