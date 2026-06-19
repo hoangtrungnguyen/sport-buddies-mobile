@@ -7,12 +7,14 @@ import '../data/fake_court_repository.dart';
 import '../data/fake_slot_repository.dart';
 import '../domain/booking_draft.dart';
 import '../domain/court.dart';
-import '../domain/schedule.dart';
 import '../domain/time_slot.dart';
-import '../theme/app_tokens.dart';
 import '../theme/browse_pick_theme.dart';
 import 'widgets/date_tabs.dart';
 import 'widgets/open_slot_section.dart';
+import 'widgets/slot_picker_photo_strip.dart';
+import 'widgets/slot_picker_directions_card.dart';
+import 'widgets/slot_picker_grid.dart';
+import 'widgets/slot_picker_bottom_cart.dart';
 
 /// Screen 09 · Slot picker (handoff SPB-041).
 class SlotPickerPage extends StatefulWidget {
@@ -57,10 +59,12 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
   Future<void> _loadCourt() async {
     final court = await _courtRepo.getCourt(widget.courtId);
     final groups = await _slotRepo.getOpenGroupSlots(widget.courtId);
-    if (mounted) setState(() {
-      _court = court;
-      _groupSlots = groups;
-    });
+    if (mounted) {
+      setState(() {
+        _court = court;
+        _groupSlots = groups;
+      });
+    }
   }
 
   Future<void> _loadSlots() async {
@@ -89,15 +93,17 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
       sport: court.sports.isNotEmpty ? court.sports.first : Sport.multi,
       date: DateTime(first.start.year, first.start.month, first.start.day),
       slots: _selection
-          .map((s) => SlotSelection(
-                slotId: s.id,
-                courtId: s.courtId,
-                courtLabel: _courtLabel(s.courtId),
-                date: DateTime(s.start.year, s.start.month, s.start.day),
-                start: s.start,
-                end: s.end,
-                priceVnd: s.priceVnd,
-              ))
+          .map(
+            (s) => SlotSelection(
+              slotId: s.id,
+              courtId: s.courtId,
+              courtLabel: _courtLabel(s.courtId),
+              date: DateTime(s.start.year, s.start.month, s.start.day),
+              start: s.start,
+              end: s.end,
+              priceVnd: s.priceVnd,
+            ),
+          )
           .toList(),
     );
     context.push('/browse/booking/confirm', extra: draft);
@@ -140,7 +146,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
         body: court == null
             ? const Center(child: CircularProgressIndicator())
             : _buildBody(court),
-        bottomNavigationBar: _BottomCartBar(
+        bottomNavigationBar: BottomCartBar(
           selection: _selection,
           onContinue: _selection.isEmpty ? null : _continueToBooking,
         ),
@@ -158,12 +164,14 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       children: [
-        Text('${court.name} · ${_courtLabel(widget.courtId)}',
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(
+          '${court.name} · ${_courtLabel(widget.courtId)}',
+          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 12),
-        const _PhotoStrip(),
+        const PhotoStrip(),
         const SizedBox(height: 10),
-        _DirectionsCard(court: court, onTap: _directions),
+        DirectionsCard(court: court, onTap: _directions),
         const SizedBox(height: 20),
         DateTabs(
           dates: _dates,
@@ -177,13 +185,17 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
           children: [
             Text(l10n.wizardLabelSlots, style: text.titleMedium),
             const Spacer(),
-            Text(l10n.slotPickerMultiHint,
-                style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+            Text(
+              l10n.slotPickerMultiHint,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+            ),
           ],
         ),
         const SizedBox(height: 2),
-        Text(l10n.slotPickerOpenCount(openCount),
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(
+          l10n.slotPickerOpenCount(openCount),
+          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 12),
         if (slots == null)
           const Padding(
@@ -191,11 +203,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
             child: Center(child: CircularProgressIndicator()),
           )
         else
-          _SlotGrid(
-            slots: slots,
-            selection: _selection,
-            onToggle: _toggleSlot,
-          ),
+          SlotGrid(slots: slots, selection: _selection, onToggle: _toggleSlot),
         const SizedBox(height: 28),
         OpenSlotSection(
           slots: _groupSlots,
@@ -207,377 +215,10 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
   }
 }
 
-// ── §13 Photo strip ──────────────────────────────────────────────────────────
-
-class _PhotoStrip extends StatelessWidget {
-  const _PhotoStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 118,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.zero,
-        itemCount: 5,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => ClipRRect(
-          borderRadius: AppTokens.radiusLg,
-          child: SizedBox(
-            width: i == 0 ? 200 : 150,
-            child: const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF16A34A), Color(0xFF0EA5E9)],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── §14 Directions card → external maps (edge E9) ────────────────────────────
-
-class _DirectionsCard extends StatelessWidget {
-  const _DirectionsCard({required this.court, required this.onTap});
-
-  final Court court;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    return Material(
-      color: scheme.surfaceContainerLowest,
-      borderRadius: AppTokens.radiusMd,
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            borderRadius: AppTokens.radiusMd,
-            border: Border.all(color: scheme.outlineVariant),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  width: 92,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFDCFCE7), Color(0xFFBFDBFE)],
-                    ),
-                  ),
-                  child: Icon(Icons.location_on, color: scheme.error, size: 28),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(court.address,
-                            style: text.labelLarge,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.slotPickerDistanceDrive(
-                              court.distanceKm.toStringAsFixed(1)),
-                          style: text.bodySmall?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                            fontFeatures: AppTokens.tnum,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(Icons.navigation_outlined,
-                                size: 16, color: scheme.primary),
-                            const SizedBox(width: 4),
-                            Text(l10n.slotPickerDirections,
-                                style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: scheme.primary)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Center(
-                    child: Icon(Icons.chevron_right,
-                        color: scheme.onSurfaceVariant),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ── §15 Slot grid (numbered multi-select) ────────────────────────────────────
-
-class _SlotGrid extends StatelessWidget {
-  const _SlotGrid({
-    required this.slots,
-    required this.selection,
-    required this.onToggle,
-  });
-
-  final List<TimeSlot> slots;
-  final List<TimeSlot> selection;
-  final void Function(TimeSlot) onToggle;
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-      childAspectRatio: 2.4,
-      children: [
-        for (final slot in slots)
-          _SlotCell(
-            slot: slot,
-            order: selection.indexWhere((s) => s.id == slot.id),
-            onTap: slot.isOpen ? () => onToggle(slot) : null,
-          ),
-      ],
-    );
-  }
-}
-
-class _SlotCell extends StatelessWidget {
-  const _SlotCell({required this.slot, required this.order, this.onTap});
-
-  final TimeSlot slot;
-
-  /// Index in the selection list, or -1 if not selected.
-  final int order;
-  final VoidCallback? onTap;
-
-  static String _hhmm(DateTime t) =>
-      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final selected = order >= 0;
-    final timeLabel = '${_hhmm(slot.start)} – ${_hhmm(slot.end)}';
-    final priceLabel = '${(slot.priceVnd / 1000).round()}k';
-    final inert = !slot.isOpen;
-
-    late final Color bg;
-    late final BoxBorder border;
-    if (selected) {
-      bg = scheme.primaryContainer;
-      border = Border.all(color: scheme.primary, width: 2);
-    } else if (inert) {
-      bg = scheme.surfaceContainer.withValues(alpha: 0.6);
-      border = Border.all(color: scheme.outlineVariant);
-    } else {
-      bg = scheme.surfaceContainerLowest;
-      border = Border.all(color: scheme.outlineVariant);
-    }
-
-    final timeColor = selected
-        ? scheme.onPrimaryContainer
-        : inert
-            ? scheme.onSurfaceVariant
-            : scheme.onSurface;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppTokens.radiusMd,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: AppTokens.radiusMd,
-          border: border,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              children: [
-                if (selected) ...[
-                  Container(
-                    width: 20,
-                    height: 20,
-                    alignment: Alignment.center,
-                    decoration:
-                        BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
-                    child: Text(
-                      '${order + 1}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: scheme.onPrimary,
-                        fontFeatures: AppTokens.tnum,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Expanded(
-                  child: Text(
-                    timeLabel,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: timeColor,
-                      fontFeatures: AppTokens.tnum,
-                      decoration: slot.status == CellStatus.booked
-                          ? TextDecoration.lineThrough
-                          : null,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Text(
-                  priceLabel,
-                  style: TextStyle(
-                    fontFamily: 'Sora',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: timeColor,
-                    fontFeatures: AppTokens.tnum,
-                  ),
-                ),
-                if (inert) ...[
-                  const Spacer(),
-                  Text(
-                    slot.status == CellStatus.booked
-                        ? AppLocalizations.of(context).slotPickerBooked
-                        : AppLocalizations.of(context).slotPickerClosed,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: slot.status == CellStatus.booked
-                          ? scheme.error
-                          : scheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── §16 Sticky bottom cart bar (edge E11) ────────────────────────────────────
-
-class _BottomCartBar extends StatelessWidget {
-  const _BottomCartBar({required this.selection, required this.onContinue});
-
-  final List<TimeSlot> selection;
-  final VoidCallback? onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    final count = selection.length;
-    final total = selection.fold<int>(0, (s, e) => s + e.priceVnd);
-    final minutes =
-        selection.fold<int>(0, (m, e) => m + e.duration.inMinutes);
-    final hours = (minutes / 60);
-    final hoursLabel =
-        hours == hours.roundToDouble() ? hours.toStringAsFixed(0) : hours.toStringAsFixed(1);
-    final enabled = onContinue != null;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        border: Border(top: BorderSide(color: scheme.outlineVariant)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    count == 0
-                        ? l10n.slotPickerNoSelection
-                        : l10n.slotPickerSelectedCount(
-                            count, l10n.wizardHours(hoursLabel)),
-                    style: text.bodySmall
-                        ?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    count == 0 ? '—' : '${_thousands(total)} đ',
-                    style: text.priceMedium(scheme),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            FilledButton(
-              onPressed: onContinue,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, AppTokens.buttonStickyHeight),
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-              ),
-              child: Text(enabled
-                  ? l10n.slotPickerContinue(count)
-                  : l10n.slotPickerPickSlots),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-String _thousands(int v) {
-  final s = v.toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-    buf.write(s[i]);
-  }
-  return buf.toString();
-}
-
 /// Court short label for the breadcrumb (the fake court carries the venue
 /// name; the picker shows which court within it).
 String _courtLabel(String courtId) => switch (courtId) {
-      'court-b' => 'Sân B',
-      'court-c' => 'Sân C',
-      _ => 'Sân A',
-    };
+  'court-b' => 'Sân B',
+  'court-c' => 'Sân C',
+  _ => 'Sân A',
+};
