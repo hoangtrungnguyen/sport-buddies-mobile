@@ -87,23 +87,7 @@ class _MonthCellState extends State<MonthCell> {
 
     // `.mcell.other` — other-month filler: n-50 bg, n-300 number, inert.
     if (!cell.isCurrentMonth) {
-      return Container(
-        constraints: BoxConstraints(minHeight: minHeight),
-        padding: padding,
-        decoration: BoxDecoration(
-          color: AppColors.neutral50,
-          border: hairlines,
-        ),
-        alignment: Alignment.topLeft,
-        child: Text(
-          '${cell.date.day}',
-          style: GoogleFonts.sora(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.neutral300,
-          ),
-        ),
-      );
+      return _otherMonthCell(minHeight, padding, hairlines);
     }
 
     final occ = cell.occupancy;
@@ -141,85 +125,8 @@ class _MonthCellState extends State<MonthCell> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // `.dnum` — today: 26px primary circle, white 13/700.
-                    if (cell.isToday)
-                      Container(
-                        width: 26,
-                        height: 26,
-                        alignment: Alignment.center,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '${cell.date.day}',
-                          style: GoogleFonts.sora(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      )
-                    else
-                      Text(
-                        '${cell.date.day}',
-                        style: GoogleFonts.sora(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.neutral800,
-                        ),
-                      ),
-                    // `.mocc` — percentage + slot count + progress bar.
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Text(
-                              '$pct%',
-                              style: GoogleFonts.sora(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.neutral900,
-                              ),
-                            ),
-                            if (!widget.compact) ...[
-                              const SizedBox(width: 6),
-                              Text(
-                                '${cell.bookings} slot',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.neutral500,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        // `.mbar` — 6px pill: n-100 track, occ-colour fill.
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(99),
-                          child: Container(
-                            height: 6,
-                            color: AppColors.neutral100,
-                            alignment: Alignment.centerLeft,
-                            child: FractionallySizedBox(
-                              widthFactor: occ.clamp(0.0, 1.0),
-                              heightFactor: 1,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: color,
-                                  borderRadius: BorderRadius.circular(99),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    _dayNumber(),
+                    _occupancyBlock(occ, color, pct),
                   ],
                 ),
               ),
@@ -227,6 +134,112 @@ class _MonthCellState extends State<MonthCell> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Inert filler for days outside the displayed month.
+  Widget _otherMonthCell(
+      double minHeight, EdgeInsets padding, Border hairlines) {
+    return Container(
+      constraints: BoxConstraints(minHeight: minHeight),
+      padding: padding,
+      decoration: BoxDecoration(color: AppColors.neutral50, border: hairlines),
+      alignment: Alignment.topLeft,
+      child: Text(
+        '${widget.cell.date.day}',
+        style: GoogleFonts.sora(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: AppColors.neutral300,
+        ),
+      ),
+    );
+  }
+
+  /// `.dnum` — today renders as a 26px primary circle; other days a plain
+  /// number.
+  Widget _dayNumber() {
+    final day = '${widget.cell.date.day}';
+    if (widget.cell.isToday) {
+      return Container(
+        width: 26,
+        height: 26,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
+        child: Text(
+          day,
+          style: GoogleFonts.sora(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+    return Text(
+      day,
+      style: GoogleFonts.sora(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.neutral800,
+      ),
+    );
+  }
+
+  /// `.mocc` — occupancy percentage + slot count + the progress bar.
+  Widget _occupancyBlock(double occ, Color color, int pct) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text(
+              '$pct%',
+              style: GoogleFonts.sora(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.neutral900,
+              ),
+            ),
+            if (!widget.compact) ...[
+              const SizedBox(width: 6),
+              Text(
+                '${widget.cell.bookings} slot',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.neutral500,
+                ),
+              ),
+            ],
+          ],
+        ),
+        const SizedBox(height: 4),
+        // `.mbar` — 6px pill: n-100 track, occ-colour fill.
+        ClipRRect(
+          borderRadius: BorderRadius.circular(99),
+          child: Container(
+            height: 6,
+            color: AppColors.neutral100,
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: occ.clamp(0.0, 1.0),
+              heightFactor: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
