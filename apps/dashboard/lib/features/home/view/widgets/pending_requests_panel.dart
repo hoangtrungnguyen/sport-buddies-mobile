@@ -128,103 +128,120 @@ class _RequestRow extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: scheme.tertiaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                request.initials,
-                style: TextStyle(
-                  color: scheme.onTertiaryContainer,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
+          _avatar(scheme),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(request.name,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(fontWeight: FontWeight.w500)),
-                    ),
-                    if (request.regular)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: scheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text('Khách quen',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: scheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            )),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  [request.court, request.venue, request.sport]
-                      .where((p) => p.isNotEmpty)
-                      .join(' · '),
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Symbols.schedule, size: 14, color: scheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text(request.when,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: scheme.onSurfaceVariant)),
-                    const SizedBox(width: 8),
-                    Text('${request.price ~/ 1000}k',
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: _info(theme, scheme)),
           const SizedBox(width: 8),
-          SizedBox(
-            width: 36,
-            child: TextButton(
-              onPressed: () =>
-                  context.read<HomeBloc>().add(HomeEvent.requestDeclined(request)),
-              style: TextButton.styleFrom(padding: EdgeInsets.zero),
-              child: const Text('Từ chối', style: TextStyle(fontSize: 12)),
-            ),
-          ),
-          SizedBox(
-            width: 36,
-            child: FilledButton(
-              onPressed: () =>
-                  context.read<HomeBloc>().add(HomeEvent.requestApproved(request)),
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.zero,
-                minimumSize: const Size(36, 36),
-              ),
-              child: const Icon(Symbols.check, size: 16),
-            ),
-          ),
+          ..._actions(context),
         ],
       ),
     );
+  }
+
+  /// Circular initials avatar.
+  Widget _avatar(ColorScheme scheme) {
+    return Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: scheme.tertiaryContainer,
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          request.initials,
+          style: TextStyle(
+            color: scheme.onTertiaryContainer,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Name (+ "Khách quen" badge), court/venue/sport line, and the time + price.
+  Widget _info(ThemeData theme, ColorScheme scheme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(request.name,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w500)),
+            ),
+            if (request.regular)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: scheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text('Khách quen',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: scheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w600,
+                    )),
+              ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          [request.court, request.venue, request.sport]
+              .where((p) => p.isNotEmpty)
+              .join(' · '),
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: scheme.onSurfaceVariant),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Icon(Symbols.schedule, size: 14, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Text(request.when,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: scheme.onSurfaceVariant)),
+            const SizedBox(width: 8),
+            Text('${request.price ~/ 1000}k',
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Decline + approve action buttons.
+  List<Widget> _actions(BuildContext context) {
+    return [
+      SizedBox(
+        width: 36,
+        child: TextButton(
+          onPressed: () => context
+              .read<HomeBloc>()
+              .add(HomeEvent.requestDeclined(request)),
+          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+          child: const Text('Từ chối', style: TextStyle(fontSize: 12)),
+        ),
+      ),
+      SizedBox(
+        width: 36,
+        child: FilledButton(
+          onPressed: () => context
+              .read<HomeBloc>()
+              .add(HomeEvent.requestApproved(request)),
+          style: FilledButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(36, 36),
+          ),
+          child: const Icon(Symbols.check, size: 16),
+        ),
+      ),
+    ];
   }
 }
