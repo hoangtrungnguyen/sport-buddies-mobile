@@ -1,7 +1,7 @@
 // Players card for the slot detail screen: fullness badge, player rows and
 // empty slot rows. Extracted from slot_detail_screen.dart.
 
-import 'package:customer/features/slots/slot_detail_style.dart';
+import 'package:customer/features/slots/slots_style.dart';
 import 'package:flutter/material.dart';
 
 class PlayersCard extends StatelessWidget {

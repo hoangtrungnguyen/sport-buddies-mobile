@@ -1,7 +1,7 @@
 // Hero section for the slot detail screen: cover, sport/court info and the
 // assist chips. Extracted from slot_detail_screen.dart.
 
-import 'package:customer/features/slots/slot_detail_style.dart';
+import 'package:customer/features/slots/slots_style.dart';
 import 'package:flutter/material.dart';
 import 'package:spb_core/spb_core.dart';
 

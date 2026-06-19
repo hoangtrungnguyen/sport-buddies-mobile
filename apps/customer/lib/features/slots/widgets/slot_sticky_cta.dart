@@ -2,7 +2,7 @@
 // the pill button. Extracted from slot_detail_screen.dart.
 
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
-import 'package:customer/features/slots/slot_detail_style.dart';
+import 'package:customer/features/slots/slots_style.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

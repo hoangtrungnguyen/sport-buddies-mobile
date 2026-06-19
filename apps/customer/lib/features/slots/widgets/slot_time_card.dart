@@ -1,7 +1,7 @@
 // Time & price card for the slot detail screen.
 // Extracted from slot_detail_screen.dart.
 
-import 'package:customer/features/slots/slot_detail_style.dart';
+import 'package:customer/features/slots/slots_style.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';

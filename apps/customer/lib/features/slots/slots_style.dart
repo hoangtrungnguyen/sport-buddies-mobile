@@ -1,5 +1,5 @@
-// Shared Material 3 design tokens for the slot detail screen and its widget
-// units. Extracted from slot_detail_screen.dart.
+// Shared Material 3 design tokens for the slots feature (slot detail and
+// participant management) and their widget units.
 
 import 'package:flutter/material.dart';
 
@@ -13,6 +13,8 @@ const mdPrimary = Color(0xFF15803D);
 const mdPrimaryContainer = Color(0xFFC9F2D2);
 const mdOnPrimaryContainer = Color(0xFF00210B);
 const mdOutlineVariant = Color(0xFFC2C8BB);
+const mdWarningBg = Color(0xFFFFFBEB);
+const mdWarningText = Color(0xFF92670B);
 const mdCornerSm = 8.0;
 const mdCornerMd = 12.0;
 const mdCornerXl = 28.0;

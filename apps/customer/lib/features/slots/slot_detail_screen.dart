@@ -2,7 +2,7 @@
 // Design: EPIC-4 Slot Detail · Material 3 · slotDetailM3Base component.
 
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
-import 'package:customer/features/slots/slot_detail_style.dart';
+import 'package:customer/features/slots/slots_style.dart';
 import 'package:customer/features/slots/widgets/slot_hero_section.dart';
 import 'package:customer/features/slots/widgets/slot_time_card.dart';
 import 'package:customer/features/slots/widgets/slot_players_card.dart';
