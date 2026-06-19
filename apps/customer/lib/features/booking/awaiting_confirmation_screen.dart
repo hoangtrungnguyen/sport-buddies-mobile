@@ -17,8 +17,7 @@ class AwaitingConfirmationScreen extends StatefulWidget {
       _AwaitingConfirmationScreenState();
 }
 
-class _AwaitingConfirmationScreenState
-    extends State<AwaitingConfirmationScreen>
+class _AwaitingConfirmationScreenState extends State<AwaitingConfirmationScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseCtrl;
   late final Animation<double> _pulseAnim;
@@ -32,9 +31,10 @@ class _AwaitingConfirmationScreenState
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _pulseAnim = Tween(begin: 0.85, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut),
-    );
+    _pulseAnim = Tween(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -69,17 +69,14 @@ class _AwaitingConfirmationScreenState
         ),
         body: switch (state) {
           AwaitingLoading() ||
-          AwaitingInitial() =>
-            const Center(child: CircularProgressIndicator()),
-          AwaitingError(:final message) =>
-            Center(child: Text(message, style: const TextStyle(color: Colors.red))),
-          AwaitingConfirmed() =>
-            const Center(child: CircularProgressIndicator()),
-          AwaitingLoaded() =>
-            _LoadedBody(
-              state: state,
-              pulseAnim: _pulseAnim,
-            ),
+          AwaitingInitial() => const Center(child: CircularProgressIndicator()),
+          AwaitingError(:final message) => Center(
+            child: Text(message, style: const TextStyle(color: Colors.red)),
+          ),
+          AwaitingConfirmed() => const Center(
+            child: CircularProgressIndicator(),
+          ),
+          AwaitingLoaded() => _LoadedBody(state: state, pulseAnim: _pulseAnim),
         },
       ),
     );
@@ -158,7 +155,10 @@ class _LoadedBody extends StatelessWidget {
                 Text(
                   l10n.awaitingBody,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF6B7280),
+                  ),
                 ),
                 const SizedBox(height: 32),
                 // Booking detail card
@@ -184,7 +184,10 @@ class _LoadedBody extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      _DetailRow(label: l10n.wizardLabelCourt, value: state.courtName),
+                      _DetailRow(
+                        label: l10n.wizardLabelCourt,
+                        value: state.courtName,
+                      ),
                       const SizedBox(height: 10),
                       _DetailRow(
                         label: l10n.paymentTime,
@@ -199,7 +202,9 @@ class _LoadedBody extends StatelessWidget {
                       const SizedBox(height: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF9C3),
                           borderRadius: BorderRadius.circular(6),
@@ -207,7 +212,11 @@ class _LoadedBody extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.circle, size: 6, color: Color(0xFFCA8A04)),
+                            const Icon(
+                              Icons.circle,
+                              size: 6,
+                              color: Color(0xFFCA8A04),
+                            ),
                             const SizedBox(width: 5),
                             Text(
                               l10n.bookingStatusPendingHost,
@@ -268,12 +277,14 @@ class _DetailRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style:
-                const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+        ),
         Text(
           value,
-          style: valueStyle ??
+          style:
+              valueStyle ??
               const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -338,8 +349,8 @@ class _TimelineItem extends StatelessWidget {
     final Color dotColor = done
         ? const Color(0xFF16A34A)
         : active
-            ? const Color(0xFFCA8A04)
-            : const Color(0xFFE5E7EB);
+        ? const Color(0xFFCA8A04)
+        : const Color(0xFFE5E7EB);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,26 +372,22 @@ class _TimelineItem extends StatelessWidget {
                 child: done
                     ? const Icon(Icons.check, size: 14, color: Colors.white)
                     : active
-                        ? const Center(
-                            child: SizedBox(
-                              width: 6,
-                              height: 6,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
+                    ? const Center(
+                        child: SizedBox(
+                          width: 6,
+                          height: 6,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
                             ),
-                          )
-                        : null,
+                          ),
+                        ),
+                      )
+                    : null,
               ),
               if (!isLast)
-                Container(
-                  width: 2,
-                  height: 32,
-                  color: const Color(0xFFE5E7EB),
-                ),
+                Container(width: 2, height: 32, color: const Color(0xFFE5E7EB)),
             ],
           ),
         ),
@@ -417,4 +424,3 @@ class _TimelineItem extends StatelessWidget {
     );
   }
 }
-

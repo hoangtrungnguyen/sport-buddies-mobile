@@ -94,8 +94,8 @@ class _StepNode extends StatelessWidget {
             color: active
                 ? const Color(0xFF15803D)
                 : done
-                    ? const Color(0xFF374151)
-                    : const Color(0xFF9CA3AF),
+                ? const Color(0xFF374151)
+                : const Color(0xFF9CA3AF),
           ),
         ),
       ],

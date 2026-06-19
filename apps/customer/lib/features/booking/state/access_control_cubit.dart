@@ -8,9 +8,9 @@ class AccessControlCubit extends Cubit<AccessControlState> {
   AccessControlCubit({
     required SupabaseClient client,
     required BookingApiClient apiClient,
-  })  : _client = client,
-        _api = apiClient,
-        super(const AccessControlState.idle());
+  }) : _client = client,
+       _api = apiClient,
+       super(const AccessControlState.idle());
 
   final SupabaseClient _client;
   final BookingApiClient _api;
@@ -55,8 +55,11 @@ class AccessControlCubit extends Cubit<AccessControlState> {
 
       emit(AccessControlState.saved(bookingId: bookingId));
     } on NoConnectionException {
-      emit(const AccessControlState.failure(
-          'Không có kết nối mạng. Vui lòng thử lại.'));
+      emit(
+        const AccessControlState.failure(
+          'Không có kết nối mạng. Vui lòng thử lại.',
+        ),
+      );
     } on SlotUnavailableException catch (e, st) {
       appLogger.e('AccessControlCubit.submitAndSave', error: e, stackTrace: st);
       // Slot already booked — check if it belongs to this user (e.g. retry
@@ -72,9 +75,7 @@ class AccessControlCubit extends Cubit<AccessControlState> {
           appLogger.i(
             'AccessControlCubit: recovered existing booking ${existing['id']}',
           );
-          emit(AccessControlState.saved(
-            bookingId: existing['id'] as String,
-          ));
+          emit(AccessControlState.saved(bookingId: existing['id'] as String));
           return;
         }
       } catch (inner, innerSt) {

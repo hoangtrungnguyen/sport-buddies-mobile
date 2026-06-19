@@ -15,13 +15,13 @@ class PaymentScreen extends StatelessWidget {
     return BlocBuilder<PaymentCubit, PaymentState>(
       builder: (context, state) => switch (state) {
         PaymentLoading() => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
+          body: Center(child: CircularProgressIndicator()),
+        ),
         PaymentError(:final message) => Scaffold(
-            body: Center(
-              child: Text(message, style: const TextStyle(color: Colors.red)),
-            ),
+          body: Center(
+            child: Text(message, style: const TextStyle(color: Colors.red)),
           ),
+        ),
         PaymentLoaded() => _LoadedScreen(state: state),
       },
     );
@@ -46,8 +46,11 @@ class _LoadedScreen extends StatelessWidget {
 
   static final _timeFmt = DateFormat('HH:mm');
   static final _dateFmt = DateFormat('EEE, dd/MM/yyyy', 'vi');
-  static final _priceFmt =
-      NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0);
+  static final _priceFmt = NumberFormat.currency(
+    locale: 'vi_VN',
+    symbol: 'đ',
+    decimalDigits: 0,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -144,7 +147,9 @@ class _LoadedScreen extends StatelessWidget {
                             Text(
                               l10n.wizardBookingId,
                               style: const TextStyle(
-                                  fontSize: 13, color: Color(0xFF6B7280)),
+                                fontSize: 13,
+                                color: Color(0xFF6B7280),
+                              ),
                             ),
                             Text(
                               '#$shortId',
@@ -161,7 +166,10 @@ class _LoadedScreen extends StatelessWidget {
                           padding: EdgeInsets.symmetric(vertical: 10),
                           child: Divider(height: 1, color: Color(0xFFE5E7EB)),
                         ),
-                        _Row(label: l10n.wizardLabelCourt, value: state.courtName),
+                        _Row(
+                          label: l10n.wizardLabelCourt,
+                          value: state.courtName,
+                        ),
                         const _Divider(),
                         _Row(
                           label: l10n.wizardLabelDate,
@@ -229,7 +237,8 @@ class _LoadedScreen extends StatelessWidget {
                               const SizedBox(height: 2),
                               Text(
                                 l10n.paymentCashBody(
-                                    _priceFmt.format(state.totalPrice)),
+                                  _priceFmt.format(state.totalPrice),
+                                ),
                                 style: const TextStyle(
                                   fontSize: 13,
                                   color: Color(0xFF92400E),
@@ -355,11 +364,14 @@ class _Row extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF6B7280)),
+        ),
         Text(
           value,
-          style: valueStyle ??
+          style:
+              valueStyle ??
               const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -382,4 +394,3 @@ class _Divider extends StatelessWidget {
     );
   }
 }
-

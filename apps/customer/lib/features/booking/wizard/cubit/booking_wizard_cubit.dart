@@ -18,20 +18,22 @@ class BookingWizardCubit extends Cubit<BookingWizardState> {
     required BookingRepository repository,
     required BookingDraft draft,
     required ContactInfo initialContact,
-  })  : _repository = repository,
-        super(BookingWizardState(draft: draft, contact: initialContact));
+  }) : _repository = repository,
+       super(BookingWizardState(draft: draft, contact: initialContact));
 
   final BookingRepository _repository;
   StreamSubscription<Booking>? _watch;
 
   // ── Step 1 · Confirm ──────────────────────────────────────────────────
-  void updateContact(ContactInfo contact) => emit(state.copyWith(contact: contact));
+  void updateContact(ContactInfo contact) =>
+      emit(state.copyWith(contact: contact));
 
   /// T1 — pure advance to Play-together, no network (doc 03 §3 T1).
   void confirm() => emit(state.copyWith(currentStep: 1));
 
   // ── Step 2 · Play-together ────────────────────────────────────────────
-  void selectAccess(AccessPolicy access) => emit(state.copyWith(access: access));
+  void selectAccess(AccessPolicy access) =>
+      emit(state.copyWith(access: access));
 
   void setMaxPlayers(int value) {
     final clamped = value.clamp(2, 20);
@@ -55,17 +57,21 @@ class BookingWizardCubit extends Cubit<BookingWizardState> {
         access: access,
         maxPlayers: state.maxPlayers,
       );
-      emit(state.copyWith(
-        submitting: false,
-        access: access,
-        booking: booking,
-        currentStep: 2,
-      ));
+      emit(
+        state.copyWith(
+          submitting: false,
+          access: access,
+          booking: booking,
+          currentStep: 2,
+        ),
+      );
       _startWatching(booking);
     } on SlotTakenException {
       emit(state.copyWith(submitting: false, effect: WizardEffect.raceLost));
     } on BookingFailedException {
-      emit(state.copyWith(submitting: false, effect: WizardEffect.networkFailed));
+      emit(
+        state.copyWith(submitting: false, effect: WizardEffect.networkFailed),
+      );
     }
   }
 

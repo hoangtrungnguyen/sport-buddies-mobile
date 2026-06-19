@@ -5,8 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
   AwaitingConfirmationCubit({required SupabaseClient client})
-      : _client = client,
-        super(const AwaitingState.initial());
+    : _client = client,
+      super(const AwaitingState.initial());
 
   final SupabaseClient _client;
 
@@ -18,7 +18,9 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
     try {
       final data = await _client
           .from('bookings')
-          .select('id, status, courts!inner(name), slots!inner(id, start_at, end_at)')
+          .select(
+            'id, status, courts!inner(name), slots!inner(id, start_at, end_at)',
+          )
           .eq('id', bookingId)
           .single();
 
@@ -30,14 +32,16 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
       final slotEnd = DateTime.parse(slot['end_at'] as String).toLocal();
       final status = data['status'] as String;
 
-      emit(AwaitingState.loaded(
-        bookingId: bookingId,
-        slotId: slotId,
-        courtName: courtName,
-        slotStart: slotStart,
-        slotEnd: slotEnd,
-        status: status,
-      ));
+      emit(
+        AwaitingState.loaded(
+          bookingId: bookingId,
+          slotId: slotId,
+          courtName: courtName,
+          slotStart: slotStart,
+          slotEnd: slotEnd,
+          status: status,
+        ),
+      );
 
       _subscribeRealtime(bookingId, slotId);
     } catch (e, st) {
@@ -62,10 +66,9 @@ class AwaitingConfirmationCubit extends Cubit<AwaitingState> {
           callback: (payload) {
             final status = payload.newRecord['status'] as String?;
             if (status == 'confirmed') {
-              emit(AwaitingState.confirmed(
-                bookingId: bookingId,
-                slotId: slotId,
-              ));
+              emit(
+                AwaitingState.confirmed(bookingId: bookingId, slotId: slotId),
+              );
             }
           },
         )

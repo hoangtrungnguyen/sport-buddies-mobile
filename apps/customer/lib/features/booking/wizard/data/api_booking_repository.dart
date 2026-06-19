@@ -17,8 +17,8 @@ class ApiBookingRepository implements BookingRepository {
   ApiBookingRepository({
     required SupabaseClient client,
     required BookingApiClient api,
-  })  : _client = client,
-        _api = api;
+  }) : _client = client,
+       _api = api;
 
   final SupabaseClient _client;
   final BookingApiClient _api;
@@ -45,7 +45,9 @@ class ApiBookingRepository implements BookingRepository {
           customerPhone: contact.phone,
           notes: contact.note,
         );
-        primaryBookingId = bookingMap.isNotEmpty ? bookingMap.values.first : null;
+        primaryBookingId = bookingMap.isNotEmpty
+            ? bookingMap.values.first
+            : null;
       } else {
         primaryBookingId = await _api.createBooking(
           slotId: slotIds.first,
@@ -66,17 +68,27 @@ class ApiBookingRepository implements BookingRepository {
         }
       }
     } on SlotUnavailableException catch (e, st) {
-      appLogger.e('ApiBookingRepository.createBooking: slot taken',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'ApiBookingRepository.createBooking: slot taken',
+        error: e,
+        stackTrace: st,
+      );
       throw const SlotTakenException(<String>[]);
     } on NoConnectionException {
       throw const BookingFailedException('no_connection');
     } on BookingApiException catch (e, st) {
-      appLogger.e('ApiBookingRepository.createBooking', error: e, stackTrace: st);
+      appLogger.e(
+        'ApiBookingRepository.createBooking',
+        error: e,
+        stackTrace: st,
+      );
       throw BookingFailedException(e.code);
     } catch (e, st) {
-      appLogger.e('ApiBookingRepository.createBooking: unexpected',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'ApiBookingRepository.createBooking: unexpected',
+        error: e,
+        stackTrace: st,
+      );
       throw const BookingFailedException();
     }
 
@@ -113,13 +125,17 @@ class ApiBookingRepository implements BookingRepository {
             value: booking.id,
           ),
           callback: (payload) {
-            final status =
-                BookingStatusX.fromRow(payload.newRecord['status'] as String?);
-            controller.add(booking.copyWith(
-              status: status,
-              confirmedAt:
-                  status == BookingStatus.confirmed ? DateTime.now() : null,
-            ));
+            final status = BookingStatusX.fromRow(
+              payload.newRecord['status'] as String?,
+            );
+            controller.add(
+              booking.copyWith(
+                status: status,
+                confirmedAt: status == BookingStatus.confirmed
+                    ? DateTime.now()
+                    : null,
+              ),
+            );
           },
         )
         .subscribe();

@@ -12,11 +12,11 @@ extension BookingStatusX on BookingStatus {
       this == BookingStatus.declined || this == BookingStatus.cancelled;
 
   static BookingStatus fromRow(String? raw) => switch (raw) {
-        'confirmed' => BookingStatus.confirmed,
-        'declined' => BookingStatus.declined,
-        'cancelled' => BookingStatus.cancelled,
-        _ => BookingStatus.pending,
-      };
+    'confirmed' => BookingStatus.confirmed,
+    'declined' => BookingStatus.declined,
+    'cancelled' => BookingStatus.cancelled,
+    _ => BookingStatus.pending,
+  };
 }
 
 /// Editable contact details — pre-filled from the profile on Step 1.
@@ -56,15 +56,15 @@ class Booking {
   final DateTime? confirmedAt;
 
   Booking copyWith({BookingStatus? status, DateTime? confirmedAt}) => Booking(
-        id: id,
-        status: status ?? this.status,
-        centerId: centerId,
-        courtId: courtId,
-        slots: slots,
-        access: access,
-        maxPlayers: maxPlayers,
-        totalVnd: totalVnd,
-        createdAt: createdAt,
-        confirmedAt: confirmedAt ?? this.confirmedAt,
-      );
+    id: id,
+    status: status ?? this.status,
+    centerId: centerId,
+    courtId: courtId,
+    slots: slots,
+    access: access,
+    maxPlayers: maxPlayers,
+    totalVnd: totalVnd,
+    createdAt: createdAt,
+    confirmedAt: confirmedAt ?? this.confirmedAt,
+  );
 }

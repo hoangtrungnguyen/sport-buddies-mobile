@@ -5,8 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PaymentCubit extends Cubit<PaymentState> {
   PaymentCubit({required SupabaseClient client})
-      : _client = client,
-        super(const PaymentState.loading());
+    : _client = client,
+      super(const PaymentState.loading());
 
   final SupabaseClient _client;
 
@@ -27,13 +27,15 @@ class PaymentCubit extends Cubit<PaymentState> {
       final slot = data['slots'] as Map<String, dynamic>;
       final court = slot['courts'] as Map<String, dynamic>;
 
-      emit(PaymentState.loaded(
-        bookingId: data['id'] as String,
-        courtName: court['name'] as String,
-        slotStart: DateTime.parse(slot['start_at'] as String).toLocal(),
-        slotEnd: DateTime.parse(slot['end_at'] as String).toLocal(),
-        totalPrice: (data['total_price'] as num?)?.toDouble() ?? 0.0,
-      ));
+      emit(
+        PaymentState.loaded(
+          bookingId: data['id'] as String,
+          courtName: court['name'] as String,
+          slotStart: DateTime.parse(slot['start_at'] as String).toLocal(),
+          slotEnd: DateTime.parse(slot['end_at'] as String).toLocal(),
+          totalPrice: (data['total_price'] as num?)?.toDouble() ?? 0.0,
+        ),
+      );
     } catch (e, st) {
       appLogger.e('PaymentCubit.load', error: e, stackTrace: st);
       emit(PaymentState.error(e.toString(), stackTrace: st));

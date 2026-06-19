@@ -13,11 +13,11 @@ class BookingCubit extends Cubit<BookingState> {
     required CourtRepository courtRepository,
     required SupabaseClient client,
     required BookingApiClient apiClient,
-  })  : _slotRepo = slotRepository,
-        _courtRepo = courtRepository,
-        _client = client,
-        _api = apiClient,
-        super(const BookingInitial());
+  }) : _slotRepo = slotRepository,
+       _courtRepo = courtRepository,
+       _client = client,
+       _api = apiClient,
+       super(const BookingInitial());
 
   final SlotRepository _slotRepo;
   final CourtRepository _courtRepo;
@@ -63,13 +63,15 @@ class BookingCubit extends Cubit<BookingState> {
       }
     }
 
-    emit(BookingLoaded(
-      slot: slot,
-      pricePerHour: pricePerHour,
-      name: name,
-      phone: phone,
-      courtAddress: courtAddress,
-    ));
+    emit(
+      BookingLoaded(
+        slot: slot,
+        pricePerHour: pricePerHour,
+        name: name,
+        phone: phone,
+        courtAddress: courtAddress,
+      ),
+    );
   }
 
   Future<void> submit({

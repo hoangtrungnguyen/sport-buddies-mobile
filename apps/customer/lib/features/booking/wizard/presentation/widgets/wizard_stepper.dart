@@ -31,31 +31,38 @@ class WizardStepper extends StatelessWidget {
     for (var i = 0; i < labels.length; i++) {
       if (i > 0) {
         final filled = i <= currentStep;
-        children.add(Expanded(
-          child: AnimatedContainer(
-            duration: duration,
-            curve: AppTokens.easing,
-            height: 2,
-            margin: const EdgeInsets.only(top: 13, left: 6, right: 6),
-            decoration: BoxDecoration(
-              color: filled ? scheme.primary : scheme.outlineVariant,
-              borderRadius: BorderRadius.circular(2),
+        children.add(
+          Expanded(
+            child: AnimatedContainer(
+              duration: duration,
+              curve: AppTokens.easing,
+              height: 2,
+              margin: const EdgeInsets.only(top: 13, left: 6, right: 6),
+              decoration: BoxDecoration(
+                color: filled ? scheme.primary : scheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
           ),
-        ));
+        );
       }
-      children.add(_StepNode(
-        index: i,
-        currentStep: currentStep,
-        label: labels[i],
-        duration: duration,
-      ));
+      children.add(
+        _StepNode(
+          index: i,
+          currentStep: currentStep,
+          label: labels[i],
+          duration: duration,
+        ),
+      );
     }
 
     return Container(
       color: scheme.surface,
       padding: const EdgeInsets.fromLTRB(26, 12, 26, 30),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: children),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
     );
   }
 }

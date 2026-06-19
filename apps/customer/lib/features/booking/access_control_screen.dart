@@ -37,8 +37,8 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
   int _maxPlayers = 4;
 
   void _setPolicy(String policy) => setState(() {
-        _policy = policy;
-      });
+    _policy = policy;
+  });
 
   void _incrementMaxPlayers() {
     if (_maxPlayers < 20) setState(() => _maxPlayers++);
@@ -50,32 +50,32 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
 
   void _save() {
     context.read<AccessControlCubit>().submitAndSave(
-          slotId: widget.slotId,
-          name: widget.name,
-          phone: widget.phone,
-          notes: widget.notes,
-          courtId: widget.courtId,
-          pricePerHour: widget.pricePerHour,
-          durationMinutes: widget.durationMinutes,
-          totalPrice: widget.totalPrice,
-          policy: _policy,
-          maxPlayers: _maxPlayers,
-        );
+      slotId: widget.slotId,
+      name: widget.name,
+      phone: widget.phone,
+      notes: widget.notes,
+      courtId: widget.courtId,
+      pricePerHour: widget.pricePerHour,
+      durationMinutes: widget.durationMinutes,
+      totalPrice: widget.totalPrice,
+      policy: _policy,
+      maxPlayers: _maxPlayers,
+    );
   }
 
   void _skip() {
     context.read<AccessControlCubit>().submitAndSave(
-          slotId: widget.slotId,
-          name: widget.name,
-          phone: widget.phone,
-          notes: widget.notes,
-          courtId: widget.courtId,
-          pricePerHour: widget.pricePerHour,
-          durationMinutes: widget.durationMinutes,
-          totalPrice: widget.totalPrice,
-          policy: 'closed',
-          maxPlayers: 4,
-        );
+      slotId: widget.slotId,
+      name: widget.name,
+      phone: widget.phone,
+      notes: widget.notes,
+      courtId: widget.courtId,
+      pricePerHour: widget.pricePerHour,
+      durationMinutes: widget.durationMinutes,
+      totalPrice: widget.totalPrice,
+      policy: 'closed',
+      maxPlayers: 4,
+    );
   }
 
   @override
@@ -101,10 +101,7 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
           );
         } else if (state is AccessControlFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -213,8 +210,12 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
                         child: _policy == 'open'
                             ? _MaxPlayersStepper(
                                 value: _maxPlayers,
-                                onIncrement: isSaving ? null : _incrementMaxPlayers,
-                                onDecrement: isSaving ? null : _decrementMaxPlayers,
+                                onIncrement: isSaving
+                                    ? null
+                                    : _incrementMaxPlayers,
+                                onDecrement: isSaving
+                                    ? null
+                                    : _decrementMaxPlayers,
                               )
                             : null,
                       ),
@@ -336,10 +337,7 @@ class _PolicyCard extends StatelessWidget {
                       color: Color(0xFF6B7280),
                     ),
                   ),
-                  if (child != null) ...[
-                    const SizedBox(height: 14),
-                    child!,
-                  ],
+                  if (child != null) ...[const SizedBox(height: 14), child!],
                 ],
               ),
             ),
@@ -436,11 +434,7 @@ class _MaxPlayersStepper extends StatelessWidget {
                   ),
                 ),
               ),
-              _StepperButton(
-                icon: Icons.add,
-                onTap: onIncrement,
-                active: true,
-              ),
+              _StepperButton(icon: Icons.add, onTap: onIncrement, active: true),
             ],
           ),
           const SizedBox(height: 6),
@@ -488,7 +482,6 @@ class _StepperButton extends StatelessWidget {
     );
   }
 }
-
 
 class _SlotTakenSheet extends StatelessWidget {
   const _SlotTakenSheet({required this.onPickAnother});
@@ -548,7 +541,10 @@ class _SlotTakenSheet extends StatelessWidget {
               ),
               child: Text(
                 l10n.wizardPickAnotherTime,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

@@ -59,24 +59,28 @@ class BookingWizardPage extends StatelessWidget {
       case WizardEffect.raceLost:
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.wizardRaceLost),
-            backgroundColor: scheme.inverseSurface,
-          ));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(l10n.wizardRaceLost),
+              backgroundColor: scheme.inverseSurface,
+            ),
+          );
         context.read<BookingWizardCubit>().clearEffect();
         context.pop(); // back to the slot picker so the user can re-pick
       case WizardEffect.networkFailed:
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(
-            content: Text(l10n.wizardNetworkFailed),
-            backgroundColor: scheme.inverseSurface,
-            action: SnackBarAction(
-              label: l10n.commonRetry,
-              textColor: scheme.inversePrimary,
-              onPressed: () => context.read<BookingWizardCubit>().submit(),
+          ..showSnackBar(
+            SnackBar(
+              content: Text(l10n.wizardNetworkFailed),
+              backgroundColor: scheme.inverseSurface,
+              action: SnackBarAction(
+                label: l10n.commonRetry,
+                textColor: scheme.inversePrimary,
+                onPressed: () => context.read<BookingWizardCubit>().submit(),
+              ),
             ),
-          ));
+          );
         context.read<BookingWizardCubit>().clearEffect();
       case WizardEffect.none:
         break;
@@ -107,7 +111,8 @@ class BookingWizardPage extends StatelessWidget {
             case 3:
               context.go(_myBookingsRoute); // close ✕ → bookings, no re-entry
             default:
-              context.pop(); // Step 1 → picker · Step 3 → leave (booking persists)
+              context
+                  .pop(); // Step 1 → picker · Step 3 → leave (booking persists)
           }
         },
       ),
@@ -147,15 +152,16 @@ class BookingWizardPage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     Widget bar(List<Widget> children) => Container(
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            border: Border(top: BorderSide(color: scheme.outlineVariant)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          child: Row(children: children),
-        );
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
+      ),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      child: Row(children: children),
+    );
 
-    Widget filled(String label, VoidCallback? onTap, {Widget? child}) => Expanded(
+    Widget filled(String label, VoidCallback? onTap, {Widget? child}) =>
+        Expanded(
           child: FilledButton(
             onPressed: onTap,
             style: FilledButton.styleFrom(
@@ -167,17 +173,17 @@ class BookingWizardPage extends StatelessWidget {
         );
 
     Widget tonal(String label, VoidCallback? onTap) => Expanded(
-          child: FilledButton.tonal(
-            onPressed: onTap,
-            style: FilledButton.styleFrom(
-              minimumSize: const Size(0, 52),
-              backgroundColor: scheme.secondaryContainer,
-              foregroundColor: scheme.onSecondaryContainer,
-              shape: const StadiumBorder(),
-            ),
-            child: Text(label),
-          ),
-        );
+      child: FilledButton.tonal(
+        onPressed: onTap,
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 52),
+          backgroundColor: scheme.secondaryContainer,
+          foregroundColor: scheme.onSecondaryContainer,
+          shape: const StadiumBorder(),
+        ),
+        child: Text(label),
+      ),
+    );
 
     switch (s.currentStep) {
       case 0:
@@ -197,7 +203,9 @@ class BookingWizardPage extends StatelessWidget {
           ),
         ]);
       case 2:
-        return bar([tonal(l10n.wizardViewBookings, () => context.go(_myBookingsRoute))]);
+        return bar([
+          tonal(l10n.wizardViewBookings, () => context.go(_myBookingsRoute)),
+        ]);
       default:
         return bar([
           tonal(l10n.wizardBackToMap, () => context.go(_mapRoute)),

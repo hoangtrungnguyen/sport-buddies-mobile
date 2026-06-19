@@ -28,8 +28,11 @@ class Step4Done extends StatelessWidget {
       children: [
         const Center(child: _SuccessCheck()),
         const SizedBox(height: 20),
-        Text(l10n.wizardSuccessTitle,
-            textAlign: TextAlign.center, style: text.headlineSmall),
+        Text(
+          l10n.wizardSuccessTitle,
+          textAlign: TextAlign.center,
+          style: text.headlineSmall,
+        ),
         const SizedBox(height: 6),
         Text(
           l10n.wizardSuccessBody(state.draft.courtLabel),
@@ -44,7 +47,9 @@ class Step4Done extends StatelessWidget {
           runSpacing: 8,
           children: [
             StatusBadge(
-                kind: BadgeKind.confirmed, label: l10n.bookingStatusConfirmed),
+              kind: BadgeKind.confirmed,
+              label: l10n.bookingStatusConfirmed,
+            ),
             if (isOpen)
               StatusBadge(kind: BadgeKind.access, label: l10n.wizardOpen),
           ],
@@ -52,7 +57,10 @@ class Step4Done extends StatelessWidget {
         const SizedBox(height: 14),
         CashNotice(
           title: l10n.wizardBringCash,
-          subtitle: l10n.wizardBringCashBody(vnd(state.totalVnd), state.slotCount),
+          subtitle: l10n.wizardBringCashBody(
+            vnd(state.totalVnd),
+            state.slotCount,
+          ),
         ),
       ],
     );
@@ -79,8 +87,16 @@ class _ReceiptCard extends StatelessWidget {
         color: scheme.surfaceContainerLow,
         borderRadius: AppTokens.radiusMd,
         boxShadow: const [
-          BoxShadow(color: Color(0x1A000000), blurRadius: 6, offset: Offset(0, 2)),
-          BoxShadow(color: Color(0x12000000), blurRadius: 2, offset: Offset(0, 1)),
+          BoxShadow(
+            color: Color(0x1A000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
         ],
       ),
       child: Column(
@@ -89,37 +105,53 @@ class _ReceiptCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.wizardBookingId,
-                  style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
-              Text(idLabel,
-                  style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum)),
+              Text(
+                l10n.wizardBookingId,
+                style: text.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                idLabel,
+                style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum),
+              ),
             ],
           ),
           Divider(height: 24, color: scheme.outlineVariant),
           SummaryRow(label: l10n.wizardLabelCourt, value: draft.courtLabel),
-          SummaryRow(label: l10n.wizardLabelDate, value: dateLabel(l10n, draft.date)),
+          SummaryRow(
+            label: l10n.wizardLabelDate,
+            value: dateLabel(l10n, draft.date),
+          ),
           SummaryRow(
             label: l10n.wizardLabelSlots,
             value: countLabel(l10n, state.slotCount, state.totalDuration),
           ),
           const SizedBox(height: 8),
-          ...sessions.map((s) => Padding(
-                padding: const EdgeInsets.only(bottom: 2),
-                child: Text(
-                  '• ${timeRange(s.start, s.end)}'
-                  '${s.isMerged ? l10n.wizardMergedSuffix(s.slotCount) : ''}',
-                  style: text.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontFeatures: AppTokens.tnum,
-                  ),
+          ...sessions.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: Text(
+                '• ${timeRange(s.start, s.end)}'
+                '${s.isMerged ? l10n.wizardMergedSuffix(s.slotCount) : ''}',
+                style: text.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontFeatures: AppTokens.tnum,
                 ),
-              )),
+              ),
+            ),
+          ),
           const SizedBox(height: 8),
           CustomPaint(
             size: const Size(double.infinity, 1),
             painter: _DashedLinePainter(scheme.outlineVariant),
           ),
-          SummaryRow(label: l10n.wizardLabelTotal, value: vnd(state.totalVnd), bold: true, divider: false),
+          SummaryRow(
+            label: l10n.wizardLabelTotal,
+            value: vnd(state.totalVnd),
+            bold: true,
+            divider: false,
+          ),
         ],
       ),
     );
@@ -146,8 +178,16 @@ class _SuccessCheck extends StatelessWidget {
         width: 80,
         height: 80,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
-        child: Icon(Icons.check, size: 44, color: scheme.onPrimary, weight: 700),
+        decoration: BoxDecoration(
+          color: scheme.primary,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.check,
+          size: 44,
+          color: scheme.onPrimary,
+          weight: 700,
+        ),
       ),
     );
 

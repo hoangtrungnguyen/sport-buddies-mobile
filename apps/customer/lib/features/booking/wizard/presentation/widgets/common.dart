@@ -62,8 +62,10 @@ class SummaryRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Flexible(
-            child: Text(label,
-                style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+            child: Text(
+              label,
+              style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+            ),
           ),
           const SizedBox(width: 12),
           Text(
@@ -131,20 +133,20 @@ class StatusBadge extends StatelessWidget {
 
     final (Color bg, Color fg, Color? dot) = switch (kind) {
       BadgeKind.pending => (
-          scheme.tertiaryContainer,
-          scheme.onTertiaryContainer,
-          scheme.tertiary
-        ),
+        scheme.tertiaryContainer,
+        scheme.onTertiaryContainer,
+        scheme.tertiary,
+      ),
       BadgeKind.confirmed => (
-          scheme.primaryContainer,
-          scheme.onPrimaryContainer,
-          scheme.primary
-        ),
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+        scheme.primary,
+      ),
       BadgeKind.access => (
-          scheme.primaryContainer,
-          scheme.onPrimaryContainer,
-          null
-        ),
+        scheme.primaryContainer,
+        scheme.onPrimaryContainer,
+        null,
+      ),
     };
 
     return Container(
@@ -162,8 +164,7 @@ class StatusBadge extends StatelessWidget {
             ),
             const SizedBox(width: 6),
           ],
-          Text(label,
-              style: text.labelMedium?.copyWith(color: fg)),
+          Text(label, style: text.labelMedium?.copyWith(color: fg)),
         ],
       ),
     );
@@ -200,16 +201,17 @@ class CashNotice extends StatelessWidget {
                   title,
                   style: (subtitle == null ? text.bodySmall : text.labelLarge)
                       ?.copyWith(
-                    color: scheme.onTertiaryContainer,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: scheme.onTertiaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
                     subtitle!,
-                    style: text.bodySmall
-                        ?.copyWith(color: scheme.onTertiaryContainer),
+                    style: text.bodySmall?.copyWith(
+                      color: scheme.onTertiaryContainer,
+                    ),
                   ),
                 ],
               ],

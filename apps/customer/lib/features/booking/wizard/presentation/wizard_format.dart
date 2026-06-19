@@ -60,9 +60,9 @@ String bookingIdLabel(String id) {
 
 /// Material sport pictogram for the summary tile.
 String sportEmoji(Sport sport) => switch (sport) {
-      Sport.football => '⚽',
-      Sport.badminton => '🏸',
-      Sport.pickleball => '🥒',
-      Sport.tennis => '🎾',
-      Sport.multi => '🏟️',
-    };
+  Sport.football => '⚽',
+  Sport.badminton => '🏸',
+  Sport.pickleball => '🥒',
+  Sport.tennis => '🎾',
+  Sport.multi => '🏟️',
+};

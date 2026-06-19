@@ -40,12 +40,9 @@ List<PlaySession> mergeSessions(List<SlotSelection> draftSlots) {
   var label = draftSlots.first.courtLabel;
   var count = 1;
 
-  void flush() => sessions.add(PlaySession(
-        start: start,
-        end: end,
-        courtLabel: label,
-        slotCount: count,
-      ));
+  void flush() => sessions.add(
+    PlaySession(start: start, end: end, courtLabel: label, slotCount: count),
+  );
 
   for (final s in draftSlots.skip(1)) {
     final adjacent = s.courtId == courtId && s.start == end;

@@ -34,13 +34,15 @@ class Step1Confirm extends StatelessWidget {
           children: [
             Text(l10n.bookingSelectedSlot, style: text.titleMedium),
             CountBadge(
-                label: countLabel(l10n, state.slotCount, draft.totalDuration)),
+              label: countLabel(l10n, state.slotCount, draft.totalDuration),
+            ),
           ],
         ),
         const SizedBox(height: 10),
         ...List.generate(draft.slots.length, (i) {
           final s = draft.slots[i];
-          final adjacent = i > 0 &&
+          final adjacent =
+              i > 0 &&
               draft.slots[i - 1].courtId == s.courtId &&
               draft.slots[i - 1].end == s.start;
           return Padding(
@@ -54,8 +56,9 @@ class Step1Confirm extends StatelessWidget {
         ],
         const SizedBox(height: 16),
         SummaryRow(
-            label: l10n.bookingTotalDuration,
-            value: durationLabel(l10n, draft.totalDuration)),
+          label: l10n.bookingTotalDuration,
+          value: durationLabel(l10n, draft.totalDuration),
+        ),
         SummaryRow(label: l10n.wizardTotalRent, value: vnd(draft.totalVnd)),
         SummaryRow(label: l10n.bookingServiceFee, value: l10n.bookingFree),
         const SizedBox(height: 12),
@@ -103,8 +106,12 @@ class _CourtSummaryCard extends StatelessWidget {
               children: [
                 Text(draft.courtLabel, style: text.titleSmall),
                 const SizedBox(height: 2),
-                Text(draft.address,
-                    style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  draft.address,
+                  style: text.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -156,11 +163,17 @@ class _SlotLine extends StatelessWidget {
               children: [
                 Text(
                   timeRange(slot.start, slot.end),
-                  style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum),
+                  style: text.labelLarge?.copyWith(
+                    fontFeatures: AppTokens.tnum,
+                  ),
                 ),
                 const SizedBox(height: 2),
-                Text(sub,
-                    style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+                Text(
+                  sub,
+                  style: text.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -192,13 +205,17 @@ class _MergeNotice extends StatelessWidget {
     // Derived copy — name the slots composing the first merged run.
     final session = mergeSessions(slots).firstWhere((s) => s.isMerged);
     final parts = slots
-        .where((s) =>
-            !s.start.isBefore(session.start) && !s.end.isAfter(session.end))
+        .where(
+          (s) =>
+              !s.start.isBefore(session.start) && !s.end.isAfter(session.end),
+        )
         .map((s) => timeRange(s.start, s.end))
         .toList();
     final names = parts.join(' ${l10n.wizardAnd} ');
-    final copy =
-        l10n.wizardMergeNotice(names, durationLabel(l10n, session.duration));
+    final copy = l10n.wizardMergeNotice(
+      names,
+      durationLabel(l10n, session.duration),
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -212,8 +229,10 @@ class _MergeNotice extends StatelessWidget {
           const Text('⚡', style: TextStyle(fontSize: 16)),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(copy,
-                style: text.bodySmall?.copyWith(color: scheme.onPrimaryContainer)),
+            child: Text(
+              copy,
+              style: text.bodySmall?.copyWith(color: scheme.onPrimaryContainer),
+            ),
           ),
         ],
       ),
@@ -240,8 +259,10 @@ class _TotalBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(AppLocalizations.of(context).bookingTotalPayment,
-              style: text.labelLarge?.copyWith(color: scheme.onSurfaceVariant)),
+          Text(
+            AppLocalizations.of(context).bookingTotalPayment,
+            style: text.labelLarge?.copyWith(color: scheme.onSurfaceVariant),
+          ),
           Text(
             vnd(totalVnd),
             style: text.headlineSmall?.copyWith(
@@ -272,11 +293,13 @@ class _ContactFormState extends State<_ContactForm> {
   late final _note = TextEditingController(text: widget.contact.note ?? '');
 
   void _push() {
-    context.read<BookingWizardCubit>().updateContact(ContactInfo(
-          name: _name.text,
-          phone: _phone.text,
-          note: _note.text.isEmpty ? null : _note.text,
-        ));
+    context.read<BookingWizardCubit>().updateContact(
+      ContactInfo(
+        name: _name.text,
+        phone: _phone.text,
+        note: _note.text.isEmpty ? null : _note.text,
+      ),
+    );
   }
 
   @override
@@ -292,7 +315,11 @@ class _ContactFormState extends State<_ContactForm> {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        _Field(label: l10n.bookingFieldName, controller: _name, onChanged: (_) => _push()),
+        _Field(
+          label: l10n.bookingFieldName,
+          controller: _name,
+          onChanged: (_) => _push(),
+        ),
         const SizedBox(height: 12),
         _Field(
           label: l10n.bookingFieldPhone,
@@ -340,8 +367,10 @@ class _Field extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(
+          label,
+          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -355,9 +384,14 @@ class _Field extends StatelessWidget {
             filled: true,
             fillColor: scheme.surfaceContainerHighest,
             prefixIcon: icon == null ? null : Icon(icon, size: 20),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 14,
+            ),
             border: const OutlineInputBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(AppTokens.cornerSm)),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(AppTokens.cornerSm),
+              ),
               borderSide: BorderSide.none,
             ),
             enabledBorder: UnderlineInputBorder(

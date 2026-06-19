@@ -54,7 +54,9 @@ class Step3Awaiting extends StatelessWidget {
             declined
                 ? l10n.wizardDeclinedBody
                 : l10n.wizardWaitingBody(
-                    state.slotCount, state.draft.courtLabel),
+                    state.slotCount,
+                    state.draft.courtLabel,
+                  ),
             textAlign: TextAlign.center,
             style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
           ),
@@ -72,8 +74,9 @@ class Step3Awaiting extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.wizardNotConfirmed,
-                    style: text.bodySmall
-                        ?.copyWith(color: scheme.onErrorContainer),
+                    style: text.bodySmall?.copyWith(
+                      color: scheme.onErrorContainer,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -94,10 +97,7 @@ class Step3Awaiting extends StatelessWidget {
           sessions: sessions,
         ),
         const SizedBox(height: 24),
-        _StatusTimeline(
-          sentAt: hm(booking.createdAt),
-          declined: declined,
-        ),
+        _StatusTimeline(sentAt: hm(booking.createdAt), declined: declined),
       ],
     );
   }
@@ -136,34 +136,49 @@ class _BookingIdCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.wizardBookingId,
-                  style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
-              Text(idLabel,
-                  style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum)),
+              Text(
+                l10n.wizardBookingId,
+                style: text.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                idLabel,
+                style: text.labelLarge?.copyWith(fontFeatures: AppTokens.tnum),
+              ),
             ],
           ),
           Divider(height: 24, color: scheme.outlineVariant),
-          Text(l10n.wizardCourtSlots(courtLabel, slotCount), style: text.titleSmall),
+          Text(
+            l10n.wizardCourtSlots(courtLabel, slotCount),
+            style: text.titleSmall,
+          ),
           const SizedBox(height: 2),
-          Text(dateDurTotal,
-              style: text.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-                fontFeatures: AppTokens.tnum,
-              )),
+          Text(
+            dateDurTotal,
+            style: text.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+              fontFeatures: AppTokens.tnum,
+            ),
+          ),
           const SizedBox(height: 8),
-          ...sessions.map((s) => Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Text(
-                  '• ${timeRange(s.start, s.end)} · ${s.courtLabel}',
-                  style: text.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontFeatures: AppTokens.tnum,
-                  ),
+          ...sessions.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '• ${timeRange(s.start, s.end)} · ${s.courtLabel}',
+                style: text.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontFeatures: AppTokens.tnum,
                 ),
-              )),
+              ),
+            ),
+          ),
           const SizedBox(height: 12),
           StatusBadge(
-              kind: BadgeKind.pending, label: l10n.bookingStatusPendingHost),
+            kind: BadgeKind.pending,
+            label: l10n.bookingStatusPendingHost,
+          ),
         ],
       ),
     );
@@ -227,8 +242,10 @@ class _TimelineItem extends StatelessWidget {
     Widget node() {
       switch (kind) {
         case _NodeKind.done:
-          return _circle(scheme.primary,
-              child: Icon(Icons.check, size: 14, color: scheme.onPrimary));
+          return _circle(
+            scheme.primary,
+            child: Icon(Icons.check, size: 14, color: scheme.onPrimary),
+          );
         case _NodeKind.active:
           return Container(
             decoration: BoxDecoration(
@@ -241,17 +258,23 @@ class _TimelineItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: _circle(scheme.tertiary,
-                child: Container(
-                  width: 6,
-                  height: 6,
-                  decoration:
-                      BoxDecoration(color: scheme.onTertiary, shape: BoxShape.circle),
-                )),
+            child: _circle(
+              scheme.tertiary,
+              child: Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: scheme.onTertiary,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
           );
         case _NodeKind.declined:
-          return _circle(scheme.error,
-              child: Icon(Icons.close, size: 14, color: scheme.onError));
+          return _circle(
+            scheme.error,
+            child: Icon(Icons.close, size: 14, color: scheme.onError),
+          );
         case _NodeKind.upcoming:
           return _circle(scheme.surfaceContainerHighest);
       }
@@ -280,11 +303,13 @@ class _TimelineItem extends StatelessWidget {
                   Text(title, style: text.labelLarge),
                   if (time.isNotEmpty) ...[
                     const SizedBox(height: 2),
-                    Text(time,
-                        style: text.bodySmall?.copyWith(
-                          color: scheme.onSurfaceVariant,
-                          fontFeatures: AppTokens.tnum,
-                        )),
+                    Text(
+                      time,
+                      style: text.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                        fontFeatures: AppTokens.tnum,
+                      ),
+                    ),
                   ],
                 ],
               ),
@@ -296,12 +321,12 @@ class _TimelineItem extends StatelessWidget {
   }
 
   Widget _circle(Color color, {Widget? child}) => Container(
-        width: 24,
-        height: 24,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: child,
-      );
+    width: 24,
+    height: 24,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    child: child,
+  );
 }
 
 /// 140px clock progress ring — tertiary on tertiaryContainer (doc 02 §3.1).
@@ -388,13 +413,13 @@ class _AwaitingRingState extends State<AwaitingRing>
   }
 
   Widget _topDot(ColorScheme scheme) => Align(
-        alignment: Alignment.topCenter,
-        child: Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: scheme.tertiary, shape: BoxShape.circle),
-        ),
-      );
+    alignment: Alignment.topCenter,
+    child: Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(color: scheme.tertiary, shape: BoxShape.circle),
+    ),
+  );
 }
 
 class _ClockPainter extends CustomPainter {

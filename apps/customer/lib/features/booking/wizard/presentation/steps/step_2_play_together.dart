@@ -46,14 +46,18 @@ class Step2PlayTogether extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(l10n.wizardSelectedSlots(count),
-                        style: text.labelLarge
-                            ?.copyWith(color: scheme.onPrimaryContainer)),
+                    Text(
+                      l10n.wizardSelectedSlots(count),
+                      style: text.labelLarge?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
+                    ),
                     const SizedBox(height: 2),
                     Text(
                       l10n.wizardPickPlayers,
-                      style: text.bodySmall
-                          ?.copyWith(color: scheme.onPrimaryContainer),
+                      style: text.bodySmall?.copyWith(
+                        color: scheme.onPrimaryContainer,
+                      ),
                     ),
                   ],
                 ),
@@ -75,16 +79,18 @@ class Step2PlayTogether extends StatelessWidget {
           selected: state.access == AccessPolicy.private,
           title: l10n.wizardPrivate,
           subtitle: l10n.wizardPrivateDesc,
-          onTap: () =>
-              context.read<BookingWizardCubit>().selectAccess(AccessPolicy.private),
+          onTap: () => context.read<BookingWizardCubit>().selectAccess(
+            AccessPolicy.private,
+          ),
         ),
         const SizedBox(height: 12),
         _AccessCard(
           selected: state.access == AccessPolicy.open,
           title: l10n.wizardOpen,
           subtitle: l10n.wizardOpenDesc,
-          onTap: () =>
-              context.read<BookingWizardCubit>().selectAccess(AccessPolicy.open),
+          onTap: () => context.read<BookingWizardCubit>().selectAccess(
+            AccessPolicy.open,
+          ),
           reveal: _MaxPlayersStepper(value: state.maxPlayers),
           revealed: state.access == AccessPolicy.open,
         ),
@@ -147,7 +153,9 @@ class _AccessCard extends StatelessWidget {
                       Text(
                         title,
                         style: text.labelLarge?.copyWith(
-                          color: selected ? scheme.onPrimaryContainer : scheme.onSurface,
+                          color: selected
+                              ? scheme.onPrimaryContainer
+                              : scheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -240,8 +248,10 @@ class _MaxPlayersStepper extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.wizardMaxPlayers,
-              style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant)),
+          Text(
+            l10n.wizardMaxPlayers,
+            style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
