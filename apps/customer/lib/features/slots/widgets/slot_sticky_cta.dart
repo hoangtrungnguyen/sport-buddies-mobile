@@ -3,6 +3,7 @@
 
 import 'package:customer/features/slots/cubit/slot_detail_cubit.dart';
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -60,9 +61,12 @@ class StickyCtaBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(mdCornerFull),
                   ),
                 ),
-                child: const Text(
-                  'Quản lý người chơi',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                child: Text(
+                  AppLocalizations.of(context).slotsManageTitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ] else
@@ -96,35 +100,36 @@ class _JoinCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     // A request already sent / resolved takes priority over fullness.
     switch (joinStatus) {
       case SlotJoinStatus.pending:
-        return const _CtaPill(
-          label: 'Đã gửi yêu cầu · Chờ duyệt',
-          bg: Color(0xFFFEF3C7),
-          fg: Color(0xFF92670B),
+        return _CtaPill(
+          label: l10n.slotsRequestSentPending,
+          bg: const Color(0xFFFEF3C7),
+          fg: const Color(0xFF92670B),
         );
       case SlotJoinStatus.approved:
-        return const _CtaPill(
-          label: '✓ Đã tham gia',
+        return _CtaPill(
+          label: '✓ ${l10n.slotsJoined}',
           bg: mdPrimaryContainer,
           fg: mdOnPrimaryContainer,
         );
       case SlotJoinStatus.rejected:
-        return const _CtaPill(
-          label: 'Yêu cầu bị từ chối',
-          bg: Color(0x1F181D17),
-          fg: Color(0x61181D17),
+        return _CtaPill(
+          label: l10n.slotsRequestRejected,
+          bg: const Color(0x1F181D17),
+          fg: const Color(0x61181D17),
         );
       case SlotJoinStatus.none:
         break;
     }
 
     if (isFull) {
-      return const _CtaPill(
-        label: 'Đã đủ người',
-        bg: Color(0x1F181D17),
-        fg: Color(0x61181D17),
+      return _CtaPill(
+        label: l10n.slotsFull,
+        bg: const Color(0x1F181D17),
+        fg: const Color(0x61181D17),
       );
     }
 
@@ -147,9 +152,9 @@ class _JoinCta extends StatelessWidget {
                 color: Colors.white,
               ),
             )
-          : const Text(
-              'Đăng ký chơi cùng',
-              style: TextStyle(
+          : Text(
+              l10n.slotsRegisterToJoin,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,

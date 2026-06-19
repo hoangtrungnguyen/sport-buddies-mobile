@@ -997,5 +997,94 @@
         "type": "int"
       }
     }
-  }
+  },
+  "slotsManageTitle": "Manage players",
+  "@slotsManageTitle": {},
+  "slotDetailTitle": "Slot details",
+  "@slotDetailTitle": {},
+  "slotsPlayers": "Players",
+  "@slotsPlayers": {},
+  "slotsHostRole": "Host",
+  "@slotsHostRole": {},
+  "slotsPlayersFraction": "{filled}/{max} players",
+  "@slotsPlayersFraction": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsJoinRequestsTitle": "Join requests",
+  "@slotsJoinRequestsTitle": {},
+  "slotsAllRequestsHandled": "All requests handled",
+  "@slotsAllRequestsHandled": {},
+  "slotsSlotFullRemoveOne": "Slot is full ({max}). Remove someone to accept more.",
+  "@slotsSlotFullRemoveOne": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsReject": "Decline",
+  "@slotsReject": {},
+  "slotsAccept": "Accept",
+  "@slotsAccept": {},
+  "slotsGamesPlayed": "{count} matches",
+  "@slotsGamesPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsSeeListBelow": "See list below",
+  "@slotsSeeListBelow": {},
+  "slotsViewMap": "View map",
+  "@slotsViewMap": {},
+  "slotsHostMessageTitle": "MESSAGE FROM HOST",
+  "@slotsHostMessageTitle": {},
+  "slotsTimeSection": "TIME",
+  "@slotsTimeSection": {},
+  "slotsHoursLabel": "{hours} h",
+  "@slotsHoursLabel": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "slotsFullTryOther": "This slot is full. Try another slot at the same time near you.",
+  "@slotsFullTryOther": {},
+  "slotsSpotsLeftLevel": "{count} spots left · Intermediate level",
+  "@slotsSpotsLeftLevel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsEmptySpot": "Open spot",
+  "@slotsEmptySpot": {},
+  "slotsPlayerN": "Player {n}",
+  "@slotsPlayerN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsRegisterToJoin": "Join this match",
+  "@slotsRegisterToJoin": {},
+  "slotsRequestSentPending": "Request sent · Pending",
+  "@slotsRequestSentPending": {},
+  "slotsJoined": "Joined",
+  "@slotsJoined": {},
+  "slotsRequestRejected": "Request declined",
+  "@slotsRequestRejected": {},
+  "sportBasketball": "Basketball",
+  "@sportBasketball": {}
 }

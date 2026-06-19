@@ -4,6 +4,7 @@
 import 'package:customer/features/slots/cubit/participant_management_cubit.dart';
 import 'package:customer/features/slots/cubit/participant_management_state.dart';
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -19,6 +20,7 @@ class ConfirmedPlayersCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final filled = confirmed.length;
 
     return Material(
@@ -36,7 +38,7 @@ class ConfirmedPlayersCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Người chơi · $filled/$maxPlayers',
+                    '${l10n.slotsPlayers} · $filled/$maxPlayers',
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -83,7 +85,7 @@ class ConfirmedPlayersCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '$filled/$maxPlayers người',
+              l10n.slotsPlayersFraction(filled, maxPlayers),
               style: const TextStyle(fontSize: 11, color: mdOnSurfaceVariant),
             ),
             Divider(height: 20, color: mdOutlineVariant.withAlpha(128)),
@@ -160,9 +162,9 @@ class _ParticipantRow extends StatelessWidget {
                           borderRadius: BorderRadius.circular(mdCornerFull),
                         ),
                         alignment: Alignment.center,
-                        child: const Text(
-                          'Chủ slot',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context).slotsHostRole,
+                          style: const TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w700,
                             color: mdOnPrimaryContainer,

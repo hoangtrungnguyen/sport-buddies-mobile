@@ -8,6 +8,7 @@ import 'package:customer/features/slots/widgets/slot_time_card.dart';
 import 'package:customer/features/slots/widgets/slot_players_card.dart';
 import 'package:customer/features/slots/widgets/slot_host_message_card.dart';
 import 'package:customer/features/slots/widgets/slot_sticky_cta.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,9 +54,9 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
             onPressed: () => context.pop(),
           ),
           centerTitle: true,
-          title: const Text(
-            'Chi tiết slot',
-            style: TextStyle(
+          title: Text(
+            AppLocalizations.of(context).slotDetailTitle,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: mdOnSurface,

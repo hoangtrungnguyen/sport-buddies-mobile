@@ -1150,4 +1150,92 @@ class AppLocalizationsVi extends AppLocalizations {
   String notifTimeDaysAgo(int count) {
     return '$count ngày trước';
   }
+
+  @override
+  String get slotsManageTitle => 'Quản lý người chơi';
+
+  @override
+  String get slotDetailTitle => 'Chi tiết slot';
+
+  @override
+  String get slotsPlayers => 'Người chơi';
+
+  @override
+  String get slotsHostRole => 'Chủ slot';
+
+  @override
+  String slotsPlayersFraction(int filled, int max) {
+    return '$filled/$max người';
+  }
+
+  @override
+  String get slotsJoinRequestsTitle => 'Yêu cầu tham gia';
+
+  @override
+  String get slotsAllRequestsHandled => 'Đã xử lý hết yêu cầu';
+
+  @override
+  String slotsSlotFullRemoveOne(int max) {
+    return 'Slot đã đủ $max người. Gỡ một người để chấp nhận thêm.';
+  }
+
+  @override
+  String get slotsReject => 'Từ chối';
+
+  @override
+  String get slotsAccept => 'Chấp nhận';
+
+  @override
+  String slotsGamesPlayed(int count) {
+    return '$count trận';
+  }
+
+  @override
+  String get slotsSeeListBelow => 'Xem danh sách bên dưới';
+
+  @override
+  String get slotsViewMap => 'Xem bản đồ';
+
+  @override
+  String get slotsHostMessageTitle => 'LỜI NHẮN TỪ CHỦ SLOT';
+
+  @override
+  String get slotsTimeSection => 'THỜI GIAN';
+
+  @override
+  String slotsHoursLabel(String hours) {
+    return '$hours giờ';
+  }
+
+  @override
+  String get slotsFullTryOther =>
+      'Slot đã đầy. Hãy thử slot khác cùng giờ ở khu vực của bạn.';
+
+  @override
+  String slotsSpotsLeftLevel(int count) {
+    return 'Còn $count chỗ trống · Cấp độ trung bình';
+  }
+
+  @override
+  String get slotsEmptySpot => 'Chỗ trống';
+
+  @override
+  String slotsPlayerN(int n) {
+    return 'Người chơi $n';
+  }
+
+  @override
+  String get slotsRegisterToJoin => 'Đăng ký chơi cùng';
+
+  @override
+  String get slotsRequestSentPending => 'Đã gửi yêu cầu · Chờ duyệt';
+
+  @override
+  String get slotsJoined => 'Đã tham gia';
+
+  @override
+  String get slotsRequestRejected => 'Yêu cầu bị từ chối';
+
+  @override
+  String get sportBasketball => 'Bóng rổ';
 }

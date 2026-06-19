@@ -2,6 +2,7 @@
 // empty slot rows. Extracted from slot_detail_screen.dart.
 
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class PlayersCard extends StatelessWidget {
@@ -20,6 +21,7 @@ class PlayersCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Material(
       color: const Color(0xFFFFFFFF),
       borderRadius: BorderRadius.circular(mdCornerMd),
@@ -33,9 +35,9 @@ class PlayersCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Người chơi',
-                  style: TextStyle(
+                Text(
+                  l10n.slotsPlayers,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: mdOnSurface,
@@ -68,8 +70,8 @@ class PlayersCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               isFull
-                  ? 'Slot đã đầy. Hãy thử slot khác cùng giờ ở khu vực của bạn.'
-                  : 'Còn $empties chỗ trống · Cấp độ trung bình',
+                  ? l10n.slotsFullTryOther
+                  : l10n.slotsSpotsLeftLevel(empties),
               style: const TextStyle(fontSize: 13, color: mdOnSurfaceVariant),
             ),
             Divider(height: 28, color: mdOutlineVariant.withAlpha(128)),
@@ -118,7 +120,11 @@ class _FullnessBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            isFull ? 'Đã đủ người' : '$joined/$max người',
+            isFull
+                ? AppLocalizations.of(context).slotsFull
+                : AppLocalizations.of(
+                    context,
+                  ).slotsPlayersFraction(joined, max),
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -171,7 +177,7 @@ class _PlayerRow extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Người chơi ${index + 1}',
+                      AppLocalizations.of(context).slotsPlayerN(index + 1),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -187,10 +193,10 @@ class _PlayerRow extends StatelessWidget {
                           color: mdPrimaryContainer,
                           borderRadius: BorderRadius.circular(mdCornerFull),
                         ),
-                        child: const Center(
+                        child: Center(
                           child: Text(
-                            'Chủ slot',
-                            style: TextStyle(
+                            AppLocalizations.of(context).slotsHostRole,
+                            style: const TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
                               color: mdOnPrimaryContainer,
@@ -243,9 +249,9 @@ class _EmptySlotRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'Chỗ trống',
-            style: TextStyle(fontSize: 14, color: mdOnSurfaceVariant),
+          Text(
+            AppLocalizations.of(context).slotsEmptySpot,
+            style: const TextStyle(fontSize: 14, color: mdOnSurfaceVariant),
           ),
         ],
       ),

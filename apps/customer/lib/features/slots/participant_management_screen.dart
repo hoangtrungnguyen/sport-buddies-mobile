@@ -9,6 +9,7 @@ import 'package:customer/features/slots/widgets/participant_slot_summary_card.da
 import 'package:customer/features/slots/widgets/confirmed_players_card.dart';
 import 'package:customer/features/slots/widgets/participant_join_requests_card.dart';
 import 'package:customer/features/slots/widgets/participant_toast.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -31,9 +32,9 @@ class ParticipantManagementScreen extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         centerTitle: true,
-        title: const Text(
-          'Quản lý người chơi',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).slotsManageTitle,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: mdOnSurface,

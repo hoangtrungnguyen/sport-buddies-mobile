@@ -2,6 +2,7 @@
 // Extracted from slot_detail_screen.dart.
 
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class HostMessageCard extends StatelessWidget {
@@ -15,20 +16,20 @@ class HostMessageCard extends StatelessWidget {
         color: mdSurfaceContainerLow,
         borderRadius: BorderRadius.circular(mdCornerMd),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'LỜI NHẮN TỪ CHỦ SLOT',
-            style: TextStyle(
+            AppLocalizations.of(context).slotsHostMessageTitle,
+            style: const TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               color: mdOnSurfaceVariant,
               letterSpacing: 1,
             ),
           ),
-          SizedBox(height: 10),
-          Text(
+          const SizedBox(height: 10),
+          const Text(
             '"Mình tìm bạn chơi ghép. Mang vợt + giày sạch nhé. Cảm ơn 🏓"',
             style: TextStyle(
               fontSize: 14,

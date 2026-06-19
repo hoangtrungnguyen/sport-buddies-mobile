@@ -2149,6 +2149,156 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'{count} ngày trước'**
   String notifTimeDaysAgo(int count);
+
+  /// No description provided for @slotsManageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản lý người chơi'**
+  String get slotsManageTitle;
+
+  /// No description provided for @slotDetailTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chi tiết slot'**
+  String get slotDetailTitle;
+
+  /// No description provided for @slotsPlayers.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người chơi'**
+  String get slotsPlayers;
+
+  /// No description provided for @slotsHostRole.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chủ slot'**
+  String get slotsHostRole;
+
+  /// No description provided for @slotsPlayersFraction.
+  ///
+  /// In vi, this message translates to:
+  /// **'{filled}/{max} người'**
+  String slotsPlayersFraction(int filled, int max);
+
+  /// No description provided for @slotsJoinRequestsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu tham gia'**
+  String get slotsJoinRequestsTitle;
+
+  /// No description provided for @slotsAllRequestsHandled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xử lý hết yêu cầu'**
+  String get slotsAllRequestsHandled;
+
+  /// No description provided for @slotsSlotFullRemoveOne.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot đã đủ {max} người. Gỡ một người để chấp nhận thêm.'**
+  String slotsSlotFullRemoveOne(int max);
+
+  /// No description provided for @slotsReject.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối'**
+  String get slotsReject;
+
+  /// No description provided for @slotsAccept.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chấp nhận'**
+  String get slotsAccept;
+
+  /// No description provided for @slotsGamesPlayed.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} trận'**
+  String slotsGamesPlayed(int count);
+
+  /// No description provided for @slotsSeeListBelow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem danh sách bên dưới'**
+  String get slotsSeeListBelow;
+
+  /// No description provided for @slotsViewMap.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem bản đồ'**
+  String get slotsViewMap;
+
+  /// No description provided for @slotsHostMessageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'LỜI NHẮN TỪ CHỦ SLOT'**
+  String get slotsHostMessageTitle;
+
+  /// No description provided for @slotsTimeSection.
+  ///
+  /// In vi, this message translates to:
+  /// **'THỜI GIAN'**
+  String get slotsTimeSection;
+
+  /// No description provided for @slotsHoursLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'{hours} giờ'**
+  String slotsHoursLabel(String hours);
+
+  /// No description provided for @slotsFullTryOther.
+  ///
+  /// In vi, this message translates to:
+  /// **'Slot đã đầy. Hãy thử slot khác cùng giờ ở khu vực của bạn.'**
+  String get slotsFullTryOther;
+
+  /// No description provided for @slotsSpotsLeftLevel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Còn {count} chỗ trống · Cấp độ trung bình'**
+  String slotsSpotsLeftLevel(int count);
+
+  /// No description provided for @slotsEmptySpot.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỗ trống'**
+  String get slotsEmptySpot;
+
+  /// No description provided for @slotsPlayerN.
+  ///
+  /// In vi, this message translates to:
+  /// **'Người chơi {n}'**
+  String slotsPlayerN(int n);
+
+  /// No description provided for @slotsRegisterToJoin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng ký chơi cùng'**
+  String get slotsRegisterToJoin;
+
+  /// No description provided for @slotsRequestSentPending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi yêu cầu · Chờ duyệt'**
+  String get slotsRequestSentPending;
+
+  /// No description provided for @slotsJoined.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã tham gia'**
+  String get slotsJoined;
+
+  /// No description provided for @slotsRequestRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yêu cầu bị từ chối'**
+  String get slotsRequestRejected;
+
+  /// No description provided for @sportBasketball.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bóng rổ'**
+  String get sportBasketball;
 }
 
 class _AppLocalizationsDelegate

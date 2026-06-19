@@ -997,5 +997,94 @@
         "type": "int"
       }
     }
-  }
+  },
+  "slotsManageTitle": "Quản lý người chơi",
+  "@slotsManageTitle": {},
+  "slotDetailTitle": "Chi tiết slot",
+  "@slotDetailTitle": {},
+  "slotsPlayers": "Người chơi",
+  "@slotsPlayers": {},
+  "slotsHostRole": "Chủ slot",
+  "@slotsHostRole": {},
+  "slotsPlayersFraction": "{filled}/{max} người",
+  "@slotsPlayersFraction": {
+    "placeholders": {
+      "filled": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsJoinRequestsTitle": "Yêu cầu tham gia",
+  "@slotsJoinRequestsTitle": {},
+  "slotsAllRequestsHandled": "Đã xử lý hết yêu cầu",
+  "@slotsAllRequestsHandled": {},
+  "slotsSlotFullRemoveOne": "Slot đã đủ {max} người. Gỡ một người để chấp nhận thêm.",
+  "@slotsSlotFullRemoveOne": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsReject": "Từ chối",
+  "@slotsReject": {},
+  "slotsAccept": "Chấp nhận",
+  "@slotsAccept": {},
+  "slotsGamesPlayed": "{count} trận",
+  "@slotsGamesPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsSeeListBelow": "Xem danh sách bên dưới",
+  "@slotsSeeListBelow": {},
+  "slotsViewMap": "Xem bản đồ",
+  "@slotsViewMap": {},
+  "slotsHostMessageTitle": "LỜI NHẮN TỪ CHỦ SLOT",
+  "@slotsHostMessageTitle": {},
+  "slotsTimeSection": "THỜI GIAN",
+  "@slotsTimeSection": {},
+  "slotsHoursLabel": "{hours} giờ",
+  "@slotsHoursLabel": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "slotsFullTryOther": "Slot đã đầy. Hãy thử slot khác cùng giờ ở khu vực của bạn.",
+  "@slotsFullTryOther": {},
+  "slotsSpotsLeftLevel": "Còn {count} chỗ trống · Cấp độ trung bình",
+  "@slotsSpotsLeftLevel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsEmptySpot": "Chỗ trống",
+  "@slotsEmptySpot": {},
+  "slotsPlayerN": "Người chơi {n}",
+  "@slotsPlayerN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "slotsRegisterToJoin": "Đăng ký chơi cùng",
+  "@slotsRegisterToJoin": {},
+  "slotsRequestSentPending": "Đã gửi yêu cầu · Chờ duyệt",
+  "@slotsRequestSentPending": {},
+  "slotsJoined": "Đã tham gia",
+  "@slotsJoined": {},
+  "slotsRequestRejected": "Yêu cầu bị từ chối",
+  "@slotsRequestRejected": {},
+  "sportBasketball": "Bóng rổ",
+  "@sportBasketball": {}
 }

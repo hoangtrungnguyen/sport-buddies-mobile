@@ -1147,4 +1147,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifTimeDaysAgo(int count) {
     return '$count days ago';
   }
+
+  @override
+  String get slotsManageTitle => 'Manage players';
+
+  @override
+  String get slotDetailTitle => 'Slot details';
+
+  @override
+  String get slotsPlayers => 'Players';
+
+  @override
+  String get slotsHostRole => 'Host';
+
+  @override
+  String slotsPlayersFraction(int filled, int max) {
+    return '$filled/$max players';
+  }
+
+  @override
+  String get slotsJoinRequestsTitle => 'Join requests';
+
+  @override
+  String get slotsAllRequestsHandled => 'All requests handled';
+
+  @override
+  String slotsSlotFullRemoveOne(int max) {
+    return 'Slot is full ($max). Remove someone to accept more.';
+  }
+
+  @override
+  String get slotsReject => 'Decline';
+
+  @override
+  String get slotsAccept => 'Accept';
+
+  @override
+  String slotsGamesPlayed(int count) {
+    return '$count matches';
+  }
+
+  @override
+  String get slotsSeeListBelow => 'See list below';
+
+  @override
+  String get slotsViewMap => 'View map';
+
+  @override
+  String get slotsHostMessageTitle => 'MESSAGE FROM HOST';
+
+  @override
+  String get slotsTimeSection => 'TIME';
+
+  @override
+  String slotsHoursLabel(String hours) {
+    return '$hours h';
+  }
+
+  @override
+  String get slotsFullTryOther =>
+      'This slot is full. Try another slot at the same time near you.';
+
+  @override
+  String slotsSpotsLeftLevel(int count) {
+    return '$count spots left · Intermediate level';
+  }
+
+  @override
+  String get slotsEmptySpot => 'Open spot';
+
+  @override
+  String slotsPlayerN(int n) {
+    return 'Player $n';
+  }
+
+  @override
+  String get slotsRegisterToJoin => 'Join this match';
+
+  @override
+  String get slotsRequestSentPending => 'Request sent · Pending';
+
+  @override
+  String get slotsJoined => 'Joined';
+
+  @override
+  String get slotsRequestRejected => 'Request declined';
+
+  @override
+  String get sportBasketball => 'Basketball';
 }

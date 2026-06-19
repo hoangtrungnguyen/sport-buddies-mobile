@@ -3,6 +3,7 @@
 
 import 'package:customer/features/slots/cubit/participant_management_state.dart';
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,6 +14,7 @@ class SlotSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final timeFmt = DateFormat('HH:mm');
     final dateFmt = DateFormat('EEE, dd/MM', 'vi');
 
@@ -37,9 +39,9 @@ class SlotSummaryCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(mdCornerFull),
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
-                    '🌐 Mở chơi ghép',
-                    style: TextStyle(
+                  child: Text(
+                    '🌐 ${l10n.slotsOpenMatch}',
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: mdOnPrimaryContainer,
@@ -87,13 +89,20 @@ class SlotSummaryCard extends StatelessWidget {
             // Fullness row — rendered by parent since we need maxPlayers from
             // the loaded state. We pass slot only here, so the fullness meter
             // is shown in the players card instead.
-            const Row(
+            Row(
               children: [
-                Icon(Icons.group_outlined, size: 16, color: mdOnSurfaceVariant),
-                SizedBox(width: 6),
+                const Icon(
+                  Icons.group_outlined,
+                  size: 16,
+                  color: mdOnSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
                 Text(
-                  'Xem danh sách bên dưới',
-                  style: TextStyle(fontSize: 12, color: mdOnSurfaceVariant),
+                  l10n.slotsSeeListBelow,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: mdOnSurfaceVariant,
+                  ),
                 ),
               ],
             ),

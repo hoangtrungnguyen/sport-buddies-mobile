@@ -12,27 +12,24 @@
 //   - Full slot indicator (red player count when full)
 //   - Optional tap callback
 
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
 
 class SlotRow extends StatelessWidget {
-  const SlotRow({
-    super.key,
-    required this.slot,
-    this.onTap,
-  });
+  const SlotRow({super.key, required this.slot, this.onTap});
 
   final Slot slot;
   final VoidCallback? onTap;
 
-  /// Returns the Vietnamese label for a given sport type.
-  static String _sportTypeLabel(String sportType) {
+  /// Returns the localized label for a given sport type.
+  static String _sportTypeLabel(AppLocalizations l10n, String sportType) {
     return switch (sportType) {
-      'badminton' => 'Cầu lông',
-      'football' => 'Bóng đá',
-      'tennis' => 'Quần vợt',
-      'basketball' => 'Bóng rổ',
+      'badminton' => l10n.sportBadminton,
+      'football' => l10n.sportFootball,
+      'tennis' => l10n.sportTennis,
+      'basketball' => l10n.sportBasketball,
       _ => sportType,
     };
   }
@@ -62,16 +59,14 @@ class SlotRow extends StatelessWidget {
                   children: [
                     Text(
                       slot.courtName,
-                      style: textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(dateStr, style: textTheme.bodyMedium),
                     const SizedBox(height: 2),
-                    Text(
-                      '$startStr – $endStr',
-                      style: textTheme.bodySmall,
-                    ),
+                    Text('$startStr – $endStr', style: textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -88,9 +83,7 @@ class SlotRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Icon(
-                    slot.accessPolicy == 'open'
-                        ? Icons.lock_open
-                        : Icons.lock,
+                    slot.accessPolicy == 'open' ? Icons.lock_open : Icons.lock,
                     size: 16,
                     color: Colors.grey,
                   ),
@@ -111,7 +104,10 @@ class _SportTypeBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = SlotRow._sportTypeLabel(sportType);
+    final label = SlotRow._sportTypeLabel(
+      AppLocalizations.of(context),
+      sportType,
+    );
 
     return Chip(
       label: Text(
@@ -140,11 +136,7 @@ class _PlayerCountIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       '$current/$max',
-      style: TextStyle(
-        color: color,
-        fontWeight: FontWeight.w500,
-        fontSize: 14,
-      ),
+      style: TextStyle(color: color, fontWeight: FontWeight.w500, fontSize: 14),
     );
   }
 }

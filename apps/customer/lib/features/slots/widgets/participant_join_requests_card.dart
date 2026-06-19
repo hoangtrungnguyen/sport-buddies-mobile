@@ -4,6 +4,7 @@
 import 'package:customer/features/slots/cubit/participant_management_cubit.dart';
 import 'package:customer/features/slots/cubit/participant_management_state.dart';
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -21,6 +22,7 @@ class JoinRequestsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isFull = confirmed.length >= maxPlayers;
 
     return Material(
@@ -36,9 +38,9 @@ class JoinRequestsCard extends StatelessWidget {
             // Header
             Row(
               children: [
-                const Text(
-                  'Yêu cầu tham gia',
-                  style: TextStyle(
+                Text(
+                  l10n.slotsJoinRequestsTitle,
+                  style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: mdOnSurface,
@@ -85,7 +87,7 @@ class JoinRequestsCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Slot đã đủ $maxPlayers người. Gỡ một người để chấp nhận thêm.',
+                        l10n.slotsSlotFullRemoveOne(maxPlayers),
                         style: const TextStyle(
                           fontSize: 12,
                           color: mdWarningText,
@@ -99,9 +101,9 @@ class JoinRequestsCard extends StatelessWidget {
             const SizedBox(height: 12),
             // Empty state
             if (pending.isEmpty)
-              const Column(
+              Column(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 20,
                     backgroundColor: mdPrimaryContainer,
                     child: Icon(
@@ -110,10 +112,13 @@ class JoinRequestsCard extends StatelessWidget {
                       color: mdOnPrimaryContainer,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
-                    'Đã xử lý hết yêu cầu',
-                    style: TextStyle(fontSize: 13, color: mdOnSurfaceVariant),
+                    l10n.slotsAllRequestsHandled,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: mdOnSurfaceVariant,
+                    ),
                   ),
                 ],
               )
@@ -137,6 +142,7 @@ class _JoinRequestRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<ParticipantManagementCubit>();
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -179,7 +185,9 @@ class _JoinRequestRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '⭐ ${request.rating} · ${request.gamesPlayed} trận · ${request.timeAgo}',
+                      '⭐ ${request.rating} · '
+                      '${l10n.slotsGamesPlayed(request.gamesPlayed)} · '
+                      '${request.timeAgo}',
                       style: const TextStyle(
                         fontSize: 12,
                         color: mdOnSurfaceVariant,
@@ -216,9 +224,12 @@ class _JoinRequestRow extends StatelessWidget {
                       borderRadius: BorderRadius.circular(mdCornerSm),
                     ),
                   ),
-                  child: const Text(
-                    'Từ chối',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  child: Text(
+                    l10n.slotsReject,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
@@ -237,9 +248,12 @@ class _JoinRequestRow extends StatelessWidget {
                   icon: isFull
                       ? const Icon(Icons.lock_outline, size: 14)
                       : const SizedBox.shrink(),
-                  label: const Text(
-                    'Chấp nhận',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  label: Text(
+                    l10n.slotsAccept,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

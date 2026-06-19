@@ -2,6 +2,7 @@
 // assist chips. Extracted from slot_detail_screen.dart.
 
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:spb_core/spb_core.dart';
 
@@ -20,6 +21,7 @@ class HeroSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Container(
       color: mdSurfaceContainerLow,
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 24),
@@ -54,9 +56,12 @@ class HeroSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Xem bản đồ',
-                  style: TextStyle(fontSize: 13, color: mdOnSurfaceVariant),
+                Text(
+                  l10n.slotsViewMap,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: mdOnSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -64,7 +69,7 @@ class HeroSection extends StatelessWidget {
                   runSpacing: 6,
                   children: [
                     if (slot.accessPolicy == 'open')
-                      const _AssistChip(label: '🌐 Mở chơi ghép'),
+                      _AssistChip(label: '🌐 ${l10n.slotsOpenMatch}'),
                     _AssistChip(label: slot.sportType),
                   ],
                 ),

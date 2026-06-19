@@ -2,6 +2,7 @@
 // Extracted from slot_detail_screen.dart.
 
 import 'package:customer/features/slots/slots_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
@@ -13,12 +14,13 @@ class TimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final timeFmt = DateFormat('HH:mm');
     final dateFmt = DateFormat('EEE, dd/MM', 'vi');
     final durationH = slot.endTime.difference(slot.startTime).inMinutes / 60;
     final durLabel = durationH == durationH.roundToDouble()
-        ? '${durationH.toInt()} giờ'
-        : '${durationH.toStringAsFixed(1)} giờ';
+        ? l10n.slotsHoursLabel('${durationH.toInt()}')
+        : l10n.slotsHoursLabel(durationH.toStringAsFixed(1));
 
     return Material(
       color: const Color(0xFFFFFFFF),
@@ -34,9 +36,9 @@ class TimeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'THỜI GIAN',
-                    style: TextStyle(
+                  Text(
+                    l10n.slotsTimeSection,
+                    style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: mdOnSurfaceVariant,
