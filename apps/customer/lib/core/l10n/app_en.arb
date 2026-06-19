@@ -1098,5 +1098,24 @@
     }
   },
   "browseJoin": "Join",
-  "@browseJoin": {}
+  "@browseJoin": {},
+  "bookingTileSession": "Session {n} / {total}",
+  "@bookingTileSession": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "bookingStatusCompleted": "Completed",
+  "@bookingStatusCompleted": {},
+  "bookingTypeRecurring": "Recurring",
+  "@bookingTypeRecurring": {},
+  "bookingTypeOneTime": "One-time",
+  "@bookingTypeOneTime": {},
+  "bookingCancelConfirmTitle": "Cancel this booking?",
+  "@bookingCancelConfirmTitle": {}
 }

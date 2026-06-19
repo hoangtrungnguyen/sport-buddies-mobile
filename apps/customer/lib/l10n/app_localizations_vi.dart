@@ -1249,4 +1249,21 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get browseJoin => 'Tham gia';
+
+  @override
+  String bookingTileSession(int n, int total) {
+    return 'Buổi $n / $total';
+  }
+
+  @override
+  String get bookingStatusCompleted => 'Hoàn thành';
+
+  @override
+  String get bookingTypeRecurring => 'Định kỳ';
+
+  @override
+  String get bookingTypeOneTime => 'Một lần';
+
+  @override
+  String get bookingCancelConfirmTitle => 'Huỷ đặt sân này?';
 }

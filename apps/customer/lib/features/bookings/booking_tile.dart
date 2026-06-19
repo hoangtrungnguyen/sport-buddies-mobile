@@ -12,6 +12,7 @@
 //   - Cancel button — only rendered when booking.status == 'pending'
 //     AND an [onCancel] callback is provided.
 
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -63,7 +64,10 @@ class BookingTile extends StatelessWidget {
                       booking.totalSessions != null) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Buổi ${booking.sessionNumber} / ${booking.totalSessions}',
+                      AppLocalizations.of(context).bookingTileSession(
+                        booking.sessionNumber!,
+                        booking.totalSessions!,
+                      ),
                       style: textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
                         fontStyle: FontStyle.italic,
@@ -121,13 +125,13 @@ class _StatusBadge extends StatelessWidget {
     };
   }
 
-  /// Returns the localised Vietnamese label for the given booking status.
-  String _badgeLabel() {
+  /// Returns the localized label for the given booking status.
+  String _badgeLabel(AppLocalizations l10n) {
     return switch (status) {
-      'pending' => 'Chờ xác nhận',
-      'confirmed' => 'Đã xác nhận',
-      'completed' => 'Hoàn thành',
-      'cancelled' => 'Đã huỷ',
+      'pending' => l10n.bookingStatusPendingHost,
+      'confirmed' => l10n.bookingStatusConfirmed,
+      'completed' => l10n.bookingStatusCompleted,
+      'cancelled' => l10n.bookingStatusCancelled,
       _ => status,
     };
   }
@@ -136,7 +140,7 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       label: Text(
-        _badgeLabel(),
+        _badgeLabel(AppLocalizations.of(context)),
         style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       backgroundColor: _badgeColor(),
@@ -151,10 +155,10 @@ class _TypeBadge extends StatelessWidget {
 
   final String bookingType;
 
-  String _label() {
+  String _label(AppLocalizations l10n) {
     return switch (bookingType) {
-      'recurring' => 'Định kỳ',
-      _ => 'Một lần',
+      'recurring' => l10n.bookingTypeRecurring,
+      _ => l10n.bookingTypeOneTime,
     };
   }
 
@@ -162,7 +166,7 @@ class _TypeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       label: Text(
-        _label(),
+        _label(AppLocalizations.of(context)),
         style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       backgroundColor: Colors.blueAccent,

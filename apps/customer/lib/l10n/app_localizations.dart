@@ -2317,6 +2317,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tham gia'**
   String get browseJoin;
+
+  /// No description provided for @bookingTileSession.
+  ///
+  /// In vi, this message translates to:
+  /// **'Buổi {n} / {total}'**
+  String bookingTileSession(int n, int total);
+
+  /// No description provided for @bookingStatusCompleted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hoàn thành'**
+  String get bookingStatusCompleted;
+
+  /// No description provided for @bookingTypeRecurring.
+  ///
+  /// In vi, this message translates to:
+  /// **'Định kỳ'**
+  String get bookingTypeRecurring;
+
+  /// No description provided for @bookingTypeOneTime.
+  ///
+  /// In vi, this message translates to:
+  /// **'Một lần'**
+  String get bookingTypeOneTime;
+
+  /// No description provided for @bookingCancelConfirmTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Huỷ đặt sân này?'**
+  String get bookingCancelConfirmTitle;
 }
 
 class _AppLocalizationsDelegate

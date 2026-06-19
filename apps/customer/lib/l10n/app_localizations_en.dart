@@ -1246,4 +1246,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get browseJoin => 'Join';
+
+  @override
+  String bookingTileSession(int n, int total) {
+    return 'Session $n / $total';
+  }
+
+  @override
+  String get bookingStatusCompleted => 'Completed';
+
+  @override
+  String get bookingTypeRecurring => 'Recurring';
+
+  @override
+  String get bookingTypeOneTime => 'One-time';
+
+  @override
+  String get bookingCancelConfirmTitle => 'Cancel this booking?';
 }

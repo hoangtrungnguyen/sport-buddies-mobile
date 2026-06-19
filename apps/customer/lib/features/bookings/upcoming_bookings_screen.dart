@@ -13,6 +13,7 @@
 //   Tapping it opens a confirmation dialog ('Huỷ đặt sân này?').
 //   On confirm, BookingsCubit.cancelBooking(id) is called.
 
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -112,18 +113,22 @@ class _CancellableBookingTile extends StatelessWidget {
   }
 
   Future<void> _confirmCancel(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Huỷ đặt sân này?'),
+        title: Text(l10n.bookingCancelConfirmTitle),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Không'),
+            child: Text(l10n.commonNo),
           ),
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Xác nhận', style: TextStyle(color: Colors.red)),
+            child: Text(
+              l10n.commonConfirm,
+              style: const TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
