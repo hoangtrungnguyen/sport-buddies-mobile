@@ -1,12 +1,10 @@
-import 'dart:math';
-
 import 'package:customer/core/debug/app_logger.dart';
 import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Multi-court venue schedule. Fetches from the REST API when a sports center
-/// ID is provided; falls back to mock data otherwise.
+/// Multi-court venue schedule. Fetches from the REST API for the given sports
+/// center; emits a failure state when no center is provided or the load fails.
 class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
   CourtScheduleOverviewCubit({
     String? sportsCenterId,
@@ -16,9 +14,12 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     if (sportsCenterId != null && apiClient != null) {
       _loadFromApi(sportsCenterId);
     } else {
-      _seed();
+      emit(const CourtScheduleOverviewState.failure(_emptyMessage));
     }
   }
+
+  static const _emptyMessage = 'Không có lịch sân cho địa điểm này.';
+  static const _errorMessage = 'Không tải được lịch sân. Vui lòng thử lại.';
 
   final BookingApiClient? _api;
 
@@ -29,8 +30,7 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     } catch (e, st) {
       appLogger.e('CourtScheduleOverviewCubit._loadFromApi failed',
           error: e, stackTrace: st);
-      // Fallback to seed data on error
-      _seed();
+      emit(CourtScheduleOverviewState.failure(_errorMessage, stackTrace: st));
     }
   }
 
@@ -43,7 +43,7 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
           .toList();
 
       if (dates.isEmpty) {
-        _seed();
+        emit(const CourtScheduleOverviewState.failure(_emptyMessage));
         return;
       }
 
@@ -105,7 +105,7 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     } catch (e, st) {
       appLogger.e('CourtScheduleOverviewCubit._parseAndEmit failed',
           error: e, stackTrace: st);
-      _seed();
+      emit(CourtScheduleOverviewState.failure(_errorMessage, stackTrace: st));
     }
   }
 
@@ -115,32 +115,6 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
         'closed' => SlotStatus.closed,
         _ => SlotStatus.closed,
       };
-
-  void _seed() {
-    final today = DateTime.now();
-    final dates = List<DateTime>.generate(
-      14,
-      (i) => DateTime(today.year, today.month, today.day + i),
-    );
-    emit(CourtScheduleOverviewState.loaded(
-      selectedDateIndex: 0,
-      selectedByDate: const {},
-      dates: dates,
-      hours: _mockHours,
-      courts: _mockCourts,
-      slotsByDate: _generateSlotsByDate(dates),
-    ));
-  }
-
-  static Map<String, Map<String, ScheduleSlot>> _generateSlotsByDate(
-    List<DateTime> dates,
-  ) {
-    final out = <String, Map<String, ScheduleSlot>>{};
-    for (final d in dates) {
-      out[_dateKey(d)] = _generateMockSlots();
-    }
-    return out;
-  }
 
   void selectDate(int index) {
     final s = state;
@@ -176,70 +150,6 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     final m = d.month.toString().padLeft(2, '0');
     final dd = d.day.toString().padLeft(2, '0');
     return '${d.year}-$m-$dd';
-  }
-
-  // ── Mock seed ──────────────────────────────────────────────────────────────
-  static const List<int> _mockHours = [6, 8, 10, 14, 16, 18, 20];
-
-  static const List<ScheduleCourt> _mockCourts = [
-    ScheduleCourt(id: 'A', name: 'Sân A', sport: 'Pickleball'),
-    ScheduleCourt(id: 'B', name: 'Sân B', sport: 'Pickleball'),
-    ScheduleCourt(id: 'C', name: 'Sân C', sport: 'Tennis'),
-    ScheduleCourt(id: 'D', name: 'Sân D', sport: 'Tennis'),
-    ScheduleCourt(id: 'E', name: 'Sân E', sport: 'Badminton'),
-    ScheduleCourt(id: 'F', name: 'Sân F', sport: 'Pickleball'),
-  ];
-
-  /// Roll a fresh availability map per cubit instance. Weighted so the screen
-  /// always shows a mix of open / booked / closed across the grid:
-  ///   • peak hours (16+) lean booked
-  ///   • off-hours (≤6, ≥22) lean closed
-  ///   • mid-day leans open
-  /// Prices wiggle around a sport-specific base.
-  static Map<String, ScheduleSlot> _generateMockSlots() {
-    final rand = Random();
-    final slots = <String, ScheduleSlot>{};
-    for (final court in _mockCourts) {
-      final basePrice = _basePriceFor(court.sport);
-      for (final hour in _mockHours) {
-        final status = _randomStatus(rand, hour);
-        final wiggle = rand.nextInt(5) * 20000;
-        final price = status == SlotStatus.closed ? 0 : basePrice + wiggle;
-        final endLabel = status == SlotStatus.closed
-            ? ''
-            : '${(hour + 1).toString().padLeft(2, '0')}:30';
-        slots['${court.id}|$hour'] = ScheduleSlot(
-          status: status,
-          price: price,
-          endLabel: endLabel,
-        );
-      }
-    }
-    return slots;
-  }
-
-  static int _basePriceFor(String sport) => switch (sport) {
-        'Badminton' => 120000,
-        'Pickleball' => 200000,
-        'Tennis' => 260000,
-        _ => 200000,
-      };
-
-  static SlotStatus _randomStatus(Random rand, int hour) {
-    final r = rand.nextDouble();
-    if (hour <= 6 || hour >= 22) {
-      if (r < 0.45) return SlotStatus.closed;
-      if (r < 0.75) return SlotStatus.booked;
-      return SlotStatus.open;
-    }
-    if (hour >= 16) {
-      if (r < 0.05) return SlotStatus.closed;
-      if (r < 0.60) return SlotStatus.booked;
-      return SlotStatus.open;
-    }
-    if (r < 0.08) return SlotStatus.closed;
-    if (r < 0.35) return SlotStatus.booked;
-    return SlotStatus.open;
   }
 }
 
