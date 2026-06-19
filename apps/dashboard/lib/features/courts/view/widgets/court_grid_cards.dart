@@ -20,83 +20,93 @@ class CourtGridCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    final venueCount = summary?.count ?? 0;
-    final sports = summary?.sports.toList() ?? const <String>[];
-
     return Card(
       child: InkWell(
         onTap: () => context.go('/courts/${court.id}/edit', extra: court),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Stack(
-              children: [
-                StripedPhotoPlaceholder(caption: court.name),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: CourtStatusChip(
-                    status: court.isActive
-                        ? CourtChipStatus.active
-                        : CourtChipStatus.inactive,
-                    elevated: true,
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    court.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Symbols.location_on,
-                          size: 16, color: scheme.onSurfaceVariant),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          (court.address?.isNotEmpty ?? false)
-                              ? court.address!
-                              : 'Chưa có địa chỉ',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: scheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      _MiniChip(
-                        icon: Symbols.grid_view,
-                        label: '$venueCount sân con',
-                        outlined: true,
-                      ),
-                      for (final s in sports.take(3)) _MiniChip(label: s),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            _photo(),
+            _details(context),
             const Divider(),
             _ActionRow(court: court),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Striped photo placeholder with the status chip overlaid top-left.
+  Widget _photo() {
+    return Stack(
+      children: [
+        StripedPhotoPlaceholder(caption: court.name),
+        Positioned(
+          top: 12,
+          left: 12,
+          child: CourtStatusChip(
+            status: court.isActive
+                ? CourtChipStatus.active
+                : CourtChipStatus.inactive,
+            elevated: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Name, address, and the venue-count + sport mini-chips.
+  Widget _details(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final venueCount = summary?.count ?? 0;
+    final sports = summary?.sports.toList() ?? const <String>[];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            court.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Symbols.location_on,
+                  size: 16, color: scheme.onSurfaceVariant),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  (court.address?.isNotEmpty ?? false)
+                      ? court.address!
+                      : 'Chưa có địa chỉ',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _MiniChip(
+                icon: Symbols.grid_view,
+                label: '$venueCount sân con',
+                outlined: true,
+              ),
+              for (final s in sports.take(3)) _MiniChip(label: s),
+            ],
+          ),
+        ],
       ),
     );
   }
