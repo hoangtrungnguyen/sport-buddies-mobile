@@ -84,7 +84,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     final draft = BookingDraft(
       centerId: court.centerId,
       courtId: widget.courtId,
-      courtLabel: '${court.name} · ${_courtLabel(widget.courtId)}',
+      courtLabel: court.name,
       address: court.address,
       sport: court.sports.isNotEmpty ? court.sports.first : Sport.multi,
       date: DateTime(first.start.year, first.start.month, first.start.day),
@@ -93,7 +93,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
             (s) => SlotSelection(
               slotId: s.id,
               courtId: s.courtId,
-              courtLabel: _courtLabel(s.courtId),
+              courtLabel: court.name,
               date: DateTime(s.start.year, s.start.month, s.start.day),
               start: s.start,
               end: s.end,
@@ -161,7 +161,7 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       children: [
         Text(
-          '${court.name} · ${_courtLabel(widget.courtId)}',
+          court.name,
           style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
         ),
         const SizedBox(height: 12),
@@ -210,11 +210,3 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     );
   }
 }
-
-/// Court short label for the breadcrumb (the fake court carries the venue
-/// name; the picker shows which court within it).
-String _courtLabel(String courtId) => switch (courtId) {
-  'court-b' => 'Sân B',
-  'court-c' => 'Sân C',
-  _ => 'Sân A',
-};
