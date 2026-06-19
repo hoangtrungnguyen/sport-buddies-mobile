@@ -42,68 +42,76 @@ class TopBar extends StatelessWidget {
             ),
             const SizedBox(width: 4),
           ],
-
-          // Breadcrumb + venue context chip (title-only on compact to fit)
-          if (isMobile)
-            Flexible(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            )
-          else
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Chủ sân',
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: scheme.onSurfaceVariant),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Text('/',
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: scheme.outline)),
-                  ),
-                  Flexible(
-                    child: Text(
-                      title,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const TopBarVenueChip(),
-                ],
-              ),
-            ),
-
+          _breadcrumb(theme, scheme, title),
           const Spacer(),
-
           if (showSearch && !isMobile) ...[
             const TopBarSearchBar(),
             const SizedBox(width: 8),
           ],
-          IconButton(
-            icon: const Icon(Symbols.mail),
-            color: scheme.onSurfaceVariant,
-            onPressed: () {},
-          ),
-          TopBarBellButton(onTap: onBellTap),
-          Container(
-            width: 1,
-            height: 28,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            color: scheme.outlineVariant,
-          ),
-          const TopBarProfileAvatar(initials: 'MN'),
+          ..._trailing(scheme),
         ],
       ),
     );
+  }
+
+  /// Title-only on compact; "Chủ sân / <title>" breadcrumb + venue chip on wide.
+  Widget _breadcrumb(ThemeData theme, ColorScheme scheme, String title) {
+    if (isMobile) {
+      return Flexible(
+        child: Text(
+          title,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      );
+    }
+    return Flexible(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Chủ sân',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: scheme.onSurfaceVariant),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text('/',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: scheme.outline)),
+          ),
+          Flexible(
+            child: Text(
+              title,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 10),
+          const TopBarVenueChip(),
+        ],
+      ),
+    );
+  }
+
+  /// Trailing actions: mail, notifications bell, divider, profile avatar.
+  List<Widget> _trailing(ColorScheme scheme) {
+    return [
+      IconButton(
+        icon: const Icon(Symbols.mail),
+        color: scheme.onSurfaceVariant,
+        onPressed: () {},
+      ),
+      TopBarBellButton(onTap: onBellTap),
+      Container(
+        width: 1,
+        height: 28,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        color: scheme.outlineVariant,
+      ),
+      const TopBarProfileAvatar(initials: 'MN'),
+    ];
   }
 }
