@@ -8,23 +8,12 @@ import '../data/fake_slot_repository.dart';
 import '../domain/booking_draft.dart';
 import '../domain/court.dart';
 import '../domain/schedule.dart';
-import '../theme/app_tokens.dart';
 import '../theme/browse_pick_theme.dart';
 import 'widgets/date_tabs.dart';
-
-/// A selected grid cell — one court row × one hour column.
-class _GridRef {
-  const _GridRef(this.courtId, this.hour);
-  final String courtId;
-  final int hour;
-
-  @override
-  bool operator ==(Object other) =>
-      other is _GridRef && other.courtId == courtId && other.hour == hour;
-
-  @override
-  int get hashCode => Object.hash(courtId, hour);
-}
+import 'schedule_grid_ref.dart';
+import 'widgets/schedule_grid.dart';
+import 'widgets/schedule_legend.dart';
+import 'widgets/schedule_summary_card.dart';
 
 /// Screen 08 · Sports center schedule (handoff SPB-045).
 class SchedulePage extends StatefulWidget {
@@ -53,7 +42,7 @@ class _SchedulePageState extends State<SchedulePage> {
   int _dateIndex = 0;
 
   // Cart spans dates within this center session (doc 02 derived-state note).
-  final Set<_GridRef> _selection = {};
+  final Set<GridRef> _selection = {};
 
   SportsCenter? _center;
   ScheduleDay? _day;
@@ -74,8 +63,10 @@ class _SchedulePageState extends State<SchedulePage> {
 
   Future<void> _loadDay() async {
     setState(() => _day = null);
-    final day =
-        await _slotRepo.getCenterSchedule(widget.centerId, _dates[_dateIndex]);
+    final day = await _slotRepo.getCenterSchedule(
+      widget.centerId,
+      _dates[_dateIndex],
+    );
     if (mounted) setState(() => _day = day);
   }
 
@@ -86,7 +77,7 @@ class _SchedulePageState extends State<SchedulePage> {
   }
 
   void _toggle(String courtId, int hour) {
-    final ref = _GridRef(courtId, hour);
+    final ref = GridRef(courtId, hour);
     setState(() {
       if (!_selection.remove(ref)) _selection.add(ref);
     });
@@ -105,13 +96,14 @@ class _SchedulePageState extends State<SchedulePage> {
     final date = DateTime(raw.year, raw.month, raw.day);
     final isoDate = date.toIso8601String().substring(0, 10);
 
-    Court courtOf(String id) => center.courts
-        .firstWhere((c) => c.id == id, orElse: () => center.courts.first);
+    Court courtOf(String id) => center.courts.firstWhere(
+      (c) => c.id == id,
+      orElse: () => center.courts.first,
+    );
 
-    int startHourOf(int col) =>
-        col >= 0 && col < day.hourLabels.length
-            ? int.tryParse(day.hourLabels[col].substring(0, 2)) ?? 0
-            : 0;
+    int startHourOf(int col) => col >= 0 && col < day.hourLabels.length
+        ? int.tryParse(day.hourLabels[col].substring(0, 2)) ?? 0
+        : 0;
 
     // Stable order: by court row, then by time column.
     final refs = _selection.toList()
@@ -143,8 +135,9 @@ class _SchedulePageState extends State<SchedulePage> {
     final draft = BookingDraft(
       centerId: widget.centerId,
       courtId: single?.id ?? widget.centerId,
-      courtLabel:
-          single != null ? '${center.name} · ${single.name}' : center.name,
+      courtLabel: single != null
+          ? '${center.name} · ${single.name}'
+          : center.name,
       address: identity.address,
       sport: identity.sports.isNotEmpty ? identity.sports.first : Sport.multi,
       date: date,
@@ -160,7 +153,9 @@ class _SchedulePageState extends State<SchedulePage> {
     return BrowsePickTheme(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(center?.name ?? AppLocalizations.of(context).scheduleTitle),
+          title: Text(
+            center?.name ?? AppLocalizations.of(context).scheduleTitle,
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             tooltip: AppLocalizations.of(context).commonBack,
@@ -190,8 +185,10 @@ class _SchedulePageState extends State<SchedulePage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
       children: [
-        Text(l10n.scheduleAllCourts,
-            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        Text(
+          l10n.scheduleAllCourts,
+          style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 12),
         DateTabs(dates: _dates, selectedIndex: _dateIndex, onSelect: _onDate),
         const SizedBox(height: 20),
@@ -203,17 +200,17 @@ class _SchedulePageState extends State<SchedulePage> {
             child: Center(child: CircularProgressIndicator()),
           )
         else
-          _ScheduleGrid(
+          ScheduleGrid(
             center: center,
             day: day,
             selection: _selection,
             onToggle: _toggle,
           ),
         const SizedBox(height: 12),
-        const _Legend(),
+        const Legend(),
         if (_selection.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _SummaryCard(
+          SummaryCard(
             center: center,
             day: day,
             selection: _selection,
@@ -234,371 +231,3 @@ class _SchedulePageState extends State<SchedulePage> {
         '${d.month.toString().padLeft(2, '0')}';
   }
 }
-
-// ── §10 Schedule grid ────────────────────────────────────────────────────────
-
-class _ScheduleGrid extends StatelessWidget {
-  const _ScheduleGrid({
-    required this.center,
-    required this.day,
-    required this.selection,
-    required this.onToggle,
-  });
-
-  final SportsCenter center;
-  final ScheduleDay day;
-  final Set<_GridRef> selection;
-  final void Function(String courtId, int hour) onToggle;
-
-  static const _labelWidth = 92.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerLowest,
-        borderRadius: AppTokens.radiusMd,
-        border: Border.all(color: scheme.outlineVariant),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          _headerRow(scheme),
-          for (var ri = 0; ri < center.courts.length; ri++)
-            _courtRow(context, scheme, center.courts[ri], ri),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerRow(ColorScheme scheme) {
-    return Container(
-      color: scheme.surfaceContainerLow,
-      child: Row(
-        children: [
-          const SizedBox(width: _labelWidth, height: 36),
-          for (final h in day.hourLabels)
-            Expanded(
-              child: Center(
-                child: Text(
-                  h.substring(0, 5),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: scheme.onSurfaceVariant,
-                    fontFeatures: AppTokens.tnum,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _courtRow(
-      BuildContext context, ColorScheme scheme, Court court, int rowIndex) {
-    final statuses = day.rows[court.id] ?? const [];
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          top: rowIndex == 0
-              ? BorderSide.none
-              : BorderSide(color: scheme.outlineVariant),
-        ),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Court-name link → 09 (edge E6).
-            SizedBox(
-              width: _labelWidth,
-              child: InkWell(
-                onTap: () => context.push('/browse/court/${court.id}/slots'),
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          court.name,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.primary,
-                            decoration: TextDecoration.underline,
-                            decorationColor: scheme.primary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Icon(Icons.chevron_right, size: 14, color: scheme.primary),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            for (var ci = 0; ci < statuses.length; ci++)
-              Expanded(
-                child: _Cell(
-                  status: statuses[ci],
-                  selected: selection.contains(_GridRef(court.id, ci)),
-                  onTap: statuses[ci] == CellStatus.open
-                      ? () => onToggle(court.id, ci)
-                      : null,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Cell extends StatelessWidget {
-  const _Cell({required this.status, required this.selected, this.onTap});
-
-  final CellStatus status;
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    late final Color bg;
-    late final Widget glyph;
-    if (selected) {
-      bg = scheme.primaryContainer;
-      glyph = Icon(Icons.check, size: 16, color: scheme.onPrimaryContainer);
-    } else {
-      switch (status) {
-        case CellStatus.open:
-          bg = scheme.surfaceContainerLowest;
-          glyph = Text('•',
-              style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant));
-        case CellStatus.booked:
-          bg = scheme.surfaceContainerHigh;
-          glyph = Text(AppLocalizations.of(context).scheduleBookedShort,
-              style: TextStyle(fontSize: 10, color: scheme.outline));
-        case CellStatus.blocked:
-          bg = scheme.surfaceContainerHigh;
-          glyph =
-              Text('—', style: TextStyle(fontSize: 12, color: scheme.outline));
-      }
-    }
-
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: AppTokens.gridCellHeight,
-        margin: selected ? const EdgeInsets.all(1) : EdgeInsets.zero,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: selected
-              ? const BorderRadius.all(Radius.circular(AppTokens.cornerXs))
-              : null,
-          border: selected
-              ? Border.all(color: scheme.primary, width: 2)
-              : Border(left: BorderSide(color: scheme.outlineVariant)),
-        ),
-        alignment: Alignment.center,
-        child: glyph,
-      ),
-    );
-  }
-}
-
-// ── §11 Legend ───────────────────────────────────────────────────────────────
-
-class _Legend extends StatelessWidget {
-  const _Legend();
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context);
-    return Row(
-      children: [
-        _swatch(scheme.surfaceContainerLowest, scheme.outlineVariant,
-            l10n.scheduleLegendOpen, scheme),
-        const SizedBox(width: 16),
-        _swatch(scheme.surfaceContainerHigh, scheme.outlineVariant,
-            l10n.slotPickerBooked, scheme),
-        const SizedBox(width: 16),
-        _swatch(scheme.primaryContainer, scheme.primary,
-            l10n.scheduleLegendSelected, scheme),
-      ],
-    );
-  }
-
-  Widget _swatch(Color bg, Color border, String label, ColorScheme scheme) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius:
-                const BorderRadius.all(Radius.circular(AppTokens.cornerXs)),
-            border: Border.all(color: border),
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(label,
-            style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
-      ],
-    );
-  }
-}
-
-// ── §12 Selection summary card → wizard (edge E7) ────────────────────────────
-
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.center,
-    required this.day,
-    required this.selection,
-    required this.cellPriceVnd,
-    required this.onClear,
-    required this.onContinue,
-  });
-
-  final SportsCenter center;
-  final ScheduleDay? day;
-  final Set<_GridRef> selection;
-  final int cellPriceVnd;
-  final VoidCallback onClear;
-  final VoidCallback onContinue;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-    final l10n = AppLocalizations.of(context);
-    final onCt = scheme.onPrimaryContainer;
-    final rows = selection.toList();
-    final total = rows.length * cellPriceVnd;
-
-    Court courtOf(String id) => center.courts
-        .firstWhere((c) => c.id == id, orElse: () => center.courts.first);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: AppTokens.radiusLg,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(l10n.scheduleSelectedCount(rows.length),
-                  style: text.labelLarge?.copyWith(color: onCt)),
-              const Spacer(),
-              InkWell(
-                onTap: onClear,
-                child: Text(l10n.scheduleClearAll,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: onCt)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          for (final ref in rows)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: scheme.primary,
-                      borderRadius: const BorderRadius.all(
-                          Radius.circular(AppTokens.cornerXs)),
-                    ),
-                    child: Icon(Icons.check, size: 12, color: scheme.onPrimary),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(courtOf(ref.courtId).name,
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: onCt)),
-                  const SizedBox(width: 8),
-                  Text(
-                    _timeLabel(ref.hour),
-                    style: TextStyle(
-                        fontSize: 12,
-                        color: onCt.withValues(alpha: 0.75),
-                        fontFeatures: AppTokens.tnum),
-                  ),
-                  const Spacer(),
-                  Text(_thousandsK(cellPriceVnd),
-                      style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: onCt,
-                          fontFeatures: AppTokens.tnum)),
-                ],
-              ),
-            ),
-          Divider(color: onCt.withValues(alpha: 0.18), height: 16),
-          Row(
-            children: [
-              Text(l10n.wizardLabelTotal,
-                  style: text.labelLarge?.copyWith(color: onCt)),
-              const Spacer(),
-              Text(
-                '${_thousands(total)} đ',
-                style: text.priceMedium(scheme).copyWith(color: onCt),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: onContinue,
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(0, AppTokens.buttonSummaryHeight),
-              ),
-              child: Text(l10n.scheduleContinue),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _timeLabel(int hour) {
-    final labels = day?.hourLabels ?? const [];
-    if (hour >= labels.length) return '';
-    final start = labels[hour].substring(0, 5);
-    final h = int.tryParse(start.substring(0, 2)) ?? 0;
-    final end = '${(h + 2).toString().padLeft(2, '0')}:00';
-    return '$start – $end';
-  }
-}
-
-String _thousands(int v) {
-  final s = v.toString();
-  final buf = StringBuffer();
-  for (var i = 0; i < s.length; i++) {
-    if (i > 0 && (s.length - i) % 3 == 0) buf.write('.');
-    buf.write(s[i]);
-  }
-  return buf.toString();
-}
-
-String _thousandsK(int v) => '${(v / 1000).round()}k';
