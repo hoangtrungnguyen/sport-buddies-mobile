@@ -1077,4 +1077,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courtsDefaultName => 'Sports court';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifMarkAllRead => 'Mark all read';
+
+  @override
+  String get notifFilterAll => 'All';
+
+  @override
+  String get notifFilterBooking => 'Bookings';
+
+  @override
+  String get notifFilterPlayTogether => 'Play together';
+
+  @override
+  String get notifFilterReminder => 'Reminders';
+
+  @override
+  String get notifSectionToday => 'TODAY';
+
+  @override
+  String get notifSectionYesterday => 'YESTERDAY';
+
+  @override
+  String get notifSectionOlder => 'EARLIER';
+
+  @override
+  String get notifEmpty => 'No notifications';
+
+  @override
+  String notifEmptyInCategory(String filter) {
+    return 'in $filter';
+  }
+
+  @override
+  String get notifJoinApproved => 'Approved';
+
+  @override
+  String get notifJoinRejected => 'Declined';
+
+  @override
+  String get notifActionReject => 'Decline';
+
+  @override
+  String get notifActionApprove => 'Approve';
+
+  @override
+  String get notifTimeJustNow => 'Just now';
+
+  @override
+  String notifTimeMinutesAgo(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String notifTimeHoursAgo(int count) {
+    return '$count h ago';
+  }
+
+  @override
+  String notifTimeYesterdayAt(String time) {
+    return 'Yesterday, $time';
+  }
+
+  @override
+  String notifTimeDaysAgo(int count) {
+    return '$count days ago';
+  }
 }

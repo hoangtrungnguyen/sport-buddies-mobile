@@ -2029,6 +2029,126 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Sân thể thao'**
   String get courtsDefaultName;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get notifTitle;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đọc tất cả'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get notifFilterAll;
+
+  /// No description provided for @notifFilterBooking.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân'**
+  String get notifFilterBooking;
+
+  /// No description provided for @notifFilterPlayTogether.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chơi ghép'**
+  String get notifFilterPlayTogether;
+
+  /// No description provided for @notifFilterReminder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở'**
+  String get notifFilterReminder;
+
+  /// No description provided for @notifSectionToday.
+  ///
+  /// In vi, this message translates to:
+  /// **'HÔM NAY'**
+  String get notifSectionToday;
+
+  /// No description provided for @notifSectionYesterday.
+  ///
+  /// In vi, this message translates to:
+  /// **'HÔM QUA'**
+  String get notifSectionYesterday;
+
+  /// No description provided for @notifSectionOlder.
+  ///
+  /// In vi, this message translates to:
+  /// **'TRƯỚC ĐÓ'**
+  String get notifSectionOlder;
+
+  /// No description provided for @notifEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có thông báo'**
+  String get notifEmpty;
+
+  /// No description provided for @notifEmptyInCategory.
+  ///
+  /// In vi, this message translates to:
+  /// **'trong mục {filter}'**
+  String notifEmptyInCategory(String filter);
+
+  /// No description provided for @notifJoinApproved.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã duyệt'**
+  String get notifJoinApproved;
+
+  /// No description provided for @notifJoinRejected.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã từ chối'**
+  String get notifJoinRejected;
+
+  /// No description provided for @notifActionReject.
+  ///
+  /// In vi, this message translates to:
+  /// **'Từ chối'**
+  String get notifActionReject;
+
+  /// No description provided for @notifActionApprove.
+  ///
+  /// In vi, this message translates to:
+  /// **'Duyệt'**
+  String get notifActionApprove;
+
+  /// No description provided for @notifTimeJustNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vừa xong'**
+  String get notifTimeJustNow;
+
+  /// No description provided for @notifTimeMinutesAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} phút trước'**
+  String notifTimeMinutesAgo(int count);
+
+  /// No description provided for @notifTimeHoursAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} giờ trước'**
+  String notifTimeHoursAgo(int count);
+
+  /// No description provided for @notifTimeYesterdayAt.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hôm qua, {time}'**
+  String notifTimeYesterdayAt(String time);
+
+  /// No description provided for @notifTimeDaysAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} ngày trước'**
+  String notifTimeDaysAgo(int count);
 }
 
 class _AppLocalizationsDelegate

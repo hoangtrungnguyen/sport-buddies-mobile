@@ -4,7 +4,6 @@
   "@appTitle": {
     "description": "The name of the application"
   },
-
   "loginHeroTitle": "Book courts\nin seconds.",
   "@loginHeroTitle": {},
   "loginTitle": "Sign in",
@@ -25,7 +24,6 @@
   "@noAccountPrompt": {},
   "signUpNow": "Sign up now",
   "@signUpNow": {},
-
   "signUpTitle": "Create account",
   "@signUpTitle": {},
   "signUpSubtitle": "Free to join. You'll receive a verification email after signing up.",
@@ -70,7 +68,6 @@
   "@resendVerification": {},
   "backToLogin": "Back to sign in",
   "@backToLogin": {},
-
   "forgotPasswordTitle": "Forgot password",
   "@forgotPasswordTitle": {},
   "forgotPasswordBody": "Enter the email you used to create your account. We'll send you a password reset link.",
@@ -81,7 +78,6 @@
   "@checkInboxTitle": {},
   "checkInboxBody": "We've sent a password reset link to your email.",
   "@checkInboxBody": {},
-
   "profileTitle": "Account",
   "@profileTitle": {},
   "language": "Language",
@@ -90,7 +86,6 @@
   "@languageVietnamese": {},
   "languageEnglish": "English",
   "@languageEnglish": {},
-
   "errorFullNameEmpty": "Please enter your full name.",
   "@errorFullNameEmpty": {},
   "errorEmailEmpty": "Please enter your email.",
@@ -103,14 +98,12 @@
   "@errorInvalidCredentials": {},
   "errorEmailNotConfirmed": "Please check your email to verify your account",
   "@errorEmailNotConfirmed": {},
-
   "save": "Save",
   "@save": {},
   "nameEditTitle": "Edit name",
   "@nameEditTitle": {},
   "labelPhone": "Phone number",
   "@labelPhone": {},
-
   "profilePersonalInfo": "Personal info",
   "@profilePersonalInfo": {},
   "profilePersonalInfoSub": "Name, avatar, phone number",
@@ -140,20 +133,23 @@
   "profileGamesCount": "{count} games",
   "@profileGamesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "profileFavouritesCount": "{count} favourites",
   "@profileFavouritesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "errorAvatarFormat": "Avatar must be in JPEG or PNG format.",
   "@errorAvatarFormat": {},
   "errorAvatarSize": "Avatar size must not exceed 2 MB.",
   "@errorAvatarSize": {},
-
   "navMap": "Explore",
   "@navMap": {},
   "navBookings": "Bookings",
@@ -162,7 +158,6 @@
   "@navProfile": {},
   "navSlots": "Open Slots",
   "@navSlots": {},
-
   "commonFilter": "Filter",
   "@commonFilter": {},
   "commonSearch": "Search",
@@ -173,7 +168,6 @@
   "@commonReset": {},
   "commonBack": "Back",
   "@commonBack": {},
-
   "sportAll": "All",
   "@sportAll": {},
   "sportFootball": "Football",
@@ -188,20 +182,26 @@
   "@sportMulti": {},
   "sportGeneric": "Sports",
   "@sportGeneric": {},
-
   "availabilityOpenSlots": "{count} open slots",
   "@availabilityOpenSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "availabilityFull": "Full",
   "@availabilityFull": {},
   "distanceKm": "{km} km",
   "@distanceKm": {
-    "placeholders": { "km": { "type": "String" } }
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   },
   "distanceWithin5": "Within 5 km",
   "@distanceWithin5": {},
-
   "discoveryTitle": "Explore",
   "@discoveryTitle": {},
   "discoveryUpdating": "Updating…",
@@ -210,11 +210,22 @@
   "@discoveryNoMatch": {},
   "discoverySubtitle": "{count} courts · {slots} open slots nearby",
   "@discoverySubtitle": {
-    "placeholders": { "count": { "type": "int" }, "slots": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "slots": {
+        "type": "int"
+      }
+    }
   },
   "discoveryCourtsCount": "{count} courts",
   "@discoveryCourtsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "discoverySortNearest": "Nearest ↓",
   "@discoverySortNearest": {},
@@ -234,7 +245,6 @@
   "@discoveryEmptyExpand": {},
   "discoveryEmptyResetFilters": "Reset filters",
   "@discoveryEmptyResetFilters": {},
-
   "filterSports": "Sport",
   "@filterSports": {},
   "filterDistance": "Distance",
@@ -245,35 +255,56 @@
   "@filterOnlyOpen": {},
   "filterApply": "Show {count} courts",
   "@filterApply": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "filterApplyZero": "View results · 0 courts",
   "@filterApplyZero": {},
-
   "searchHint": "Search courts, areas…",
   "@searchHint": {},
   "searchAllCourts": "All {total} courts · nearest first",
   "@searchAllCourts": {
-    "placeholders": { "total": { "type": "int" } }
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "searchResultsFor": "{count} results for \"{query}\"",
   "@searchResultsFor": {
-    "placeholders": { "count": { "type": "int" }, "query": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
   },
   "searchNoResults": "No results for \"{query}\"",
   "@searchNoResults": {
-    "placeholders": { "query": { "type": "String" } }
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
   },
   "searchTryOther": "Try another court name or area.",
   "@searchTryOther": {},
-
   "slotsTitle": "Open Slots",
   "@slotsTitle": {},
   "slotsSubtitle": "Slots looking for players",
   "@slotsSubtitle": {},
   "slotsCountSort": "{count} slots · Sort: Soonest ↓",
   "@slotsCountSort": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotsHostInvite": "Host invites you to play",
   "@slotsHostInvite": {},
@@ -283,13 +314,19 @@
   "@slotsFull": {},
   "slotsJoinedCount": "{joined}/{max} people",
   "@slotsJoinedCount": {
-    "placeholders": { "joined": { "type": "int" }, "max": { "type": "int" } }
+    "placeholders": {
+      "joined": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
   },
   "slotsEmptyTitle": "No open slots",
   "@slotsEmptyTitle": {},
   "slotsEmptyBody": "No slots looking for players in your area.",
   "@slotsEmptyBody": {},
-
   "bookingValidationName": "Please enter your name",
   "@bookingValidationName": {},
   "bookingValidationPhone": "Please enter your phone number",
@@ -302,13 +339,21 @@
   "@bookingConfirmTitle": {},
   "bookingDurationHours": "{hours} h",
   "@bookingDurationHours": {
-    "placeholders": { "hours": { "type": "String" } }
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
   },
   "bookingSelectedSlot": "Selected time slot",
   "@bookingSelectedSlot": {},
   "bookingSlotCountDuration": "1 slot · {duration}",
   "@bookingSlotCountDuration": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "bookingTotalDuration": "Total duration",
   "@bookingTotalDuration": {},
@@ -316,7 +361,11 @@
   "@bookingRentPrice": {},
   "bookingPricePerHour": "{price}/hour",
   "@bookingPricePerHour": {
-    "placeholders": { "price": { "type": "String" } }
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
   },
   "bookingServiceFee": "Service fee",
   "@bookingServiceFee": {},
@@ -336,7 +385,6 @@
   "@bookingFieldNotes": {},
   "bookingNotesHint": "e.g. need to borrow a racket, arriving 10 min late...",
   "@bookingNotesHint": {},
-
   "myBookingsTitle": "My bookings",
   "@myBookingsTitle": {},
   "bookingsTabUpcoming": "Upcoming",
@@ -393,11 +441,19 @@
   "@commonConfirm": {},
   "bookingsJoinedHost": "You joined · host {host}",
   "@bookingsJoinedHost": {
-    "placeholders": { "host": { "type": "String" } }
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
   },
   "bookingsHostWithPlayers": "You're the host · {players}",
   "@bookingsHostWithPlayers": {
-    "placeholders": { "players": { "type": "String" } }
+    "placeholders": {
+      "players": {
+        "type": "String"
+      }
+    }
   },
   "bookingsHost": "You're the host",
   "@bookingsHost": {},
@@ -405,7 +461,11 @@
   "@bookingsOneOff": {},
   "bookingsExtraSlots": "+{count} slots",
   "@bookingsExtraSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "bookingsLegendHost": "You booked",
   "@bookingsLegendHost": {},
@@ -431,10 +491,8 @@
   "@bookingJoinAccepted": {},
   "bookingJoinRejected": "Rejected",
   "@bookingJoinRejected": {},
-
   "commonClose": "Close",
   "@commonClose": {},
-
   "weekdayMonday": "Monday",
   "@weekdayMonday": {},
   "weekdayTuesday": "Tuesday",
@@ -449,7 +507,6 @@
   "@weekdaySaturday": {},
   "weekdaySunday": "Sunday",
   "@weekdaySunday": {},
-
   "wizardStepConfirm": "Confirm",
   "@wizardStepConfirm": {},
   "wizardStepPlay": "Play",
@@ -484,11 +541,22 @@
   "@wizardAnd": {},
   "wizardMergeNotice": "Adjacent slots {names} will be merged into one {duration} session.",
   "@wizardMergeNotice": {
-    "placeholders": { "names": { "type": "String" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "wizardSelectedSlots": "Selected {count} slots",
   "@wizardSelectedSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardPickPlayers": "Choose who plays with you before sending the request to the owner.",
   "@wizardPickPlayers": {},
@@ -496,7 +564,11 @@
   "@wizardWhoCanJoin": {},
   "wizardAccessApplies": "Applies to all {count} booked slots. You can change each slot individually after booking.",
   "@wizardAccessApplies": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardPrivate": "🔒 Private",
   "@wizardPrivate": {},
@@ -522,7 +594,14 @@
   "@wizardDeclinedBody": {},
   "wizardWaitingBody": "Your request for {count} slots was sent to {court}. The owner usually responds within a few minutes. You'll be notified as soon as there's a result.",
   "@wizardWaitingBody": {
-    "placeholders": { "count": { "type": "int" }, "court": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "court": {
+        "type": "String"
+      }
+    }
   },
   "wizardNotConfirmed": "Request not yet confirmed.",
   "@wizardNotConfirmed": {},
@@ -532,7 +611,14 @@
   "@wizardBookingId": {},
   "wizardCourtSlots": "{court} · {count} slots",
   "@wizardCourtSlots": {
-    "placeholders": { "court": { "type": "String" }, "count": { "type": "int" } }
+    "placeholders": {
+      "court": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardTimelineSent": "You sent the booking request",
   "@wizardTimelineSent": {},
@@ -550,13 +636,24 @@
   "@wizardSuccessTitle": {},
   "wizardSuccessBody": "See you at {court}.\nArrive on time and bring cash.",
   "@wizardSuccessBody": {
-    "placeholders": { "court": { "type": "String" } }
+    "placeholders": {
+      "court": {
+        "type": "String"
+      }
+    }
   },
   "wizardBringCash": "Remember to bring cash",
   "@wizardBringCash": {},
   "wizardBringCashBody": "Pay {total} at the court when you arrive (for all {count} slots).",
   "@wizardBringCashBody": {
-    "placeholders": { "total": { "type": "String" }, "count": { "type": "int" } }
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardLabelCourt": "Court",
   "@wizardLabelCourt": {},
@@ -568,24 +665,45 @@
   "@wizardLabelTotal": {},
   "wizardMergedSuffix": " (merged {count} slots)",
   "@wizardMergedSuffix": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardHours": "{value} h",
   "@wizardHours": {
-    "placeholders": { "value": { "type": "String" } }
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
   },
   "wizardSlotCountDuration": "{count} slots · {duration}",
   "@wizardSlotCountDuration": {
-    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
-
   "courtDetailBookCta": "Pick a free slot & book",
   "@courtDetailBookCta": {},
   "courtDetailOpenSlotsHelper": "Join other players at this court",
   "@courtDetailOpenSlotsHelper": {},
   "courtDetailPhoto": "court photo · {index}/{total}",
   "@courtDetailPhoto": {
-    "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailFavorite": "Favorite",
   "@courtDetailFavorite": {},
@@ -593,7 +711,11 @@
   "@courtDetailShare": {},
   "courtDetailReviews": "{count} reviews",
   "@courtDetailReviews": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailPricePerHour": "Price / hour",
   "@courtDetailPricePerHour": {},
@@ -601,7 +723,11 @@
   "@courtDetailOpenToday": {},
   "courtDetailSlotCount": "{count} slots",
   "@courtDetailSlotCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailAmenities": "Amenities",
   "@courtDetailAmenities": {},
@@ -613,7 +739,6 @@
   "@courtDetailViewAllCourts": {},
   "courtDetailScheduleSubtitle": "Pick a time slot & book",
   "@courtDetailScheduleSubtitle": {},
-
   "slotPickerTitle": "Pick a time",
   "@slotPickerTitle": {},
   "slotPickerDirectionsSoon": "Directions — coming soon",
@@ -622,13 +747,21 @@
   "@slotPickerMultiHint": {},
   "slotPickerOpenCount": "{count} open slots · book consecutively",
   "@slotPickerOpenCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotPickerOpenHelper": "Tap for details & to request to join",
   "@slotPickerOpenHelper": {},
   "slotPickerDistanceDrive": "{km} km · ~6 min drive",
   "@slotPickerDistanceDrive": {
-    "placeholders": { "km": { "type": "String" } }
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   },
   "slotPickerDirections": "Directions",
   "@slotPickerDirections": {},
@@ -640,15 +773,25 @@
   "@slotPickerNoSelection": {},
   "slotPickerSelectedCount": "{count} slots selected · {duration}",
   "@slotPickerSelectedCount": {
-    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "slotPickerContinue": "Continue · {count} slots",
   "@slotPickerContinue": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotPickerPickSlots": "Pick time slots",
   "@slotPickerPickSlots": {},
-
   "scheduleTitle": "Court schedule",
   "@scheduleTitle": {},
   "scheduleAllCourts": "All courts' schedule",
@@ -665,23 +808,28 @@
   "@scheduleLegendSelected": {},
   "scheduleSelectedCount": "Selecting · {count} slots",
   "@scheduleSelectedCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "scheduleClearAll": "Clear all",
   "@scheduleClearAll": {},
   "scheduleContinue": "Continue to booking",
   "@scheduleContinue": {},
-
   "paymentTime": "Time",
   "@paymentTime": {},
   "paymentCashBody": "Pay {total} at the court when you arrive.",
   "@paymentCashBody": {
-    "placeholders": { "total": { "type": "String" } }
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
   },
-
   "awaitingBody": "Your booking request has been sent to the owner.\nYou'll be notified when there's a result.",
   "@awaitingBody": {},
-
   "accessSlotSelected": "Time slot selected",
   "@accessSlotSelected": {},
   "accessApplies": "Applies to the booked slot. You can change it after booking.",
@@ -690,7 +838,6 @@
   "@accessSlotTakenTitle": {},
   "accessSlotTakenBody": "Sorry, someone just booked this slot before you.\nPlease pick another time.",
   "@accessSlotTakenBody": {},
-
   "bookingDetailTitle": "Booking details",
   "@bookingDetailTitle": {},
   "bookingDetailMode": "Mode",
@@ -707,13 +854,21 @@
   "@bookingDetailHostRole": {},
   "bookingDetailAcceptedAt": "Accepted · {time}",
   "@bookingDetailAcceptedAt": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "bookingDetailJoinRequests": "Join requests",
   "@bookingDetailJoinRequests": {},
   "bookingDetailNewCount": "{count} new",
   "@bookingDetailNewCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "bookingDetailNoRequests": "No join requests yet",
   "@bookingDetailNoRequests": {},
@@ -721,7 +876,6 @@
   "@bookingDetailAccept": {},
   "bookingDetailManagePlayers": "Manage players",
   "@bookingDetailManagePlayers": {},
-
   "courtDetailOpenAddressIn": "Open address in",
   "@courtDetailOpenAddressIn": {},
   "courtDetailAppleMaps": "Apple Maps",
@@ -730,7 +884,6 @@
   "@courtDetailGoogleMaps": {},
   "courtDetailMapsUnavailable": "Couldn't open a maps app",
   "@courtDetailMapsUnavailable": {},
-
   "courtsOpenMatchSlots": "Open match slots",
   "@courtsOpenMatchSlots": {},
   "courtsPriceFrom": "From",
@@ -745,20 +898,22 @@
   "@courtsViewUpcoming": {},
   "courtsSlotsLeft": "· {count} left",
   "@courtsSlotsLeft": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtsJoin": "Join",
   "@courtsJoin": {},
   "courtsTomorrow": "Tomorrow",
   "@courtsTomorrow": {},
-
   "scheduleTapHint": "Tap an empty cell to pick a time slot",
   "@scheduleTapHint": {},
   "scheduleMultiHint": "You can pick several consecutive slots to book longer.",
   "@scheduleMultiHint": {},
   "schedulePickAtLeastOne": "Pick at least 1 time slot to continue",
   "@schedulePickAtLeastOne": {},
-
   "commonContinue": "Continue",
   "@commonContinue": {},
   "slotPickerTapSelect": "Tap to select",
@@ -772,5 +927,75 @@
   "slotPickerBookNow": "Book now",
   "@slotPickerBookNow": {},
   "courtsDefaultName": "Sports court",
-  "@courtsDefaultName": {}
+  "@courtsDefaultName": {},
+  "notifTitle": "Notifications",
+  "@notifTitle": {},
+  "notifMarkAllRead": "Mark all read",
+  "@notifMarkAllRead": {},
+  "notifFilterAll": "All",
+  "@notifFilterAll": {},
+  "notifFilterBooking": "Bookings",
+  "@notifFilterBooking": {},
+  "notifFilterPlayTogether": "Play together",
+  "@notifFilterPlayTogether": {},
+  "notifFilterReminder": "Reminders",
+  "@notifFilterReminder": {},
+  "notifSectionToday": "TODAY",
+  "@notifSectionToday": {},
+  "notifSectionYesterday": "YESTERDAY",
+  "@notifSectionYesterday": {},
+  "notifSectionOlder": "EARLIER",
+  "@notifSectionOlder": {},
+  "notifEmpty": "No notifications",
+  "@notifEmpty": {},
+  "notifEmptyInCategory": "in {filter}",
+  "@notifEmptyInCategory": {
+    "placeholders": {
+      "filter": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJoinApproved": "Approved",
+  "@notifJoinApproved": {},
+  "notifJoinRejected": "Declined",
+  "@notifJoinRejected": {},
+  "notifActionReject": "Decline",
+  "@notifActionReject": {},
+  "notifActionApprove": "Approve",
+  "@notifActionApprove": {},
+  "notifTimeJustNow": "Just now",
+  "@notifTimeJustNow": {},
+  "notifTimeMinutesAgo": "{count} min ago",
+  "@notifTimeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifTimeHoursAgo": "{count} h ago",
+  "@notifTimeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifTimeYesterdayAt": "Yesterday, {time}",
+  "@notifTimeYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTimeDaysAgo": "{count} days ago",
+  "@notifTimeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

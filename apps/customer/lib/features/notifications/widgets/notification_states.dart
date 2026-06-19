@@ -2,15 +2,25 @@
 // Extracted from notifications_screen.dart.
 
 import 'package:customer/features/notifications/notifications_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.filter});
+  const EmptyState({
+    super.key,
+    required this.filterLabel,
+    required this.showCategory,
+  });
 
-  final String filter;
+  /// Localized label of the active filter (shown in the "in {filter}" line).
+  final String filterLabel;
+
+  /// Whether to show the per-category line (false for the "All" filter).
+  final bool showCategory;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -21,14 +31,14 @@ class EmptyState extends StatelessWidget {
             color: mdOutlineVariant,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Không có thông báo',
-            style: TextStyle(color: mdOnSurfaceVariant, fontSize: 15),
+          Text(
+            l10n.notifEmpty,
+            style: const TextStyle(color: mdOnSurfaceVariant, fontSize: 15),
           ),
-          if (filter != 'Tất cả') ...[
+          if (showCategory) ...[
             const SizedBox(height: 4),
             Text(
-              'trong mục $filter',
+              l10n.notifEmptyInCategory(filterLabel),
               style: const TextStyle(color: mdOutlineVariant, fontSize: 13),
             ),
           ],

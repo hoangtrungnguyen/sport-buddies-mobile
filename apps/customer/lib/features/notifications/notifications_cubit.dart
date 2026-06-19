@@ -126,11 +126,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     return AppNotification(
       id: r['id'] as String,
       type: _mapType(r['type'] as String? ?? ''),
-      title: (r['title'] as String?)?.trim().isNotEmpty == true
-          ? r['title'] as String
-          : 'Thông báo',
+      title: (r['title'] as String?)?.trim() ?? '',
       body: r['body'] as String? ?? '',
-      time: _relativeTime(created, now),
+      createdAt: created,
       day: _dayBucket(created, now),
       unread: r['read'] != true,
     );
@@ -157,17 +155,5 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     if (diff <= 0) return NotifDay.today;
     if (diff == 1) return NotifDay.yesterday;
     return NotifDay.older;
-  }
-
-  static String _relativeTime(DateTime created, DateTime now) {
-    final diff = now.difference(created);
-    final hhmm =
-        '${created.hour.toString().padLeft(2, '0')}:${created.minute.toString().padLeft(2, '0')}';
-    if (diff.inMinutes < 1) return 'Vừa xong';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
-    final bucket = _dayBucket(created, now);
-    if (bucket == NotifDay.today) return '${diff.inHours} giờ trước';
-    if (bucket == NotifDay.yesterday) return 'Hôm qua, $hhmm';
-    return '${diff.inDays} ngày trước';
   }
 }

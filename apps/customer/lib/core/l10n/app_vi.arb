@@ -4,7 +4,6 @@
   "@appTitle": {
     "description": "The name of the application"
   },
-
   "loginHeroTitle": "Đặt sân\ntrong tích tắc.",
   "@loginHeroTitle": {},
   "loginTitle": "Đăng nhập",
@@ -25,7 +24,6 @@
   "@noAccountPrompt": {},
   "signUpNow": "Đăng ký ngay",
   "@signUpNow": {},
-
   "signUpTitle": "Tạo tài khoản",
   "@signUpTitle": {},
   "signUpSubtitle": "Đăng ký miễn phí. Bạn sẽ nhận email xác minh sau khi tạo tài khoản.",
@@ -70,7 +68,6 @@
   "@resendVerification": {},
   "backToLogin": "Quay lại đăng nhập",
   "@backToLogin": {},
-
   "forgotPasswordTitle": "Quên mật khẩu",
   "@forgotPasswordTitle": {},
   "forgotPasswordBody": "Nhập địa chỉ email bạn đã dùng để tạo tài khoản. Chúng tôi sẽ gửi liên kết đặt lại mật khẩu.",
@@ -81,7 +78,6 @@
   "@checkInboxTitle": {},
   "checkInboxBody": "Chúng tôi đã gửi liên kết đặt lại mật khẩu đến email của bạn.",
   "@checkInboxBody": {},
-
   "profileTitle": "Tài khoản",
   "@profileTitle": {},
   "language": "Ngôn ngữ",
@@ -90,7 +86,6 @@
   "@languageVietnamese": {},
   "languageEnglish": "English",
   "@languageEnglish": {},
-
   "errorFullNameEmpty": "Vui lòng nhập họ và tên.",
   "@errorFullNameEmpty": {},
   "errorEmailEmpty": "Vui lòng nhập email.",
@@ -103,14 +98,12 @@
   "@errorInvalidCredentials": {},
   "errorEmailNotConfirmed": "Vui lòng kiểm tra email để xác minh tài khoản",
   "@errorEmailNotConfirmed": {},
-
   "save": "Lưu",
   "@save": {},
   "nameEditTitle": "Chỉnh sửa tên",
   "@nameEditTitle": {},
   "labelPhone": "Số điện thoại",
   "@labelPhone": {},
-
   "profilePersonalInfo": "Thông tin cá nhân",
   "@profilePersonalInfo": {},
   "profilePersonalInfoSub": "Tên, ảnh đại diện, số điện thoại",
@@ -140,20 +133,23 @@
   "profileGamesCount": "{count} trận",
   "@profileGamesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "profileFavouritesCount": "{count} sân yêu thích",
   "@profileFavouritesCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "errorAvatarFormat": "Ảnh đại diện phải thuộc định dạng JPEG hoặc PNG.",
   "@errorAvatarFormat": {},
   "errorAvatarSize": "Dung lượng ảnh đại diện không được vượt quá 2 MB.",
   "@errorAvatarSize": {},
-
   "navMap": "Khám phá",
   "@navMap": {},
   "navBookings": "Lịch đặt",
@@ -162,7 +158,6 @@
   "@navProfile": {},
   "navSlots": "Slot trống",
   "@navSlots": {},
-
   "commonFilter": "Bộ lọc",
   "@commonFilter": {},
   "commonSearch": "Tìm kiếm",
@@ -173,7 +168,6 @@
   "@commonReset": {},
   "commonBack": "Quay lại",
   "@commonBack": {},
-
   "sportAll": "Tất cả",
   "@sportAll": {},
   "sportFootball": "Bóng đá",
@@ -188,20 +182,26 @@
   "@sportMulti": {},
   "sportGeneric": "Thể thao",
   "@sportGeneric": {},
-
   "availabilityOpenSlots": "{count} slot trống",
   "@availabilityOpenSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "availabilityFull": "Hết slot",
   "@availabilityFull": {},
   "distanceKm": "{km} km",
   "@distanceKm": {
-    "placeholders": { "km": { "type": "String" } }
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   },
   "distanceWithin5": "Trong 5 km",
   "@distanceWithin5": {},
-
   "discoveryTitle": "Khám phá",
   "@discoveryTitle": {},
   "discoveryUpdating": "Đang cập nhật…",
@@ -210,11 +210,22 @@
   "@discoveryNoMatch": {},
   "discoverySubtitle": "{count} sân · {slots} slot trống quanh đây",
   "@discoverySubtitle": {
-    "placeholders": { "count": { "type": "int" }, "slots": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "slots": {
+        "type": "int"
+      }
+    }
   },
   "discoveryCourtsCount": "{count} sân",
   "@discoveryCourtsCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "discoverySortNearest": "Gần nhất ↓",
   "@discoverySortNearest": {},
@@ -234,7 +245,6 @@
   "@discoveryEmptyExpand": {},
   "discoveryEmptyResetFilters": "Đặt lại bộ lọc",
   "@discoveryEmptyResetFilters": {},
-
   "filterSports": "Môn thể thao",
   "@filterSports": {},
   "filterDistance": "Khoảng cách",
@@ -245,35 +255,56 @@
   "@filterOnlyOpen": {},
   "filterApply": "Hiển thị {count} sân",
   "@filterApply": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "filterApplyZero": "Xem kết quả · 0 sân",
   "@filterApplyZero": {},
-
   "searchHint": "Tìm sân, khu vực…",
   "@searchHint": {},
   "searchAllCourts": "Tất cả {total} sân · gần nhất trước",
   "@searchAllCourts": {
-    "placeholders": { "total": { "type": "int" } }
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "searchResultsFor": "{count} kết quả cho \"{query}\"",
   "@searchResultsFor": {
-    "placeholders": { "count": { "type": "int" }, "query": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "query": {
+        "type": "String"
+      }
+    }
   },
   "searchNoResults": "Không tìm thấy \"{query}\"",
   "@searchNoResults": {
-    "placeholders": { "query": { "type": "String" } }
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
   },
   "searchTryOther": "Thử tên sân hoặc khu vực khác.",
   "@searchTryOther": {},
-
   "slotsTitle": "Slot trống",
   "@slotsTitle": {},
   "slotsSubtitle": "Slot đang tìm người chơi cùng",
   "@slotsSubtitle": {},
   "slotsCountSort": "{count} slot · Sắp xếp: Sớm nhất ↓",
   "@slotsCountSort": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotsHostInvite": "Chủ slot mời chơi cùng",
   "@slotsHostInvite": {},
@@ -283,13 +314,19 @@
   "@slotsFull": {},
   "slotsJoinedCount": "{joined}/{max} người",
   "@slotsJoinedCount": {
-    "placeholders": { "joined": { "type": "int" }, "max": { "type": "int" } }
+    "placeholders": {
+      "joined": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
   },
   "slotsEmptyTitle": "Không có slot trống",
   "@slotsEmptyTitle": {},
   "slotsEmptyBody": "Không có slot nào đang tìm người trong khu vực của bạn.",
   "@slotsEmptyBody": {},
-
   "bookingValidationName": "Vui lòng nhập họ tên",
   "@bookingValidationName": {},
   "bookingValidationPhone": "Vui lòng nhập số điện thoại",
@@ -302,13 +339,21 @@
   "@bookingConfirmTitle": {},
   "bookingDurationHours": "{hours} giờ",
   "@bookingDurationHours": {
-    "placeholders": { "hours": { "type": "String" } }
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
   },
   "bookingSelectedSlot": "Khung giờ đã chọn",
   "@bookingSelectedSlot": {},
   "bookingSlotCountDuration": "1 khung · {duration}",
   "@bookingSlotCountDuration": {
-    "placeholders": { "duration": { "type": "String" } }
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "bookingTotalDuration": "Tổng thời lượng",
   "@bookingTotalDuration": {},
@@ -316,7 +361,11 @@
   "@bookingRentPrice": {},
   "bookingPricePerHour": "{price}/giờ",
   "@bookingPricePerHour": {
-    "placeholders": { "price": { "type": "String" } }
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
   },
   "bookingServiceFee": "Phí dịch vụ",
   "@bookingServiceFee": {},
@@ -336,7 +385,6 @@
   "@bookingFieldNotes": {},
   "bookingNotesHint": "VD: cần mượn vợt, đến muộn 10p...",
   "@bookingNotesHint": {},
-
   "myBookingsTitle": "Lịch đặt của tôi",
   "@myBookingsTitle": {},
   "bookingsTabUpcoming": "Sắp tới",
@@ -393,11 +441,19 @@
   "@commonConfirm": {},
   "bookingsJoinedHost": "Bạn tham gia · chủ slot {host}",
   "@bookingsJoinedHost": {
-    "placeholders": { "host": { "type": "String" } }
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
   },
   "bookingsHostWithPlayers": "Bạn là chủ slot · {players}",
   "@bookingsHostWithPlayers": {
-    "placeholders": { "players": { "type": "String" } }
+    "placeholders": {
+      "players": {
+        "type": "String"
+      }
+    }
   },
   "bookingsHost": "Bạn là chủ slot",
   "@bookingsHost": {},
@@ -405,7 +461,11 @@
   "@bookingsOneOff": {},
   "bookingsExtraSlots": "+{count} khung",
   "@bookingsExtraSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "bookingsLegendHost": "Bạn đặt sân",
   "@bookingsLegendHost": {},
@@ -431,10 +491,8 @@
   "@bookingJoinAccepted": {},
   "bookingJoinRejected": "Từ chối",
   "@bookingJoinRejected": {},
-
   "commonClose": "Đóng",
   "@commonClose": {},
-
   "weekdayMonday": "Thứ hai",
   "@weekdayMonday": {},
   "weekdayTuesday": "Thứ ba",
@@ -449,7 +507,6 @@
   "@weekdaySaturday": {},
   "weekdaySunday": "Chủ nhật",
   "@weekdaySunday": {},
-
   "wizardStepConfirm": "Xác nhận",
   "@wizardStepConfirm": {},
   "wizardStepPlay": "Chơi ghép",
@@ -484,11 +541,22 @@
   "@wizardAnd": {},
   "wizardMergeNotice": "Khung {names} liền nhau sẽ được gộp thành 1 buổi chơi {duration}.",
   "@wizardMergeNotice": {
-    "placeholders": { "names": { "type": "String" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "wizardSelectedSlots": "Đã chọn {count} khung giờ",
   "@wizardSelectedSlots": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardPickPlayers": "Chọn ai chơi cùng trước khi gửi yêu cầu tới chủ sân.",
   "@wizardPickPlayers": {},
@@ -496,7 +564,11 @@
   "@wizardWhoCanJoin": {},
   "wizardAccessApplies": "Cài đặt áp dụng cho cả {count} khung giờ đã đặt. Bạn có thể đổi riêng từng khung sau khi đặt xong.",
   "@wizardAccessApplies": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardPrivate": "🔒 Riêng tư",
   "@wizardPrivate": {},
@@ -522,7 +594,14 @@
   "@wizardDeclinedBody": {},
   "wizardWaitingBody": "Yêu cầu đặt {count} khung giờ đã được gửi tới {court}. Chủ sân thường phản hồi trong vòng vài phút. Bạn sẽ nhận thông báo ngay khi có kết quả.",
   "@wizardWaitingBody": {
-    "placeholders": { "count": { "type": "int" }, "court": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "court": {
+        "type": "String"
+      }
+    }
   },
   "wizardNotConfirmed": "Yêu cầu chưa được xác nhận.",
   "@wizardNotConfirmed": {},
@@ -532,7 +611,14 @@
   "@wizardBookingId": {},
   "wizardCourtSlots": "{court} · {count} khung giờ",
   "@wizardCourtSlots": {
-    "placeholders": { "court": { "type": "String" }, "count": { "type": "int" } }
+    "placeholders": {
+      "court": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardTimelineSent": "Bạn gửi yêu cầu đặt sân",
   "@wizardTimelineSent": {},
@@ -550,13 +636,24 @@
   "@wizardSuccessTitle": {},
   "wizardSuccessBody": "Hẹn gặp bạn tại {court}.\nĐến đúng giờ và mang theo tiền mặt nhé.",
   "@wizardSuccessBody": {
-    "placeholders": { "court": { "type": "String" } }
+    "placeholders": {
+      "court": {
+        "type": "String"
+      }
+    }
   },
   "wizardBringCash": "Nhớ mang tiền mặt",
   "@wizardBringCash": {},
   "wizardBringCashBody": "Thanh toán {total} tại sân khi đến chơi (cho cả {count} khung).",
   "@wizardBringCashBody": {
-    "placeholders": { "total": { "type": "String" }, "count": { "type": "int" } }
+    "placeholders": {
+      "total": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardLabelCourt": "Sân",
   "@wizardLabelCourt": {},
@@ -568,24 +665,45 @@
   "@wizardLabelTotal": {},
   "wizardMergedSuffix": " (gộp {count} khung)",
   "@wizardMergedSuffix": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "wizardHours": "{value} giờ",
   "@wizardHours": {
-    "placeholders": { "value": { "type": "String" } }
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
   },
   "wizardSlotCountDuration": "{count} khung · {duration}",
   "@wizardSlotCountDuration": {
-    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
-
   "courtDetailBookCta": "Chọn giờ trống & đặt sân",
   "@courtDetailBookCta": {},
   "courtDetailOpenSlotsHelper": "Tham gia cùng người chơi khác tại sân này",
   "@courtDetailOpenSlotsHelper": {},
   "courtDetailPhoto": "ảnh sân · {index}/{total}",
   "@courtDetailPhoto": {
-    "placeholders": { "index": { "type": "int" }, "total": { "type": "int" } }
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailFavorite": "Yêu thích",
   "@courtDetailFavorite": {},
@@ -593,7 +711,11 @@
   "@courtDetailShare": {},
   "courtDetailReviews": "{count} đánh giá",
   "@courtDetailReviews": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailPricePerHour": "Giá / giờ",
   "@courtDetailPricePerHour": {},
@@ -601,7 +723,11 @@
   "@courtDetailOpenToday": {},
   "courtDetailSlotCount": "{count} slot",
   "@courtDetailSlotCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtDetailAmenities": "Tiện ích",
   "@courtDetailAmenities": {},
@@ -613,7 +739,6 @@
   "@courtDetailViewAllCourts": {},
   "courtDetailScheduleSubtitle": "Chọn khung giờ & đặt sân",
   "@courtDetailScheduleSubtitle": {},
-
   "slotPickerTitle": "Chọn giờ",
   "@slotPickerTitle": {},
   "slotPickerDirectionsSoon": "Chỉ đường — sắp ra mắt",
@@ -622,13 +747,21 @@
   "@slotPickerMultiHint": {},
   "slotPickerOpenCount": "{count} slot trống · có thể đặt liên tiếp",
   "@slotPickerOpenCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotPickerOpenHelper": "Chạm để xem chi tiết & xin chơi cùng",
   "@slotPickerOpenHelper": {},
   "slotPickerDistanceDrive": "{km} km · ~6 phút lái xe",
   "@slotPickerDistanceDrive": {
-    "placeholders": { "km": { "type": "String" } }
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
   },
   "slotPickerDirections": "Chỉ đường",
   "@slotPickerDirections": {},
@@ -640,15 +773,25 @@
   "@slotPickerNoSelection": {},
   "slotPickerSelectedCount": "{count} khung đã chọn · {duration}",
   "@slotPickerSelectedCount": {
-    "placeholders": { "count": { "type": "int" }, "duration": { "type": "String" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
   },
   "slotPickerContinue": "Tiếp tục · {count} khung",
   "@slotPickerContinue": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "slotPickerPickSlots": "Chọn khung giờ",
   "@slotPickerPickSlots": {},
-
   "scheduleTitle": "Lịch sân",
   "@scheduleTitle": {},
   "scheduleAllCourts": "Lịch tất cả các sân",
@@ -665,23 +808,28 @@
   "@scheduleLegendSelected": {},
   "scheduleSelectedCount": "Đang chọn · {count} khung",
   "@scheduleSelectedCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "scheduleClearAll": "Xoá tất cả",
   "@scheduleClearAll": {},
   "scheduleContinue": "Tiếp tục đặt sân",
   "@scheduleContinue": {},
-
   "paymentTime": "Thời gian",
   "@paymentTime": {},
   "paymentCashBody": "Thanh toán {total} tại sân khi đến chơi.",
   "@paymentCashBody": {
-    "placeholders": { "total": { "type": "String" } }
+    "placeholders": {
+      "total": {
+        "type": "String"
+      }
+    }
   },
-
   "awaitingBody": "Yêu cầu đặt sân đã được gửi đến chủ sân.\nBạn sẽ được thông báo khi có kết quả.",
   "@awaitingBody": {},
-
   "accessSlotSelected": "Đã chọn khung giờ",
   "@accessSlotSelected": {},
   "accessApplies": "Cài đặt áp dụng cho khung giờ đã đặt. Bạn có thể đổi sau khi đặt xong.",
@@ -690,7 +838,6 @@
   "@accessSlotTakenTitle": {},
   "accessSlotTakenBody": "Rất tiếc, có người vừa đặt khung giờ này trước bạn.\nVui lòng chọn khung giờ khác.",
   "@accessSlotTakenBody": {},
-
   "bookingDetailTitle": "Chi tiết đặt sân",
   "@bookingDetailTitle": {},
   "bookingDetailMode": "Chế độ",
@@ -707,13 +854,21 @@
   "@bookingDetailHostRole": {},
   "bookingDetailAcceptedAt": "Đã chấp nhận · {time}",
   "@bookingDetailAcceptedAt": {
-    "placeholders": { "time": { "type": "String" } }
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "bookingDetailJoinRequests": "Yêu cầu tham gia",
   "@bookingDetailJoinRequests": {},
   "bookingDetailNewCount": "{count} mới",
   "@bookingDetailNewCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "bookingDetailNoRequests": "Chưa có yêu cầu tham gia",
   "@bookingDetailNoRequests": {},
@@ -721,7 +876,6 @@
   "@bookingDetailAccept": {},
   "bookingDetailManagePlayers": "Quản lý người chơi",
   "@bookingDetailManagePlayers": {},
-
   "courtDetailOpenAddressIn": "Mở địa chỉ bằng",
   "@courtDetailOpenAddressIn": {},
   "courtDetailAppleMaps": "Apple Maps",
@@ -730,7 +884,6 @@
   "@courtDetailGoogleMaps": {},
   "courtDetailMapsUnavailable": "Không mở được ứng dụng bản đồ",
   "@courtDetailMapsUnavailable": {},
-
   "courtsOpenMatchSlots": "Slot mở chơi ghép",
   "@courtsOpenMatchSlots": {},
   "courtsPriceFrom": "Từ",
@@ -745,20 +898,22 @@
   "@courtsViewUpcoming": {},
   "courtsSlotsLeft": "· còn {count}",
   "@courtsSlotsLeft": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "courtsJoin": "Tham gia",
   "@courtsJoin": {},
   "courtsTomorrow": "Mai",
   "@courtsTomorrow": {},
-
   "scheduleTapHint": "Chạm vào ô trống để chọn khung giờ",
   "@scheduleTapHint": {},
   "scheduleMultiHint": "Có thể chọn nhiều khung liên tục để đặt lâu hơn.",
   "@scheduleMultiHint": {},
   "schedulePickAtLeastOne": "Chọn ít nhất 1 khung giờ để tiếp tục",
   "@schedulePickAtLeastOne": {},
-
   "commonContinue": "Tiếp tục",
   "@commonContinue": {},
   "slotPickerTapSelect": "Chạm để chọn",
@@ -772,5 +927,75 @@
   "slotPickerBookNow": "Đặt ngay",
   "@slotPickerBookNow": {},
   "courtsDefaultName": "Sân thể thao",
-  "@courtsDefaultName": {}
+  "@courtsDefaultName": {},
+  "notifTitle": "Thông báo",
+  "@notifTitle": {},
+  "notifMarkAllRead": "Đọc tất cả",
+  "@notifMarkAllRead": {},
+  "notifFilterAll": "Tất cả",
+  "@notifFilterAll": {},
+  "notifFilterBooking": "Đặt sân",
+  "@notifFilterBooking": {},
+  "notifFilterPlayTogether": "Chơi ghép",
+  "@notifFilterPlayTogether": {},
+  "notifFilterReminder": "Nhắc nhở",
+  "@notifFilterReminder": {},
+  "notifSectionToday": "HÔM NAY",
+  "@notifSectionToday": {},
+  "notifSectionYesterday": "HÔM QUA",
+  "@notifSectionYesterday": {},
+  "notifSectionOlder": "TRƯỚC ĐÓ",
+  "@notifSectionOlder": {},
+  "notifEmpty": "Không có thông báo",
+  "@notifEmpty": {},
+  "notifEmptyInCategory": "trong mục {filter}",
+  "@notifEmptyInCategory": {
+    "placeholders": {
+      "filter": {
+        "type": "String"
+      }
+    }
+  },
+  "notifJoinApproved": "Đã duyệt",
+  "@notifJoinApproved": {},
+  "notifJoinRejected": "Đã từ chối",
+  "@notifJoinRejected": {},
+  "notifActionReject": "Từ chối",
+  "@notifActionReject": {},
+  "notifActionApprove": "Duyệt",
+  "@notifActionApprove": {},
+  "notifTimeJustNow": "Vừa xong",
+  "@notifTimeJustNow": {},
+  "notifTimeMinutesAgo": "{count} phút trước",
+  "@notifTimeMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifTimeHoursAgo": "{count} giờ trước",
+  "@notifTimeHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notifTimeYesterdayAt": "Hôm qua, {time}",
+  "@notifTimeYesterdayAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "notifTimeDaysAgo": "{count} ngày trước",
+  "@notifTimeDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

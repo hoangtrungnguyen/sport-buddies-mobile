@@ -5,6 +5,7 @@ import 'package:customer/features/notifications/widgets/notifications_top_bar.da
 import 'package:customer/features/notifications/widgets/notification_filter_chips.dart';
 import 'package:customer/features/notifications/widgets/notification_tile.dart';
 import 'package:customer/features/notifications/widgets/notification_states.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -22,7 +23,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   // Locally-dismissed ids (e.g. a rejected join request). Reset on reload.
   final Set<String> _dismissed = {};
 
-  static const _filters = ['Tất cả', 'Đặt sân', 'Chơi ghép', 'Nhắc nhở'];
+  List<String> _filterLabels(AppLocalizations l10n) => [
+    l10n.notifFilterAll,
+    l10n.notifFilterBooking,
+    l10n.notifFilterPlayTogether,
+    l10n.notifFilterReminder,
+  ];
 
   List<AppNotification> _filtered(List<AppNotification> items) {
     final all = items.where((n) => !_dismissed.contains(n.id)).toList();
@@ -63,6 +69,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final filters = _filterLabels(l10n);
     return Scaffold(
       backgroundColor: mdBackground,
       body: BlocBuilder<NotificationsCubit, NotificationsState>(
@@ -84,7 +92,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               TopBar(unreadCount: unread),
               FilterChips(
-                filters: _filters,
+                filters: filters,
                 unreadCount: unread,
                 selected: _selectedFilter,
                 onSelected: (i) => setState(() => _selectedFilter = i),
@@ -107,7 +115,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       children: [
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.6,
-                          child: EmptyState(filter: _filters[_selectedFilter]),
+                          child: EmptyState(
+                            filterLabel: filters[_selectedFilter],
+                            showCategory: _selectedFilter != 0,
+                          ),
                         ),
                       ],
                     ),
@@ -122,7 +133,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       children: [
                         if (today.isNotEmpty) ...[
                           SectionHeader(
-                            label: 'HÔM NAY',
+                            label: l10n.notifSectionToday,
                             count: today.where((n) => n.unread).length,
                           ),
                           ...today.map(
@@ -134,11 +145,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ],
                         if (yesterday.isNotEmpty) ...[
-                          const SectionHeader(label: 'HÔM QUA'),
+                          SectionHeader(label: l10n.notifSectionYesterday),
                           ...yesterday.map((n) => NotifTile(notif: n)),
                         ],
                         if (older.isNotEmpty) ...[
-                          const SectionHeader(label: 'TRƯỚC ĐÓ'),
+                          SectionHeader(label: l10n.notifSectionOlder),
                           ...older.map((n) => NotifTile(notif: n)),
                         ],
                       ],

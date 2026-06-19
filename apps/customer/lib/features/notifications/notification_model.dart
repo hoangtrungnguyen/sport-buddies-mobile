@@ -12,8 +12,7 @@ enum NotifType {
 }
 
 /// Date bucket a notification falls into. Drives the section grouping so the
-/// display never depends on parsing the human-readable [AppNotification.time]
-/// string.
+/// display never depends on parsing a human-readable time string.
 enum NotifDay { today, yesterday, older }
 
 class AppNotification {
@@ -22,7 +21,7 @@ class AppNotification {
     required this.type,
     required this.title,
     required this.body,
-    required this.time,
+    required this.createdAt,
     required this.day,
     this.unread = false,
   });
@@ -31,7 +30,10 @@ class AppNotification {
   final NotifType type;
   final String title;
   final String body;
-  final String time;
+
+  /// Local creation time — formatted for display (relative time) in the
+  /// widget layer so the label can be localized.
+  final DateTime createdAt;
   final NotifDay day;
   final bool unread;
 
@@ -41,7 +43,7 @@ class AppNotification {
     type: type,
     title: title,
     body: body,
-    time: time,
+    createdAt: createdAt,
     day: day,
     unread: false,
   );

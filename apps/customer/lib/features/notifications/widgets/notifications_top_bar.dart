@@ -3,6 +3,7 @@
 
 import 'package:customer/features/notifications/notifications_cubit.dart';
 import 'package:customer/features/notifications/notifications_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -24,10 +25,10 @@ class TopBar extends StatelessWidget {
               color: mdOnSurface,
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Thông báo',
-                style: TextStyle(
+                AppLocalizations.of(context).notifTitle,
+                style: const TextStyle(
                   color: mdOnSurface,
                   fontSize: 22,
                   fontWeight: FontWeight.w600,
@@ -38,9 +39,9 @@ class TopBar extends StatelessWidget {
               TextButton(
                 onPressed: () =>
                     context.read<NotificationsCubit>().markAllRead(),
-                child: const Text(
-                  'Đọc tất cả',
-                  style: TextStyle(color: mdPrimary, fontSize: 14),
+                child: Text(
+                  AppLocalizations.of(context).notifMarkAllRead,
+                  style: const TextStyle(color: mdPrimary, fontSize: 14),
                 ),
               ),
           ],

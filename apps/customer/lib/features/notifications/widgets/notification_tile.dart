@@ -4,8 +4,28 @@
 import 'package:customer/features/notifications/notifications_cubit.dart';
 import 'package:customer/features/notifications/notification_model.dart';
 import 'package:customer/features/notifications/notifications_style.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+/// Localized relative time ("Just now", "5 min ago", "Yesterday, 14:30", …).
+String relativeNotifTime(AppLocalizations l10n, DateTime created) {
+  final now = DateTime.now();
+  final diff = now.difference(created);
+  if (diff.inMinutes < 1) return l10n.notifTimeJustNow;
+  if (diff.inMinutes < 60) return l10n.notifTimeMinutesAgo(diff.inMinutes);
+  final d = DateTime(created.year, created.month, created.day);
+  final today = DateTime(now.year, now.month, now.day);
+  final dayDiff = today.difference(d).inDays;
+  if (dayDiff <= 0) return l10n.notifTimeHoursAgo(diff.inHours);
+  if (dayDiff == 1) {
+    final hhmm =
+        '${created.hour.toString().padLeft(2, '0')}:'
+        '${created.minute.toString().padLeft(2, '0')}';
+    return l10n.notifTimeYesterdayAt(hhmm);
+  }
+  return l10n.notifTimeDaysAgo(diff.inDays);
+}
 
 class SectionHeader extends StatelessWidget {
   const SectionHeader({super.key, required this.label, this.count});
@@ -84,7 +104,9 @@ class NotifTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            notif.title,
+                            notif.title.isEmpty
+                                ? AppLocalizations.of(context).notifTitle
+                                : notif.title,
                             style: TextStyle(
                               color: mdOnSurface,
                               fontSize: 14,
@@ -116,7 +138,10 @@ class NotifTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      notif.time,
+                      relativeNotifTime(
+                        AppLocalizations.of(context),
+                        notif.createdAt,
+                      ),
                       style: const TextStyle(
                         color: mdOnSurfaceVariant,
                         fontSize: 11,
@@ -213,8 +238,11 @@ class _JoinRequestActionsState extends State<_JoinRequestActions> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (_chosen != null) {
-      final label = _chosen == _Action.approve ? 'Đã duyệt' : 'Đã từ chối';
+      final label = _chosen == _Action.approve
+          ? l10n.notifJoinApproved
+          : l10n.notifJoinRejected;
       final color = _chosen == _Action.approve ? mdPrimary : mdOnSurfaceVariant;
       return Padding(
         padding: const EdgeInsets.only(top: 8),
@@ -234,7 +262,7 @@ class _JoinRequestActionsState extends State<_JoinRequestActions> {
       child: Row(
         children: [
           _ActionBtn(
-            label: 'Từ chối',
+            label: l10n.notifActionReject,
             filled: false,
             onTap: () {
               setState(() => _chosen = _Action.reject);
@@ -243,7 +271,7 @@ class _JoinRequestActionsState extends State<_JoinRequestActions> {
           ),
           const SizedBox(width: 8),
           _ActionBtn(
-            label: 'Duyệt',
+            label: l10n.notifActionApprove,
             filled: true,
             onTap: () => setState(() => _chosen = _Action.approve),
           ),

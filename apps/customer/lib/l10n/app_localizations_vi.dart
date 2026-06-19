@@ -1080,4 +1080,74 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get courtsDefaultName => 'Sân thể thao';
+
+  @override
+  String get notifTitle => 'Thông báo';
+
+  @override
+  String get notifMarkAllRead => 'Đọc tất cả';
+
+  @override
+  String get notifFilterAll => 'Tất cả';
+
+  @override
+  String get notifFilterBooking => 'Đặt sân';
+
+  @override
+  String get notifFilterPlayTogether => 'Chơi ghép';
+
+  @override
+  String get notifFilterReminder => 'Nhắc nhở';
+
+  @override
+  String get notifSectionToday => 'HÔM NAY';
+
+  @override
+  String get notifSectionYesterday => 'HÔM QUA';
+
+  @override
+  String get notifSectionOlder => 'TRƯỚC ĐÓ';
+
+  @override
+  String get notifEmpty => 'Không có thông báo';
+
+  @override
+  String notifEmptyInCategory(String filter) {
+    return 'trong mục $filter';
+  }
+
+  @override
+  String get notifJoinApproved => 'Đã duyệt';
+
+  @override
+  String get notifJoinRejected => 'Đã từ chối';
+
+  @override
+  String get notifActionReject => 'Từ chối';
+
+  @override
+  String get notifActionApprove => 'Duyệt';
+
+  @override
+  String get notifTimeJustNow => 'Vừa xong';
+
+  @override
+  String notifTimeMinutesAgo(int count) {
+    return '$count phút trước';
+  }
+
+  @override
+  String notifTimeHoursAgo(int count) {
+    return '$count giờ trước';
+  }
+
+  @override
+  String notifTimeYesterdayAt(String time) {
+    return 'Hôm qua, $time';
+  }
+
+  @override
+  String notifTimeDaysAgo(int count) {
+    return '$count ngày trước';
+  }
 }
