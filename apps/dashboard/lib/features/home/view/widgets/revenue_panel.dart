@@ -24,20 +24,7 @@ class RevenuePanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Symbols.bar_chart, size: 20, color: scheme.onSurfaceVariant),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text('Doanh thu 7 ngày',
-                      style: theme.textTheme.titleMedium),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/analytics'),
-                  child: const Text('Thống kê'),
-                ),
-              ],
-            ),
+            _header(context, theme, scheme),
             const SizedBox(height: 12),
             Text(
               '${formatted}tr',
@@ -50,49 +37,71 @@ class RevenuePanel extends StatelessWidget {
                   ?.copyWith(color: scheme.onSurfaceVariant),
             ),
             const SizedBox(height: 12),
-            SizedBox(
-              height: 104,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  for (final day in data)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: day.today
-                                      ? scheme.primary
-                                      : scheme.secondaryContainer,
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(4)),
-                                ),
-                                child: Tooltip(
-                                  message: _formatVnd(day.value),
-                                  child: const SizedBox(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              day.day,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: scheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
+            _chart(scheme),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Title + "Thống kê" link to the analytics screen.
+  Widget _header(BuildContext context, ThemeData theme, ColorScheme scheme) {
+    return Row(
+      children: [
+        Icon(Symbols.bar_chart, size: 20, color: scheme.onSurfaceVariant),
+        const SizedBox(width: 12),
+        Expanded(
+          child:
+              Text('Doanh thu 7 ngày', style: theme.textTheme.titleMedium),
+        ),
+        TextButton(
+          onPressed: () => context.go('/analytics'),
+          child: const Text('Thống kê'),
+        ),
+      ],
+    );
+  }
+
+  /// The 7-day bar chart.
+  Widget _chart(ColorScheme scheme) {
+    return SizedBox(
+      height: 104,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [for (final day in data) _bar(day, scheme)],
+      ),
+    );
+  }
+
+  /// One day's bar + label; today's bar is primary-tinted.
+  Widget _bar(RevenueDay day, ColorScheme scheme) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: day.today
+                      ? scheme.primary
+                      : scheme.secondaryContainer,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
+                child: Tooltip(
+                  message: _formatVnd(day.value),
+                  child: const SizedBox(),
+                ),
               ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              day.day,
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             ),
           ],
         ),
