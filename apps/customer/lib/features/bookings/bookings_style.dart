@@ -8,23 +8,25 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 // ─── MD3 tokens ──────────────────────────────────────────────────────────────
-const mdSurface                 = Color(0xFFF7FBF2);
-const mdOnSurface               = Color(0xFF181D18);
-const mdOnSurfaceVariant        = Color(0xFF414941);
-const mdSurfaceContainerLowest  = Color(0xFFFFFFFF);
-const mdSurfaceContainer        = Color(0xFFEBEFE6);
+const mdSurface = Color(0xFFF7FBF2);
+const mdOnSurface = Color(0xFF181D18);
+const mdOnSurfaceVariant = Color(0xFF414941);
+const mdSurfaceContainerLowest = Color(0xFFFFFFFF);
+const mdSurfaceContainer = Color(0xFFEBEFE6);
 const mdSurfaceContainerHighest = Color(0xFFDCE1D7);
-const mdPrimary                 = Color(0xFF15803D);
-const mdPrimaryContainer        = Color(0xFFBBF7D0);
-const mdOnPrimaryContainer      = Color(0xFF002111);
-const mdSecondary               = Color(0xFF506352);
-const mdSecondaryContainer      = Color(0xFFD3E8D3);
-const mdOnSecondaryContainer    = Color(0xFF0E1F10);
-const mdTertiary                = Color(0xFF3D6373);
-const mdTertiaryContainer       = Color(0xFFC1E8FA);
-const mdOnTertiaryContainer     = Color(0xFF001F2A);
-const mdError                   = Color(0xFFBA1A1A);
-const mdOutlineVariant          = Color(0xFFBFC9BA);
+const mdPrimary = Color(0xFF15803D);
+const mdOnPrimary = Color(0xFFFFFFFF);
+const mdPrimaryContainer = Color(0xFFBBF7D0);
+const mdOnPrimaryContainer = Color(0xFF002111);
+const mdSecondary = Color(0xFF506352);
+const mdSecondaryContainer = Color(0xFFD3E8D3);
+const mdOnSecondaryContainer = Color(0xFF0E1F10);
+const mdTertiary = Color(0xFF3D6373);
+const mdTertiaryContainer = Color(0xFFC1E8FA);
+const mdOnTertiaryContainer = Color(0xFF001F2A);
+const mdError = Color(0xFFBA1A1A);
+const mdOutlineVariant = Color(0xFFBFC9BA);
+const mdCornerMd = BorderRadius.all(Radius.circular(12));
 const mdCornerFull = BorderRadius.all(Radius.circular(9999));
 
 // ─── Label helpers ──────────────────────────────────────────────────────────
@@ -52,30 +54,37 @@ String dateSectionLabel(AppLocalizations l10n, DateTime date) {
 }
 
 /// Localized booking status label from status + role.
-String statusLabel(AppLocalizations l10n, BookingStatus status, BookingRole role) =>
-    switch (status) {
-      BookingStatus.confirmed =>
-        role == BookingRole.join ? l10n.bookingStatusApproved : l10n.bookingStatusConfirmed,
-      BookingStatus.pending =>
-        role == BookingRole.join ? l10n.bookingStatusPendingJoin : l10n.bookingStatusPendingHost,
-      BookingStatus.completed => l10n.bookingsFilterCompleted,
-      BookingStatus.cancelled => l10n.bookingStatusCancelled,
-    };
+String statusLabel(
+  AppLocalizations l10n,
+  BookingStatus status,
+  BookingRole role,
+) => switch (status) {
+  BookingStatus.confirmed =>
+    role == BookingRole.join
+        ? l10n.bookingStatusApproved
+        : l10n.bookingStatusConfirmed,
+  BookingStatus.pending =>
+    role == BookingRole.join
+        ? l10n.bookingStatusPendingJoin
+        : l10n.bookingStatusPendingHost,
+  BookingStatus.completed => l10n.bookingsFilterCompleted,
+  BookingStatus.cancelled => l10n.bookingStatusCancelled,
+};
 
 /// Localized label for a join-request override token.
 String overrideLabel(AppLocalizations l10n, String token) => switch (token) {
-      'accepted' => l10n.bookingJoinAccepted,
-      'rejected' => l10n.bookingJoinRejected,
-      _ => l10n.bookingStatusPendingHost,
-    };
+  'accepted' => l10n.bookingJoinAccepted,
+  'rejected' => l10n.bookingJoinRejected,
+  _ => l10n.bookingStatusPendingHost,
+};
 
 /// Localized label for an action token.
 String actionLabel(AppLocalizations l10n, String token) => switch (token) {
-      'rebook' => l10n.bookingActionRebook,
-      'detail' => l10n.bookingActionDetail,
-      'cancel' => l10n.bookingActionCancel,
-      _ => token,
-    };
+  'rebook' => l10n.bookingActionRebook,
+  'detail' => l10n.bookingActionDetail,
+  'cancel' => l10n.bookingActionCancel,
+  _ => token,
+};
 
 // ─── Host crown icon (SVG path painted) ──────────────────────────────────────
 
@@ -101,7 +110,9 @@ class _CrownPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color..style = PaintingStyle.fill;
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
     final sx = size.width / 24;
     final sy = size.height / 24;
     final path = Path()

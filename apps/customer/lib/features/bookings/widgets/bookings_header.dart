@@ -235,8 +235,9 @@ class _ProfileAvatar extends StatelessWidget {
         .split(RegExp(r'\s+'))
         .where((p) => p.isNotEmpty)
         .toList();
-    if (parts.length >= 2)
+    if (parts.length >= 2) {
       return (parts.first[0] + parts.last[0]).toUpperCase();
+    }
     return source.substring(0, source.length >= 2 ? 2 : 1).toUpperCase();
   }
 
