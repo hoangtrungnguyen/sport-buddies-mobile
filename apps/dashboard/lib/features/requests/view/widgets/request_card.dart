@@ -67,73 +67,88 @@ class RequestCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                request.customerName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              request.code,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w600,
-                color: AppColors.neutral400,
-              ),
-            ),
-          ],
-        ),
+        _nameRow(),
         const SizedBox(height: 4),
-        Row(
-          children: [
-            _metaIcon(Icons.place_rounded),
-            const SizedBox(width: 4),
-            Flexible(
-              child: Text(
-                request.courtName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: _metaStyle,
-              ),
-            ),
-            const SizedBox(width: 10),
-            _metaIcon(Icons.schedule_rounded),
-            const SizedBox(width: 4),
-            Text(
-              timeRange(request.startAt.toLocal(), request.endAt.toLocal()),
-              style: _metaStyle,
-            ),
-          ],
-        ),
+        _locationTimeRow(),
         if (request.venueName.isNotEmpty || request.sportType.isNotEmpty) ...[
           const SizedBox(height: 3),
-          Row(
-            children: [
-              _metaIcon(Icons.sports_rounded),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  [
-                    if (request.venueName.isNotEmpty) request.venueName,
-                    if (request.sportType.isNotEmpty) request.sportType,
-                  ].join(' · '),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: _metaStyle,
-                ),
-              ),
-            ],
-          ),
+          _venueSportRow(),
         ],
+      ],
+    );
+  }
+
+  /// Customer name (ellipsised) + the short booking code.
+  Widget _nameRow() {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            request.customerName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.neutral900,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          request.code,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: AppColors.neutral400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Court name + booking time, each with its meta icon.
+  Widget _locationTimeRow() {
+    return Row(
+      children: [
+        _metaIcon(Icons.place_rounded),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            request.courtName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _metaStyle,
+          ),
+        ),
+        const SizedBox(width: 10),
+        _metaIcon(Icons.schedule_rounded),
+        const SizedBox(width: 4),
+        Text(
+          timeRange(request.startAt.toLocal(), request.endAt.toLocal()),
+          style: _metaStyle,
+        ),
+      ],
+    );
+  }
+
+  /// Optional "venue · sport" meta line (rendered only when either is set).
+  Widget _venueSportRow() {
+    return Row(
+      children: [
+        _metaIcon(Icons.sports_rounded),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            [
+              if (request.venueName.isNotEmpty) request.venueName,
+              if (request.sportType.isNotEmpty) request.sportType,
+            ].join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _metaStyle,
+          ),
+        ),
       ],
     );
   }
@@ -255,8 +270,7 @@ class _AutoLabel extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
         label: 'requests-auto-approved',
         child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
             color: AppColors.neutral100,
             borderRadius: BorderRadius.circular(99),
