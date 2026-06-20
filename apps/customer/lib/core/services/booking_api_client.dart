@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -66,12 +67,20 @@ class BookingApiClient {
   final String _baseUrl;
   final http.Client _http;
 
+  /// Hard ceiling for any single backend request. A server that hasn't
+  /// responded within this window is treated as unreachable so the UI fails
+  /// fast instead of hanging indefinitely.
+  static const requestTimeout = Duration(seconds: 30);
+
   /// Runs an HTTP call, translating transport-level failures (offline,
-  /// host unreachable) into [NoConnectionException] so callers can show a
-  /// "no internet" message instead of a raw exception string.
+  /// host unreachable, slow/hung server) into [NoConnectionException] so
+  /// callers can show a "no internet" message instead of a raw exception
+  /// string. Every request is bounded by [requestTimeout].
   Future<http.Response> _send(Future<http.Response> Function() call) async {
     try {
-      return await call();
+      return await call().timeout(requestTimeout);
+    } on TimeoutException {
+      throw const NoConnectionException();
     } on http.ClientException {
       throw const NoConnectionException();
     } on Exception catch (e) {
