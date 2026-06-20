@@ -7,6 +7,7 @@ import 'package:customer/features/slots/widgets/slot_hero_section.dart';
 import 'package:customer/features/slots/widgets/slot_time_card.dart';
 import 'package:customer/features/slots/widgets/slot_players_card.dart';
 import 'package:customer/features/slots/widgets/slot_host_message_card.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/features/slots/widgets/slot_sticky_cta.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -37,9 +38,12 @@ class _SlotDetailScreenState extends State<SlotDetailScreen> {
       listenWhen: (prev, curr) =>
           curr is SlotDetailLoaded && curr.errorMessage != null,
       listener: (context, state) {
-        final msg = (state as SlotDetailLoaded).errorMessage!;
+        final code = (state as SlotDetailLoaded).errorMessage!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(appErrorMessage(AppLocalizations.of(context), code)),
+            backgroundColor: Colors.red,
+          ),
         );
       },
       builder: (context, state) => Scaffold(

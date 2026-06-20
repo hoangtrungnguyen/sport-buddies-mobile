@@ -29,7 +29,7 @@ class BookingCubit extends Cubit<BookingState> {
 
     final slotResult = await _slotRepo.fetchSlotById(slotId);
     if (slotResult is! Success<Slot>) {
-      emit(const BookingError('Không thể tải thông tin khung giờ.'));
+      emit(const BookingError('slot_load'));
       return;
     }
     final slot = slotResult.value;
@@ -87,7 +87,7 @@ class BookingCubit extends Cubit<BookingState> {
     try {
       final userId = _client.auth.currentSession?.user.id;
       if (userId == null) {
-        emit(const BookingError('Vui lòng đăng nhập lại.'));
+        emit(const BookingError('relogin'));
         return;
       }
 
@@ -104,7 +104,7 @@ class BookingCubit extends Cubit<BookingState> {
     } on SlotUnavailableException {
       emit(const BookingSlotTaken());
     } on NoConnectionException {
-      emit(const BookingError('Không có kết nối mạng. Vui lòng thử lại.'));
+      emit(const BookingError('network'));
     } catch (e, st) {
       appLogger.e('BookingCubit.submit', error: e, stackTrace: st);
       emit(BookingError(e.toString(), stackTrace: st));

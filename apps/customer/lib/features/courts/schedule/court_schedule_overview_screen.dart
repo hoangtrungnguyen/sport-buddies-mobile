@@ -7,6 +7,7 @@ import 'package:customer/features/courts/schedule/widgets/schedule_grid.dart';
 import 'package:customer/features/courts/schedule/widgets/schedule_legend.dart';
 import 'package:customer/features/courts/schedule/widgets/schedule_selection_cart.dart';
 import 'package:customer/features/courts/schedule/widgets/schedule_empty_states.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,8 +65,11 @@ class _View extends StatelessWidget {
           CourtScheduleOverviewLoading() => const Center(
             child: CircularProgressIndicator(),
           ),
-          CourtScheduleOverviewFailure(message: final msg) => Center(
-            child: Text(msg, style: const TextStyle(color: Color(0xFF6B7280))),
+          CourtScheduleOverviewFailure(message: final code) => Center(
+            child: Text(
+              appErrorMessage(AppLocalizations.of(context), code),
+              style: const TextStyle(color: Color(0xFF6B7280)),
+            ),
           ),
           CourtScheduleOverviewLoaded() => _LoadedBody(state: state),
         },

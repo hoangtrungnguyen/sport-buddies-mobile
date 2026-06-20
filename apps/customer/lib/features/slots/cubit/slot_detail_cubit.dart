@@ -58,20 +58,10 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
       // player sees their request rather than a hard error.
       emit(s.copyWith(joining: false, joinStatus: SlotJoinStatus.pending));
     } on NoConnectionException {
-      emit(
-        s.copyWith(
-          joining: false,
-          errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
-        ),
-      );
+      emit(s.copyWith(joining: false, errorMessage: 'network'));
     } catch (e, st) {
       appLogger.e('SlotDetailCubit.requestToJoin', error: e, stackTrace: st);
-      emit(
-        s.copyWith(
-          joining: false,
-          errorMessage: 'Không gửi được yêu cầu, thử lại sau.',
-        ),
-      );
+      emit(s.copyWith(joining: false, errorMessage: 'send_request'));
     }
   }
 
@@ -84,30 +74,17 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
     try {
       await _api.signalLastMinuteCapacity(slotId);
       emit(
-        s.copyWith(
-          signalingLastMinute: false,
-          errorMessage: 'Đã thông báo khả năng ghép cuối cùng.',
-        ),
+        s.copyWith(signalingLastMinute: false, errorMessage: 'last_call_sent'),
       );
     } on NoConnectionException {
-      emit(
-        s.copyWith(
-          signalingLastMinute: false,
-          errorMessage: 'Không có kết nối mạng. Vui lòng thử lại.',
-        ),
-      );
+      emit(s.copyWith(signalingLastMinute: false, errorMessage: 'network'));
     } catch (e, st) {
       appLogger.e(
         'SlotDetailCubit.signalLastMinuteCapacity',
         error: e,
         stackTrace: st,
       );
-      emit(
-        s.copyWith(
-          signalingLastMinute: false,
-          errorMessage: 'Không gửi được thông báo, thử lại sau.',
-        ),
-      );
+      emit(s.copyWith(signalingLastMinute: false, errorMessage: 'send_notify'));
     }
   }
 
@@ -119,8 +96,8 @@ class SlotDetailCubit extends Cubit<SlotDetailState> {
   };
 
   static String _message(AppFailure f) => switch (f) {
-    NetworkFailure() => 'Không có kết nối mạng.',
-    ServerFailure(code: final c) => 'Lỗi máy chủ ($c).',
-    AuthFailure(message: final m) => 'Lỗi xác thực: $m',
+    NetworkFailure() => 'network',
+    ServerFailure() => 'server',
+    AuthFailure() => 'auth',
   };
 }

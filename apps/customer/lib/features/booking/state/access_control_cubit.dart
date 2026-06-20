@@ -31,7 +31,7 @@ class AccessControlCubit extends Cubit<AccessControlState> {
 
     final userId = _client.auth.currentSession?.user.id;
     if (userId == null) {
-      emit(const AccessControlState.failure('Vui lòng đăng nhập lại.'));
+      emit(const AccessControlState.failure('relogin'));
       return;
     }
 
@@ -55,11 +55,7 @@ class AccessControlCubit extends Cubit<AccessControlState> {
 
       emit(AccessControlState.saved(bookingId: bookingId));
     } on NoConnectionException {
-      emit(
-        const AccessControlState.failure(
-          'Không có kết nối mạng. Vui lòng thử lại.',
-        ),
-      );
+      emit(const AccessControlState.failure('network'));
     } on SlotUnavailableException catch (e, st) {
       appLogger.e('AccessControlCubit.submitAndSave', error: e, stackTrace: st);
       // Slot already booked — check if it belongs to this user (e.g. retry

@@ -1266,4 +1266,43 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get bookingCancelConfirmTitle => 'Huỷ đặt sân này?';
+
+  @override
+  String get errNetwork => 'Không có kết nối mạng. Vui lòng thử lại.';
+
+  @override
+  String get errServer => 'Lỗi máy chủ. Vui lòng thử lại.';
+
+  @override
+  String get errAuth => 'Lỗi xác thực. Vui lòng đăng nhập lại.';
+
+  @override
+  String get errReLogin => 'Vui lòng đăng nhập lại.';
+
+  @override
+  String get errSlotLoad => 'Không thể tải thông tin khung giờ.';
+
+  @override
+  String get errCenterNotFound => 'Không tìm thấy cụm sân.';
+
+  @override
+  String get errScheduleEmpty => 'Không có lịch sân cho địa điểm này.';
+
+  @override
+  String get errScheduleLoad => 'Không tải được lịch sân. Vui lòng thử lại.';
+
+  @override
+  String get errSendRequest => 'Không gửi được yêu cầu, thử lại sau.';
+
+  @override
+  String get errSendNotify => 'Không gửi được thông báo, thử lại sau.';
+
+  @override
+  String get errPlayersLoad => 'Không thể tải danh sách người chơi.';
+
+  @override
+  String get errGeneric => 'Có lỗi xảy ra.';
+
+  @override
+  String get infoLastCallSent => 'Đã thông báo khả năng ghép cuối cùng.';
 }

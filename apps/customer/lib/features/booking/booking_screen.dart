@@ -2,6 +2,7 @@ import 'package:customer/features/booking/booking_stepper.dart';
 import 'package:customer/features/booking/state/booking_cubit.dart';
 import 'package:customer/features/booking/widgets/booking_step1_content.dart';
 import 'package:customer/features/booking/widgets/booking_confirm_button.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,7 +83,12 @@ class _BookingScreenState extends State<BookingScreen> {
         }
         if (state is BookingError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                appErrorMessage(AppLocalizations.of(context), state.message),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       },

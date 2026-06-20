@@ -2347,6 +2347,84 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Huỷ đặt sân này?'**
   String get bookingCancelConfirmTitle;
+
+  /// No description provided for @errNetwork.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có kết nối mạng. Vui lòng thử lại.'**
+  String get errNetwork;
+
+  /// No description provided for @errServer.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi máy chủ. Vui lòng thử lại.'**
+  String get errServer;
+
+  /// No description provided for @errAuth.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi xác thực. Vui lòng đăng nhập lại.'**
+  String get errAuth;
+
+  /// No description provided for @errReLogin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng đăng nhập lại.'**
+  String get errReLogin;
+
+  /// No description provided for @errSlotLoad.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể tải thông tin khung giờ.'**
+  String get errSlotLoad;
+
+  /// No description provided for @errCenterNotFound.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy cụm sân.'**
+  String get errCenterNotFound;
+
+  /// No description provided for @errScheduleEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có lịch sân cho địa điểm này.'**
+  String get errScheduleEmpty;
+
+  /// No description provided for @errScheduleLoad.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tải được lịch sân. Vui lòng thử lại.'**
+  String get errScheduleLoad;
+
+  /// No description provided for @errSendRequest.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không gửi được yêu cầu, thử lại sau.'**
+  String get errSendRequest;
+
+  /// No description provided for @errSendNotify.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không gửi được thông báo, thử lại sau.'**
+  String get errSendNotify;
+
+  /// No description provided for @errPlayersLoad.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể tải danh sách người chơi.'**
+  String get errPlayersLoad;
+
+  /// No description provided for @errGeneric.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có lỗi xảy ra.'**
+  String get errGeneric;
+
+  /// No description provided for @infoLastCallSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thông báo khả năng ghép cuối cùng.'**
+  String get infoLastCallSent;
 }
 
 class _AppLocalizationsDelegate

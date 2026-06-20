@@ -4,6 +4,7 @@ import 'package:customer/features/booking/state/access_control_state.dart';
 import 'package:customer/features/booking/widgets/access_success_circle.dart';
 import 'package:customer/features/booking/widgets/access_policy_card.dart';
 import 'package:customer/features/booking/widgets/access_slot_taken_sheet.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -104,7 +105,12 @@ class _AccessControlScreenState extends State<AccessControlScreen> {
           );
         } else if (state is AccessControlFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                appErrorMessage(AppLocalizations.of(context), state.message),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       },

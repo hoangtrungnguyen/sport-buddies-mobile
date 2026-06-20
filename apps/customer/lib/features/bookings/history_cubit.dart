@@ -20,7 +20,7 @@ class HistoryCubit extends Cubit<HistoryState> {
     try {
       final userId = _client.auth.currentSession?.user.id;
       if (userId == null) {
-        emit(const HistoryError('Vui lòng đăng nhập lại.'));
+        emit(const HistoryError('relogin'));
         return;
       }
 

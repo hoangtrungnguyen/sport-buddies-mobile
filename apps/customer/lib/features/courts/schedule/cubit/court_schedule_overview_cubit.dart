@@ -9,8 +9,8 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
   CourtScheduleOverviewCubit({
     String? sportsCenterId,
     BookingApiClient? apiClient,
-  })  : _api = apiClient,
-        super(const CourtScheduleOverviewState.loading()) {
+  }) : _api = apiClient,
+       super(const CourtScheduleOverviewState.loading()) {
     if (sportsCenterId != null && apiClient != null) {
       _loadFromApi(sportsCenterId);
     } else {
@@ -18,8 +18,8 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     }
   }
 
-  static const _emptyMessage = 'Không có lịch sân cho địa điểm này.';
-  static const _errorMessage = 'Không tải được lịch sân. Vui lòng thử lại.';
+  static const _emptyMessage = 'schedule_empty';
+  static const _errorMessage = 'schedule_load';
 
   final BookingApiClient? _api;
 
@@ -28,8 +28,11 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
       final response = await _api!.getSportsCenterSchedule(scId);
       _parseAndEmit(response);
     } catch (e, st) {
-      appLogger.e('CourtScheduleOverviewCubit._loadFromApi failed',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'CourtScheduleOverviewCubit._loadFromApi failed',
+        error: e,
+        stackTrace: st,
+      );
       emit(CourtScheduleOverviewState.failure(_errorMessage, stackTrace: st));
     }
   }
@@ -38,9 +41,7 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     try {
       // Parse dates from response
       final datesList = response['dates'] as List<dynamic>? ?? [];
-      final dates = datesList
-          .map((d) => DateTime.parse(d as String))
-          .toList();
+      final dates = datesList.map((d) => DateTime.parse(d as String)).toList();
 
       if (dates.isEmpty) {
         emit(const CourtScheduleOverviewState.failure(_emptyMessage));
@@ -50,13 +51,15 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
       // Parse courts from response
       final courtsList = response['courts'] as List<dynamic>? ?? [];
       final courts = courtsList
-          .map((c) => c is Map<String, dynamic>
-              ? ScheduleCourt(
-                  id: c['id'] as String? ?? '',
-                  name: c['name'] as String? ?? 'Unknown',
-                  sport: c['sport'] as String? ?? 'Unknown',
-                )
-              : null)
+          .map(
+            (c) => c is Map<String, dynamic>
+                ? ScheduleCourt(
+                    id: c['id'] as String? ?? '',
+                    name: c['name'] as String? ?? 'Unknown',
+                    sport: c['sport'] as String? ?? 'Unknown',
+                  )
+                : null,
+          )
           .whereType<ScheduleCourt>()
           .toList();
 
@@ -94,27 +97,32 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
       });
       final sortedHours = hours.toList()..sort();
 
-      emit(CourtScheduleOverviewState.loaded(
-        selectedDateIndex: 0,
-        selectedByDate: const {},
-        dates: dates,
-        hours: sortedHours,
-        courts: courts,
-        slotsByDate: slotsByDate,
-      ));
+      emit(
+        CourtScheduleOverviewState.loaded(
+          selectedDateIndex: 0,
+          selectedByDate: const {},
+          dates: dates,
+          hours: sortedHours,
+          courts: courts,
+          slotsByDate: slotsByDate,
+        ),
+      );
     } catch (e, st) {
-      appLogger.e('CourtScheduleOverviewCubit._parseAndEmit failed',
-          error: e, stackTrace: st);
+      appLogger.e(
+        'CourtScheduleOverviewCubit._parseAndEmit failed',
+        error: e,
+        stackTrace: st,
+      );
       emit(CourtScheduleOverviewState.failure(_errorMessage, stackTrace: st));
     }
   }
 
   static SlotStatus _parseSlotStatus(String? status) => switch (status) {
-        'open' => SlotStatus.open,
-        'booked' => SlotStatus.booked,
-        'closed' => SlotStatus.closed,
-        _ => SlotStatus.closed,
-      };
+    'open' => SlotStatus.open,
+    'booked' => SlotStatus.booked,
+    'closed' => SlotStatus.closed,
+    _ => SlotStatus.closed,
+  };
 
   void selectDate(int index) {
     final s = state;
@@ -191,24 +199,22 @@ extension CourtScheduleOverviewLoadedView on CourtScheduleOverviewLoaded {
     return dateKeys.map((dateKey) {
       final date = DateTime.parse(dateKey);
       final daySlots = slotsByDate[dateKey] ?? const <String, ScheduleSlot>{};
-      final items = (selectedByDate[dateKey] ?? const <String>{})
-          .map((hourKey) {
-            final parts = hourKey.split('|');
-            final courtId = parts[0];
-            final hour = int.parse(parts[1]);
-            final court = courts.firstWhere((c) => c.id == courtId);
-            final slot = daySlots[hourKey]!;
-            return CartItem(
-              sortKey: '${court.id}|${hour.toString().padLeft(2, '0')}',
-              courtName: court.name,
-              sport: court.sport,
-              timeLabel:
-                  '${hour.toString().padLeft(2, '0')}:00 – ${slot.endLabel}',
-              price: slot.price,
-            );
-          })
-          .toList()
-        ..sort((a, b) => a.sortKey.compareTo(b.sortKey));
+      final items = (selectedByDate[dateKey] ?? const <String>{}).map((
+        hourKey,
+      ) {
+        final parts = hourKey.split('|');
+        final courtId = parts[0];
+        final hour = int.parse(parts[1]);
+        final court = courts.firstWhere((c) => c.id == courtId);
+        final slot = daySlots[hourKey]!;
+        return CartItem(
+          sortKey: '${court.id}|${hour.toString().padLeft(2, '0')}',
+          courtName: court.name,
+          sport: court.sport,
+          timeLabel: '${hour.toString().padLeft(2, '0')}:00 – ${slot.endLabel}',
+          price: slot.price,
+        );
+      }).toList()..sort((a, b) => a.sortKey.compareTo(b.sortKey));
       return CartGroup(date: date, items: items);
     }).toList();
   }

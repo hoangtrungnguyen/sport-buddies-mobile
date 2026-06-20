@@ -8,9 +8,9 @@ class ScheduleOverviewCubit extends Cubit<ScheduleOverviewState> {
   ScheduleOverviewCubit({
     required CourtRepository courtRepository,
     required SlotRepository slotRepository,
-  })  : _courtRepo = courtRepository,
-        _slotRepo = slotRepository,
-        super(const ScheduleOverviewInitial());
+  }) : _courtRepo = courtRepository,
+       _slotRepo = slotRepository,
+       super(const ScheduleOverviewInitial());
 
   final CourtRepository _courtRepo;
   final SlotRepository _slotRepo;
@@ -29,7 +29,7 @@ class ScheduleOverviewCubit extends Cubit<ScheduleOverviewState> {
     final anchorCourt = courtResult.value;
     final ownerId = anchorCourt.ownerId;
     if (ownerId == null) {
-      emit(const ScheduleOverviewError('Không tìm thấy cụm sân.'));
+      emit(const ScheduleOverviewError('center_not_found'));
       return;
     }
 
@@ -45,11 +45,13 @@ class ScheduleOverviewCubit extends Cubit<ScheduleOverviewState> {
 
     // 3. Emit loaded with today's date selected; fetch slots.
     final today = DateTime.now();
-    emit(ScheduleOverviewLoaded(
-      courts: courts,
-      slotsByCourtId: const {},
-      selectedDate: today,
-    ));
+    emit(
+      ScheduleOverviewLoaded(
+        courts: courts,
+        slotsByCourtId: const {},
+        selectedDate: today,
+      ),
+    );
     await _loadSlots(courts, today);
   }
 
@@ -74,13 +76,15 @@ class ScheduleOverviewCubit extends Cubit<ScheduleOverviewState> {
     }
 
     if (!isClosed && state is ScheduleOverviewLoaded) {
-      emit((state as ScheduleOverviewLoaded).copyWith(slotsByCourtId: byCourtId));
+      emit(
+        (state as ScheduleOverviewLoaded).copyWith(slotsByCourtId: byCourtId),
+      );
     }
   }
 
   static String _message(AppFailure f) => switch (f) {
-        NetworkFailure() => 'Không có kết nối mạng.',
-        ServerFailure(code: final c) => 'Lỗi máy chủ ($c).',
-        AuthFailure(message: final m) => 'Lỗi xác thực: $m',
-      };
+    NetworkFailure() => 'network',
+    ServerFailure() => 'server',
+    AuthFailure() => 'auth',
+  };
 }

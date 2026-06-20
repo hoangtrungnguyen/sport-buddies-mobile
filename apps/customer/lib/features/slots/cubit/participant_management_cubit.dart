@@ -46,14 +46,10 @@ class ParticipantManagementCubit extends Cubit<ParticipantManagementState> {
       );
     } on BookingApiException catch (e) {
       appLogger.e('Failed to load participants: $e');
-      emit(
-        ParticipantManagementError(
-          e.detail ?? 'Không thể tải danh sách người chơi',
-        ),
-      );
+      emit(ParticipantManagementError(e.detail ?? 'players_load'));
     } catch (e) {
       appLogger.e('Unexpected error loading participants: $e');
-      emit(ParticipantManagementError('Có lỗi xảy ra'));
+      emit(ParticipantManagementError('generic'));
     }
   }
 

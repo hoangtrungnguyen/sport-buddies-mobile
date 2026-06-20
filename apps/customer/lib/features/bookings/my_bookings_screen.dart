@@ -3,6 +3,8 @@
 // Material Design 3 — role rail (primary=host, secondary=join), M3Badge.
 // Design reference: EPIC-6 My Bookings.html
 
+import 'package:customer/core/l10n/error_messages.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -129,7 +131,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
                       child: CircularProgressIndicator(),
                     ),
                     HistoryError(:final message) => ErrorView(
-                      message: message,
+                      message: appErrorMessage(
+                        AppLocalizations.of(context),
+                        message,
+                      ),
                       onRetry: () => context.read<HistoryCubit>().loadHistory(),
                     ),
                     HistoryLoaded(:final items) => RefreshIndicator(

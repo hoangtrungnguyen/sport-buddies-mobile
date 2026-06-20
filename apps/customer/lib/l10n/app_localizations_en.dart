@@ -1263,4 +1263,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingCancelConfirmTitle => 'Cancel this booking?';
+
+  @override
+  String get errNetwork => 'No internet connection. Please try again.';
+
+  @override
+  String get errServer => 'Server error. Please try again.';
+
+  @override
+  String get errAuth => 'Authentication error. Please sign in again.';
+
+  @override
+  String get errReLogin => 'Please sign in again.';
+
+  @override
+  String get errSlotLoad => 'Could not load slot info.';
+
+  @override
+  String get errCenterNotFound => 'Sports center not found.';
+
+  @override
+  String get errScheduleEmpty => 'No schedule for this venue.';
+
+  @override
+  String get errScheduleLoad => 'Could not load schedule. Please try again.';
+
+  @override
+  String get errSendRequest =>
+      'Could not send request, please try again later.';
+
+  @override
+  String get errSendNotify =>
+      'Could not send notification, please try again later.';
+
+  @override
+  String get errPlayersLoad => 'Could not load players.';
+
+  @override
+  String get errGeneric => 'Something went wrong.';
+
+  @override
+  String get infoLastCallSent => 'Last-minute availability announced.';
 }

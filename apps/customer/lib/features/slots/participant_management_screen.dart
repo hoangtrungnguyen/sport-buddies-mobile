@@ -8,6 +8,7 @@ import 'package:customer/features/slots/slots_style.dart';
 import 'package:customer/features/slots/widgets/participant_slot_summary_card.dart';
 import 'package:customer/features/slots/widgets/confirmed_players_card.dart';
 import 'package:customer/features/slots/widgets/participant_join_requests_card.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/features/slots/widgets/participant_toast.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +79,10 @@ class ParticipantManagementScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          state.message,
+                          appErrorMessage(
+                            AppLocalizations.of(context),
+                            state.message,
+                          ),
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontSize: 14,
