@@ -137,64 +137,11 @@ class ScheduleToolbar extends StatelessWidget {
       );
 
   Widget _stats() {
-    final List<InlineSpan> spans;
-    switch (state.view) {
-      case ScheduleView.day:
-        // "<N> đã đặt · <N> còn mở · <P>% lấp đầy"
-        final slots = state.visibleDaySlots;
-        final booked = slots
-            .where((s) =>
-                s.state == SlotState.confirmed || s.state == SlotState.fixed)
-            .length;
-        final open = slots
-            .where(
-                (s) => s.state == SlotState.empty || s.state == SlotState.open)
-            .length;
-        // Real occupancy: occupied HOURS over the summed real operating
-        // window of the visible venues (a 2h slot weighs twice a 1h slot;
-        // a court open 06–14 fully booked reads 100%, not 50%).
-        final occupiedHours = slots
-            .where((s) => _occupiedStates.contains(s.state))
-            .fold<double>(0, (sum, s) => sum + s.durationHours);
-        final operatingHours = state.visibleVenues.fold<double>(0, (sum, v) {
-          final span = (v.closeHour ?? 22) - (v.openHour ?? 6);
-          return sum + (span > 0 ? span : _fallbackHoursPerDay);
-        });
-        final pct = operatingHours == 0
-            ? 0
-            : (occupiedHours / operatingHours * 100).clamp(0, 100).round();
-        spans = [
-          _strong('$booked'),
-          const TextSpan(text: ' đã đặt · '),
-          _strong('$open'),
-          const TextSpan(text: ' còn mở · '),
-          _hlNumber('$pct%'),
-          const TextSpan(text: ' lấp đầy'),
-        ];
-      case ScheduleView.week:
-        // "<N> slot · <venue name> · tuần này"
-        spans = [
-          _strong('${state.visibleWeekSlots.length}'),
-          TextSpan(text: ' slot · ${state.selectedVenue?.name ?? '—'} · '),
-          const TextSpan(
-            text: 'tuần này',
-            style: TextStyle(color: AppColors.primaryDark),
-          ),
-        ];
-      case ScheduleView.month:
-        // "Lấp đầy TB tháng <P>%"
-        final cells = state.monthCells.where((c) => c.isCurrentMonth).toList();
-        final avg = cells.isEmpty
-            ? 0
-            : (cells.map((c) => c.occupancy).reduce((a, b) => a + b) /
-                    cells.length *
-                    100)
-                .round();
-        spans = [
-          const TextSpan(text: 'Lấp đầy TB tháng '),
-          _hlNumber('$avg%'),
-        ];
-    }
+    final spans = switch (state.view) {
+      ScheduleView.day => _dayStatSpans(),
+      ScheduleView.week => _weekStatSpans(),
+      ScheduleView.month => _monthStatSpans(),
+    };
     return Text.rich(
       TextSpan(
         style: GoogleFonts.plusJakartaSans(
@@ -204,5 +151,66 @@ class ScheduleToolbar extends StatelessWidget {
         children: spans,
       ),
     );
+  }
+
+  /// Day view: `"<N> đã đặt · <N> còn mở · <P>% lấp đầy"`.
+  List<InlineSpan> _dayStatSpans() {
+    final slots = state.visibleDaySlots;
+    final booked = slots
+        .where(
+            (s) => s.state == SlotState.confirmed || s.state == SlotState.fixed)
+        .length;
+    final open = slots
+        .where((s) => s.state == SlotState.empty || s.state == SlotState.open)
+        .length;
+    // Real occupancy: occupied HOURS over the summed real operating window of
+    // the visible venues (a 2h slot weighs twice a 1h slot; a court open 06–14
+    // fully booked reads 100%, not 50%).
+    final occupiedHours = slots
+        .where((s) => _occupiedStates.contains(s.state))
+        .fold<double>(0, (sum, s) => sum + s.durationHours);
+    final operatingHours = state.visibleVenues.fold<double>(0, (sum, v) {
+      final span = (v.closeHour ?? 22) - (v.openHour ?? 6);
+      return sum + (span > 0 ? span : _fallbackHoursPerDay);
+    });
+    final pct = operatingHours == 0
+        ? 0
+        : (occupiedHours / operatingHours * 100).clamp(0, 100).round();
+    return [
+      _strong('$booked'),
+      const TextSpan(text: ' đã đặt · '),
+      _strong('$open'),
+      const TextSpan(text: ' còn mở · '),
+      _hlNumber('$pct%'),
+      const TextSpan(text: ' lấp đầy'),
+    ];
+  }
+
+  /// Week view: `"<N> slot · <venue name> · tuần này"`.
+  List<InlineSpan> _weekStatSpans() {
+    return [
+      _strong('${state.visibleWeekSlots.length}'),
+      TextSpan(text: ' slot · ${state.selectedVenue?.name ?? '—'} · '),
+      const TextSpan(
+        text: 'tuần này',
+        style: TextStyle(color: AppColors.primaryDark),
+      ),
+    ];
+  }
+
+  /// Month view: `"Lấp đầy TB tháng <P>%"` — average occupancy of this month's
+  /// cells.
+  List<InlineSpan> _monthStatSpans() {
+    final cells = state.monthCells.where((c) => c.isCurrentMonth).toList();
+    final avg = cells.isEmpty
+        ? 0
+        : (cells.map((c) => c.occupancy).reduce((a, b) => a + b) /
+                cells.length *
+                100)
+            .round();
+    return [
+      const TextSpan(text: 'Lấp đầy TB tháng '),
+      _hlNumber('$avg%'),
+    ];
   }
 }
