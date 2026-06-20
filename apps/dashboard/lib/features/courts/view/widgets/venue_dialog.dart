@@ -97,8 +97,7 @@ class _VenueDialogState extends State<_VenueDialog> {
       // repository already logs it; a bare "thử lại" hides why the save failed.
       if (mounted) {
         setState(() => _saving = false);
-        messenger.showSnackBar(
-            SnackBar(content: Text('Không thể lưu: $e')));
+        messenger.showSnackBar(SnackBar(content: Text('Không thể lưu: $e')));
       }
     }
   }
@@ -110,8 +109,7 @@ class _VenueDialogState extends State<_VenueDialog> {
       icon: CircleAvatar(
         radius: 24,
         backgroundColor: scheme.secondaryContainer,
-        child:
-            Icon(Symbols.sports_tennis, color: scheme.onSecondaryContainer),
+        child: Icon(Symbols.sports_tennis, color: scheme.onSecondaryContainer),
       ),
       title: Text(_isEdit ? 'Sửa sân con' : 'Thêm sân con'),
       content: _content(),
@@ -121,75 +119,91 @@ class _VenueDialogState extends State<_VenueDialog> {
 
   /// Name + sport + price/capacity + indoor-outdoor form fields.
   Widget _content() {
-    final priceVal = int.tryParse(_price.text.trim());
     return SizedBox(
       width: 380,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          TextField(
-            controller: _name,
-            autofocus: true,
-            decoration: const InputDecoration(labelText: 'Tên sân con'),
-            onChanged: (_) => setState(() {}),
-          ),
+          _nameField(),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            initialValue: _sport,
-            decoration: const InputDecoration(labelText: 'Môn thể thao'),
-            items: [
-              for (final s in kSportTypes)
-                DropdownMenuItem(value: s, child: Text(s)),
-            ],
-            onChanged: (v) => setState(() => _sport = v ?? _sport),
-          ),
+          _sportField(),
           const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _price,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Giá / giờ',
-                    helperText: priceVal != null && priceVal > 0
-                        ? formatPricePerHour(priceVal)
-                        : null,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 110,
-                child: TextField(
-                  controller: _capacity,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Sức chứa'),
-                ),
-              ),
-            ],
-          ),
+          _priceCapacityRow(),
           const SizedBox(height: 16),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(
-                value: true,
-                icon: Icon(Symbols.roofing, size: 18),
-                label: Text('Trong nhà'),
-              ),
-              ButtonSegment(
-                value: false,
-                icon: Icon(Symbols.sunny, size: 18),
-                label: Text('Ngoài trời'),
-              ),
-            ],
-            selected: {_indoor},
-            onSelectionChanged: (s) => setState(() => _indoor = s.first),
-          ),
+          _indoorOutdoorToggle(),
         ],
       ),
+    );
+  }
+
+  Widget _nameField() {
+    return TextField(
+      controller: _name,
+      autofocus: true,
+      decoration: const InputDecoration(labelText: 'Tên sân con'),
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  Widget _sportField() {
+    return DropdownButtonFormField<String>(
+      initialValue: _sport,
+      decoration: const InputDecoration(labelText: 'Môn thể thao'),
+      items: [
+        for (final s in kSportTypes) DropdownMenuItem(value: s, child: Text(s)),
+      ],
+      onChanged: (v) => setState(() => _sport = v ?? _sport),
+    );
+  }
+
+  /// Price (with a formatted-amount helper line) beside the capacity field.
+  Widget _priceCapacityRow() {
+    final priceVal = int.tryParse(_price.text.trim());
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: TextField(
+            controller: _price,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Giá / giờ',
+              helperText: priceVal != null && priceVal > 0
+                  ? formatPricePerHour(priceVal)
+                  : null,
+            ),
+            onChanged: (_) => setState(() {}),
+          ),
+        ),
+        const SizedBox(width: 12),
+        SizedBox(
+          width: 110,
+          child: TextField(
+            controller: _capacity,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Sức chứa'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _indoorOutdoorToggle() {
+    return SegmentedButton<bool>(
+      segments: const [
+        ButtonSegment(
+          value: true,
+          icon: Icon(Symbols.roofing, size: 18),
+          label: Text('Trong nhà'),
+        ),
+        ButtonSegment(
+          value: false,
+          icon: Icon(Symbols.sunny, size: 18),
+          label: Text('Ngoài trời'),
+        ),
+      ],
+      selected: {_indoor},
+      onSelectionChanged: (s) => setState(() => _indoor = s.first),
     );
   }
 
