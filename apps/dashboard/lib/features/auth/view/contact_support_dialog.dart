@@ -36,21 +36,7 @@ class _ContactSupportDialog extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Center(
-                  child: Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary.withValues(alpha: 0.12),
-                    ),
-                    child: const Icon(
-                      Icons.lock_reset_rounded,
-                      color: AppColors.primary,
-                      size: 28,
-                    ),
-                  ),
-                ),
+                _icon(),
                 const SizedBox(height: 16),
                 Text(
                   'Đặt lại mật khẩu',
@@ -76,18 +62,42 @@ class _ContactSupportDialog extends StatelessWidget {
                 const SizedBox(height: 18),
                 _ContactRow(),
                 const SizedBox(height: 20),
-                Semantics(
-                  label: 'forgot-password-dialog-close-btn',
-                  button: true,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Đã hiểu'),
-                  ),
-                ),
+                _closeButton(context),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Tinted circular lock-reset avatar at the top of the dialog.
+  Widget _icon() {
+    return Center(
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.primary.withValues(alpha: 0.12),
+        ),
+        child: const Icon(
+          Icons.lock_reset_rounded,
+          color: AppColors.primary,
+          size: 28,
+        ),
+      ),
+    );
+  }
+
+  /// "Đã hiểu" — dismisses the dialog.
+  Widget _closeButton(BuildContext context) {
+    return Semantics(
+      label: 'forgot-password-dialog-close-btn',
+      button: true,
+      child: ElevatedButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Đã hiểu'),
       ),
     );
   }
