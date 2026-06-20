@@ -191,95 +191,117 @@ class _CourtFormScreenState extends State<CourtFormScreen>
 
   Future<void> _submit() async {
     setState(() => _error = null);
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Còn trường bắt buộc chưa điền')),
-      );
-      return;
-    }
-    if (_closeHour <= _openHour) {
-      setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
-      return;
-    }
+    if (!_validate()) return;
 
     setState(() => _saving = true);
     try {
-      final repo = context.read<OwnerCourtRepository>();
-      final address = _addressCtrl.text.trim();
-      final desc = _descCtrl.text.trim();
-      final phone = _phoneCtrl.text.trim();
-      final lat = double.tryParse(_latCtrl.text.trim());
-      final lng = double.tryParse(_lngCtrl.text.trim());
-      final mapsUrl = _mapsCtrl.text.trim();
-
-      Map<String, dynamic> additionalInfo() {
-        final m = Map<String, dynamic>.from(
-            _isEdit ? widget.court!.additionalInfo : const {});
-        if (mapsUrl.isEmpty) {
-          m.remove('google_maps_url');
-        } else {
-          m['google_maps_url'] = mapsUrl;
-        }
-        if (phone.isEmpty) {
-          m.remove('phone');
-        } else {
-          m['phone'] = phone;
-        }
-        return m;
-      }
-
-      OwnerCourt saved;
-      if (_isEdit) {
-        saved = await repo.updateCourt(
-          widget.court!.id,
-          name: _nameCtrl.text.trim(),
-          openHour: _openHour,
-          closeHour: _closeHour,
-          address: address.isEmpty ? null : address,
-          description: desc.isEmpty ? null : desc,
-          amenities: _selectedAmenities.toList(),
-          lat: lat,
-          lng: lng,
-          additionalInfo: additionalInfo(),
-        );
-        if (_isActive != widget.court!.isActive) {
-          if (_isActive) {
-            await repo.reactivateCourt(widget.court!.id);
-          } else {
-            await repo.deactivateCourt(widget.court!.id);
-          }
-        }
-      } else {
-        saved = await repo.createCourt(
-          name: _nameCtrl.text.trim(),
-          openHour: _openHour,
-          closeHour: _closeHour,
-          address: address.isEmpty ? null : address,
-          description: desc.isEmpty ? null : desc,
-          amenities: _selectedAmenities.toList(),
-          lat: lat,
-          lng: lng,
-          additionalInfo: additionalInfo(),
-        );
-      }
-
+      final saved = await _saveCourt(context.read<OwnerCourtRepository>());
       if (!mounted) return;
-      context.read<CourtBloc>().add(const CourtEvent.loadRequested());
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Đã lưu ${saved.name}')),
-      );
-      if (_isEdit) {
-        _leave(context);
-      } else {
-        // After creating a court, return to the courts list (not the new
-        // court's sub-court detail) so the owner sees it in the list.
-        context.go('/courts');
-      }
+      _onSaved(saved);
     } catch (e) {
       setState(() {
         _saving = false;
         _error = 'Không thể lưu sân. Vui lòng thử lại.';
       });
+    }
+  }
+
+  /// Form + business-rule validation. Surfaces the relevant feedback (a snack
+  /// bar for missing fields, an inline error for the hour rule) and returns
+  /// false when the form must not be submitted.
+  bool _validate() {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Còn trường bắt buộc chưa điền')),
+      );
+      return false;
+    }
+    if (_closeHour <= _openHour) {
+      setState(() => _error = 'Giờ đóng cửa phải sau giờ mở cửa.');
+      return false;
+    }
+    return true;
+  }
+
+  /// Persists the form — create or update, plus the active-state toggle on edit
+  /// — and returns the saved court. UI-free: the caller owns the spinner,
+  /// error state and navigation.
+  Future<OwnerCourt> _saveCourt(OwnerCourtRepository repo) async {
+    final address = _addressCtrl.text.trim();
+    final desc = _descCtrl.text.trim();
+    final lat = double.tryParse(_latCtrl.text.trim());
+    final lng = double.tryParse(_lngCtrl.text.trim());
+
+    if (!_isEdit) {
+      return repo.createCourt(
+        name: _nameCtrl.text.trim(),
+        openHour: _openHour,
+        closeHour: _closeHour,
+        address: address.isEmpty ? null : address,
+        description: desc.isEmpty ? null : desc,
+        amenities: _selectedAmenities.toList(),
+        lat: lat,
+        lng: lng,
+        additionalInfo: _additionalInfo(),
+      );
+    }
+
+    final saved = await repo.updateCourt(
+      widget.court!.id,
+      name: _nameCtrl.text.trim(),
+      openHour: _openHour,
+      closeHour: _closeHour,
+      address: address.isEmpty ? null : address,
+      description: desc.isEmpty ? null : desc,
+      amenities: _selectedAmenities.toList(),
+      lat: lat,
+      lng: lng,
+      additionalInfo: _additionalInfo(),
+    );
+    if (_isActive != widget.court!.isActive) {
+      if (_isActive) {
+        await repo.reactivateCourt(widget.court!.id);
+      } else {
+        await repo.deactivateCourt(widget.court!.id);
+      }
+    }
+    return saved;
+  }
+
+  /// Merges the maps-URL + phone edits into the court's `additionalInfo`,
+  /// preserving any other keys an existing court already carries (empty inputs
+  /// remove their key).
+  Map<String, dynamic> _additionalInfo() {
+    final mapsUrl = _mapsCtrl.text.trim();
+    final phone = _phoneCtrl.text.trim();
+    final m = Map<String, dynamic>.from(
+        _isEdit ? widget.court!.additionalInfo : const {});
+    if (mapsUrl.isEmpty) {
+      m.remove('google_maps_url');
+    } else {
+      m['google_maps_url'] = mapsUrl;
+    }
+    if (phone.isEmpty) {
+      m.remove('phone');
+    } else {
+      m['phone'] = phone;
+    }
+    return m;
+  }
+
+  /// Post-save: refresh the courts list, toast the saved name, and navigate —
+  /// back to the list on create, out via [_leave] on edit.
+  void _onSaved(OwnerCourt saved) {
+    context.read<CourtBloc>().add(const CourtEvent.loadRequested());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Đã lưu ${saved.name}')),
+    );
+    if (_isEdit) {
+      _leave(context);
+    } else {
+      // After creating a court, return to the courts list (not the new court's
+      // sub-court detail) so the owner sees it in the list.
+      context.go('/courts');
     }
   }
 
