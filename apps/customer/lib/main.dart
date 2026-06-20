@@ -14,6 +14,8 @@ import 'package:customer/app.dart';
 import 'package:customer/core/debug/app_bloc_observer.dart';
 import 'package:customer/core/di/injection.dart';
 import 'package:customer/core/env/env.dart';
+import 'package:customer/core/services/timeout_http_client.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -69,6 +71,9 @@ Future<void> main() async {
     url: Env.supabaseUrl,
     anonKey: Env.supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(),
+    // Bound all Supabase traffic (reads/auth/storage) by 30s so a hung
+    // backend fails fast instead of hanging the UI.
+    httpClient: TimeoutHttpClient(http.Client()),
   );
 
   // Step 4: resolve SharedPreferences before the DI container starts.
