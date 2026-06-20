@@ -57,6 +57,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
+  # Patrol's web-safe finder layer (the `$` API). Native automation
+  # (`$.native.*`) is Android/iOS only and unused here — web UI e2e runs on
+  # integration_test driven through Chrome.
+  patrol_finders: ^2.6.0
   flutter_lints: ^5.0.0
   freezed: ^3.2.3
   json_serializable: ^6.9.5
