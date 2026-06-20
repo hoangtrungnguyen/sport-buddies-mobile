@@ -312,43 +312,54 @@ class SlotDecorationPainter extends CustomPainter {
       Offset.zero & size,
       Radius.circular(radius),
     );
-
     canvas.drawRRect(rrect, Paint()..color = bg);
+    _paintStripes(canvas, rrect, size);
+    _paintAccent(canvas, rrect, size);
+    _paintBorder(canvas, rrect);
+  }
 
+  /// Diagonal two-tone stripe overlay (CSS `repeating-linear-gradient`),
+  /// clipped to the rounded rect. No-op unless both stripe colours and a band
+  /// width are set.
+  void _paintStripes(Canvas canvas, RRect rrect, Size size) {
     final stripeA = this.stripeA;
     final stripeB = this.stripeB;
-    if (stripeA != null && stripeB != null && stripeBand > 0) {
-      // CSS gradient angle: 0deg = up, clockwise → direction (sin a, −cos a).
-      final rad = stripeAngleDeg * math.pi / 180;
-      final period = Offset(math.sin(rad), -math.cos(rad)) * (stripeBand * 2);
-      final paint = Paint()
-        ..shader = ui.Gradient.linear(
-          Offset.zero,
-          period,
-          [stripeA, stripeA, stripeB, stripeB],
-          [0, 0.5, 0.5, 1],
-          TileMode.repeated,
-        );
-      canvas
-        ..save()
-        ..clipRRect(rrect)
-        ..drawRect(Offset.zero & size, paint)
-        ..restore();
-    }
+    if (stripeA == null || stripeB == null || stripeBand <= 0) return;
+    // CSS gradient angle: 0deg = up, clockwise → direction (sin a, −cos a).
+    final rad = stripeAngleDeg * math.pi / 180;
+    final period = Offset(math.sin(rad), -math.cos(rad)) * (stripeBand * 2);
+    final paint = Paint()
+      ..shader = ui.Gradient.linear(
+        Offset.zero,
+        period,
+        [stripeA, stripeA, stripeB, stripeB],
+        [0, 0.5, 0.5, 1],
+        TileMode.repeated,
+      );
+    canvas
+      ..save()
+      ..clipRRect(rrect)
+      ..drawRect(Offset.zero & size, paint)
+      ..restore();
+  }
 
-    // 3px left accent bar (`.st-fixed::before`), clipped by the radius.
+  /// 3px left accent bar (`.st-fixed::before`), clipped by the radius.
+  void _paintAccent(Canvas canvas, RRect rrect, Size size) {
     final accentLeft = this.accentLeft;
-    if (accentLeft != null) {
-      canvas
-        ..save()
-        ..clipRRect(rrect)
-        ..drawRect(
-          Rect.fromLTWH(0, 0, 3, size.height),
-          Paint()..color = accentLeft,
-        )
-        ..restore();
-    }
+    if (accentLeft == null) return;
+    canvas
+      ..save()
+      ..clipRRect(rrect)
+      ..drawRect(
+        Rect.fromLTWH(0, 0, 3, size.height),
+        Paint()..color = accentLeft,
+      )
+      ..restore();
+  }
 
+  /// Solid or dashed rounded border, inset by half the stroke so it sits
+  /// inside the fill.
+  void _paintBorder(Canvas canvas, RRect rrect) {
     final borderPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = borderWidth
@@ -356,17 +367,17 @@ class SlotDecorationPainter extends CustomPainter {
     final borderRRect = rrect.deflate(borderWidth / 2);
     if (!dashed) {
       canvas.drawRRect(borderRRect, borderPaint);
-    } else {
-      final path = Path()..addRRect(borderRRect);
-      for (final metric in path.computeMetrics()) {
-        var distance = 0.0;
-        while (distance < metric.length) {
-          canvas.drawPath(
-            metric.extractPath(distance, distance + _dashLength),
-            borderPaint,
-          );
-          distance += _dashLength + _gapLength;
-        }
+      return;
+    }
+    final path = Path()..addRRect(borderRRect);
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      while (distance < metric.length) {
+        canvas.drawPath(
+          metric.extractPath(distance, distance + _dashLength),
+          borderPaint,
+        );
+        distance += _dashLength + _gapLength;
       }
     }
   }
