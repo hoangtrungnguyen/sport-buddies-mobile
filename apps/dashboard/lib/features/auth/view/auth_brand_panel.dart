@@ -59,58 +59,68 @@ class AuthBrandPanel extends StatelessWidget {
   Widget _brandMark() {
     return Row(
       children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.primaryDark],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        _logoBadge(),
+        const SizedBox(width: 12),
+        _brandText(),
+      ],
+    );
+  }
+
+  /// Gradient "S" app badge with its primary glow.
+  Widget _logoBadge() {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryDark],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
-          child: Center(
-            child: Text(
-              'S',
-              style: GoogleFonts.sora(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-                letterSpacing: -0.5,
-              ),
-            ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          'S',
+          style: GoogleFonts.sora(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 20,
+            letterSpacing: -0.5,
           ),
         ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'SportBuddies',
-              style: GoogleFonts.sora(
-                color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 17,
-                letterSpacing: -0.3,
-              ),
-            ),
-            Text(
-              'Bảng điều khiển chủ sân',
-              style: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF86EFAC),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+      ),
+    );
+  }
+
+  /// Product name + "Bảng điều khiển chủ sân" subtitle.
+  Widget _brandText() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'SportBuddies',
+          style: GoogleFonts.sora(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 17,
+            letterSpacing: -0.3,
+          ),
+        ),
+        Text(
+          'Bảng điều khiển chủ sân',
+          style: GoogleFonts.plusJakartaSans(
+            color: const Color(0xFF86EFAC),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
