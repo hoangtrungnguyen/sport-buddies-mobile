@@ -1,0 +1,5 @@
+tags:
+  api:
+    # Network integration tests that hit the live dev backend (REST + Supabase).
+    # Excluded from the default `flutter test` run. Run on demand:
+    #   fvm flutter test --tags api --dart-define-from-file=.dev.env
