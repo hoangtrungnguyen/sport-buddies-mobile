@@ -206,6 +206,19 @@ void main() {
     });
   }, skip: apiSkip);
 
+  // Every table the app reads via Supabase repositories/cubits (PostgREST).
+  // Discovered from `.from('<table>')` usages across lib/ (comment-only refs
+  // like the illustrative 'users' example are excluded).
+  const tables = <String>[
+    'courts',
+    'slots',
+    'bookings',
+    'slot_join_requests',
+    'slot_participants',
+    'notifications',
+    'customers',
+  ];
+
   group('Supabase health · $_supabaseUrl', () {
     test('GET  /auth/v1/health', () async {
       try {
@@ -216,35 +229,78 @@ void main() {
             )
             .timeout(_timeout);
         // ignore: avoid_print
-        print('Supabase auth health → HTTP ${res.statusCode}');
+        print('auth service → HTTP ${res.statusCode}');
         expect(res.statusCode, 200, reason: 'Supabase auth service is unhealthy');
       } catch (e) {
         fail('Supabase auth → UNREACHABLE: $e');
       }
     });
 
-    test('GET  /rest/v1/courts (table readable)', () async {
+    // One reachability test per table. A relation that exists answers 200
+    // (readable) or 401/403 (exists but RLS-protected — the app reads it
+    // authenticated). A 404 means the relation is MISSING and a 5xx means the
+    // DB errored — both are real breakage.
+    for (final table in tables) {
+      test('GET  /rest/v1/$table', () async {
+        final int status;
+        try {
+          final res = await client
+              .get(
+                Uri.parse('$_supabaseUrl/rest/v1/$table?select=*&limit=1'),
+                headers: {
+                  'apikey': _supabaseKey,
+                  'Authorization': 'Bearer ${authToken ?? _supabaseKey}',
+                },
+              )
+              .timeout(_timeout);
+          status = res.statusCode;
+          // ignore: avoid_print
+          final note = status == 200
+              ? 'readable'
+              : (status == 401 || status == 403)
+                  ? 'RLS-protected (exists)'
+                  : 'status ${res.body}';
+          // ignore: avoid_print
+          print('$table → HTTP $status · $note');
+        } catch (e) {
+          fail('$table → UNREACHABLE: $e');
+        }
+        expect(
+          status,
+          isNot(404),
+          reason: '$table → relation MISSING (404) — schema is broken',
+        );
+        expect(
+          status,
+          lessThan(500),
+          reason: '$table → SERVER ERROR $status (DB / PostgREST broken)',
+        );
+      });
+    }
+
+    // Storage: the profile feature uploads/reads avatars from this bucket.
+    // Unauthenticated we can only confirm the Storage API is up (the real
+    // upload happens authenticated); a 4xx still proves it responded.
+    test('GET  /storage/v1 · avatars bucket', () async {
+      final int status;
       try {
         final res = await client
             .get(
-              Uri.parse('$_supabaseUrl/rest/v1/courts?select=id&limit=1'),
-              headers: {
-                'apikey': _supabaseKey,
-                'Authorization': 'Bearer ${authToken ?? _supabaseKey}',
-              },
+              Uri.parse('$_supabaseUrl/storage/v1/object/public/avatars/$_fakeId.png'),
+              headers: {'apikey': _supabaseKey},
             )
             .timeout(_timeout);
+        status = res.statusCode;
         // ignore: avoid_print
-        print('Supabase courts select → HTTP ${res.statusCode}');
-        expect(
-          res.statusCode,
-          200,
-          reason: 'courts table not readable (RLS / schema / DB down) — '
-              'status ${res.statusCode}: ${res.body}',
-        );
+        print('avatars storage API → HTTP $status (reachable)');
       } catch (e) {
-        fail('Supabase REST → UNREACHABLE: $e');
+        fail('avatars storage → UNREACHABLE: $e');
       }
+      expect(
+        status,
+        lessThan(500),
+        reason: 'avatars storage → SERVER ERROR $status',
+      );
     });
   }, skip: supaSkip);
 }
