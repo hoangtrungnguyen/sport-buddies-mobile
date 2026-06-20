@@ -50,5 +50,5 @@ exec fvm flutter test test/api_health \
   --tags api-health \
   --dart-define=ENVIRONMENT="$ENV" \
   --dart-define-from-file="$ENV_FILE" \
-  "${CRED_ARGS[@]}" \
+  ${CRED_ARGS[@]+"${CRED_ARGS[@]}"} \
   "$@"
