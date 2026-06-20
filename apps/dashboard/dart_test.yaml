@@ -1,0 +1,7 @@
+# Test tags. The `api-health` group makes live HTTP calls to a real backend and
+# is opt-in: run with `flutter test --tags api-health --dart-define-from-file=.dev.env`
+# (or `scripts/api_health.sh`). It self-skips on the localhost default, so a
+# plain `flutter test` stays offline.
+tags:
+  api-health:
+    # Network-dependent daily liveness check — not part of the unit suite.
