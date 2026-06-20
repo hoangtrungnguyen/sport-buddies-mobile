@@ -1640,12 +1640,6 @@ abstract class AppLocalizations {
   /// **'Chọn giờ'**
   String get slotPickerTitle;
 
-  /// No description provided for @slotPickerDirectionsSoon.
-  ///
-  /// In vi, this message translates to:
-  /// **'Chỉ đường — sắp ra mắt'**
-  String get slotPickerDirectionsSoon;
-
   /// No description provided for @slotPickerMultiHint.
   ///
   /// In vi, this message translates to:

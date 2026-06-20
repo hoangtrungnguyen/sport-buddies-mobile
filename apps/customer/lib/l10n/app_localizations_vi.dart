@@ -864,9 +864,6 @@ class AppLocalizationsVi extends AppLocalizations {
   String get slotPickerTitle => 'Chọn giờ';
 
   @override
-  String get slotPickerDirectionsSoon => 'Chỉ đường — sắp ra mắt';
-
-  @override
   String get slotPickerMultiHint => 'Chạm để chọn nhiều khung';
 
   @override

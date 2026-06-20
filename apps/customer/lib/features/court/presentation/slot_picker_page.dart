@@ -7,6 +7,7 @@ import '../domain/booking_draft.dart';
 import '../domain/court.dart';
 import '../domain/time_slot.dart';
 import '../theme/browse_pick_theme.dart';
+import 'open_in_maps.dart';
 import 'widgets/date_tabs.dart';
 import 'widgets/open_slot_section.dart';
 import 'widgets/slot_picker_photo_strip.dart';
@@ -116,14 +117,11 @@ class _SlotPickerPageState extends State<SlotPickerPage> {
     });
   }
 
-  // E9: external maps intent is out of scope this milestone — the handoff
-  // sanctions a "Sắp ra mắt" snackbar fallback (doc 03 §E9).
-  void _directions() =>
-      _snack(AppLocalizations.of(context).slotPickerDirectionsSoon);
-
-  void _snack(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  // E9: tap the address card to open the court in the user's chosen map app.
+  void _directions() {
+    final court = _court;
+    if (court == null) return;
+    openCourtInMaps(context, court);
   }
 
   @override

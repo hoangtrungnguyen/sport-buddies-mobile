@@ -741,8 +741,6 @@
   "@courtDetailScheduleSubtitle": {},
   "slotPickerTitle": "Chọn giờ",
   "@slotPickerTitle": {},
-  "slotPickerDirectionsSoon": "Chỉ đường — sắp ra mắt",
-  "@slotPickerDirectionsSoon": {},
   "slotPickerMultiHint": "Chạm để chọn nhiều khung",
   "@slotPickerMultiHint": {},
   "slotPickerOpenCount": "{count} slot trống · có thể đặt liên tiếp",

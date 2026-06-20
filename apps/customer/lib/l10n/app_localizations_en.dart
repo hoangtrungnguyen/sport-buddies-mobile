@@ -862,9 +862,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get slotPickerTitle => 'Pick a time';
 
   @override
-  String get slotPickerDirectionsSoon => 'Directions — coming soon';
-
-  @override
   String get slotPickerMultiHint => 'Tap to select multiple slots';
 
   @override

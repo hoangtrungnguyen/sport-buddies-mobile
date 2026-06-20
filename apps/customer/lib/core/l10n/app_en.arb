@@ -741,8 +741,6 @@
   "@courtDetailScheduleSubtitle": {},
   "slotPickerTitle": "Pick a time",
   "@slotPickerTitle": {},
-  "slotPickerDirectionsSoon": "Directions — coming soon",
-  "@slotPickerDirectionsSoon": {},
   "slotPickerMultiHint": "Tap to select multiple slots",
   "@slotPickerMultiHint": {},
   "slotPickerOpenCount": "{count} open slots · book consecutively",
