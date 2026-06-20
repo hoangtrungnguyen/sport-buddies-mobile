@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:spb_core/spb_core.dart';
 
 import 'package:customer/features/slots/widgets/slot_row.dart';
+import 'package:customer/l10n/app_localizations.dart';
 
 void main() {
   group('SlotRow', () {
@@ -30,6 +31,9 @@ void main() {
     testWidgets('renders court name', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -42,6 +46,9 @@ void main() {
     testWidgets('renders sport type badge', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -54,6 +61,9 @@ void main() {
     testWidgets('renders date', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -67,6 +77,9 @@ void main() {
     testWidgets('renders time range', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -79,6 +92,9 @@ void main() {
     testWidgets('renders player count', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -91,6 +107,9 @@ void main() {
     testWidgets('shows open lock icon for open access policy', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: testSlot),
           ),
@@ -115,6 +134,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: closedSlot),
           ),
@@ -138,6 +160,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(slot: fullSlot),
           ),
@@ -156,6 +181,9 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: SlotRow(
               slot: testSlot,
@@ -173,7 +201,7 @@ void main() {
       final sports = {
         'badminton': 'Cầu lông',
         'football': 'Bóng đá',
-        'tennis': 'Quần vợt',
+        'tennis': 'Tennis',
         'basketball': 'Bóng rổ',
       };
 
@@ -189,6 +217,9 @@ void main() {
 
         await tester.pumpWidget(
           MaterialApp(
+            locale: const Locale('vi'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
               body: SlotRow(slot: sportSlot),
             ),

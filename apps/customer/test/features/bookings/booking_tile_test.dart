@@ -15,6 +15,7 @@
 
 import 'package:customer/features/bookings/booking_model.dart';
 import 'package:customer/features/bookings/booking_tile.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -49,6 +50,9 @@ void main() {
 
   Widget buildSubject(Booking booking, {VoidCallback? onCancel}) {
     return MaterialApp(
+      locale: const Locale('vi'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
         body: BookingTile(booking: booking, onCancel: onCancel),
       ),

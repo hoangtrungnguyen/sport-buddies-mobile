@@ -7,6 +7,7 @@
 import 'package:customer/features/bookings/booking_filter_bar.dart';
 import 'package:customer/features/bookings/booking_model.dart';
 import 'package:customer/features/bookings/bookings_cubit.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:customer/features/bookings/bookings_state.dart';
 import 'package:customer/features/bookings/upcoming_bookings_screen.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,9 @@ void main() {
 
   Widget buildSubject(BookingsCubit cubit) {
     return MaterialApp(
+      locale: const Locale('vi'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: BlocProvider<BookingsCubit>.value(
         value: cubit,
         child: const UpcomingBookingsScreen(),
