@@ -79,66 +79,16 @@ class _KpiCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _getToneColor(kpi.tone, scheme),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(
-                    _getIcon(kpi.icon),
-                    size: 18,
-                    color: _getToneForeground(kpi.tone, scheme),
-                  ),
-                ),
-                if (kpi.delta != null)
-                  _DeltaChip(
-                    delta: kpi.delta!,
-                    isUp: kpi.deltaUp,
-                    tone: kpi.tone,
-                  ),
-              ],
-            ),
+            _header(scheme),
             const SizedBox(height: 8),
             Text(kpi.label,
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: scheme.onSurfaceVariant)),
             const SizedBox(height: 2),
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: kpi.value,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600, fontSize: 24, height: 1.1),
-                  ),
-                  if (kpi.unit != null) ...[
-                    const TextSpan(text: ' '),
-                    TextSpan(
-                      text: kpi.unit!,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: scheme.onSurfaceVariant),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            _valueText(theme, scheme),
             if (kpi.progress != null) ...[
               const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: kpi.progress! / 100,
-                  minHeight: 5,
-                  backgroundColor: scheme.surfaceContainerHighest,
-                  valueColor:
-                      AlwaysStoppedAnimation(scheme.primary),
-                ),
-              ),
+              _progressBar(scheme),
             ],
             if (kpi.sub != null) ...[
               const SizedBox(height: 4),
@@ -148,6 +98,70 @@ class _KpiCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Tone-coloured icon badge with the optional delta chip trailing it.
+  Widget _header(ColorScheme scheme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: _getToneColor(kpi.tone, scheme),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(
+            _getIcon(kpi.icon),
+            size: 18,
+            color: _getToneForeground(kpi.tone, scheme),
+          ),
+        ),
+        if (kpi.delta != null)
+          _DeltaChip(
+            delta: kpi.delta!,
+            isUp: kpi.deltaUp,
+            tone: kpi.tone,
+          ),
+      ],
+    );
+  }
+
+  /// The big value with its optional unit suffix.
+  Widget _valueText(ThemeData theme, ColorScheme scheme) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: kpi.value,
+            style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w600, fontSize: 24, height: 1.1),
+          ),
+          if (kpi.unit != null) ...[
+            const TextSpan(text: ' '),
+            TextSpan(
+              text: kpi.unit!,
+              style: theme.textTheme.bodyMedium
+                  ?.copyWith(color: scheme.onSurfaceVariant),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Percentage progress bar — only rendered when [HomeKpi.progress] is set.
+  Widget _progressBar(ColorScheme scheme) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(3),
+      child: LinearProgressIndicator(
+        value: kpi.progress! / 100,
+        minHeight: 5,
+        backgroundColor: scheme.surfaceContainerHighest,
+        valueColor: AlwaysStoppedAnimation(scheme.primary),
       ),
     );
   }
@@ -198,7 +212,8 @@ class _DeltaChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             delta,
-            style: TextStyle(fontSize: 12, color: fg, fontWeight: FontWeight.w500),
+            style:
+                TextStyle(fontSize: 12, color: fg, fontWeight: FontWeight.w500),
           ),
         ],
       ),
