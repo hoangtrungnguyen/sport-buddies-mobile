@@ -377,46 +377,68 @@ class VenueScheduleBloc extends Bloc<VenueScheduleEvent, VenueScheduleState> {
   /// otherwise e.g. › then "Hôm nay" could leave day+1 slots under today's
   /// label when the first fetch resolves last.
   Future<void> _refreshActiveView(Emitter<VenueScheduleState> emit) async {
-    final view = state.view;
-    final date = state.focusedDate;
     try {
-      switch (view) {
+      switch (state.view) {
         case ScheduleView.day:
-          final daySlots = await _service.getDaySlots(courtId, date);
-          if (state.view != view || state.focusedDate != date) return;
-          emit(state.copyWith(
-            daySlots: daySlots,
-            status: VenueScheduleStatus.ready,
-          ));
+          await _refreshDay(emit);
         case ScheduleView.week:
-          final venueId = state.selectedVenueId;
-          if (venueId == null) return;
-          final weekStart = state.weekStart;
-          final weekSlots = await _service.getWeekSlots(venueId, weekStart);
-          if (state.view != view ||
-              state.selectedVenueId != venueId ||
-              state.weekStart != weekStart) {
-            return;
-          }
-          emit(state.copyWith(
-            weekSlots: weekSlots,
-            status: VenueScheduleStatus.ready,
-          ));
+          await _refreshWeek(emit);
         case ScheduleView.month:
-          final monthCells = await _service.getMonthOccupancy(courtId, date);
-          if (state.view != view ||
-              state.focusedDate.year != date.year ||
-              state.focusedDate.month != date.month) {
-            return;
-          }
-          emit(state.copyWith(
-            monthCells: monthCells,
-            status: VenueScheduleStatus.ready,
-          ));
+          await _refreshMonth(emit);
       }
     } on Exception {
       emit(state.copyWith(status: VenueScheduleStatus.failure));
     }
+  }
+
+  /// Day view: this court's slots for the focused date. The request key (view +
+  /// date) is captured before the await and the payload dropped if the user
+  /// navigated away meanwhile.
+  Future<void> _refreshDay(Emitter<VenueScheduleState> emit) async {
+    final view = state.view;
+    final date = state.focusedDate;
+    final daySlots = await _service.getDaySlots(courtId, date);
+    if (state.view != view || state.focusedDate != date) return;
+    emit(state.copyWith(
+      daySlots: daySlots,
+      status: VenueScheduleStatus.ready,
+    ));
+  }
+
+  /// Week view: one venue × 7 days. Dropped if view, venue or week changed
+  /// while the fetch was in flight.
+  Future<void> _refreshWeek(Emitter<VenueScheduleState> emit) async {
+    final view = state.view;
+    final venueId = state.selectedVenueId;
+    if (venueId == null) return;
+    final weekStart = state.weekStart;
+    final weekSlots = await _service.getWeekSlots(venueId, weekStart);
+    if (state.view != view ||
+        state.selectedVenueId != venueId ||
+        state.weekStart != weekStart) {
+      return;
+    }
+    emit(state.copyWith(
+      weekSlots: weekSlots,
+      status: VenueScheduleStatus.ready,
+    ));
+  }
+
+  /// Month view: the occupancy heatmap. Dropped if view or the focused
+  /// year/month changed while the fetch was in flight.
+  Future<void> _refreshMonth(Emitter<VenueScheduleState> emit) async {
+    final view = state.view;
+    final date = state.focusedDate;
+    final monthCells = await _service.getMonthOccupancy(courtId, date);
+    if (state.view != view ||
+        state.focusedDate.year != date.year ||
+        state.focusedDate.month != date.month) {
+      return;
+    }
+    emit(state.copyWith(
+      monthCells: monthCells,
+      status: VenueScheduleStatus.ready,
+    ));
   }
 
   /// After a successful mutation: reload day + week slots (the datasets
