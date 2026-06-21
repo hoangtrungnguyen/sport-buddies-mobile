@@ -23,10 +23,19 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
 
   final BookingApiClient? _api;
 
-  Future<void> _loadFromApi(String scId) async {
+  Future<void> _loadFromApi(String courtId) async {
     try {
-      final response = await _api!.getSportsCenterSchedule(scId);
+      // Fetch the current week (today + 6) in one call.
+      final response = await _api!.getCourtSchedule(
+        courtId,
+        weekStart: DateTime.now(),
+      );
+      // TODO(schedule task 3): parse the real {court_id, week_start, venues[]}
+      // shape into ScheduleVenue/slots; current _parseAndEmit still expects the
+      // old courts[]/slots{} shape and will treat venues[] as empty.
       _parseAndEmit(response);
+    } on ScheduleUnavailableException catch (e, st) {
+      emit(CourtScheduleOverviewState.failure(_emptyMessage, stackTrace: st));
     } catch (e, st) {
       appLogger.e(
         'CourtScheduleOverviewCubit._loadFromApi failed',
