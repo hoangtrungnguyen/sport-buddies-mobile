@@ -74,7 +74,7 @@ Future<void> _pump(PatrolTester $, _FakeAuthRepo repo) async {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   patrolWidgetTest('login with valid credentials navigates to home', ($) async {
     await _pump($, _FakeAuthRepo());
@@ -82,6 +82,7 @@ void main() {
     // Starts on the login screen (title + button both read "Đăng nhập").
     expect($('Đăng nhập'), findsWidgets);
     expect($('HOME'), findsNothing);
+    await binding.takeScreenshot('01-login-screen');
 
     await $(TextFormField).at(0).enterText('owner@snb.com');
     await $(TextFormField).at(1).enterText(_goodPassword);
@@ -90,6 +91,7 @@ void main() {
 
     // AuthAuthenticated → context.go('/').
     expect($('HOME'), findsOneWidget);
+    await binding.takeScreenshot('02-login-success-home');
   });
 
   patrolWidgetTest('wrong password shows the inline credentials error',
@@ -104,6 +106,7 @@ void main() {
     // AuthRejected('invalid_credentials') → mapped error, still on login.
     expect($('Email hoặc mật khẩu không đúng.'), findsOneWidget);
     expect($('HOME'), findsNothing);
+    await binding.takeScreenshot('03-login-error');
   });
 
   patrolWidgetTest('empty email is blocked by form validation', ($) async {
