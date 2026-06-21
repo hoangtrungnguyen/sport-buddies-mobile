@@ -5,6 +5,7 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import '../model/models.dart';
 import '../style/slot_state_style.dart';
 import '../util/schedule_format.dart';
+import 'hover_builder.dart';
 
 /// `.month-dow` — T2..CN, 7 equal columns, 11/700 `--n-500` on `--n-50`.
 class MonthWeekdayHeader extends StatelessWidget {
@@ -50,7 +51,7 @@ class MonthWeekdayHeader extends StatelessWidget {
 
 /// `.mcell` — one heatmap day: number top-left, occupancy block bottom,
 /// full-cell heat tint, hover ring, tap → Day view.
-class MonthCell extends StatefulWidget {
+class MonthCell extends StatelessWidget {
   const MonthCell({
     super.key,
     required this.cell,
@@ -65,22 +66,14 @@ class MonthCell extends StatefulWidget {
   final ValueChanged<DateTime> onTap;
 
   @override
-  State<MonthCell> createState() => _MonthCellState();
-}
-
-class _MonthCellState extends State<MonthCell> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final cell = widget.cell;
-    final minHeight = widget.compact ? 70.0 : 96.0;
-    final padding = widget.compact
+    final minHeight = compact ? 70.0 : 96.0;
+    final padding = compact
         ? const EdgeInsets.all(6)
         : const EdgeInsets.symmetric(vertical: 9, horizontal: 10);
     final hairlines = Border(
       top: const BorderSide(color: AppColors.neutral100),
-      right: widget.lastInRow
+      right: lastInRow
           ? BorderSide.none
           : const BorderSide(color: AppColors.neutral100),
     );
@@ -94,17 +87,14 @@ class _MonthCellState extends State<MonthCell> {
     final color = occupancyColor(occ);
     final pct = (occ * 100).round();
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: () => widget.onTap(cell.date),
+    return HoverBuilder(
+      builder: (context, hovered) => GestureDetector(
+        onTap: () => onTap(cell.date),
         child: Container(
           constraints: BoxConstraints(minHeight: minHeight),
           decoration: BoxDecoration(border: hairlines),
           // Hover → 2px inset --primary ring, drawn above content/borders.
-          foregroundDecoration: _hovered
+          foregroundDecoration: hovered
               ? BoxDecoration(
                   border: Border.all(color: AppColors.primary, width: 2),
                 )
@@ -146,7 +136,7 @@ class _MonthCellState extends State<MonthCell> {
       decoration: BoxDecoration(color: AppColors.neutral50, border: hairlines),
       alignment: Alignment.topLeft,
       child: Text(
-        '${widget.cell.date.day}',
+        '${cell.date.day}',
         style: GoogleFonts.sora(
           fontSize: 15,
           fontWeight: FontWeight.w700,
@@ -159,8 +149,8 @@ class _MonthCellState extends State<MonthCell> {
   /// `.dnum` — today renders as a 26px primary circle; other days a plain
   /// number.
   Widget _dayNumber() {
-    final day = '${widget.cell.date.day}';
-    if (widget.cell.isToday) {
+    final day = '${cell.date.day}';
+    if (cell.isToday) {
       return Container(
         width: 26,
         height: 26,
@@ -206,10 +196,10 @@ class _MonthCellState extends State<MonthCell> {
                 color: AppColors.neutral900,
               ),
             ),
-            if (!widget.compact) ...[
+            if (!compact) ...[
               const SizedBox(width: 6),
               Text(
-                '${widget.cell.bookings} slot',
+                '${cell.bookings} slot',
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w600,

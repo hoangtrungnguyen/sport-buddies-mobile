@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../model/models.dart';
+import 'hover_builder.dart';
 
 /// `.date-nav` — white pill (1px `--n-200`, radius 10, padding 4) with ‹ / ›
 /// arrow buttons around a Sora 13/600 label.
@@ -50,39 +51,29 @@ class ScheduleDateNav extends StatelessWidget {
 }
 
 /// `.date-nav .arr` — 30×30, radius 8, hover `--n-100` bg + `--n-900` icon.
-class _ArrowButton extends StatefulWidget {
+class _ArrowButton extends StatelessWidget {
   const _ArrowButton({required this.icon, required this.onPressed});
 
   final IconData icon;
   final VoidCallback onPressed;
 
   @override
-  State<_ArrowButton> createState() => _ArrowButtonState();
-}
-
-class _ArrowButtonState extends State<_ArrowButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
+    return HoverBuilder(
+      builder: (context, hovered) => GestureDetector(
+        onTap: onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 80),
           width: 30,
           height: 30,
           decoration: BoxDecoration(
-            color: _hovered ? AppColors.neutral100 : Colors.transparent,
+            color: hovered ? AppColors.neutral100 : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
-            widget.icon,
+            icon,
             size: 16,
-            color: _hovered ? AppColors.neutral900 : AppColors.neutral600,
+            color: hovered ? AppColors.neutral900 : AppColors.neutral600,
           ),
         ),
       ),
@@ -92,35 +83,25 @@ class _ArrowButtonState extends State<_ArrowButton> {
 
 /// "Hôm nay" — `.btn-secondary.btn-sm`: 32px tall, 12.5/600, white bg,
 /// 1px `--n-200` border, hover `--n-50` bg + `--n-300` border.
-class ScheduleTodayButton extends StatefulWidget {
+class ScheduleTodayButton extends StatelessWidget {
   const ScheduleTodayButton({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
   @override
-  State<ScheduleTodayButton> createState() => _ScheduleTodayButtonState();
-}
-
-class _ScheduleTodayButtonState extends State<ScheduleTodayButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
+    return HoverBuilder(
+      builder: (context, hovered) => GestureDetector(
+        onTap: onPressed,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 80),
           height: 32,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: _hovered ? AppColors.neutral50 : Colors.white,
+            color: hovered ? AppColors.neutral50 : Colors.white,
             border: Border.all(
-              color: _hovered ? AppColors.neutral300 : AppColors.neutral200,
+              color: hovered ? AppColors.neutral300 : AppColors.neutral200,
             ),
             borderRadius: BorderRadius.circular(10),
           ),
@@ -186,7 +167,7 @@ class ScheduleViewSwitch extends StatelessWidget {
   }
 }
 
-class _ViewSwitchButton extends StatefulWidget {
+class _ViewSwitchButton extends StatelessWidget {
   const _ViewSwitchButton({
     required this.icon,
     required this.label,
@@ -204,68 +185,60 @@ class _ViewSwitchButton extends StatefulWidget {
   final VoidCallback onPressed;
 
   @override
-  State<_ViewSwitchButton> createState() => _ViewSwitchButtonState();
-}
-
-class _ViewSwitchButtonState extends State<_ViewSwitchButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final fg =
-        widget.active || _hovered ? AppColors.neutral900 : AppColors.neutral600;
-    final padding = widget.iconOnly
+    final padding = iconOnly
         ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-        : widget.compact
+        : compact
             ? const EdgeInsets.symmetric(horizontal: 11, vertical: 7)
             : const EdgeInsets.symmetric(horizontal: 16, vertical: 7);
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          padding: padding,
-          decoration: BoxDecoration(
-            color: widget.active ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(7),
-            boxShadow: widget.active
-                ? const [
-                    // --shadow-sm
-                    BoxShadow(
-                      color: Color(0x0A111827),
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
+    return HoverBuilder(
+      builder: (context, hovered) {
+        final fg =
+            active || hovered ? AppColors.neutral900 : AppColors.neutral600;
+        return GestureDetector(
+          onTap: onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            padding: padding,
+            decoration: BoxDecoration(
+              color: active ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(7),
+              boxShadow: active
+                  ? const [
+                      // --shadow-sm
+                      BoxShadow(
+                        color: Color(0x0A111827),
+                        offset: Offset(0, 1),
+                        blurRadius: 2,
+                      ),
+                      BoxShadow(
+                        color: Color(0x08111827),
+                        offset: Offset(0, 1),
+                        blurRadius: 1,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 15, color: fg),
+                if (!iconOnly) ...[
+                  const SizedBox(width: 7),
+                  Text(
+                    label,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: fg,
                     ),
-                    BoxShadow(
-                      color: Color(0x08111827),
-                      offset: Offset(0, 1),
-                      blurRadius: 1,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(widget.icon, size: 15, color: fg),
-              if (!widget.iconOnly) ...[
-                const SizedBox(width: 7),
-                Text(
-                  widget.label,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: fg,
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:spb_core/core/theme/app_colors.dart';
 import '../bloc/venue_schedule_state.dart';
 import '../model/models.dart';
 import '../style/slot_state_style.dart';
+import 'hover_builder.dart';
 
 /// The two filter rows of the "Lịch sân" screen (`.sc-filters`):
 ///
@@ -86,8 +87,8 @@ class ScheduleFilters extends StatelessWidget {
         for (final sport in SportType.values)
           _FilterChip(
             label: sport.label,
-            active: state.sportFilter.isEmpty ||
-                state.sportFilter.contains(sport),
+            active:
+                state.sportFilter.isEmpty || state.sportFilter.contains(sport),
             onTap: () => onSportToggled(sport),
           ),
       ],
@@ -156,7 +157,7 @@ class _FilterLabel extends StatelessWidget {
 
 /// `.fchip` — white pill, 1px `--n-200`, 7×13 padding, 12.5/600 `--n-700`;
 /// hover `--n-50` bg + `--n-300` border; active `--n-900` bg, white text.
-class _FilterChip extends StatefulWidget {
+class _FilterChip extends StatelessWidget {
   const _FilterChip({
     required this.label,
     required this.active,
@@ -172,59 +173,51 @@ class _FilterChip extends StatefulWidget {
   final Widget? leading;
 
   @override
-  State<_FilterChip> createState() => _FilterChipState();
-}
-
-class _FilterChipState extends State<_FilterChip> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final Color bg;
-    final Color border;
-    if (widget.active) {
-      bg = AppColors.neutral900;
-      border = AppColors.neutral900;
-    } else if (_hovered) {
-      bg = AppColors.neutral50;
-      border = AppColors.neutral300;
-    } else {
-      bg = Colors.white;
-      border = AppColors.neutral200;
-    }
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
-          decoration: BoxDecoration(
-            color: bg,
-            border: Border.all(color: border),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.leading != null) ...[
-                widget.leading!,
-                const SizedBox(width: 6),
-              ],
-              Text(
-                widget.label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: widget.active ? Colors.white : AppColors.neutral700,
+    return HoverBuilder(
+      builder: (context, hovered) {
+        final Color bg;
+        final Color border;
+        if (active) {
+          bg = AppColors.neutral900;
+          border = AppColors.neutral900;
+        } else if (hovered) {
+          bg = AppColors.neutral50;
+          border = AppColors.neutral300;
+        } else {
+          bg = Colors.white;
+          border = AppColors.neutral200;
+        }
+        return GestureDetector(
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+            decoration: BoxDecoration(
+              color: bg,
+              border: Border.all(color: border),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (leading != null) ...[
+                  leading!,
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: active ? Colors.white : AppColors.neutral700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

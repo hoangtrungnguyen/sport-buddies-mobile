@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../model/models.dart';
+import 'hover_builder.dart';
 
 /// Page header of the "Lịch sân" screen (`.page-head` in the handoff CSS):
 /// title + subtitle on the left, the two global actions right-aligned.
@@ -101,7 +102,7 @@ class ScheduleHeader extends StatelessWidget {
 /// [primary] → `--primary` fill, white text, green-tinted shadow, hover
 /// `--primary-dark`. Otherwise the secondary look: white, 1px `--n-200`
 /// border, `--n-800` text, hover `--n-50` bg + `--n-300` border.
-class _ActionButton extends StatefulWidget {
+class _ActionButton extends StatelessWidget {
   const _ActionButton({
     required this.label,
     required this.icon,
@@ -115,68 +116,60 @@ class _ActionButton extends StatefulWidget {
   final bool primary;
 
   @override
-  State<_ActionButton> createState() => _ActionButtonState();
-}
-
-class _ActionButtonState extends State<_ActionButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final Color bg;
-    final Color border;
-    final Color fg;
-    if (widget.primary) {
-      bg = _hovered ? AppColors.primaryDark : AppColors.primary;
-      border = Colors.transparent;
-      fg = Colors.white;
-    } else {
-      bg = _hovered ? AppColors.neutral50 : Colors.white;
-      border = _hovered ? AppColors.neutral300 : AppColors.neutral200;
-      fg = AppColors.neutral800;
-    }
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 80),
-          height: 38,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: bg,
-            border: Border.all(color: border),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: widget.primary
-                ? const [
-                    // 0 1px 2px rgba(22,163,74,.24)
-                    BoxShadow(
-                      color: Color(0x3D16A34A),
-                      offset: Offset(0, 1),
-                      blurRadius: 2,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(widget.icon, size: 14, color: fg),
-              const SizedBox(width: 8),
-              Text(
-                widget.label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: fg,
+    return HoverBuilder(
+      builder: (context, hovered) {
+        final Color bg;
+        final Color border;
+        final Color fg;
+        if (primary) {
+          bg = hovered ? AppColors.primaryDark : AppColors.primary;
+          border = Colors.transparent;
+          fg = Colors.white;
+        } else {
+          bg = hovered ? AppColors.neutral50 : Colors.white;
+          border = hovered ? AppColors.neutral300 : AppColors.neutral200;
+          fg = AppColors.neutral800;
+        }
+        return GestureDetector(
+          onTap: onPressed,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            height: 38,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: bg,
+              border: Border.all(color: border),
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: primary
+                  ? const [
+                      // 0 1px 2px rgba(22,163,74,.24)
+                      BoxShadow(
+                        color: Color(0x3D16A34A),
+                        offset: Offset(0, 1),
+                        blurRadius: 2,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 14, color: fg),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
