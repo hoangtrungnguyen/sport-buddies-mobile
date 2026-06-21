@@ -1,3 +1,4 @@
+import 'package:dashboard/core/widgets/button_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
@@ -96,11 +97,7 @@ class StickyFooter extends StatelessWidget {
                 button: true,
                 child: FilledButton.icon(
                   icon: saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const ButtonSpinner()
                       : const Icon(Symbols.check, size: 18),
                   label: Text(isEdit ? 'Lưu thay đổi' : 'Tạo sân'),
                   onPressed: onSubmit,

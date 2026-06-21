@@ -1,3 +1,4 @@
+import 'package:dashboard/core/widgets/button_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -216,12 +217,7 @@ class _VenueDialogState extends State<_VenueDialog> {
       ),
       FilledButton(
         onPressed: (_saving || _name.text.trim().isEmpty) ? null : _save,
-        child: _saving
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
-            : const Text('Lưu'),
+        child: _saving ? const ButtonSpinner() : const Text('Lưu'),
       ),
     ];
   }

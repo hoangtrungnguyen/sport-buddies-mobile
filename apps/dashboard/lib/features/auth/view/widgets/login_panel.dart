@@ -1,5 +1,6 @@
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:dashboard/features/auth/view/auth_scaffold.dart';
+import 'package:dashboard/core/widgets/button_spinner.dart';
 import 'package:dashboard/features/auth/view/contact_support_dialog.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -102,8 +103,7 @@ class LoginFormPanel extends StatelessWidget {
       semanticsLabel: 'login-email-field',
       child: TextFormField(
         controller: emailCtrl,
-        keyboardType:
-            kIsWeb ? TextInputType.text : TextInputType.emailAddress,
+        keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
         textInputAction: TextInputAction.next,
         autofillHints: const [AutofillHints.email],
         style: GoogleFonts.plusJakartaSans(fontSize: 14),
@@ -169,14 +169,7 @@ class LoginFormPanel extends StatelessWidget {
           child: ElevatedButton(
             onPressed: loading ? null : onSubmit,
             child: loading
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                ? const ButtonSpinner(color: Colors.white)
                 : const Text('Đăng nhập'),
           ),
         );

@@ -1,3 +1,4 @@
+import 'package:dashboard/core/widgets/button_spinner.dart';
 import 'package:dashboard/features/auth/auth_validators.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -128,8 +129,7 @@ class SignupFormPanel extends StatelessWidget {
       semanticsLabel: 'signup-email-field',
       child: TextFormField(
         controller: emailCtrl,
-        keyboardType:
-            kIsWeb ? TextInputType.text : TextInputType.emailAddress,
+        keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
         textInputAction: TextInputAction.next,
         autofillHints: const [AutofillHints.email],
         style: GoogleFonts.plusJakartaSans(fontSize: 14),
@@ -175,14 +175,7 @@ class SignupFormPanel extends StatelessWidget {
       child: ElevatedButton(
         onPressed: loading ? null : onSubmit,
         child: loading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Colors.white,
-                ),
-              )
+            ? const ButtonSpinner(color: Colors.white)
             : const Text('Đăng ký'),
       ),
     );

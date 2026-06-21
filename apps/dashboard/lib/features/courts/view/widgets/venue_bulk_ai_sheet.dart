@@ -1,3 +1,4 @@
+import 'package:dashboard/core/widgets/button_spinner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_symbols_icons/symbols.dart';
@@ -174,10 +175,7 @@ class _BulkVenueSheetState extends State<_BulkVenueSheet> {
       const SizedBox(height: 16),
       FilledButton.icon(
         icon: _loading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
+            ? const ButtonSpinner()
             : const Icon(Symbols.auto_awesome, size: 18),
         label: Text(_loading ? 'AI đang phân tích…' : 'Phân tích bằng AI'),
         onPressed: _loading ? null : _analyze,
@@ -210,10 +208,7 @@ class _BulkVenueSheetState extends State<_BulkVenueSheet> {
       const SizedBox(height: 12),
       FilledButton.icon(
         icon: _saving
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2))
+            ? const ButtonSpinner()
             : const Icon(Symbols.playlist_add, size: 18),
         label: Text('Tạo ${_checked.where((c) => c).length} sân con'),
         onPressed: _saving ? null : _create,
