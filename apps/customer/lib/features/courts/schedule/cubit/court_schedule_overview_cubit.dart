@@ -30,9 +30,6 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
         courtId,
         weekStart: DateTime.now(),
       );
-      // TODO(schedule task 3): parse the real {court_id, week_start, venues[]}
-      // shape into ScheduleVenue/slots; current _parseAndEmit still expects the
-      // old courts[]/slots{} shape and will treat venues[] as empty.
       _parseAndEmit(response);
     } on ScheduleUnavailableException catch (e, st) {
       emit(CourtScheduleOverviewState.failure(_emptyMessage, stackTrace: st));
@@ -48,72 +45,30 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
 
   void _parseAndEmit(Map<String, dynamic> response) {
     try {
-      // Parse dates from response
-      final datesList = response['dates'] as List<dynamic>? ?? [];
-      final dates = datesList.map((d) => DateTime.parse(d as String)).toList();
+      final venues = (response['venues'] as List<dynamic>? ?? const <dynamic>[])
+          .whereType<Map<String, dynamic>>()
+          .map(ScheduleVenue.fromJson)
+          .toList();
 
-      if (dates.isEmpty) {
+      if (venues.every((v) => v.slots.isEmpty)) {
         emit(const CourtScheduleOverviewState.failure(_emptyMessage));
         return;
       }
 
-      // Parse courts from response
-      final courtsList = response['courts'] as List<dynamic>? ?? [];
-      final courts = courtsList
-          .map(
-            (c) => c is Map<String, dynamic>
-                ? ScheduleCourt(
-                    id: c['id'] as String? ?? '',
-                    name: c['name'] as String? ?? 'Unknown',
-                    sport: c['sport'] as String? ?? 'Unknown',
-                  )
-                : null,
-          )
-          .whereType<ScheduleCourt>()
-          .toList();
-
-      // Parse slots by date
-      final slotsData = response['slots'] as Map<String, dynamic>? ?? {};
-      final slotsByDate = <String, Map<String, ScheduleSlot>>{};
-
-      slotsData.forEach((dateKey, daySlots) {
-        if (daySlots is Map<String, dynamic>) {
-          final slotMap = <String, ScheduleSlot>{};
-          daySlots.forEach((slotKey, slotData) {
-            if (slotData is Map<String, dynamic>) {
-              final status = _parseSlotStatus(slotData['status'] as String?);
-              slotMap[slotKey] = ScheduleSlot(
-                status: status,
-                price: slotData['price'] as int? ?? 0,
-                endLabel: slotData['endLabel'] as String? ?? '',
-              );
-            }
-          });
-          slotsByDate[dateKey] = slotMap;
-        }
-      });
-
-      // Extract hours from slots (assume all dates have same hours)
-      final hours = <int>{};
-      slotsByDate.forEach((_, daySlots) {
-        daySlots.forEach((key, __) {
-          final parts = key.split('|');
-          if (parts.length == 2) {
-            final hour = int.tryParse(parts[1]);
-            if (hour != null) hours.add(hour);
-          }
-        });
-      });
-      final sortedHours = hours.toList()..sort();
+      // The 7 day tabs start at `week_start` (single-day call echoes `date`),
+      // falling back to today.
+      final base = _baseDate(response['week_start'] ?? response['date']);
+      final dates = List<DateTime>.generate(
+        7,
+        (i) => base.add(Duration(days: i)),
+      );
 
       emit(
         CourtScheduleOverviewState.loaded(
-          selectedDateIndex: 0,
-          selectedByDate: const {},
           dates: dates,
-          hours: sortedHours,
-          courts: courts,
-          slotsByDate: slotsByDate,
+          selectedDateIndex: 0,
+          venues: venues,
+          selectedSlotIds: const {},
         ),
       );
     } catch (e, st) {
@@ -126,111 +81,122 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
     }
   }
 
-  static SlotStatus _parseSlotStatus(String? status) => switch (status) {
-    'open' => SlotStatus.open,
-    'booked' => SlotStatus.booked,
-    'closed' => SlotStatus.closed,
-    _ => SlotStatus.closed,
-  };
+  /// Local calendar day from a `YYYY-MM-DD` string, or today.
+  static DateTime _baseDate(Object? raw) {
+    if (raw is String) {
+      final d = DateTime.parse(raw);
+      return DateTime(d.year, d.month, d.day);
+    }
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
 
   void selectDate(int index) {
     final s = state;
     if (s is CourtScheduleOverviewLoaded) {
-      // Switch the visible day without touching selections from other days.
+      // Switch the visible day without touching the multi-day selection.
       emit(s.copyWith(selectedDateIndex: index));
     }
   }
 
-  void toggleSlot(String hourKey) {
+  /// Toggle a real slot id in/out of the cart.
+  void toggleSlot(String slotId) {
     final s = state;
     if (s is! CourtScheduleOverviewLoaded) return;
-    final dateKey = _dateKey(s.dates[s.selectedDateIndex]);
-    final next = Map<String, Set<String>>.from(s.selectedByDate);
-    final daySet = Set<String>.from(next[dateKey] ?? const <String>{});
-    if (!daySet.add(hourKey)) daySet.remove(hourKey);
-    if (daySet.isEmpty) {
-      next.remove(dateKey);
-    } else {
-      next[dateKey] = daySet;
-    }
-    emit(s.copyWith(selectedByDate: next));
+    final next = Set<String>.from(s.selectedSlotIds);
+    if (!next.add(slotId)) next.remove(slotId);
+    emit(s.copyWith(selectedSlotIds: next));
   }
 
   void clearAll() {
     final s = state;
     if (s is CourtScheduleOverviewLoaded) {
-      emit(s.copyWith(selectedByDate: const {}));
+      emit(s.copyWith(selectedSlotIds: const {}));
     }
-  }
-
-  static String _dateKey(DateTime d) {
-    final m = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    return '${d.year}-$m-$dd';
   }
 }
 
-/// Pure helpers used by the screen — builds derived view data from the loaded
-/// state without leaking selection mutation back into the widget tree.
+String _hhmm(DateTime t) =>
+    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+bool _sameDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;
+
+/// Pure helpers used by the screen — derives day-grouped view data from the
+/// loaded state without leaking selection mutation back into the widget tree.
 extension CourtScheduleOverviewLoadedView on CourtScheduleOverviewLoaded {
-  /// 'courtId|hour' keys picked for the currently visible date — used by the
-  /// grid to render selected cells.
-  Set<String> get currentDateSelection {
-    final dateKey = _dateKeyOf(dates[selectedDateIndex]);
-    return selectedByDate[dateKey] ?? const <String>{};
+  DateTime get selectedDate => dates[selectedDateIndex];
+
+  /// Grid for the visible day: `venueId → 'HH:mm' start → slot`. Slots' UTC
+  /// `start` is converted to local (UTC+7) to bucket them into the day/column.
+  Map<String, Map<String, VenueSlot>> get dayGrid {
+    final out = <String, Map<String, VenueSlot>>{};
+    for (final v in venues) {
+      for (final s in v.slots) {
+        final local = s.start.toLocal();
+        if (_sameDay(local, selectedDate)) {
+          (out[v.id] ??= <String, VenueSlot>{})[_hhmm(local)] = s;
+        }
+      }
+    }
+    return out;
   }
 
-  /// Availability map for the currently visible date — used by the grid to
-  /// render each cell's status.
-  Map<String, ScheduleSlot> get currentSlots {
-    final dateKey = _dateKeyOf(dates[selectedDateIndex]);
-    return slotsByDate[dateKey] ?? const {};
+  /// Distinct, sorted start times ("HH:mm") present on the visible day — the
+  /// grid's column headers.
+  List<String> get times {
+    final set = <String>{};
+    for (final byTime in dayGrid.values) {
+      set.addAll(byTime.keys);
+    }
+    final list = set.toList()..sort();
+    return list;
   }
 
-  int get totalSelectedCount =>
-      selectedByDate.values.fold<int>(0, (sum, set) => sum + set.length);
+  /// slotId → (venue, slot), across the whole week — for cart/total lookups.
+  Map<String, ({ScheduleVenue venue, VenueSlot slot})> get _slotsById {
+    final out = <String, ({ScheduleVenue venue, VenueSlot slot})>{};
+    for (final v in venues) {
+      for (final s in v.slots) {
+        out[s.id] = (venue: v, slot: s);
+      }
+    }
+    return out;
+  }
+
+  int get totalSelectedCount => selectedSlotIds.length;
 
   int get grandTotal {
-    var sum = 0;
-    selectedByDate.forEach((dateKey, hourKeys) {
-      final daySlots = slotsByDate[dateKey] ?? const <String, ScheduleSlot>{};
-      for (final key in hourKeys) {
-        sum += daySlots[key]?.price ?? 0;
-      }
-    });
-    return sum;
+    final byId = _slotsById;
+    return selectedSlotIds.fold<int>(
+      0,
+      (sum, id) => sum + (byId[id]?.slot.priceVnd ?? 0),
+    );
   }
 
-  /// Selections rolled up by date, chronological. Each group is a date header
-  /// plus its sorted line-items for the cart UI.
+  /// Selected slots rolled up by local day, chronological — for the cart UI.
   List<CartGroup> buildCartGroups() {
-    final dateKeys = selectedByDate.keys.toList()..sort();
-    return dateKeys.map((dateKey) {
-      final date = DateTime.parse(dateKey);
-      final daySlots = slotsByDate[dateKey] ?? const <String, ScheduleSlot>{};
-      final items = (selectedByDate[dateKey] ?? const <String>{}).map((
-        hourKey,
-      ) {
-        final parts = hourKey.split('|');
-        final courtId = parts[0];
-        final hour = int.parse(parts[1]);
-        final court = courts.firstWhere((c) => c.id == courtId);
-        final slot = daySlots[hourKey]!;
-        return CartItem(
-          sortKey: '${court.id}|${hour.toString().padLeft(2, '0')}',
-          courtName: court.name,
-          sport: court.sport,
-          timeLabel: '${hour.toString().padLeft(2, '0')}:00 – ${slot.endLabel}',
-          price: slot.price,
-        );
-      }).toList()..sort((a, b) => a.sortKey.compareTo(b.sortKey));
-      return CartGroup(date: date, items: items);
+    final byId = _slotsById;
+    final byDay = <DateTime, List<CartItem>>{};
+    for (final id in selectedSlotIds) {
+      final entry = byId[id];
+      if (entry == null) continue;
+      final start = entry.slot.start.toLocal();
+      final day = DateTime(start.year, start.month, start.day);
+      (byDay[day] ??= <CartItem>[]).add(
+        CartItem(
+          sortKey: '${_hhmm(start)}|${entry.venue.name}',
+          courtName: entry.venue.name,
+          sport: entry.venue.sportType,
+          timeLabel: '${_hhmm(start)} – ${_hhmm(entry.slot.end.toLocal())}',
+          price: entry.slot.priceVnd,
+        ),
+      );
+    }
+    final days = byDay.keys.toList()..sort();
+    return days.map((d) {
+      final items = byDay[d]!..sort((a, b) => a.sortKey.compareTo(b.sortKey));
+      return CartGroup(date: d, items: items);
     }).toList();
-  }
-
-  static String _dateKeyOf(DateTime d) {
-    final m = d.month.toString().padLeft(2, '0');
-    final dd = d.day.toString().padLeft(2, '0');
-    return '${d.year}-$m-$dd';
   }
 }

@@ -3,32 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'court_schedule_overview_state.freezed.dart';
 
-enum SlotStatus { open, booked, closed }
-
-class ScheduleCourt {
-  const ScheduleCourt({
-    required this.id,
-    required this.name,
-    required this.sport,
-  });
-
-  final String id;
-  final String name;
-  final String sport;
-}
-
-class ScheduleSlot {
-  const ScheduleSlot({
-    required this.status,
-    required this.price,
-    required this.endLabel,
-  });
-
-  final SlotStatus status;
-  final int price;
-  final String endLabel;
-}
-
 /// A lane within a court ("Sân A" / "Sân B") — one schedule grid row.
 /// Maps a backend `venues[]` item from `GET /api/courts/{id}/schedule`.
 class ScheduleVenue {
@@ -134,19 +108,15 @@ sealed class CourtScheduleOverviewState with _$CourtScheduleOverviewState {
 
   /// Schedule + selection ready to render.
   ///
-  /// [selectedByDate] keys are ISO date strings (`YYYY-MM-DD`); values are the
-  /// `'courtId|hour'` keys picked for that day. Persists across date-tab
-  /// switches so the user can build a multi-day cart.
-  ///
-  /// [slotsByDate] is the availability grid per day, keyed the same way. Each
-  /// inner map is `'courtId|hour' → ScheduleSlot`.
+  /// [dates] are the 7 local day tabs; [venues] holds every lane of the court
+  /// with its slots for the whole week (grouped by day client-side via the
+  /// view extension). [selectedSlotIds] are the real slot ids picked across all
+  /// days, so the cart persists when switching the visible day.
   const factory CourtScheduleOverviewState.loaded({
-    required int selectedDateIndex,
-    required Map<String, Set<String>> selectedByDate,
     required List<DateTime> dates,
-    required List<int> hours,
-    required List<ScheduleCourt> courts,
-    required Map<String, Map<String, ScheduleSlot>> slotsByDate,
+    required int selectedDateIndex,
+    required List<ScheduleVenue> venues,
+    required Set<String> selectedSlotIds,
   }) = CourtScheduleOverviewLoaded;
 
   /// Unrecoverable load error.

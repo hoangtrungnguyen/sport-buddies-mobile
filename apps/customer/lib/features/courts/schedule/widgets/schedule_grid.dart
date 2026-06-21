@@ -1,31 +1,37 @@
-// Courts × time-slot grid for the venue schedule: header rows, court rows
-// and individual selectable cells. Extracted from
-// court_schedule_overview_screen.dart.
+// Venues × start-time grid for the court schedule: header row, one row per
+// lane (venue) and individual selectable cells. Cells key on the real slot id.
 
-import 'package:customer/features/courts/schedule/court_schedule_style.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_state.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 class ScheduleGrid extends StatelessWidget {
   const ScheduleGrid({
     super.key,
-    required this.courts,
-    required this.hours,
-    required this.slots,
-    required this.selected,
-    required this.onTap,
+    required this.venues,
+    required this.times,
+    required this.dayGrid,
+    required this.selectedIds,
+    required this.onToggle,
   });
 
-  final List<ScheduleCourt> courts;
-  final List<int> hours;
-  final Map<String, ScheduleSlot> slots;
-  final Set<String> selected;
-  final ValueChanged<String> onTap;
+  /// One row per lane.
+  final List<ScheduleVenue> venues;
 
-  static const _courtColW = 88.0;
-  static const _cellW = 40.0;
+  /// Column headers — distinct "HH:mm" start times on the visible day.
+  final List<String> times;
+
+  /// `venueId → 'HH:mm' → slot` for the visible day.
+  final Map<String, Map<String, VenueSlot>> dayGrid;
+
+  /// Real slot ids currently in the cart.
+  final Set<String> selectedIds;
+
+  /// Toggles a slot id when an open cell is tapped.
+  final ValueChanged<String> onToggle;
+
+  static const _venueColW = 96.0;
+  static const _cellW = 48.0;
   static const _cellH = 40.0;
 
   @override
@@ -40,14 +46,14 @@ class ScheduleGrid extends StatelessWidget {
         children: [
           Row(
             children: [
-              const SizedBox(width: _courtColW, height: 32),
-              for (final h in hours)
+              const SizedBox(width: _venueColW, height: 32),
+              for (final t in times)
                 SizedBox(
                   width: _cellW,
                   height: 32,
                   child: Center(
                     child: Text(
-                      '${h.toString().padLeft(2, '0')}:00',
+                      t,
                       style: const TextStyle(
                         fontSize: 10,
                         color: Color(0xFF6B7280),
@@ -59,15 +65,15 @@ class ScheduleGrid extends StatelessWidget {
             ],
           ),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
-          for (var i = 0; i < courts.length; i++) ...[
-            _CourtRow(
-              court: courts[i],
-              hours: hours,
-              slots: slots,
-              selected: selected,
-              onTap: onTap,
+          for (var i = 0; i < venues.length; i++) ...[
+            _VenueRow(
+              venue: venues[i],
+              times: times,
+              byTime: dayGrid[venues[i].id] ?? const {},
+              selectedIds: selectedIds,
+              onToggle: onToggle,
             ),
-            if (i < courts.length - 1)
+            if (i < venues.length - 1)
               const Divider(height: 1, color: Color(0xFFF3F4F6)),
           ],
         ],
@@ -76,20 +82,20 @@ class ScheduleGrid extends StatelessWidget {
   }
 }
 
-class _CourtRow extends StatelessWidget {
-  const _CourtRow({
-    required this.court,
-    required this.hours,
-    required this.slots,
-    required this.selected,
-    required this.onTap,
+class _VenueRow extends StatelessWidget {
+  const _VenueRow({
+    required this.venue,
+    required this.times,
+    required this.byTime,
+    required this.selectedIds,
+    required this.onToggle,
   });
 
-  final ScheduleCourt court;
-  final List<int> hours;
-  final Map<String, ScheduleSlot> slots;
-  final Set<String> selected;
-  final ValueChanged<String> onTap;
+  final ScheduleVenue venue;
+  final List<String> times;
+  final Map<String, VenueSlot> byTime;
+  final Set<String> selectedIds;
+  final ValueChanged<String> onToggle;
 
   @override
   Widget build(BuildContext context) {
@@ -97,50 +103,40 @@ class _CourtRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => context.push(
-              '/court/${court.id}/slots',
-              extra: <String, String?>{
-                'name': '${court.name} · ${court.sport}',
-                'address': kVenueName,
-              },
-            ),
-            child: SizedBox(
-              width: ScheduleGrid._courtColW,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      court.name,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF111827),
-                      ),
+          SizedBox(
+            width: ScheduleGrid._venueColW,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    venue.name,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
                     ),
-                    Text(
-                      court.sport,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Color(0xFF6B7280),
-                      ),
+                  ),
+                  Text(
+                    venue.sportType,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFF6B7280),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          for (final h in hours)
+          for (final t in times)
             _Cell(
-              key: ValueKey('${court.id}|$h'),
-              slotKey: '${court.id}|$h',
-              slot: slots['${court.id}|$h'],
-              isSelected: selected.contains('${court.id}|$h'),
-              onTap: onTap,
+              key: ValueKey('${venue.id}|$t'),
+              slot: byTime[t],
+              isSelected:
+                  byTime[t] != null && selectedIds.contains(byTime[t]!.id),
+              onToggle: onToggle,
             ),
         ],
       ),
@@ -151,33 +147,33 @@ class _CourtRow extends StatelessWidget {
 class _Cell extends StatelessWidget {
   const _Cell({
     super.key,
-    required this.slotKey,
     required this.slot,
     required this.isSelected,
-    required this.onTap,
+    required this.onToggle,
   });
 
-  final String slotKey;
-  final ScheduleSlot? slot;
+  final VenueSlot? slot;
   final bool isSelected;
-  final ValueChanged<String> onTap;
+  final ValueChanged<String> onToggle;
 
   @override
   Widget build(BuildContext context) {
+    final slot = this.slot;
+    final isOpen = slot != null && slot.bookable;
+    final isTaken = slot != null && !slot.bookable;
+
     Widget content;
     Color bg = Colors.white;
     Color? border;
-    final isOpen = slot?.status == SlotStatus.open;
-    final isBooked = slot?.status == SlotStatus.booked;
-    final isClosed = slot == null || slot!.status == SlotStatus.closed;
 
-    if (isClosed) {
+    if (slot == null) {
+      // No slot at this time for this lane.
       content = Container(
         width: 12,
         height: 1.5,
         color: const Color(0xFFD1D5DB),
       );
-    } else if (isBooked) {
+    } else if (isTaken) {
       content = Text(
         AppLocalizations.of(context).scheduleBookedShort,
         style: const TextStyle(
@@ -218,7 +214,7 @@ class _Cell extends StatelessWidget {
       height: ScheduleGrid._cellH,
       child: isOpen
           ? GestureDetector(
-              onTap: () => onTap(slotKey),
+              onTap: () => onToggle(slot.id),
               behavior: HitTestBehavior.opaque,
               child: cell,
             )

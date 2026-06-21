@@ -139,11 +139,11 @@ class _LoadedBody extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: ScheduleGrid(
-                  courts: state.courts,
-                  hours: state.hours,
-                  slots: state.currentSlots,
-                  selected: state.currentDateSelection,
-                  onTap: cubit.toggleSlot,
+                  venues: state.venues,
+                  times: state.times,
+                  dayGrid: state.dayGrid,
+                  selectedIds: state.selectedSlotIds,
+                  onToggle: cubit.toggleSlot,
                 ),
               ),
               const Padding(

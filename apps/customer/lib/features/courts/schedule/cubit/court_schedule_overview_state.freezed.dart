@@ -122,11 +122,11 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( int selectedDateIndex,  Map<String, Set<String>> selectedByDate,  List<DateTime> dates,  List<int> hours,  List<ScheduleCourt> courts,  Map<String, Map<String, ScheduleSlot>> slotsByDate)?  loaded,TResult Function( String message,  StackTrace? stackTrace)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)?  loaded,TResult Function( String message,  StackTrace? stackTrace)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading();case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that.selectedDateIndex,_that.selectedByDate,_that.dates,_that.hours,_that.courts,_that.slotsByDate);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that.message,_that.stackTrace);case _:
   return orElse();
 
@@ -145,11 +145,11 @@ return failure(_that.message,_that.stackTrace);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( int selectedDateIndex,  Map<String, Set<String>> selectedByDate,  List<DateTime> dates,  List<int> hours,  List<ScheduleCourt> courts,  Map<String, Map<String, ScheduleSlot>> slotsByDate)  loaded,required TResult Function( String message,  StackTrace? stackTrace)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)  loaded,required TResult Function( String message,  StackTrace? stackTrace)  failure,}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading():
 return loading();case CourtScheduleOverviewLoaded():
-return loaded(_that.selectedDateIndex,_that.selectedByDate,_that.dates,_that.hours,_that.courts,_that.slotsByDate);case CourtScheduleOverviewFailure():
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure():
 return failure(_that.message,_that.stackTrace);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -164,11 +164,11 @@ return failure(_that.message,_that.stackTrace);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( int selectedDateIndex,  Map<String, Set<String>> selectedByDate,  List<DateTime> dates,  List<int> hours,  List<ScheduleCourt> courts,  Map<String, Map<String, ScheduleSlot>> slotsByDate)?  loaded,TResult? Function( String message,  StackTrace? stackTrace)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)?  loaded,TResult? Function( String message,  StackTrace? stackTrace)?  failure,}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading();case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that.selectedDateIndex,_that.selectedByDate,_that.dates,_that.hours,_that.courts,_that.slotsByDate);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that.message,_that.stackTrace);case _:
   return null;
 
@@ -213,16 +213,8 @@ String toString() {
 
 
 class CourtScheduleOverviewLoaded implements CourtScheduleOverviewState {
-  const CourtScheduleOverviewLoaded({required this.selectedDateIndex, required final  Map<String, Set<String>> selectedByDate, required final  List<DateTime> dates, required final  List<int> hours, required final  List<ScheduleCourt> courts, required final  Map<String, Map<String, ScheduleSlot>> slotsByDate}): _selectedByDate = selectedByDate,_dates = dates,_hours = hours,_courts = courts,_slotsByDate = slotsByDate;
+  const CourtScheduleOverviewLoaded({required final  List<DateTime> dates, required this.selectedDateIndex, required final  List<ScheduleVenue> venues, required final  Set<String> selectedSlotIds}): _dates = dates,_venues = venues,_selectedSlotIds = selectedSlotIds;
   
-
- final  int selectedDateIndex;
- final  Map<String, Set<String>> _selectedByDate;
- Map<String, Set<String>> get selectedByDate {
-  if (_selectedByDate is EqualUnmodifiableMapView) return _selectedByDate;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_selectedByDate);
-}
 
  final  List<DateTime> _dates;
  List<DateTime> get dates {
@@ -231,25 +223,19 @@ class CourtScheduleOverviewLoaded implements CourtScheduleOverviewState {
   return EqualUnmodifiableListView(_dates);
 }
 
- final  List<int> _hours;
- List<int> get hours {
-  if (_hours is EqualUnmodifiableListView) return _hours;
+ final  int selectedDateIndex;
+ final  List<ScheduleVenue> _venues;
+ List<ScheduleVenue> get venues {
+  if (_venues is EqualUnmodifiableListView) return _venues;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_hours);
+  return EqualUnmodifiableListView(_venues);
 }
 
- final  List<ScheduleCourt> _courts;
- List<ScheduleCourt> get courts {
-  if (_courts is EqualUnmodifiableListView) return _courts;
+ final  Set<String> _selectedSlotIds;
+ Set<String> get selectedSlotIds {
+  if (_selectedSlotIds is EqualUnmodifiableSetView) return _selectedSlotIds;
   // ignore: implicit_dynamic_type
-  return EqualUnmodifiableListView(_courts);
-}
-
- final  Map<String, Map<String, ScheduleSlot>> _slotsByDate;
- Map<String, Map<String, ScheduleSlot>> get slotsByDate {
-  if (_slotsByDate is EqualUnmodifiableMapView) return _slotsByDate;
-  // ignore: implicit_dynamic_type
-  return EqualUnmodifiableMapView(_slotsByDate);
+  return EqualUnmodifiableSetView(_selectedSlotIds);
 }
 
 
@@ -263,16 +249,16 @@ $CourtScheduleOverviewLoadedCopyWith<CourtScheduleOverviewLoaded> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourtScheduleOverviewLoaded&&(identical(other.selectedDateIndex, selectedDateIndex) || other.selectedDateIndex == selectedDateIndex)&&const DeepCollectionEquality().equals(other._selectedByDate, _selectedByDate)&&const DeepCollectionEquality().equals(other._dates, _dates)&&const DeepCollectionEquality().equals(other._hours, _hours)&&const DeepCollectionEquality().equals(other._courts, _courts)&&const DeepCollectionEquality().equals(other._slotsByDate, _slotsByDate));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourtScheduleOverviewLoaded&&const DeepCollectionEquality().equals(other._dates, _dates)&&(identical(other.selectedDateIndex, selectedDateIndex) || other.selectedDateIndex == selectedDateIndex)&&const DeepCollectionEquality().equals(other._venues, _venues)&&const DeepCollectionEquality().equals(other._selectedSlotIds, _selectedSlotIds));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,selectedDateIndex,const DeepCollectionEquality().hash(_selectedByDate),const DeepCollectionEquality().hash(_dates),const DeepCollectionEquality().hash(_hours),const DeepCollectionEquality().hash(_courts),const DeepCollectionEquality().hash(_slotsByDate));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_dates),selectedDateIndex,const DeepCollectionEquality().hash(_venues),const DeepCollectionEquality().hash(_selectedSlotIds));
 
 @override
 String toString() {
-  return 'CourtScheduleOverviewState.loaded(selectedDateIndex: $selectedDateIndex, selectedByDate: $selectedByDate, dates: $dates, hours: $hours, courts: $courts, slotsByDate: $slotsByDate)';
+  return 'CourtScheduleOverviewState.loaded(dates: $dates, selectedDateIndex: $selectedDateIndex, venues: $venues, selectedSlotIds: $selectedSlotIds)';
 }
 
 
@@ -283,7 +269,7 @@ abstract mixin class $CourtScheduleOverviewLoadedCopyWith<$Res> implements $Cour
   factory $CourtScheduleOverviewLoadedCopyWith(CourtScheduleOverviewLoaded value, $Res Function(CourtScheduleOverviewLoaded) _then) = _$CourtScheduleOverviewLoadedCopyWithImpl;
 @useResult
 $Res call({
- int selectedDateIndex, Map<String, Set<String>> selectedByDate, List<DateTime> dates, List<int> hours, List<ScheduleCourt> courts, Map<String, Map<String, ScheduleSlot>> slotsByDate
+ List<DateTime> dates, int selectedDateIndex, List<ScheduleVenue> venues, Set<String> selectedSlotIds
 });
 
 
@@ -300,15 +286,13 @@ class _$CourtScheduleOverviewLoadedCopyWithImpl<$Res>
 
 /// Create a copy of CourtScheduleOverviewState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? selectedDateIndex = null,Object? selectedByDate = null,Object? dates = null,Object? hours = null,Object? courts = null,Object? slotsByDate = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? dates = null,Object? selectedDateIndex = null,Object? venues = null,Object? selectedSlotIds = null,}) {
   return _then(CourtScheduleOverviewLoaded(
-selectedDateIndex: null == selectedDateIndex ? _self.selectedDateIndex : selectedDateIndex // ignore: cast_nullable_to_non_nullable
-as int,selectedByDate: null == selectedByDate ? _self._selectedByDate : selectedByDate // ignore: cast_nullable_to_non_nullable
-as Map<String, Set<String>>,dates: null == dates ? _self._dates : dates // ignore: cast_nullable_to_non_nullable
-as List<DateTime>,hours: null == hours ? _self._hours : hours // ignore: cast_nullable_to_non_nullable
-as List<int>,courts: null == courts ? _self._courts : courts // ignore: cast_nullable_to_non_nullable
-as List<ScheduleCourt>,slotsByDate: null == slotsByDate ? _self._slotsByDate : slotsByDate // ignore: cast_nullable_to_non_nullable
-as Map<String, Map<String, ScheduleSlot>>,
+dates: null == dates ? _self._dates : dates // ignore: cast_nullable_to_non_nullable
+as List<DateTime>,selectedDateIndex: null == selectedDateIndex ? _self.selectedDateIndex : selectedDateIndex // ignore: cast_nullable_to_non_nullable
+as int,venues: null == venues ? _self._venues : venues // ignore: cast_nullable_to_non_nullable
+as List<ScheduleVenue>,selectedSlotIds: null == selectedSlotIds ? _self._selectedSlotIds : selectedSlotIds // ignore: cast_nullable_to_non_nullable
+as Set<String>,
   ));
 }
 
