@@ -1141,5 +1141,9 @@
   "errGeneric": "Có lỗi xảy ra.",
   "@errGeneric": {},
   "infoLastCallSent": "Đã thông báo khả năng ghép cuối cùng.",
-  "@infoLastCallSent": {}
+  "@infoLastCallSent": {},
+  "errSlotTaken": "Khung giờ vừa được đặt. Vui lòng chọn khung khác.",
+  "@errSlotTaken": {},
+  "errBookingFailed": "Đặt sân không thành công. Vui lòng thử lại.",
+  "@errBookingFailed": {}
 }

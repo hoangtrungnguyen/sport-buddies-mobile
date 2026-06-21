@@ -72,6 +72,10 @@ class _View extends StatelessWidget {
             ),
           ),
           CourtScheduleOverviewLoaded() => _LoadedBody(state: state),
+          // Transient — the screen navigates away on success (task 5 listener).
+          CourtScheduleOverviewBooked() => const Center(
+            child: CircularProgressIndicator(),
+          ),
         },
       ),
     );

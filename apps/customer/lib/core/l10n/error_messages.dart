@@ -19,5 +19,7 @@ String appErrorMessage(AppLocalizations l10n, String code) => switch (code) {
   'players_load' => l10n.errPlayersLoad,
   'generic' => l10n.errGeneric,
   'last_call_sent' => l10n.infoLastCallSent,
+  'slot_taken' => l10n.errSlotTaken,
+  'booking_failed' => l10n.errBookingFailed,
   _ => code,
 };

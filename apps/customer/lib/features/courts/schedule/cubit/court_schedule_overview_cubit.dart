@@ -114,6 +114,39 @@ class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
       emit(s.copyWith(selectedSlotIds: const {}));
     }
   }
+
+  /// Book every selected slot atomically via `POST /api/bookings/batch`.
+  /// Emits [CourtScheduleOverviewBooked] on success, or re-emits the loaded
+  /// state with a [bookingError] code on failure (slot taken / offline /
+  /// server) for the screen to surface as a snackbar.
+  Future<void> continueToBooking() async {
+    final s = state;
+    final api = _api;
+    if (s is! CourtScheduleOverviewLoaded ||
+        api == null ||
+        s.submitting ||
+        s.selectedSlotIds.isEmpty) {
+      return;
+    }
+
+    emit(s.copyWith(submitting: true, bookingError: null));
+    try {
+      final result = await api.createBatchBooking(
+        slotIds: s.selectedSlotIds.toList(),
+      );
+      emit(
+        CourtScheduleOverviewState.booked(bookingIds: result.values.toList()),
+      );
+    } on SlotUnavailableException catch (e, st) {
+      appLogger.e('continueToBooking: slot taken', error: e, stackTrace: st);
+      emit(s.copyWith(submitting: false, bookingError: 'slot_taken'));
+    } on NoConnectionException {
+      emit(s.copyWith(submitting: false, bookingError: 'network'));
+    } catch (e, st) {
+      appLogger.e('continueToBooking failed', error: e, stackTrace: st);
+      emit(s.copyWith(submitting: false, bookingError: 'booking_failed'));
+    }
+  }
 }
 
 String _hhmm(DateTime t) =>

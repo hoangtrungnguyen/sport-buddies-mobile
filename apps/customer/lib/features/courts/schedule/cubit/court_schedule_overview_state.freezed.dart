@@ -55,12 +55,13 @@ extension CourtScheduleOverviewStatePatterns on CourtScheduleOverviewState {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CourtScheduleOverviewLoading value)?  loading,TResult Function( CourtScheduleOverviewLoaded value)?  loaded,TResult Function( CourtScheduleOverviewFailure value)?  failure,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( CourtScheduleOverviewLoading value)?  loading,TResult Function( CourtScheduleOverviewLoaded value)?  loaded,TResult Function( CourtScheduleOverviewBooked value)?  booked,TResult Function( CourtScheduleOverviewFailure value)?  failure,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading(_that);case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that);case CourtScheduleOverviewBooked() when booked != null:
+return booked(_that);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that);case _:
   return orElse();
 
@@ -79,12 +80,13 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CourtScheduleOverviewLoading value)  loading,required TResult Function( CourtScheduleOverviewLoaded value)  loaded,required TResult Function( CourtScheduleOverviewFailure value)  failure,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( CourtScheduleOverviewLoading value)  loading,required TResult Function( CourtScheduleOverviewLoaded value)  loaded,required TResult Function( CourtScheduleOverviewBooked value)  booked,required TResult Function( CourtScheduleOverviewFailure value)  failure,}){
 final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading():
 return loading(_that);case CourtScheduleOverviewLoaded():
-return loaded(_that);case CourtScheduleOverviewFailure():
+return loaded(_that);case CourtScheduleOverviewBooked():
+return booked(_that);case CourtScheduleOverviewFailure():
 return failure(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
@@ -99,12 +101,13 @@ return failure(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CourtScheduleOverviewLoading value)?  loading,TResult? Function( CourtScheduleOverviewLoaded value)?  loaded,TResult? Function( CourtScheduleOverviewFailure value)?  failure,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( CourtScheduleOverviewLoading value)?  loading,TResult? Function( CourtScheduleOverviewLoaded value)?  loaded,TResult? Function( CourtScheduleOverviewBooked value)?  booked,TResult? Function( CourtScheduleOverviewFailure value)?  failure,}){
 final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading(_that);case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that);case CourtScheduleOverviewBooked() when booked != null:
+return booked(_that);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that);case _:
   return null;
 
@@ -122,11 +125,12 @@ return failure(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)?  loaded,TResult Function( String message,  StackTrace? stackTrace)?  failure,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  loading,TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds,  bool submitting,  String? bookingError)?  loaded,TResult Function( List<String> bookingIds)?  booked,TResult Function( String message,  StackTrace? stackTrace)?  failure,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading();case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds,_that.submitting,_that.bookingError);case CourtScheduleOverviewBooked() when booked != null:
+return booked(_that.bookingIds);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that.message,_that.stackTrace);case _:
   return orElse();
 
@@ -145,11 +149,12 @@ return failure(_that.message,_that.stackTrace);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)  loaded,required TResult Function( String message,  StackTrace? stackTrace)  failure,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  loading,required TResult Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds,  bool submitting,  String? bookingError)  loaded,required TResult Function( List<String> bookingIds)  booked,required TResult Function( String message,  StackTrace? stackTrace)  failure,}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading():
 return loading();case CourtScheduleOverviewLoaded():
-return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure():
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds,_that.submitting,_that.bookingError);case CourtScheduleOverviewBooked():
+return booked(_that.bookingIds);case CourtScheduleOverviewFailure():
 return failure(_that.message,_that.stackTrace);}
 }
 /// A variant of `when` that fallback to returning `null`
@@ -164,11 +169,12 @@ return failure(_that.message,_that.stackTrace);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds)?  loaded,TResult? Function( String message,  StackTrace? stackTrace)?  failure,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  loading,TResult? Function( List<DateTime> dates,  int selectedDateIndex,  List<ScheduleVenue> venues,  Set<String> selectedSlotIds,  bool submitting,  String? bookingError)?  loaded,TResult? Function( List<String> bookingIds)?  booked,TResult? Function( String message,  StackTrace? stackTrace)?  failure,}) {final _that = this;
 switch (_that) {
 case CourtScheduleOverviewLoading() when loading != null:
 return loading();case CourtScheduleOverviewLoaded() when loaded != null:
-return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds);case CourtScheduleOverviewFailure() when failure != null:
+return loaded(_that.dates,_that.selectedDateIndex,_that.venues,_that.selectedSlotIds,_that.submitting,_that.bookingError);case CourtScheduleOverviewBooked() when booked != null:
+return booked(_that.bookingIds);case CourtScheduleOverviewFailure() when failure != null:
 return failure(_that.message,_that.stackTrace);case _:
   return null;
 
@@ -213,7 +219,7 @@ String toString() {
 
 
 class CourtScheduleOverviewLoaded implements CourtScheduleOverviewState {
-  const CourtScheduleOverviewLoaded({required final  List<DateTime> dates, required this.selectedDateIndex, required final  List<ScheduleVenue> venues, required final  Set<String> selectedSlotIds}): _dates = dates,_venues = venues,_selectedSlotIds = selectedSlotIds;
+  const CourtScheduleOverviewLoaded({required final  List<DateTime> dates, required this.selectedDateIndex, required final  List<ScheduleVenue> venues, required final  Set<String> selectedSlotIds, this.submitting = false, this.bookingError}): _dates = dates,_venues = venues,_selectedSlotIds = selectedSlotIds;
   
 
  final  List<DateTime> _dates;
@@ -238,6 +244,8 @@ class CourtScheduleOverviewLoaded implements CourtScheduleOverviewState {
   return EqualUnmodifiableSetView(_selectedSlotIds);
 }
 
+@JsonKey() final  bool submitting;
+ final  String? bookingError;
 
 /// Create a copy of CourtScheduleOverviewState
 /// with the given fields replaced by the non-null parameter values.
@@ -249,16 +257,16 @@ $CourtScheduleOverviewLoadedCopyWith<CourtScheduleOverviewLoaded> get copyWith =
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourtScheduleOverviewLoaded&&const DeepCollectionEquality().equals(other._dates, _dates)&&(identical(other.selectedDateIndex, selectedDateIndex) || other.selectedDateIndex == selectedDateIndex)&&const DeepCollectionEquality().equals(other._venues, _venues)&&const DeepCollectionEquality().equals(other._selectedSlotIds, _selectedSlotIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourtScheduleOverviewLoaded&&const DeepCollectionEquality().equals(other._dates, _dates)&&(identical(other.selectedDateIndex, selectedDateIndex) || other.selectedDateIndex == selectedDateIndex)&&const DeepCollectionEquality().equals(other._venues, _venues)&&const DeepCollectionEquality().equals(other._selectedSlotIds, _selectedSlotIds)&&(identical(other.submitting, submitting) || other.submitting == submitting)&&(identical(other.bookingError, bookingError) || other.bookingError == bookingError));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_dates),selectedDateIndex,const DeepCollectionEquality().hash(_venues),const DeepCollectionEquality().hash(_selectedSlotIds));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_dates),selectedDateIndex,const DeepCollectionEquality().hash(_venues),const DeepCollectionEquality().hash(_selectedSlotIds),submitting,bookingError);
 
 @override
 String toString() {
-  return 'CourtScheduleOverviewState.loaded(dates: $dates, selectedDateIndex: $selectedDateIndex, venues: $venues, selectedSlotIds: $selectedSlotIds)';
+  return 'CourtScheduleOverviewState.loaded(dates: $dates, selectedDateIndex: $selectedDateIndex, venues: $venues, selectedSlotIds: $selectedSlotIds, submitting: $submitting, bookingError: $bookingError)';
 }
 
 
@@ -269,7 +277,7 @@ abstract mixin class $CourtScheduleOverviewLoadedCopyWith<$Res> implements $Cour
   factory $CourtScheduleOverviewLoadedCopyWith(CourtScheduleOverviewLoaded value, $Res Function(CourtScheduleOverviewLoaded) _then) = _$CourtScheduleOverviewLoadedCopyWithImpl;
 @useResult
 $Res call({
- List<DateTime> dates, int selectedDateIndex, List<ScheduleVenue> venues, Set<String> selectedSlotIds
+ List<DateTime> dates, int selectedDateIndex, List<ScheduleVenue> venues, Set<String> selectedSlotIds, bool submitting, String? bookingError
 });
 
 
@@ -286,13 +294,87 @@ class _$CourtScheduleOverviewLoadedCopyWithImpl<$Res>
 
 /// Create a copy of CourtScheduleOverviewState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') $Res call({Object? dates = null,Object? selectedDateIndex = null,Object? venues = null,Object? selectedSlotIds = null,}) {
+@pragma('vm:prefer-inline') $Res call({Object? dates = null,Object? selectedDateIndex = null,Object? venues = null,Object? selectedSlotIds = null,Object? submitting = null,Object? bookingError = freezed,}) {
   return _then(CourtScheduleOverviewLoaded(
 dates: null == dates ? _self._dates : dates // ignore: cast_nullable_to_non_nullable
 as List<DateTime>,selectedDateIndex: null == selectedDateIndex ? _self.selectedDateIndex : selectedDateIndex // ignore: cast_nullable_to_non_nullable
 as int,venues: null == venues ? _self._venues : venues // ignore: cast_nullable_to_non_nullable
 as List<ScheduleVenue>,selectedSlotIds: null == selectedSlotIds ? _self._selectedSlotIds : selectedSlotIds // ignore: cast_nullable_to_non_nullable
-as Set<String>,
+as Set<String>,submitting: null == submitting ? _self.submitting : submitting // ignore: cast_nullable_to_non_nullable
+as bool,bookingError: freezed == bookingError ? _self.bookingError : bookingError // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CourtScheduleOverviewBooked implements CourtScheduleOverviewState {
+  const CourtScheduleOverviewBooked({required final  List<String> bookingIds}): _bookingIds = bookingIds;
+  
+
+ final  List<String> _bookingIds;
+ List<String> get bookingIds {
+  if (_bookingIds is EqualUnmodifiableListView) return _bookingIds;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_bookingIds);
+}
+
+
+/// Create a copy of CourtScheduleOverviewState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CourtScheduleOverviewBookedCopyWith<CourtScheduleOverviewBooked> get copyWith => _$CourtScheduleOverviewBookedCopyWithImpl<CourtScheduleOverviewBooked>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourtScheduleOverviewBooked&&const DeepCollectionEquality().equals(other._bookingIds, _bookingIds));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_bookingIds));
+
+@override
+String toString() {
+  return 'CourtScheduleOverviewState.booked(bookingIds: $bookingIds)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CourtScheduleOverviewBookedCopyWith<$Res> implements $CourtScheduleOverviewStateCopyWith<$Res> {
+  factory $CourtScheduleOverviewBookedCopyWith(CourtScheduleOverviewBooked value, $Res Function(CourtScheduleOverviewBooked) _then) = _$CourtScheduleOverviewBookedCopyWithImpl;
+@useResult
+$Res call({
+ List<String> bookingIds
+});
+
+
+
+
+}
+/// @nodoc
+class _$CourtScheduleOverviewBookedCopyWithImpl<$Res>
+    implements $CourtScheduleOverviewBookedCopyWith<$Res> {
+  _$CourtScheduleOverviewBookedCopyWithImpl(this._self, this._then);
+
+  final CourtScheduleOverviewBooked _self;
+  final $Res Function(CourtScheduleOverviewBooked) _then;
+
+/// Create a copy of CourtScheduleOverviewState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? bookingIds = null,}) {
+  return _then(CourtScheduleOverviewBooked(
+bookingIds: null == bookingIds ? _self._bookingIds : bookingIds // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

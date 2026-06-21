@@ -112,12 +112,24 @@ sealed class CourtScheduleOverviewState with _$CourtScheduleOverviewState {
   /// with its slots for the whole week (grouped by day client-side via the
   /// view extension). [selectedSlotIds] are the real slot ids picked across all
   /// days, so the cart persists when switching the visible day.
+  /// [submitting] is true while the batch booking call is in flight (CTA
+  /// spinner). [bookingError] is a transient error *code* (resolved via the
+  /// shared error mapper) surfaced as a snackbar after a failed booking;
+  /// cleared when the user retries.
   const factory CourtScheduleOverviewState.loaded({
     required List<DateTime> dates,
     required int selectedDateIndex,
     required List<ScheduleVenue> venues,
     required Set<String> selectedSlotIds,
+    @Default(false) bool submitting,
+    String? bookingError,
   }) = CourtScheduleOverviewLoaded;
+
+  /// Batch booking succeeded — carries the created booking ids. The screen
+  /// navigates away on this state.
+  const factory CourtScheduleOverviewState.booked({
+    required List<String> bookingIds,
+  }) = CourtScheduleOverviewBooked;
 
   /// Unrecoverable load error.
   @With<AppExceptionMixin>()

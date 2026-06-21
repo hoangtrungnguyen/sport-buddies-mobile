@@ -1141,5 +1141,9 @@
   "errGeneric": "Something went wrong.",
   "@errGeneric": {},
   "infoLastCallSent": "Last-minute availability announced.",
-  "@infoLastCallSent": {}
+  "@infoLastCallSent": {},
+  "errSlotTaken": "That slot was just taken. Please pick another.",
+  "@errSlotTaken": {},
+  "errBookingFailed": "Booking failed. Please try again.",
+  "@errBookingFailed": {}
 }
