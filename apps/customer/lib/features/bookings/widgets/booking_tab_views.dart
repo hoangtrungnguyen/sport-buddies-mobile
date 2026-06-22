@@ -1,10 +1,14 @@
 // The three My Bookings tab bodies (Upcoming / Pending / History) plus the
-// error view, role legend, filter chips and date section header they share.
-// Each view is fed data via its constructor — no cubit access here.
+// error view. The shared role legend, filter chips and date section header
+// live in sibling files. Each view is fed data via its constructor — no cubit
+// access here.
 
 import 'package:customer/features/bookings/booking_view.dart';
 import 'package:customer/features/bookings/bookings_style.dart';
 import 'package:customer/features/bookings/widgets/booking_card.dart';
+import 'package:customer/features/bookings/widgets/booking_role_filter_chip.dart';
+import 'package:customer/features/bookings/widgets/booking_role_legend.dart';
+import 'package:customer/features/bookings/widgets/booking_section_header.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
@@ -58,14 +62,14 @@ class UpcomingTabView extends StatelessWidget {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: '${l10n.bookingsFilterAll} · ${allBookings.length}',
                 value: null,
                 isActive: activeFilter == null,
                 onTap: () => onFilterChanged(null),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: '${l10n.bookingsFilterHost} · $hostCount',
                 value: 'host',
                 isActive: activeFilter == 'host',
@@ -79,7 +83,7 @@ class UpcomingTabView extends StatelessWidget {
                     onFilterChanged(activeFilter == 'host' ? null : 'host'),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: '${l10n.bookingsFilterJoin} · $joinCount',
                 value: 'join',
                 isActive: activeFilter == 'join',
@@ -97,7 +101,7 @@ class UpcomingTabView extends StatelessWidget {
                     onFilterChanged(activeFilter == 'join' ? null : 'join'),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: '${l10n.bookingsFilterRecurring} · $recurringCount',
                 value: 'recurring',
                 isActive: activeFilter == 'recurring',
@@ -109,7 +113,7 @@ class UpcomingTabView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        const _RoleLegend(),
+        const RoleLegend(),
         const SizedBox(height: 8),
         if (groups.isEmpty)
           Padding(
@@ -124,7 +128,7 @@ class UpcomingTabView extends StatelessWidget {
         else
           for (final group in groups) ...[
             const SizedBox(height: 6),
-            _SectionHeader(label: group.key),
+            BookingSectionHeader(label: group.key),
             const SizedBox(height: 8),
             for (final booking in group.value) ...[
               BookingCard(booking: booking),
@@ -167,7 +171,7 @@ class PendingTabView extends StatelessWidget {
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
       children: [
-        _SectionHeader(label: l10n.bookingsPendingHeader),
+        BookingSectionHeader(label: l10n.bookingsPendingHeader),
         const SizedBox(height: 8),
         for (final b in pending) ...[
           BookingCard(booking: b),
@@ -204,14 +208,14 @@ class HistoryTabView extends StatelessWidget {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: l10n.bookingsFilterAll,
                 value: null,
                 isActive: activeFilter == null,
                 onTap: () => onFilterChanged(null),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: l10n.bookingsFilterHost,
                 value: 'host',
                 isActive: activeFilter == 'host',
@@ -225,7 +229,7 @@ class HistoryTabView extends StatelessWidget {
                     onFilterChanged(activeFilter == 'host' ? null : 'host'),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: l10n.bookingsFilterJoin,
                 value: 'join',
                 isActive: activeFilter == 'join',
@@ -243,7 +247,7 @@ class HistoryTabView extends StatelessWidget {
                     onFilterChanged(activeFilter == 'join' ? null : 'join'),
               ),
               const SizedBox(width: 8),
-              _RoleFilterChip(
+              RoleFilterChip(
                 label: l10n.bookingsFilterCompleted,
                 value: 'completed',
                 isActive: activeFilter == 'completed',
@@ -303,135 +307,6 @@ class ErrorView extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ─── Role legend ──────────────────────────────────────────────────────────────
-
-class _RoleLegend extends StatelessWidget {
-  const _RoleLegend();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: mdSurfaceContainer,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          _LegendItem(
-            color: mdPrimary,
-            label: AppLocalizations.of(context).bookingsLegendHost,
-          ),
-          const SizedBox(width: 16),
-          _LegendItem(
-            color: mdSecondary,
-            label: AppLocalizations.of(context).bookingsLegendJoin,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LegendItem extends StatelessWidget {
-  const _LegendItem({required this.color, required this.label});
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 4,
-          height: 18,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        const SizedBox(width: 7),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: mdOnSurfaceVariant),
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Filter chips ─────────────────────────────────────────────────────────────
-
-class _RoleFilterChip extends StatelessWidget {
-  const _RoleFilterChip({
-    required this.label,
-    required this.value,
-    required this.isActive,
-    required this.onTap,
-    this.leading,
-  });
-
-  final String label;
-  final String? value;
-  final bool isActive;
-  final VoidCallback onTap;
-  final Widget? leading;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: isActive ? mdPrimary : mdSurfaceContainerLowest,
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: isActive ? mdPrimary : mdOutlineVariant),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (leading != null) ...[leading!, const SizedBox(width: 6)],
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isActive ? Colors.white : mdOnSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Section header ───────────────────────────────────────────────────────────
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      label,
-      style: const TextStyle(
-        fontFamily: 'Plus Jakarta Sans',
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: mdOnSurfaceVariant,
-        letterSpacing: 0.5,
       ),
     );
   }
