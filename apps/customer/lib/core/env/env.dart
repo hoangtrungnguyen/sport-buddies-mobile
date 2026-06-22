@@ -25,6 +25,12 @@ abstract class Env {
   /// Core-engine REST API base URL (writes: bookings, slot access, …).
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
 
+  /// Dev/local convenience: credentials to pre-fill the login form (debug
+  /// builds only). Empty in prod env files, so nothing is pre-filled there.
+  static const String bypassEmail = String.fromEnvironment('BYPASS_EMAIL');
+  static const String bypassPassword =
+      String.fromEnvironment('BYPASS_PASSWORD');
+
   /// Throws [StateError] if any required env var is empty.
   static void assertConfigured() {
     final missing = <String>[

@@ -1,3 +1,4 @@
+import 'package:customer/core/env/env.dart';
 import 'package:customer/features/auth/bloc/auth_bloc.dart';
 import 'package:customer/features/auth/view/court_lines_painter.dart';
 import 'package:customer/features/auth/view/google_sign_in_button.dart';
@@ -19,9 +20,9 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController =
-      TextEditingController(text: kDebugMode ? 'nguyen@snb.com' : '');
+      TextEditingController(text: kDebugMode ? Env.bypassEmail : '');
   final _passwordController =
-      TextEditingController(text: kDebugMode ? '123456&*(QWE' : '');
+      TextEditingController(text: kDebugMode ? Env.bypassPassword : '');
   bool _obscurePassword = true;
 
   late final ResendRateLimitNotifier _resendRateLimitNotifier;
