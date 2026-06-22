@@ -1302,4 +1302,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get infoLastCallSent => 'Đã thông báo khả năng ghép cuối cùng.';
+
+  @override
+  String get errSlotTaken =>
+      'Khung giờ vừa được đặt. Vui lòng chọn khung khác.';
+
+  @override
+  String get errBookingFailed => 'Đặt sân không thành công. Vui lòng thử lại.';
+
+  @override
+  String get scheduleBookingSuccess => 'Đặt sân thành công!';
 }

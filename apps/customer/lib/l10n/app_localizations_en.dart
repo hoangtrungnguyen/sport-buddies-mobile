@@ -1301,4 +1301,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get infoLastCallSent => 'Last-minute availability announced.';
+
+  @override
+  String get errSlotTaken => 'That slot was just taken. Please pick another.';
+
+  @override
+  String get errBookingFailed => 'Booking failed. Please try again.';
+
+  @override
+  String get scheduleBookingSuccess => 'Booking confirmed!';
 }

@@ -13,6 +13,7 @@ class SelectionCart extends StatelessWidget {
     required this.groups,
     required this.count,
     required this.total,
+    required this.submitting,
     required this.onClearAll,
     required this.onContinue,
   });
@@ -20,6 +21,7 @@ class SelectionCart extends StatelessWidget {
   final List<CartGroup> groups;
   final int count;
   final int total;
+  final bool submitting;
   final VoidCallback onClearAll;
   final VoidCallback onContinue;
 
@@ -102,22 +104,32 @@ class SelectionCart extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton(
-            onPressed: onContinue,
+            onPressed: submitting ? null : onContinue,
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF16A34A),
+              disabledBackgroundColor: const Color(0xFF86EFAC),
               minimumSize: const Size(double.infinity, 48),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
-            child: Text(
-              l10n.scheduleContinue,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
+            child: submitting
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    l10n.scheduleContinue,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
           ),
         ],
       ),

@@ -1145,5 +1145,7 @@
   "errSlotTaken": "That slot was just taken. Please pick another.",
   "@errSlotTaken": {},
   "errBookingFailed": "Booking failed. Please try again.",
-  "@errBookingFailed": {}
+  "@errBookingFailed": {},
+  "scheduleBookingSuccess": "Booking confirmed!",
+  "@scheduleBookingSuccess": {}
 }

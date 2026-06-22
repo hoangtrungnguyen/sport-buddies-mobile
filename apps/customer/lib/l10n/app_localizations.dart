@@ -2419,6 +2419,24 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Đã thông báo khả năng ghép cuối cùng.'**
   String get infoLastCallSent;
+
+  /// No description provided for @errSlotTaken.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khung giờ vừa được đặt. Vui lòng chọn khung khác.'**
+  String get errSlotTaken;
+
+  /// No description provided for @errBookingFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân không thành công. Vui lòng thử lại.'**
+  String get errBookingFailed;
+
+  /// No description provided for @scheduleBookingSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt sân thành công!'**
+  String get scheduleBookingSuccess;
 }
 
 class _AppLocalizationsDelegate

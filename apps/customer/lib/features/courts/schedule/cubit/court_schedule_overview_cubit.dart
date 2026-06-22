@@ -3,16 +3,16 @@ import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/features/courts/schedule/cubit/court_schedule_overview_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Multi-court venue schedule. Fetches from the REST API for the given sports
-/// center; emits a failure state when no center is provided or the load fails.
+/// Week schedule for a court — its lanes (venues) × time slots. Fetches the
+/// week from the REST API; users multi-select open slots into a cart and book
+/// them atomically. Emits a failure state when no court/api is provided or the
+/// load fails.
 class CourtScheduleOverviewCubit extends Cubit<CourtScheduleOverviewState> {
-  CourtScheduleOverviewCubit({
-    String? sportsCenterId,
-    BookingApiClient? apiClient,
-  }) : _api = apiClient,
-       super(const CourtScheduleOverviewState.loading()) {
-    if (sportsCenterId != null && apiClient != null) {
-      _loadFromApi(sportsCenterId);
+  CourtScheduleOverviewCubit({String? courtId, BookingApiClient? apiClient})
+    : _api = apiClient,
+      super(const CourtScheduleOverviewState.loading()) {
+    if (courtId != null && apiClient != null) {
+      _loadFromApi(courtId);
     } else {
       emit(const CourtScheduleOverviewState.failure(_emptyMessage));
     }

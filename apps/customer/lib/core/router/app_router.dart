@@ -49,7 +49,8 @@ import 'package:customer/features/discovery/court_repository_impl.dart';
 import 'package:customer/features/discovery/cubit/discovery_cubit.dart';
 import 'package:customer/features/discovery/data/supabase_court_availability_repository.dart';
 import 'package:customer/features/discovery/location_cubit.dart';
-import 'package:customer/features/discovery/location_service.dart' show GeolocatorLocationService;
+import 'package:customer/features/discovery/location_service.dart'
+    show GeolocatorLocationService;
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
 import 'package:customer/features/slots/cubit/participant_management_cubit.dart';
 import 'package:customer/features/slots/data/supabase_slot_repository.dart';
@@ -114,8 +115,7 @@ GoRouter buildRouter() {
       if (!isAuthenticated && !publicPaths.contains(goingTo)) {
         return '/login';
       }
-      if (isAuthenticated &&
-          (goingTo == '/login' || goingTo == '/signup')) {
+      if (isAuthenticated && (goingTo == '/login' || goingTo == '/signup')) {
         return '/';
       }
       return null;
@@ -142,7 +142,8 @@ GoRouter buildRouter() {
                     ),
                     BlocProvider(
                       create: (_) =>
-                          LocationCubit(const GeolocatorLocationService())..requestAndFetch(),
+                          LocationCubit(const GeolocatorLocationService())
+                            ..requestAndFetch(),
                     ),
                   ],
                   child: const DiscoveryListScreen(),
@@ -209,9 +210,8 @@ GoRouter buildRouter() {
       ),
       GoRoute(
         path: '/bookings/:id',
-        builder: (context, state) => BookingDetailPage(
-          bookingId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) =>
+            BookingDetailPage(bookingId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/court/:id/slots',
@@ -221,10 +221,12 @@ GoRouter buildRouter() {
             state,
             BlocProvider(
               create: (_) => SlotPickerCubit(
-                slotRepository:
-                    SupabaseSlotRepository(client: Supabase.instance.client),
-                courtRepository:
-                    SupabaseCourtRepository(client: Supabase.instance.client),
+                slotRepository: SupabaseSlotRepository(
+                  client: Supabase.instance.client,
+                ),
+                courtRepository: SupabaseCourtRepository(
+                  client: Supabase.instance.client,
+                ),
               ),
               child: SlotPickerScreen(
                 courtId: state.pathParameters['id']!,
@@ -240,7 +242,7 @@ GoRouter buildRouter() {
         pageBuilder: (context, state) => _fadePage(
           state,
           CourtScheduleOverviewScreen(
-            sportsCenterId: state.pathParameters['id']!,
+            courtId: state.pathParameters['id']!,
             apiClient: BookingApiClient(
               supabase: Supabase.instance.client,
               baseUrl: Env.apiBaseUrl,
@@ -256,10 +258,12 @@ GoRouter buildRouter() {
             state,
             BlocProvider(
               create: (_) => BookingCubit(
-                slotRepository:
-                    SupabaseSlotRepository(client: Supabase.instance.client),
-                courtRepository:
-                    SupabaseCourtRepository(client: Supabase.instance.client),
+                slotRepository: SupabaseSlotRepository(
+                  client: Supabase.instance.client,
+                ),
+                courtRepository: SupabaseCourtRepository(
+                  client: Supabase.instance.client,
+                ),
                 client: Supabase.instance.client,
                 apiClient: BookingApiClient(
                   supabase: Supabase.instance.client,
@@ -307,9 +311,8 @@ GoRouter buildRouter() {
         pageBuilder: (context, state) => _fadePage(
           state,
           BlocProvider(
-            create: (_) => AwaitingConfirmationCubit(
-              client: Supabase.instance.client,
-            ),
+            create: (_) =>
+                AwaitingConfirmationCubit(client: Supabase.instance.client),
             child: AwaitingConfirmationScreen(
               bookingId: state.pathParameters['bookingId']!,
             ),
@@ -321,8 +324,9 @@ GoRouter buildRouter() {
         pageBuilder: (context, state) => _fadePage(
           state,
           BlocProvider(
-            create: (_) => PaymentCubit(client: Supabase.instance.client)
-              ..load(state.pathParameters['slotId']!),
+            create: (_) =>
+                PaymentCubit(client: Supabase.instance.client)
+                  ..load(state.pathParameters['slotId']!),
             child: const PaymentScreen(),
           ),
         ),
@@ -380,9 +384,12 @@ GoRouter buildRouter() {
           state,
           CourtDetailPage(
             courtId: state.pathParameters['courtId']!,
-            courtRepository:
-                SupabaseBrowseCourtRepository(Supabase.instance.client),
-            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+            courtRepository: SupabaseBrowseCourtRepository(
+              Supabase.instance.client,
+            ),
+            slotRepository: SupabaseBrowseSlotRepository(
+              Supabase.instance.client,
+            ),
           ),
         ),
       ),
@@ -392,9 +399,12 @@ GoRouter buildRouter() {
           state,
           SchedulePage(
             centerId: state.pathParameters['centerId']!,
-            courtRepository:
-                SupabaseBrowseCourtRepository(Supabase.instance.client),
-            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+            courtRepository: SupabaseBrowseCourtRepository(
+              Supabase.instance.client,
+            ),
+            slotRepository: SupabaseBrowseSlotRepository(
+              Supabase.instance.client,
+            ),
           ),
         ),
       ),
@@ -404,9 +414,12 @@ GoRouter buildRouter() {
           state,
           SlotPickerPage(
             courtId: state.pathParameters['courtId']!,
-            courtRepository:
-                SupabaseBrowseCourtRepository(Supabase.instance.client),
-            slotRepository: SupabaseBrowseSlotRepository(Supabase.instance.client),
+            courtRepository: SupabaseBrowseCourtRepository(
+              Supabase.instance.client,
+            ),
+            slotRepository: SupabaseBrowseSlotRepository(
+              Supabase.instance.client,
+            ),
           ),
         ),
       ),

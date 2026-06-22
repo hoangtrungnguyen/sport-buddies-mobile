@@ -13,25 +13,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-/// Multi-court venue schedule. Renders a grid of courts × time slots; users
-/// multi-select slots into a cart and continue to the booking wizard.
+/// A court's week schedule. Renders a grid of lanes (venues) × time slots;
+/// users multi-select open slots into a cart and book them via batch booking.
 class CourtScheduleOverviewScreen extends StatelessWidget {
   const CourtScheduleOverviewScreen({
     super.key,
-    required this.sportsCenterId,
+    required this.courtId,
     required this.apiClient,
   });
 
-  final String sportsCenterId;
+  final String courtId;
   final BookingApiClient apiClient;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => CourtScheduleOverviewCubit(
-        sportsCenterId: sportsCenterId,
-        apiClient: apiClient,
-      ),
+      create: (_) =>
+          CourtScheduleOverviewCubit(courtId: courtId, apiClient: apiClient),
       child: const _View(),
     );
   }
@@ -60,7 +58,31 @@ class _View extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<CourtScheduleOverviewCubit, CourtScheduleOverviewState>(
+      body: BlocConsumer<CourtScheduleOverviewCubit, CourtScheduleOverviewState>(
+        listenWhen: (prev, curr) =>
+            curr is CourtScheduleOverviewBooked ||
+            (curr is CourtScheduleOverviewLoaded &&
+                curr.bookingError != null &&
+                (prev is! CourtScheduleOverviewLoaded ||
+                    prev.bookingError != curr.bookingError)),
+        listener: (context, state) {
+          final l10n = AppLocalizations.of(context);
+          final messenger = ScaffoldMessenger.of(context);
+          if (state is CourtScheduleOverviewBooked) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.scheduleBookingSuccess)),
+            );
+            context.go('/bookings/upcoming');
+          } else if (state is CourtScheduleOverviewLoaded &&
+              state.bookingError != null) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(appErrorMessage(l10n, state.bookingError!)),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
         builder: (context, state) => switch (state) {
           CourtScheduleOverviewLoading() => const Center(
             child: CircularProgressIndicator(),
@@ -171,10 +193,9 @@ class _LoadedBody extends StatelessWidget {
                   groups: groups,
                   count: state.totalSelectedCount,
                   total: state.grandTotal,
+                  submitting: state.submitting,
                   onClearAll: cubit.clearAll,
-                  onContinue: () {
-                    // Wire to booking wizard step 1 later.
-                  },
+                  onContinue: cubit.continueToBooking,
                 )
               : const EmptyCta(),
         ),

@@ -122,8 +122,8 @@ class ScheduleEntryCard extends StatelessWidget {
           borderRadius: AppTokens.radiusLg,
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () =>
-                context.push('/browse/center/${court.centerId}/schedule'),
+            // Real week schedule for this court (live /api/courts/{id}/schedule).
+            onTap: () => context.push('/court/${court.id}/schedule'),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
