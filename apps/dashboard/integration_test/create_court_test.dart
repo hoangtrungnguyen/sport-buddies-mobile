@@ -79,7 +79,7 @@ Future<void> _pumpForm(PatrolTester $, _FakeRepo repo) async {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   patrolWidgetTest('create court: fill the form and submit lands on the list',
       ($) async {
@@ -89,10 +89,13 @@ void main() {
     // Starts on the create form, not the list.
     expect($('Thêm sân mới'), findsOneWidget);
     expect($('COURTS LIST'), findsNothing);
+    await binding.takeScreenshot('court-01-empty-form');
 
     // Field order: name(0), phone(1), address(2), lat(3), lng(4), maps(5).
     await $(TextFormField).at(0).enterText('Sân Pickleball Test');
     await $(TextFormField).at(2).enterText('123 Đường Test, Q1');
+    await $.tester.pumpAndSettle();
+    await binding.takeScreenshot('court-02-filled-form');
 
     await $('Tạo sân').tap();
 
@@ -100,6 +103,7 @@ void main() {
     expect(repo.createCalls, 1);
     expect($('COURTS LIST'), findsOneWidget);
     expect($('Thêm sân mới'), findsNothing);
+    await binding.takeScreenshot('court-03-after-submit');
   });
 
   patrolWidgetTest('create court: missing required fields blocks submit',
