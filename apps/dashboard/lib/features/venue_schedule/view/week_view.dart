@@ -176,8 +176,7 @@ class _WeekViewState extends State<WeekView> {
             Container(
               width: kGutterWidth,
               decoration: const BoxDecoration(
-                border:
-                    Border(right: BorderSide(color: AppColors.neutral200)),
+                border: Border(right: BorderSide(color: AppColors.neutral200)),
               ),
             ),
             for (var i = 0; i < 7; i++)
@@ -398,27 +397,7 @@ class _WeekDayColumnState extends State<_WeekDayColumn> {
             painter: const _HourLinesPainter(),
             child: Stack(
               children: [
-                for (final slot in ordered)
-                  Positioned(
-                    key: ValueKey(slot.id),
-                    // `top = (start − 6) × HPX + 2` — inset 3px in Week view.
-                    left: 3,
-                    right: 3,
-                    top: (slot.startHour - kFirstHour) * kHourPx + 2,
-                    // `height = max(dur × HPX − 4, 22)`.
-                    height: math.max(slot.durationHours * kHourPx - 4, 22),
-                    child: WeekSlotBlock(
-                      slot: slot,
-                      onTap: () => widget.onSlotTapped(slot),
-                      onHoverChanged: (hovered) => setState(() {
-                        if (hovered) {
-                          _hoveredSlotId = slot.id;
-                        } else if (_hoveredSlotId == slot.id) {
-                          _hoveredSlotId = null;
-                        }
-                      }),
-                    ),
-                  ),
+                for (final slot in ordered) _positionedSlot(slot),
                 if (drag != null)
                   Positioned(
                     left: 4,
@@ -435,6 +414,30 @@ class _WeekDayColumnState extends State<_WeekDayColumn> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// One slot block, positioned by the Week-view layout math
+  /// (`top = (start − 6) × HPX + 2`, inset 3px; `height = max(dur × HPX − 4, 22)`)
+  /// and wired to raise itself above siblings on hover.
+  Widget _positionedSlot(Slot slot) {
+    return Positioned(
+      key: ValueKey(slot.id),
+      left: 3,
+      right: 3,
+      top: (slot.startHour - kFirstHour) * kHourPx + 2,
+      height: math.max(slot.durationHours * kHourPx - 4, 22),
+      child: WeekSlotBlock(
+        slot: slot,
+        onTap: () => widget.onSlotTapped(slot),
+        onHoverChanged: (hovered) => setState(() {
+          if (hovered) {
+            _hoveredSlotId = slot.id;
+          } else if (_hoveredSlotId == slot.id) {
+            _hoveredSlotId = null;
+          }
+        }),
       ),
     );
   }
