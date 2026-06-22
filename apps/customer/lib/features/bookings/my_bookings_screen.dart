@@ -165,7 +165,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       BookingsLoading() ||
       BookingsCancelling() => const Center(child: CircularProgressIndicator()),
       BookingsError(:final message) => ErrorView(
-        message: message,
+        message: appErrorMessage(AppLocalizations.of(context), message),
         onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
       ),
       BookingsLoaded(:final bookings) => RefreshIndicator(
@@ -188,7 +188,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen>
       BookingsLoading() ||
       BookingsCancelling() => const Center(child: CircularProgressIndicator()),
       BookingsError(:final message) => ErrorView(
-        message: message,
+        message: appErrorMessage(AppLocalizations.of(context), message),
         onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
       ),
       BookingsLoaded(:final bookings, :final joinRequests) => RefreshIndicator(

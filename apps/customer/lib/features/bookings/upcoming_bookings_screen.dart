@@ -13,6 +13,7 @@
 //   Tapping it opens a confirmation dialog ('Huỷ đặt sân này?').
 //   On confirm, BookingsCubit.cancelBooking(id) is called.
 
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,7 +57,7 @@ class UpcomingBookingsScreen extends StatelessWidget {
             ),
             BookingsLoaded() => _LoadedBody(state: state),
             BookingsError(:final message) => _ErrorState(
-              message: message,
+              message: appErrorMessage(AppLocalizations.of(context), message),
               onRetry: () => context.read<BookingsCubit>().loadUpcoming(),
             ),
           };

@@ -40,39 +40,45 @@ export 'auth_state.dart';
 // Pure validation helpers (no Supabase dependency — easy to unit-test)
 // ---------------------------------------------------------------------------
 
-/// Returns an error message when [name] is empty/blank, otherwise `null`.
+// Validators return [null] when valid, or an error to show. Form callers pass
+// a localized [*Message]; when omitted (e.g. the bloc handler) a stable error
+// *code* is returned instead, which the display layer resolves via
+// [appErrorMessage]. So no user-facing copy is hard-coded here.
+
+/// Returns an error when [name] is empty/blank, otherwise `null`.
 String? validateFullName(String? name, {String? emptyMessage}) {
   if (name == null || name.trim().isEmpty) {
-    return emptyMessage ?? 'Vui lòng nhập họ và tên.';
+    return emptyMessage ?? 'name_required';
   }
   return null;
 }
 
-/// Returns an error message when [email] is empty/blank, otherwise `null`.
+/// Returns an error when [email] is empty/blank, otherwise `null`.
 String? validateEmail(String? email, {String? emptyMessage}) {
   if (email == null || email.trim().isEmpty) {
-    return emptyMessage ?? 'Vui lòng nhập email.';
+    return emptyMessage ?? 'email_required';
   }
   return null;
 }
 
-/// Returns an error message when [password] fails requirements, else `null`.
+/// Returns an error when [password] fails requirements, else `null`.
 /// Requirements: ≥8 chars, ≥1 letter, ≥1 digit.
 String? validatePassword(String? password, {String? weakMessage}) {
   if (password == null || password.length < 8) {
-    return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
+    return weakMessage ?? 'password_weak';
   }
   final hasLetter = password.contains(RegExp(r'[a-zA-Z]'));
   final hasDigit = password.contains(RegExp(r'[0-9]'));
-  if (!hasLetter || !hasDigit)
-    return weakMessage ?? 'Tối thiểu 8 ký tự, có chữ và số.';
+  if (!hasLetter || !hasDigit) {
+    return weakMessage ?? 'password_weak';
+  }
   return null;
 }
 
-/// Returns an error message when [confirm] does not equal [password], else `null`.
+/// Returns an error when [confirm] does not equal [password], else `null`.
 String? validateConfirmPassword(String password, String confirm,
     {String? mismatchMessage}) {
-  if (confirm != password) return mismatchMessage ?? 'Mật khẩu không khớp.';
+  if (confirm != password) return mismatchMessage ?? 'password_mismatch';
   return null;
 }
 

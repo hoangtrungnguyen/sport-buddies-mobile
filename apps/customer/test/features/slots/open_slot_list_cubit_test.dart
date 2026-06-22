@@ -82,7 +82,7 @@ void main() {
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
         const SlotListLoading(),
-        const SlotListError('Không có kết nối mạng.'),
+        const SlotListError('network'),
       ],
     );
 
@@ -96,7 +96,7 @@ void main() {
       act: (cubit) => cubit.loadAllGroupSlots(),
       expect: () => [
         const SlotListLoading(),
-        const SlotListError('Lỗi máy chủ (500).'),
+        const SlotListError('server'),
       ],
     );
   });
@@ -126,7 +126,7 @@ void main() {
       act: (cubit) => cubit.loadForCourt('court-x'),
       expect: () => [
         const SlotListLoading(),
-        const SlotListError('Không có kết nối mạng.'),
+        const SlotListError('network'),
       ],
     );
   });

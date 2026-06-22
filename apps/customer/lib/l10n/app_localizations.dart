@@ -2432,6 +2432,12 @@ abstract class AppLocalizations {
   /// **'Đặt sân không thành công. Vui lòng thử lại.'**
   String get errBookingFailed;
 
+  /// No description provided for @errRequestFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không xử lý được yêu cầu, thử lại sau.'**
+  String get errRequestFailed;
+
   /// No description provided for @scheduleBookingSuccess.
   ///
   /// In vi, this message translates to:

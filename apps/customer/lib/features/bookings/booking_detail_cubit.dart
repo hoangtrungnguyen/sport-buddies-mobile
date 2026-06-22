@@ -150,7 +150,7 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
       emit(
         s.copyWith(
           processing: s.processing.difference({joinRequestId}),
-          actionError: 'Không có kết nối mạng. Vui lòng thử lại.',
+          actionError: 'network',
         ),
       );
     } catch (e, st) {
@@ -162,7 +162,7 @@ class BookingDetailCubit extends Cubit<BookingDetailState> {
       emit(
         s.copyWith(
           processing: s.processing.difference({joinRequestId}),
-          actionError: 'Không xử lý được yêu cầu, thử lại sau.',
+          actionError: 'request_failed',
         ),
       );
     }

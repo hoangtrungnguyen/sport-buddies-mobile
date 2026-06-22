@@ -57,7 +57,7 @@ class HistoryCubit extends Cubit<HistoryState> {
       emit(HistoryLoaded(items));
     } catch (e, st) {
       appLogger.e('HistoryCubit.loadHistory', error: e, stackTrace: st);
-      emit(HistoryError(e.toString()));
+      emit(const HistoryError('generic'));
     }
   }
 

@@ -74,7 +74,7 @@ void main() {
     );
 
     blocTest<ProfileCubit, ProfileState>(
-      'ProfileUpdateError carries the failure message',
+      'ProfileUpdateError carries the generic error code',
       build: () => _buildCubit(error: Exception('network timeout')),
       act: (cubit) => cubit.updateFullName('Any Name'),
       expect: () => [
@@ -82,7 +82,7 @@ void main() {
         isA<ProfileUpdateError>().having(
           (e) => e.message,
           'message',
-          contains('network timeout'),
+          'generic',
         ),
       ],
     );

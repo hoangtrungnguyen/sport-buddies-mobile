@@ -1146,6 +1146,8 @@
   "@errSlotTaken": {},
   "errBookingFailed": "Đặt sân không thành công. Vui lòng thử lại.",
   "@errBookingFailed": {},
+  "errRequestFailed": "Không xử lý được yêu cầu, thử lại sau.",
+  "@errRequestFailed": {},
   "scheduleBookingSuccess": "Đặt sân thành công!",
   "@scheduleBookingSuccess": {}
 }

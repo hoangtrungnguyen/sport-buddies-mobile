@@ -80,7 +80,7 @@ class ProfileCubit extends Cubit<ProfileState> {
 
       final user = client.auth.currentSession?.user;
       if (user == null) {
-        emit(const ProfileError('No authenticated user found.'));
+        emit(const ProfileError('auth'));
         return;
       }
 
@@ -98,7 +98,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         avatarUrl: (row?['avatar_url'] as String?) ?? meta['avatar_url'] as String?,
       ));
     } catch (e, st) {
-      emit(ProfileError(e.toString(), stackTrace: st));
+      emit(ProfileError('generic', stackTrace: st));
     }
   }
 
@@ -153,7 +153,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         avatarUrl: publicUrl,
       ));
     } catch (e, st) {
-      emit(ProfileUpdateError(e.toString(), stackTrace: st));
+      emit(ProfileUpdateError('generic', stackTrace: st));
     }
   }
 
@@ -188,7 +188,7 @@ class ProfileCubit extends Cubit<ProfileState> {
       } else {
         final client = _client;
         if (client == null) {
-          emit(const ProfileUpdateError('Supabase client not available.'));
+          emit(const ProfileUpdateError('generic'));
           return;
         }
         final userId = client.auth.currentSession?.user.id ?? '';
@@ -203,7 +203,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         avatarUrl: current.avatarUrl,
       ));
     } catch (e, st) {
-      emit(ProfileUpdateError(e.toString(), stackTrace: st));
+      emit(ProfileUpdateError('generic', stackTrace: st));
     }
   }
 
@@ -234,7 +234,7 @@ class ProfileCubit extends Cubit<ProfileState> {
         avatarUrl: current.avatarUrl,
       ));
     } catch (e, st) {
-      emit(ProfileUpdateError(e.toString(), stackTrace: st));
+      emit(ProfileUpdateError('generic', stackTrace: st));
     }
   }
 }

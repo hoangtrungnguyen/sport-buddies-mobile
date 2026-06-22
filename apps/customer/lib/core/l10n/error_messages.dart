@@ -21,5 +21,11 @@ String appErrorMessage(AppLocalizations l10n, String code) => switch (code) {
   'last_call_sent' => l10n.infoLastCallSent,
   'slot_taken' => l10n.errSlotTaken,
   'booking_failed' => l10n.errBookingFailed,
+  'request_failed' => l10n.errRequestFailed,
+  // Auth form validation — reuse the inline field-error strings.
+  'name_required' => l10n.errorFullNameEmpty,
+  'email_required' => l10n.errorEmailEmpty,
+  'password_weak' => l10n.errorPasswordWeak,
+  'password_mismatch' => l10n.errorPasswordMismatch,
   _ => code,
 };

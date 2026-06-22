@@ -1309,5 +1309,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errBookingFailed => 'Booking failed. Please try again.';
 
   @override
+  String get errRequestFailed =>
+      'Couldn\'t process the request. Please try again.';
+
+  @override
   String get scheduleBookingSuccess => 'Booking confirmed!';
 }

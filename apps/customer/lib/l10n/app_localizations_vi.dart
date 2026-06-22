@@ -1311,5 +1311,8 @@ class AppLocalizationsVi extends AppLocalizations {
   String get errBookingFailed => 'Đặt sân không thành công. Vui lòng thử lại.';
 
   @override
+  String get errRequestFailed => 'Không xử lý được yêu cầu, thử lại sau.';
+
+  @override
   String get scheduleBookingSuccess => 'Đặt sân thành công!';
 }

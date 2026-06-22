@@ -1,10 +1,12 @@
 // M3 "Slot trống" — open group slot discovery screen (SPB-034/035).
 // Design: EPIC-4 Slot Detail · Material 3 · M3DiscoverSlots component.
 
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/features/slots/cubit/open_slot_list_cubit.dart';
 import 'package:customer/features/slots/slots_style.dart';
 import 'package:customer/features/slots/widgets/open_slot_header.dart';
 import 'package:customer/features/slots/widgets/open_slot_body.dart';
+import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:spb_core/spb_core.dart';
@@ -52,7 +54,9 @@ class _OpenSlotListScreenState extends State<OpenSlotListScreen> {
                 SlotListInitial() || SlotListLoading() => const Center(
                   child: CircularProgressIndicator(),
                 ),
-                SlotListError(message: final msg) => ErrorView(message: msg),
+                SlotListError(message: final msg) => ErrorView(
+                  message: appErrorMessage(AppLocalizations.of(context), msg),
+                ),
                 SlotListLoaded(slots: final slots) => RefreshIndicator(
                   color: mdPrimary,
                   onRefresh: () =>

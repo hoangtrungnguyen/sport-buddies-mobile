@@ -3,6 +3,7 @@
 // Design: EPIC-6 My Bookings.html → BookingDetail component
 
 import 'package:customer/core/env/env.dart';
+import 'package:customer/core/l10n/error_messages.dart';
 import 'package:customer/core/services/booking_api_client.dart';
 import 'package:customer/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -79,9 +80,14 @@ class BookingDetailScreen extends StatelessWidget {
         listenWhen: (prev, curr) =>
             curr is BookingDetailLoaded && curr.actionError != null,
         listener: (context, state) {
-          final msg = (state as BookingDetailLoaded).actionError!;
+          final code = (state as BookingDetailLoaded).actionError!;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(msg), backgroundColor: mdError),
+            SnackBar(
+              content: Text(
+                appErrorMessage(AppLocalizations.of(context), code),
+              ),
+              backgroundColor: mdError,
+            ),
           );
         },
         builder: (context, state) => switch (state) {

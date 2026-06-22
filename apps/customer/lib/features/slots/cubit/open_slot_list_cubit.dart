@@ -38,9 +38,11 @@ class SlotListCubit extends Cubit<SlotListState> {
 
   void clear() => emit(const SlotListInitial());
 
+  /// Emits a stable error *code*; the display layer resolves it to localized
+  /// text via [appErrorMessage].
   static String _message(AppFailure f) => switch (f) {
-    NetworkFailure() => 'Không có kết nối mạng.',
-    ServerFailure(:final code) => 'Lỗi máy chủ ($code).',
-    AuthFailure(:final message) => 'Lỗi xác thực: $message',
+    NetworkFailure() => 'network',
+    ServerFailure() => 'server',
+    AuthFailure() => 'auth',
   };
 }

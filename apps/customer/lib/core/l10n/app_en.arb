@@ -1146,6 +1146,8 @@
   "@errSlotTaken": {},
   "errBookingFailed": "Booking failed. Please try again.",
   "@errBookingFailed": {},
+  "errRequestFailed": "Couldn't process the request. Please try again.",
+  "@errRequestFailed": {},
   "scheduleBookingSuccess": "Booking confirmed!",
   "@scheduleBookingSuccess": {}
 }

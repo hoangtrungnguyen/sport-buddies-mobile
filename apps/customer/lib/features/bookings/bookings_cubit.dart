@@ -56,7 +56,7 @@ class BookingsCubit extends Cubit<BookingsState> {
 
       final userId = client.auth.currentSession?.user.id;
       if (userId == null) {
-        emit(const BookingsError('No authenticated user found.'));
+        emit(const BookingsError('auth'));
         return;
       }
 
@@ -85,7 +85,7 @@ class BookingsCubit extends Cubit<BookingsState> {
 
       emit(BookingsLoaded(bookings, joinRequests: joinRequests));
     } catch (e, st) {
-      emit(BookingsError(e.toString(), stackTrace: st));
+      emit(BookingsError('generic', stackTrace: st));
     }
   }
 
@@ -168,7 +168,7 @@ class BookingsCubit extends Cubit<BookingsState> {
 
       await loadUpcoming();
     } catch (e, st) {
-      emit(BookingsError(e.toString(), stackTrace: st));
+      emit(BookingsError('generic', stackTrace: st));
     }
   }
 }
