@@ -95,126 +95,11 @@ class BookingCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _SportIconBox(
-                                sport: booking.sport,
-                                slots: booking.slots,
-                                iconBg: iconBg,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            booking.courtName,
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w600,
-                                              color: mdOnSurface,
-                                              height: 1.3,
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        _TypeBadge(type: booking.type),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    _RoleLine(booking: booking),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      booking.detail,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: mdOnSurfaceVariant,
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                    if (booking.recurringLabel != null) ...[
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        booking.recurringLabel!,
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: mdPrimary,
-                                          fontWeight: FontWeight.w600,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _M3Badge(
-                          status: booking.status,
-                          role: booking.role,
-                          overrideToken: booking.statusOverrideToken,
-                        ),
-                      ],
-                    ),
+                    _CardHeader(booking: booking, iconBg: iconBg),
                     const SizedBox(height: 12),
                     Container(height: 1, color: mdOutlineVariant),
                     const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.access_time,
-                              size: 15,
-                              color: mdOnSurfaceVariant,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              booking.time,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: mdOnSurfaceVariant,
-                              ),
-                            ),
-                            if (booking.slots > 1) ...[
-                              const SizedBox(width: 8),
-                              _MultiSlotBadge(extraSlots: booking.slots - 1),
-                            ],
-                            const SizedBox(width: 8),
-                            Text(
-                              booking.price,
-                              style: const TextStyle(
-                                fontFamily: 'Sora',
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: mdOnSurface,
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (booking.action != null)
-                          _ActionButton(
-                            label: actionLabel(
-                              AppLocalizations.of(context),
-                              booking.action!,
-                            ),
-                            danger: booking.actionDanger,
-                            onTap: _actionTap(context),
-                          ),
-                      ],
-                    ),
+                    _CardFooter(booking: booking, onAction: _actionTap(context)),
                   ],
                 ),
               ),
@@ -229,6 +114,149 @@ class BookingCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─── Card header (sport icon + court/role/detail + status badge) ──────────────
+
+class _CardHeader extends StatelessWidget {
+  const _CardHeader({required this.booking, required this.iconBg});
+
+  final BookingView booking;
+  final Color iconBg;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _SportIconBox(
+                sport: booking.sport,
+                slots: booking.slots,
+                iconBg: iconBg,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            booking.courtName,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: mdOnSurface,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        _TypeBadge(type: booking.type),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    _RoleLine(booking: booking),
+                    const SizedBox(height: 2),
+                    Text(
+                      booking.detail,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: mdOnSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (booking.recurringLabel != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        booking.recurringLabel!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: mdPrimary,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        _M3Badge(
+          status: booking.status,
+          role: booking.role,
+          overrideToken: booking.statusOverrideToken,
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Card footer (time · slots · price + action button) ───────────────────────
+
+class _CardFooter extends StatelessWidget {
+  const _CardFooter({required this.booking, required this.onAction});
+
+  final BookingView booking;
+  final VoidCallback onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.access_time,
+              size: 15,
+              color: mdOnSurfaceVariant,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              booking.time,
+              style: const TextStyle(
+                fontSize: 13,
+                color: mdOnSurfaceVariant,
+              ),
+            ),
+            if (booking.slots > 1) ...[
+              const SizedBox(width: 8),
+              _MultiSlotBadge(extraSlots: booking.slots - 1),
+            ],
+            const SizedBox(width: 8),
+            Text(
+              booking.price,
+              style: const TextStyle(
+                fontFamily: 'Sora',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: mdOnSurface,
+              ),
+            ),
+          ],
+        ),
+        if (booking.action != null)
+          _ActionButton(
+            label: actionLabel(
+              AppLocalizations.of(context),
+              booking.action!,
+            ),
+            danger: booking.actionDanger,
+            onTap: onAction,
+          ),
+      ],
     );
   }
 }
