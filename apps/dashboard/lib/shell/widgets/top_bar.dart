@@ -111,7 +111,7 @@ class TopBar extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 12),
         color: scheme.outlineVariant,
       ),
-      const TopBarProfileAvatar(initials: 'MN'),
+      const TopBarProfileAvatar(),
     ];
   }
 }

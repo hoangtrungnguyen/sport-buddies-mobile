@@ -69,51 +69,66 @@ class _UserCard extends StatelessWidget {
     });
     final subtitle = courtCount > 0 ? 'Chủ sân · $courtCount sân' : 'Chủ sân';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: scheme.tertiaryContainer,
-            child: Text(
-              initials,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: scheme.onTertiaryContainer,
-                fontWeight: FontWeight.w700,
+    // The owner row IS the entry to the profile screen, and shows the active
+    // (secondaryContainer) indicator while that route is open.
+    final active = GoRouterState.of(context).matchedLocation == '/profile';
+    final fg = active ? scheme.onSecondaryContainer : null;
+
+    return Material(
+      color: active ? scheme.secondaryContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        // Non-clickable while active (already on the profile route).
+        onTap: active ? null : () => context.go('/profile'),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: scheme.tertiaryContainer,
+                child: Text(
+                  initials,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: scheme.onTertiaryContainer,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleSmall,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall?.copyWith(color: fg),
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: fg ?? scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: scheme.onSurfaceVariant),
-                ),
-              ],
-            ),
+              ),
+              IconButton(
+                icon: const Icon(Symbols.logout, size: 20),
+                color: fg ?? scheme.onSurfaceVariant,
+                tooltip: 'Đăng xuất',
+                onPressed: () async {
+                  try {
+                    await Supabase.instance.client.auth.signOut();
+                  } catch (_) {}
+                  if (context.mounted) context.go('/login');
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Symbols.logout, size: 20),
-            color: scheme.onSurfaceVariant,
-            tooltip: 'Đăng xuất',
-            onPressed: () async {
-              try {
-                await Supabase.instance.client.auth.signOut();
-              } catch (_) {}
-              if (context.mounted) context.go('/login');
-            },
-          ),
-        ],
+        ),
       ),
     );
   }

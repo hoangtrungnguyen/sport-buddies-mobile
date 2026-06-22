@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:dashboard/core/di/injection.dart';
 import 'package:dashboard/features/auth/bloc/auth_bloc.dart';
 import 'package:dashboard/features/auth/bloc/signup_bloc.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
 import 'package:dashboard/features/auth/view/login_screen.dart';
 import 'package:dashboard/features/auth/view/signup_screen.dart';
+import 'package:dashboard/features/auth/view/unauthorized_screen.dart';
 import 'package:dashboard/features/home/bloc/home_bloc.dart';
 import 'package:dashboard/features/home/bloc/home_event.dart';
 import 'package:dashboard/features/home/repository/home_repository.dart';
@@ -19,6 +22,10 @@ import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/courts/view/court_detail_screen.dart';
 import 'package:dashboard/features/courts/view/court_form_screen.dart';
 import 'package:dashboard/features/courts/view/courts_screen.dart';
+import 'package:dashboard/features/profile/bloc/profile_bloc.dart';
+import 'package:dashboard/features/profile/bloc/profile_event.dart';
+import 'package:dashboard/features/profile/repository/profile_repository.dart';
+import 'package:dashboard/features/profile/view/profile_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
 import 'package:dashboard/features/venue_schedule/view/venue_schedule_page.dart';
@@ -51,8 +58,24 @@ CustomTransitionPage<void> _fadePage(GoRouterState state, Widget child) {
   );
 }
 
+/// A [Listenable] that fires on every Supabase auth-state change, so GoRouter's
+/// `refreshListenable` re-evaluates the redirect on sign-in/out and token
+/// expiry. Returns null when Supabase isn't initialized (e.g. widget tests) —
+/// the redirect still works on navigation, it just won't auto-refresh.
+Listenable? _authRefresh() {
+  try {
+    return GoRouterRefreshStream(
+      Supabase.instance.client.auth.onAuthStateChange,
+    );
+  } catch (_) {
+    return null;
+  }
+}
+
 GoRouter buildRouter() {
-  const publicPaths = {'/login', '/signup'};
+  // Shell-less routes reachable without a session. Everything else lives inside
+  // the authenticated ShellRoute and is gated by the redirect below.
+  const publicPaths = {'/login', '/signup', '/unauthorized'};
 
   AuthBloc createAuthBloc() {
     SupabaseClient? client;
@@ -68,6 +91,11 @@ GoRouter buildRouter() {
   return GoRouter(
     navigatorKey: sl<GlobalKey<NavigatorState>>(),
     initialLocation: '/',
+    // Re-run the redirect whenever the Supabase auth state changes (sign-in,
+    // sign-out, token refresh/expiry). Without this a session that expires
+    // mid-use leaves the authenticated shell on screen until the next manual
+    // navigation; with it the user is kicked to /unauthorized immediately.
+    refreshListenable: _authRefresh(),
     redirect: (context, state) {
       Session? session;
       try {
@@ -79,8 +107,12 @@ GoRouter buildRouter() {
       debugPrint(
           '[Router] redirect — going=$going authed=$authed session=${session?.accessToken.substring(0, 20)}...');
 
-      if (!authed && !publicPaths.contains(going)) return '/login';
-      if (authed && going == '/login') return '/';
+      // Unauthenticated → the shell-less Unauthorized gate (no sidebar).
+      if (!authed && !publicPaths.contains(going)) return '/unauthorized';
+      // Authenticated users have no business on the gate / login form.
+      if (authed && (going == '/login' || going == '/unauthorized')) {
+        return '/';
+      }
       return null;
     },
     routes: [
@@ -97,6 +129,10 @@ GoRouter buildRouter() {
           create: (_) => SignupBloc(sl<OwnerAuthRepository>()),
           child: const SignupScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/unauthorized',
+        builder: (context, state) => const UnauthorizedScreen(),
       ),
       // Authenticated shell — sidebar + topbar + content.
       ShellRoute(
@@ -216,6 +252,17 @@ GoRouter buildRouter() {
                 _fadePage(state, const SettingsScreen()),
           ),
           GoRoute(
+            path: '/profile',
+            pageBuilder: (context, state) => _fadePage(
+              state,
+              BlocProvider(
+                create: (_) => ProfileBloc(repository: sl<ProfileRepository>())
+                  ..add(const ProfileEvent.started()),
+                child: const ProfileScreen(),
+              ),
+            ),
+          ),
+          GoRoute(
             path: '/support',
             pageBuilder: (context, state) => _fadePage(
                 state,
@@ -226,6 +273,25 @@ GoRouter buildRouter() {
       ),
     ],
   );
+}
+
+/// Bridges a [Stream] to [Listenable] for GoRouter's `refreshListenable`.
+/// Notifies once on creation, then on every stream event.
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners();
+    _subscription = stream.asBroadcastStream().listen(
+          (_) => notifyListeners(),
+        );
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
 }
 
 class _PlaceholderScreen extends StatelessWidget {

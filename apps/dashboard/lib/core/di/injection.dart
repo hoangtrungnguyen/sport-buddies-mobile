@@ -6,6 +6,8 @@ import 'package:dashboard/features/home/repository/home_api_client.dart';
 import 'package:dashboard/features/home/repository/home_repository.dart';
 import 'package:dashboard/features/home/repository/home_repository_impl.dart';
 import 'package:dashboard/features/notifications/repository/notification_repository.dart';
+import 'package:dashboard/features/profile/repository/profile_repository.dart';
+import 'package:dashboard/features/profile/repository/profile_repository_impl.dart';
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
@@ -49,6 +51,13 @@ Future<void> configureDependencies() async {
 
   sl.registerLazySingleton<NotificationRepository>(
     () => NotificationRepository(Supabase.instance.client),
+  );
+
+  // Owner profile (Hồ sơ). No backend endpoint yet — the impl serves an
+  // in-memory record overlaid with the live Supabase identity. Swap for an
+  // API/Supabase-backed impl once the endpoint lands.
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(Supabase.instance.client),
   );
 
   sl.registerLazySingleton<BookingRequestRepository>(

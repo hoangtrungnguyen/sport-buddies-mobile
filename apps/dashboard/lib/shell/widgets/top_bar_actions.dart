@@ -2,7 +2,9 @@ import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// The active-venue context chip shown next to the breadcrumb on wide layouts.
 class TopBarVenueChip extends StatelessWidget {
@@ -41,23 +43,70 @@ class TopBarVenueChip extends StatelessWidget {
   }
 }
 
-/// The owner avatar at the far right of the top bar.
+/// The owner avatar at the far right of the top bar — the always-visible entry
+/// point to the profile screen (`/profile`). Initials come from the live
+/// Supabase session; a primary ring marks the active route.
 class TopBarProfileAvatar extends StatelessWidget {
-  const TopBarProfileAvatar({super.key, required this.initials});
-  final String initials;
+  const TopBarProfileAvatar({super.key});
+
+  /// 1–2 letter initials for the signed-in owner — same rules as the drawer
+  /// footer (metadata name → email local part → fallback).
+  static String _initials() {
+    User? user;
+    try {
+      user = Supabase.instance.client.auth.currentUser;
+    } catch (_) {
+      user = null;
+    }
+    final meta = user?.userMetadata;
+    final metaName =
+        (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
+            as String?;
+    final source = (metaName != null && metaName.trim().isNotEmpty)
+        ? metaName.trim()
+        : (user?.email?.contains('@') ?? false)
+            ? user!.email!.split('@').first
+            : '';
+    final parts =
+        source.split(RegExp(r'[\s.]+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return 'MN';
+    if (parts.length == 1) {
+      final p = parts.first;
+      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
+    }
+    return (parts.first[0] + parts.last[0]).toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
-    return CircleAvatar(
-      radius: 17,
-      backgroundColor: scheme.primary,
-      child: Text(
-        initials,
-        style: theme.textTheme.labelMedium?.copyWith(
-          color: scheme.onPrimary,
-          fontWeight: FontWeight.w700,
+    final active = GoRouterState.of(context).matchedLocation == '/profile';
+
+    return Tooltip(
+      message: 'Hồ sơ',
+      child: InkWell(
+        onTap: () => context.go('/profile'),
+        customBorder: const CircleBorder(),
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: active
+                ? Border.all(color: scheme.primary, width: 2)
+                : null,
+          ),
+          padding: const EdgeInsets.all(2),
+          child: CircleAvatar(
+            radius: 17,
+            backgroundColor: scheme.primary,
+            child: Text(
+              _initials(),
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: scheme.onPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
         ),
       ),
     );

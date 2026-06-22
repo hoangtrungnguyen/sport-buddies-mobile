@@ -70,6 +70,7 @@ const kRouteTitle = <String, String>{
   '/notifications': 'Thông báo',
   '/settings': 'Cài đặt sân',
   '/support': 'Hỗ trợ',
+  '/profile': 'Hồ sơ',
 };
 
 /// Index of the destination owning [loc] — selection follows the route, not the
