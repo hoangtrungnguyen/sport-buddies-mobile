@@ -138,6 +138,7 @@ class SlotDetailSheet extends StatelessWidget {
 
   Widget _buildBody() {
     final rows = _detailRows();
+    final contextCard = _contextCard();
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
       child: Column(
@@ -150,28 +151,37 @@ class SlotDetailSheet extends StatelessWidget {
               value: rows[i].value,
               divider: i < rows.length - 1,
             ),
-          // Contextual info card for open / empty slots.
-          if (slot.state == SlotState.open)
-            InfoCard(
-              strong: 'Slot ghép mở',
-              text: ' — khách lẻ có thể tham gia tới khi đủ '
-                  '${slot.capacity ?? 0} người. Hiện đã có '
-                  '${slot.players ?? 0} người.',
-            ),
-          if (slot.state == SlotState.empty)
-            InfoCard(
-              strong: 'Slot trống',
-              // No matchmaking mention while the feature is gated
-              // (TODO BCORE-321/326).
-              text: kMatchmakingEnabled
-                  ? ' — đang chờ khách đặt. Bạn có thể mở công khai để '
-                      'ghép đội hoặc khoá giờ này.'
-                  : ' — đang chờ khách đặt. Bạn có thể khoá giờ này nếu '
-                      'không nhận khách.',
-            ),
+          if (contextCard != null) contextCard,
         ],
       ),
     );
+  }
+
+  /// Contextual info card under the detail rows — only open and empty slots
+  /// get one (null for every other state).
+  Widget? _contextCard() {
+    switch (slot.state) {
+      case SlotState.open:
+        return InfoCard(
+          strong: 'Slot ghép mở',
+          text: ' — khách lẻ có thể tham gia tới khi đủ '
+              '${slot.capacity ?? 0} người. Hiện đã có '
+              '${slot.players ?? 0} người.',
+        );
+      case SlotState.empty:
+        return InfoCard(
+          strong: 'Slot trống',
+          // No matchmaking mention while the feature is gated
+          // (TODO BCORE-321/326).
+          text: kMatchmakingEnabled
+              ? ' — đang chờ khách đặt. Bạn có thể mở công khai để '
+                  'ghép đội hoặc khoá giờ này.'
+              : ' — đang chờ khách đặt. Bạn có thể khoá giờ này nếu '
+                  'không nhận khách.',
+        );
+      default:
+        return null;
+    }
   }
 
   /// The label/value detail rows for the current slot — order matters, and
