@@ -181,31 +181,37 @@ class _VenueScheduleDayViewState extends State<VenueScheduleDayView> {
               const Positioned.fill(
                 child: CustomPaint(painter: HourLinesPainter()),
               ),
-              for (final slot in ordered)
-                Positioned(
-                  key: ValueKey(slot.id),
-                  top: (slot.startHour - kFirstHour) * kHourPx + 2,
-                  left: 4,
-                  right: 4,
-                  child: SlotBlock(
-                    slot: slot,
-                    height: slot.durationHours * kHourPx,
-                    onHoverChanged: (hovered) => setState(() {
-                      if (hovered) {
-                        _hoveredSlotId = slot.id;
-                      } else if (_hoveredSlotId == slot.id) {
-                        _hoveredSlotId = null;
-                      }
-                    }),
-                    onTap: () => context
-                        .read<VenueScheduleBloc>()
-                        .add(VenueScheduleEvent.slotTapped(slot)),
-                  ),
-                ),
+              for (final slot in ordered) _positionedSlot(slot),
               if (dragging) _dragBand(drag),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// One slot block, positioned by the Day-view layout
+  /// (`top = (start − 6) × HPX + 2`) and wired to raise itself above siblings
+  /// on hover and open the detail sheet on tap.
+  Widget _positionedSlot(Slot slot) {
+    return Positioned(
+      key: ValueKey(slot.id),
+      top: (slot.startHour - kFirstHour) * kHourPx + 2,
+      left: 4,
+      right: 4,
+      child: SlotBlock(
+        slot: slot,
+        height: slot.durationHours * kHourPx,
+        onHoverChanged: (hovered) => setState(() {
+          if (hovered) {
+            _hoveredSlotId = slot.id;
+          } else if (_hoveredSlotId == slot.id) {
+            _hoveredSlotId = null;
+          }
+        }),
+        onTap: () => context
+            .read<VenueScheduleBloc>()
+            .add(VenueScheduleEvent.slotTapped(slot)),
       ),
     );
   }
