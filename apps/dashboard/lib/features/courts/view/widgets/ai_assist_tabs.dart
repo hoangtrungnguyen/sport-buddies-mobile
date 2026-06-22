@@ -274,66 +274,79 @@ class _ChatTabState extends State<_ChatTab> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Column(
       children: [
-        Expanded(
-          child: ListView.builder(
-            controller: _scroll,
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-            itemCount: _msgs.length + (_busy ? 1 : 0),
-            itemBuilder: (context, i) {
-              if (i == _msgs.length) {
-                return const _Bubble(fromUser: false, text: 'Đang suy nghĩ…');
-              }
-              final m = _msgs[i];
-              return _Bubble(fromUser: m.fromUser, text: m.text);
-            },
-          ),
+        Expanded(child: _messageList()),
+        if (_snapshot != null) _snapshotButton(),
+        _inputBar(Theme.of(context).colorScheme),
+      ],
+    );
+  }
+
+  /// Scrolling chat transcript, with a trailing "Đang suy nghĩ…" bubble while
+  /// the assistant is replying.
+  Widget _messageList() {
+    return ListView.builder(
+      controller: _scroll,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      itemCount: _msgs.length + (_busy ? 1 : 0),
+      itemBuilder: (context, i) {
+        if (i == _msgs.length) {
+          return const _Bubble(fromUser: false, text: 'Đang suy nghĩ…');
+        }
+        final m = _msgs[i];
+        return _Bubble(fromUser: m.fromUser, text: m.text);
+      },
+    );
+  }
+
+  /// "Xem dữ liệu đã thu thập" CTA — shown once the assistant has gathered a
+  /// snapshot.
+  Widget _snapshotButton() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.tonalIcon(
+          icon: const Icon(Symbols.fact_check, size: 18),
+          label: const Text('Xem dữ liệu đã thu thập'),
+          onPressed: () => widget.onShowSnapshot(_snapshot!),
         ),
-        if (_snapshot != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(
-              width: double.infinity,
-              child: FilledButton.tonalIcon(
-                icon: const Icon(Symbols.fact_check, size: 18),
-                label: const Text('Xem dữ liệu đã thu thập'),
-                onPressed: () => widget.onShowSnapshot(_snapshot!),
+      ),
+    );
+  }
+
+  /// Rounded reply field + send button pinned to the bottom of the chat.
+  Widget _inputBar(ColorScheme scheme) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _ctrl,
+              onSubmitted: (_) => _send(),
+              decoration: InputDecoration(
+                hintText: 'Nhập câu trả lời…',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
               ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _ctrl,
-                  onSubmitted: (_) => _send(),
-                  decoration: InputDecoration(
-                    hintText: 'Nhập câu trả lời…',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 12),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton.filled(
-                onPressed: _busy ? null : _send,
-                icon: const Icon(Symbols.send, size: 20),
-                style: IconButton.styleFrom(
-                  backgroundColor: scheme.primary,
-                  foregroundColor: scheme.onPrimary,
-                ),
-              ),
-            ],
+          const SizedBox(width: 8),
+          IconButton.filled(
+            onPressed: _busy ? null : _send,
+            icon: const Icon(Symbols.send, size: 20),
+            style: IconButton.styleFrom(
+              backgroundColor: scheme.primary,
+              foregroundColor: scheme.onPrimary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -352,9 +365,8 @@ class _Bubble extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 420),
         decoration: BoxDecoration(
-          color: fromUser
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerHigh,
+          color:
+              fromUser ? scheme.primaryContainer : scheme.surfaceContainerHigh,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -365,9 +377,7 @@ class _Bubble extends StatelessWidget {
         child: Text(
           text,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: fromUser
-                    ? scheme.onPrimaryContainer
-                    : scheme.onSurface,
+                color: fromUser ? scheme.onPrimaryContainer : scheme.onSurface,
               ),
         ),
       ),
