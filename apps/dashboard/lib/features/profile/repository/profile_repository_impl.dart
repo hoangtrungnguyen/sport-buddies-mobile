@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/identity/owner_identity.dart';
 import '../model/profile_models.dart';
 import 'profile_repository.dart';
 
@@ -34,11 +35,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
     final email = (user?.email?.trim().isNotEmpty ?? false)
         ? user!.email!.trim()
         : 'minh.nguyen@snb.vn';
-    final name = _displayName(user) ?? 'Nguyễn Văn Minh';
+    final name = ownerDisplayName(user) ?? 'Nguyễn Văn Minh';
     return OwnerProfile(
       id: user?.id ?? 'owner-1',
       name: name,
-      initials: _initials(name),
+      initials: ownerInitials(name),
       role: 'Chủ sân',
       area: 'Quận 7, TP.HCM',
       joinedAt: DateTime(2025, 3, 1),
@@ -102,27 +103,5 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } catch (_) {
       return null;
     }
-  }
-
-  static String? _displayName(User? user) {
-    final meta = user?.userMetadata;
-    final metaName =
-        (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
-            as String?;
-    if (metaName != null && metaName.trim().isNotEmpty) return metaName.trim();
-    final email = user?.email ?? '';
-    if (email.contains('@')) return email.split('@').first;
-    return null;
-  }
-
-  static String _initials(String name) {
-    final parts =
-        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) {
-      final p = parts.first;
-      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
-    }
-    return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }

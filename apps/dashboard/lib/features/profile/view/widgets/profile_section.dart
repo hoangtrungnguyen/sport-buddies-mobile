@@ -75,6 +75,66 @@ class SectionHead extends StatelessWidget {
   }
 }
 
+/// `primaryContainer` status pill with a filled `verified` glyph — used for the
+/// "Đã xác minh" owner badge and the "Đã liên kết" payout pill.
+class StatusPill extends StatelessWidget {
+  const StatusPill({super.key, required this.label, this.iconSize = 15});
+
+  final String label;
+  final double iconSize;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Symbols.verified,
+              size: iconSize, fill: 1, color: scheme.onPrimaryContainer),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: scheme.onPrimaryContainer,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 40px circular leading icon tile (`surfaceContainerHigh` / `onSurfaceVariant`)
+/// used by every profile row — info rows and switch rows alike.
+class LeadingIconTile extends StatelessWidget {
+  const LeadingIconTile({super.key, required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHigh,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Icon(icon, size: 20, color: scheme.onSurfaceVariant),
+    );
+  }
+}
+
 /// One detail row inside a [ProfileSection] card.
 ///
 /// Anatomy: 40px circular leading icon tile · label over value · optional
@@ -120,16 +180,7 @@ class InfoRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHigh,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          ),
+          LeadingIconTile(icon: icon),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

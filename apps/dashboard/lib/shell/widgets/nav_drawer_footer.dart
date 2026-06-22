@@ -1,3 +1,4 @@
+import 'package:dashboard/core/identity/owner_identity.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_state.dart';
 import 'package:flutter/material.dart';
@@ -28,40 +29,13 @@ class NavDrawerFooter extends StatelessWidget {
 class _UserCard extends StatelessWidget {
   const _UserCard();
 
-  /// Display name for the signed-in owner, sourced from Supabase auth.
-  /// Supabase exposes no profile table for owners, so we prefer a name in
-  /// `user_metadata` (if the backend ever sets one) and otherwise fall back
-  /// to the email's local part. Never the old hardcoded placeholder.
-  static String _displayName(User? user) {
-    final meta = user?.userMetadata;
-    final metaName =
-        (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
-            as String?;
-    if (metaName != null && metaName.trim().isNotEmpty) return metaName.trim();
-    final email = user?.email ?? '';
-    if (email.contains('@')) return email.split('@').first;
-    return email.isNotEmpty ? email : 'Chủ sân';
-  }
-
-  /// 1–2 letter avatar initials derived from [name].
-  static String _initials(String name) {
-    final parts =
-        name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) {
-      final p = parts.first;
-      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
-    }
-    return (parts.first[0] + parts.last[0]).toUpperCase();
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     final user = Supabase.instance.client.auth.currentUser;
-    final name = _displayName(user);
-    final initials = _initials(name);
+    final name = ownerDisplayName(user) ?? 'Chủ sân';
+    final initials = ownerInitials(name);
 
     final courtCount = context.select<CourtBloc, int>((bloc) {
       final s = bloc.state;

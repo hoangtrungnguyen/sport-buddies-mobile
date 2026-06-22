@@ -101,16 +101,7 @@ class _SwitchRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHigh,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 20, color: scheme.onSurfaceVariant),
-          ),
+          LeadingIconTile(icon: icon),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

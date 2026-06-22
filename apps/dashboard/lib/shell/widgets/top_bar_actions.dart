@@ -1,3 +1,4 @@
+import 'package:dashboard/core/identity/owner_identity.dart';
 import 'package:dashboard/features/notifications/bloc/notification_bloc.dart';
 import 'package:dashboard/features/notifications/bloc/notification_state.dart';
 import 'package:flutter/material.dart';
@@ -49,8 +50,7 @@ class TopBarVenueChip extends StatelessWidget {
 class TopBarProfileAvatar extends StatelessWidget {
   const TopBarProfileAvatar({super.key});
 
-  /// 1–2 letter initials for the signed-in owner — same rules as the drawer
-  /// footer (metadata name → email local part → fallback).
+  /// 1–2 letter initials for the signed-in owner (shared identity rules).
   static String _initials() {
     User? user;
     try {
@@ -58,23 +58,7 @@ class TopBarProfileAvatar extends StatelessWidget {
     } catch (_) {
       user = null;
     }
-    final meta = user?.userMetadata;
-    final metaName =
-        (meta?['full_name'] ?? meta?['name'] ?? meta?['display_name'])
-            as String?;
-    final source = (metaName != null && metaName.trim().isNotEmpty)
-        ? metaName.trim()
-        : (user?.email?.contains('@') ?? false)
-            ? user!.email!.split('@').first
-            : '';
-    final parts =
-        source.split(RegExp(r'[\s.]+')).where((p) => p.isNotEmpty).toList();
-    if (parts.isEmpty) return 'MN';
-    if (parts.length == 1) {
-      final p = parts.first;
-      return (p.length >= 2 ? p.substring(0, 2) : p).toUpperCase();
-    }
-    return (parts.first[0] + parts.last[0]).toUpperCase();
+    return ownerInitials(ownerDisplayName(user) ?? '', fallback: 'MN');
   }
 
   @override

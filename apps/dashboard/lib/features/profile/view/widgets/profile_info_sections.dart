@@ -120,7 +120,9 @@ class PayoutSection extends StatelessWidget {
           icon: Symbols.account_balance,
           label: 'Ngân hàng',
           value: profile.bankName,
-          trailing: profile.payoutLinked ? const _LinkedPill() : null,
+          trailing: profile.payoutLinked
+              ? const StatusPill(label: 'Đã liên kết', iconSize: 14)
+              : null,
         ),
         InfoRow(
           icon: Symbols.credit_card,
@@ -142,35 +144,3 @@ class PayoutSection extends StatelessWidget {
   }
 }
 
-/// "Đã liên kết" payout pill — `primaryContainer` with a filled `verified`.
-class _LinkedPill extends StatelessWidget {
-  const _LinkedPill();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Symbols.verified,
-              size: 14, fill: 1, color: scheme.onPrimaryContainer),
-          const SizedBox(width: 4),
-          Text(
-            'Đã liên kết',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: scheme.onPrimaryContainer,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

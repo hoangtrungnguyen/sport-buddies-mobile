@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../model/profile_models.dart';
 import '../../util/profile_format.dart';
+import 'profile_section.dart';
 
 /// Hero card (header style = cover): a 116px gradient cover band with the 92px
 /// avatar overlapping it, then name + "Đã xác minh" badge + meta, and the tonal
@@ -164,41 +165,8 @@ class _NameBlock extends StatelessWidget {
           profile.name,
           style: theme.textTheme.headlineSmall,
         ),
-        if (profile.verified) const VerifiedBadge(),
+        if (profile.verified) const StatusPill(label: 'Đã xác minh'),
       ],
-    );
-  }
-}
-
-/// "Đã xác minh" pill — `primaryContainer` with a filled `verified` glyph.
-class VerifiedBadge extends StatelessWidget {
-  const VerifiedBadge({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: scheme.primaryContainer,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Symbols.verified,
-              size: 15, fill: 1, color: scheme.onPrimaryContainer),
-          const SizedBox(width: 4),
-          Text(
-            'Đã xác minh',
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: scheme.onPrimaryContainer,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
