@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:customer/core/services/logging_http_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -71,7 +72,10 @@ class BookingApiClient {
        _baseUrl = baseUrl.endsWith('/')
            ? baseUrl.substring(0, baseUrl.length - 1)
            : baseUrl,
-       _http = httpClient ?? http.Client();
+       // Wrap the default client so every backend call is logged (debug-only)
+       // to the console. Callers can still inject their own client (e.g. a
+       // mock in tests), which bypasses logging.
+       _http = httpClient ?? LoggingHttpClient(http.Client());
 
   final SupabaseClient _supabase;
   final String _baseUrl;

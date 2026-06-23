@@ -14,6 +14,7 @@ import 'package:customer/app.dart';
 import 'package:customer/core/debug/app_bloc_observer.dart';
 import 'package:customer/core/di/injection.dart';
 import 'package:customer/core/env/env.dart';
+import 'package:customer/core/services/logging_http_client.dart';
 import 'package:customer/core/services/timeout_http_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
@@ -72,8 +73,10 @@ Future<void> main() async {
     anonKey: Env.supabaseAnonKey,
     authOptions: const FlutterAuthClientOptions(),
     // Bound all Supabase traffic (reads/auth/storage) by 30s so a hung
-    // backend fails fast instead of hanging the UI.
-    httpClient: TimeoutHttpClient(http.Client()),
+    // backend fails fast instead of hanging the UI, and log each call
+    // (debug-only) so the API trace is visible in the console. Logging wraps
+    // the timeout so timed-out requests are reported immediately.
+    httpClient: LoggingHttpClient(TimeoutHttpClient(http.Client())),
   );
 
   // Step 4: resolve SharedPreferences before the DI container starts.
