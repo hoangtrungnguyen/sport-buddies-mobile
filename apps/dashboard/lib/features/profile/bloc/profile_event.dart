@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../model/profile_models.dart';
@@ -20,4 +22,10 @@ sealed class ProfileEvent with _$ProfileEvent {
   /// Optimistic email-notification flip — reverts on repo failure.
   const factory ProfileEvent.emailNotifToggled(bool enabled) =
       ProfileEmailNotifToggled;
+
+  /// Upload a freshly-picked avatar image ([bytes]) to the backend.
+  const factory ProfileEvent.avatarChangeRequested(
+    Uint8List bytes, {
+    @Default('avatar.jpg') String filename,
+  }) = ProfileAvatarChangeRequested;
 }

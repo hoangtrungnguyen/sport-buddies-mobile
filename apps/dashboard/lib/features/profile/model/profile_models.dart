@@ -11,6 +11,8 @@ abstract class OwnerProfile with _$OwnerProfile {
     required String id,
     required String name,
     required String initials,
+    /// Public URL of the uploaded avatar; null → render [initials].
+    String? avatarUrl,
     required String role, // "Chủ sân"
     required String area, // "Quận 7, TP.HCM"
     required DateTime joinedAt,

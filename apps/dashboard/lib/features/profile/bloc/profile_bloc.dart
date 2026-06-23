@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/debug/app_logger.dart';
 import '../model/profile_models.dart';
 import '../repository/profile_repository.dart';
 import 'profile_event.dart';
@@ -13,6 +14,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<ProfileEditSubmitted>(_onEditSubmitted);
     on<ProfileTwoFactorToggled>(_onTwoFactorToggled);
     on<ProfileEmailNotifToggled>(_onEmailNotifToggled);
+    on<ProfileAvatarChangeRequested>(_onAvatarChangeRequested);
   }
 
   final ProfileRepository _repository;
@@ -59,6 +61,29 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       next: (p) => p.copyWith(emailNotif: event.enabled),
       persist: () => _repository.setEmailNotif(event.enabled),
     );
+  }
+
+  /// Upload a picked avatar: flag [AvatarUpload.uploading], persist via the
+  /// repo, then reflect the returned URL on the profile. A failure leaves the
+  /// profile untouched and surfaces [AvatarUpload.error] for the UI snackbar.
+  Future<void> _onAvatarChangeRequested(
+      ProfileAvatarChangeRequested event, Emitter<ProfileState> emit) async {
+    final current = state;
+    if (current is! ProfileLoaded) return;
+    emit(current.copyWith(avatar: AvatarUpload.uploading));
+    try {
+      final url = await _repository.uploadAvatar(
+        event.bytes,
+        filename: event.filename,
+      );
+      emit(current.copyWith(
+        profile: current.profile.copyWith(avatarUrl: url),
+        avatar: AvatarUpload.success,
+      ));
+    } catch (e, stackTrace) {
+      appLogger.e('ProfileBloc.uploadAvatar', error: e, stackTrace: stackTrace);
+      emit(current.copyWith(avatar: AvatarUpload.error));
+    }
   }
 
   /// Optimistically apply [next] to the loaded profile, then [persist]. On

@@ -54,6 +54,7 @@ extension ProfileEventPatterns on ProfileEvent {
     TResult Function(ProfileEditSubmitted value)? editSubmitted,
     TResult Function(ProfileTwoFactorToggled value)? twoFactorToggled,
     TResult Function(ProfileEmailNotifToggled value)? emailNotifToggled,
+    TResult Function(ProfileAvatarChangeRequested value)? avatarChangeRequested,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -66,6 +67,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that);
       case ProfileEmailNotifToggled() when emailNotifToggled != null:
         return emailNotifToggled(_that);
+      case ProfileAvatarChangeRequested() when avatarChangeRequested != null:
+        return avatarChangeRequested(_that);
       case _:
         return orElse();
     }
@@ -90,6 +93,8 @@ extension ProfileEventPatterns on ProfileEvent {
     required TResult Function(ProfileEditSubmitted value) editSubmitted,
     required TResult Function(ProfileTwoFactorToggled value) twoFactorToggled,
     required TResult Function(ProfileEmailNotifToggled value) emailNotifToggled,
+    required TResult Function(ProfileAvatarChangeRequested value)
+        avatarChangeRequested,
   }) {
     final _that = this;
     switch (_that) {
@@ -101,6 +106,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that);
       case ProfileEmailNotifToggled():
         return emailNotifToggled(_that);
+      case ProfileAvatarChangeRequested():
+        return avatarChangeRequested(_that);
     }
   }
 
@@ -122,6 +129,8 @@ extension ProfileEventPatterns on ProfileEvent {
     TResult? Function(ProfileEditSubmitted value)? editSubmitted,
     TResult? Function(ProfileTwoFactorToggled value)? twoFactorToggled,
     TResult? Function(ProfileEmailNotifToggled value)? emailNotifToggled,
+    TResult? Function(ProfileAvatarChangeRequested value)?
+        avatarChangeRequested,
   }) {
     final _that = this;
     switch (_that) {
@@ -133,6 +142,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that);
       case ProfileEmailNotifToggled() when emailNotifToggled != null:
         return emailNotifToggled(_that);
+      case ProfileAvatarChangeRequested() when avatarChangeRequested != null:
+        return avatarChangeRequested(_that);
       case _:
         return null;
     }
@@ -156,6 +167,7 @@ extension ProfileEventPatterns on ProfileEvent {
     TResult Function(OwnerProfile draft)? editSubmitted,
     TResult Function(bool enabled)? twoFactorToggled,
     TResult Function(bool enabled)? emailNotifToggled,
+    TResult Function(Uint8List bytes, String filename)? avatarChangeRequested,
     required TResult orElse(),
   }) {
     final _that = this;
@@ -168,6 +180,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that.enabled);
       case ProfileEmailNotifToggled() when emailNotifToggled != null:
         return emailNotifToggled(_that.enabled);
+      case ProfileAvatarChangeRequested() when avatarChangeRequested != null:
+        return avatarChangeRequested(_that.bytes, _that.filename);
       case _:
         return orElse();
     }
@@ -192,6 +206,8 @@ extension ProfileEventPatterns on ProfileEvent {
     required TResult Function(OwnerProfile draft) editSubmitted,
     required TResult Function(bool enabled) twoFactorToggled,
     required TResult Function(bool enabled) emailNotifToggled,
+    required TResult Function(Uint8List bytes, String filename)
+        avatarChangeRequested,
   }) {
     final _that = this;
     switch (_that) {
@@ -203,6 +219,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that.enabled);
       case ProfileEmailNotifToggled():
         return emailNotifToggled(_that.enabled);
+      case ProfileAvatarChangeRequested():
+        return avatarChangeRequested(_that.bytes, _that.filename);
     }
   }
 
@@ -224,6 +242,7 @@ extension ProfileEventPatterns on ProfileEvent {
     TResult? Function(OwnerProfile draft)? editSubmitted,
     TResult? Function(bool enabled)? twoFactorToggled,
     TResult? Function(bool enabled)? emailNotifToggled,
+    TResult? Function(Uint8List bytes, String filename)? avatarChangeRequested,
   }) {
     final _that = this;
     switch (_that) {
@@ -235,6 +254,8 @@ extension ProfileEventPatterns on ProfileEvent {
         return twoFactorToggled(_that.enabled);
       case ProfileEmailNotifToggled() when emailNotifToggled != null:
         return emailNotifToggled(_that.enabled);
+      case ProfileAvatarChangeRequested() when avatarChangeRequested != null:
+        return avatarChangeRequested(_that.bytes, _that.filename);
       case _:
         return null;
     }
@@ -464,6 +485,83 @@ class _$ProfileEmailNotifToggledCopyWithImpl<$Res>
           ? _self.enabled
           : enabled // ignore: cast_nullable_to_non_nullable
               as bool,
+    ));
+  }
+}
+
+/// @nodoc
+
+class ProfileAvatarChangeRequested implements ProfileEvent {
+  const ProfileAvatarChangeRequested(this.bytes,
+      {this.filename = 'avatar.jpg'});
+
+  final Uint8List bytes;
+  @JsonKey()
+  final String filename;
+
+  /// Create a copy of ProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  $ProfileAvatarChangeRequestedCopyWith<ProfileAvatarChangeRequested>
+      get copyWith => _$ProfileAvatarChangeRequestedCopyWithImpl<
+          ProfileAvatarChangeRequested>(this, _$identity);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is ProfileAvatarChangeRequested &&
+            const DeepCollectionEquality().equals(other.bytes, bytes) &&
+            (identical(other.filename, filename) ||
+                other.filename == filename));
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      runtimeType, const DeepCollectionEquality().hash(bytes), filename);
+
+  @override
+  String toString() {
+    return 'ProfileEvent.avatarChangeRequested(bytes: $bytes, filename: $filename)';
+  }
+}
+
+/// @nodoc
+abstract mixin class $ProfileAvatarChangeRequestedCopyWith<$Res>
+    implements $ProfileEventCopyWith<$Res> {
+  factory $ProfileAvatarChangeRequestedCopyWith(
+          ProfileAvatarChangeRequested value,
+          $Res Function(ProfileAvatarChangeRequested) _then) =
+      _$ProfileAvatarChangeRequestedCopyWithImpl;
+  @useResult
+  $Res call({Uint8List bytes, String filename});
+}
+
+/// @nodoc
+class _$ProfileAvatarChangeRequestedCopyWithImpl<$Res>
+    implements $ProfileAvatarChangeRequestedCopyWith<$Res> {
+  _$ProfileAvatarChangeRequestedCopyWithImpl(this._self, this._then);
+
+  final ProfileAvatarChangeRequested _self;
+  final $Res Function(ProfileAvatarChangeRequested) _then;
+
+  /// Create a copy of ProfileEvent
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? bytes = null,
+    Object? filename = null,
+  }) {
+    return _then(ProfileAvatarChangeRequested(
+      null == bytes
+          ? _self.bytes
+          : bytes // ignore: cast_nullable_to_non_nullable
+              as Uint8List,
+      filename: null == filename
+          ? _self.filename
+          : filename // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }

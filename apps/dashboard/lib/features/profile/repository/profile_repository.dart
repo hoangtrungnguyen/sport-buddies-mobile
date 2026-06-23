@@ -16,5 +16,7 @@ abstract class ProfileRepository {
 
   Future<void> setTwoFactor(bool enabled);
   Future<void> setEmailNotif(bool enabled);
-  Future<String> uploadAvatar(Uint8List bytes);
+
+  /// Uploads [bytes] (JPEG/PNG) and returns the stored public avatar URL.
+  Future<String> uploadAvatar(Uint8List bytes, {String filename});
 }

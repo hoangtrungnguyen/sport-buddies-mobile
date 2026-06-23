@@ -154,7 +154,8 @@ extension ProfileStatePatterns on ProfileState {
   TResult maybeWhen<TResult extends Object?>({
     TResult Function()? initial,
     TResult Function()? loading,
-    TResult Function(OwnerProfile profile, ProfileStats stats, bool saving)?
+    TResult Function(OwnerProfile profile, ProfileStats stats, bool saving,
+            AvatarUpload avatar)?
         loaded,
     TResult Function(String message)? failure,
     required TResult orElse(),
@@ -166,7 +167,7 @@ extension ProfileStatePatterns on ProfileState {
       case ProfileLoading() when loading != null:
         return loading();
       case ProfileLoaded() when loaded != null:
-        return loaded(_that.profile, _that.stats, _that.saving);
+        return loaded(_that.profile, _that.stats, _that.saving, _that.avatar);
       case ProfileFailure() when failure != null:
         return failure(_that.message);
       case _:
@@ -191,8 +192,8 @@ extension ProfileStatePatterns on ProfileState {
   TResult when<TResult extends Object?>({
     required TResult Function() initial,
     required TResult Function() loading,
-    required TResult Function(
-            OwnerProfile profile, ProfileStats stats, bool saving)
+    required TResult Function(OwnerProfile profile, ProfileStats stats,
+            bool saving, AvatarUpload avatar)
         loaded,
     required TResult Function(String message) failure,
   }) {
@@ -203,7 +204,7 @@ extension ProfileStatePatterns on ProfileState {
       case ProfileLoading():
         return loading();
       case ProfileLoaded():
-        return loaded(_that.profile, _that.stats, _that.saving);
+        return loaded(_that.profile, _that.stats, _that.saving, _that.avatar);
       case ProfileFailure():
         return failure(_that.message);
     }
@@ -225,7 +226,8 @@ extension ProfileStatePatterns on ProfileState {
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function()? initial,
     TResult? Function()? loading,
-    TResult? Function(OwnerProfile profile, ProfileStats stats, bool saving)?
+    TResult? Function(OwnerProfile profile, ProfileStats stats, bool saving,
+            AvatarUpload avatar)?
         loaded,
     TResult? Function(String message)? failure,
   }) {
@@ -236,7 +238,7 @@ extension ProfileStatePatterns on ProfileState {
       case ProfileLoading() when loading != null:
         return loading();
       case ProfileLoaded() when loaded != null:
-        return loaded(_that.profile, _that.stats, _that.saving);
+        return loaded(_that.profile, _that.stats, _that.saving, _that.avatar);
       case ProfileFailure() when failure != null:
         return failure(_that.message);
       case _:
@@ -289,12 +291,17 @@ class ProfileLoading implements ProfileState {
 
 class ProfileLoaded implements ProfileState {
   const ProfileLoaded(
-      {required this.profile, required this.stats, this.saving = false});
+      {required this.profile,
+      required this.stats,
+      this.saving = false,
+      this.avatar = AvatarUpload.idle});
 
   final OwnerProfile profile;
   final ProfileStats stats;
   @JsonKey()
   final bool saving;
+  @JsonKey()
+  final AvatarUpload avatar;
 
   /// Create a copy of ProfileState
   /// with the given fields replaced by the non-null parameter values.
@@ -310,15 +317,16 @@ class ProfileLoaded implements ProfileState {
             other is ProfileLoaded &&
             (identical(other.profile, profile) || other.profile == profile) &&
             (identical(other.stats, stats) || other.stats == stats) &&
-            (identical(other.saving, saving) || other.saving == saving));
+            (identical(other.saving, saving) || other.saving == saving) &&
+            (identical(other.avatar, avatar) || other.avatar == avatar));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, profile, stats, saving);
+  int get hashCode => Object.hash(runtimeType, profile, stats, saving, avatar);
 
   @override
   String toString() {
-    return 'ProfileState.loaded(profile: $profile, stats: $stats, saving: $saving)';
+    return 'ProfileState.loaded(profile: $profile, stats: $stats, saving: $saving, avatar: $avatar)';
   }
 }
 
@@ -329,7 +337,11 @@ abstract mixin class $ProfileLoadedCopyWith<$Res>
           ProfileLoaded value, $Res Function(ProfileLoaded) _then) =
       _$ProfileLoadedCopyWithImpl;
   @useResult
-  $Res call({OwnerProfile profile, ProfileStats stats, bool saving});
+  $Res call(
+      {OwnerProfile profile,
+      ProfileStats stats,
+      bool saving,
+      AvatarUpload avatar});
 
   $OwnerProfileCopyWith<$Res> get profile;
   $ProfileStatsCopyWith<$Res> get stats;
@@ -350,6 +362,7 @@ class _$ProfileLoadedCopyWithImpl<$Res>
     Object? profile = null,
     Object? stats = null,
     Object? saving = null,
+    Object? avatar = null,
   }) {
     return _then(ProfileLoaded(
       profile: null == profile
@@ -364,6 +377,10 @@ class _$ProfileLoadedCopyWithImpl<$Res>
           ? _self.saving
           : saving // ignore: cast_nullable_to_non_nullable
               as bool,
+      avatar: null == avatar
+          ? _self.avatar
+          : avatar // ignore: cast_nullable_to_non_nullable
+              as AvatarUpload,
     ));
   }
 

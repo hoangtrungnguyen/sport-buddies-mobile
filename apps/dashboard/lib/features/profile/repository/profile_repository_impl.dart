@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/identity/owner_identity.dart';
 import '../model/profile_models.dart';
+import 'profile_api_client.dart';
 import 'profile_repository.dart';
 
 /// In-memory [ProfileRepository] seeded from the prototype's owner record and
@@ -14,8 +15,10 @@ import 'profile_repository.dart';
 /// screen end to end. Swap for an API/Supabase-backed impl once the endpoint
 /// lands; the abstract contract and the screen stay unchanged.
 class ProfileRepositoryImpl implements ProfileRepository {
-  ProfileRepositoryImpl([SupabaseClient? client]) : _client = client;
+  ProfileRepositoryImpl(this._api, [SupabaseClient? client])
+      : _client = client;
 
+  final ProfileApiClient _api;
   final SupabaseClient? _client;
 
   OwnerProfile? _cache;
@@ -91,8 +94,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<String> uploadAvatar(Uint8List bytes) {
-    throw UnimplementedError('Avatar upload needs a storage endpoint.');
+  Future<String> uploadAvatar(Uint8List bytes,
+      {String filename = 'avatar.jpg'}) async {
+    final url = await _api.uploadAvatar(bytes, filename: filename);
+    final c = _cache;
+    if (c != null) _cache = c.copyWith(avatarUrl: url);
+    return url;
   }
 
   // --- Supabase identity overlay (same rules as the drawer footer) ---------

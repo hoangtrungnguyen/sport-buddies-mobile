@@ -17,6 +17,9 @@ mixin _$OwnerProfile {
   String get id;
   String get name;
   String get initials;
+
+  /// Public URL of the uploaded avatar; null → render [initials].
+  String? get avatarUrl;
   String get role; // "Chủ sân"
   String get area; // "Quận 7, TP.HCM"
   DateTime get joinedAt;
@@ -54,6 +57,8 @@ mixin _$OwnerProfile {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.initials, initials) ||
                 other.initials == initials) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.area, area) || other.area == area) &&
             (identical(other.joinedAt, joinedAt) ||
@@ -91,6 +96,7 @@ mixin _$OwnerProfile {
         id,
         name,
         initials,
+        avatarUrl,
         role,
         area,
         joinedAt,
@@ -114,7 +120,7 @@ mixin _$OwnerProfile {
 
   @override
   String toString() {
-    return 'OwnerProfile(id: $id, name: $name, initials: $initials, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
+    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
   }
 }
 
@@ -128,6 +134,7 @@ abstract mixin class $OwnerProfileCopyWith<$Res> {
       {String id,
       String name,
       String initials,
+      String? avatarUrl,
       String role,
       String area,
       DateTime joinedAt,
@@ -166,6 +173,7 @@ class _$OwnerProfileCopyWithImpl<$Res> implements $OwnerProfileCopyWith<$Res> {
     Object? id = null,
     Object? name = null,
     Object? initials = null,
+    Object? avatarUrl = freezed,
     Object? role = null,
     Object? area = null,
     Object? joinedAt = null,
@@ -199,6 +207,10 @@ class _$OwnerProfileCopyWithImpl<$Res> implements $OwnerProfileCopyWith<$Res> {
           ? _self.initials
           : initials // ignore: cast_nullable_to_non_nullable
               as String,
+      avatarUrl: freezed == avatarUrl
+          ? _self.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       role: null == role
           ? _self.role
           : role // ignore: cast_nullable_to_non_nullable
@@ -386,6 +398,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             String id,
             String name,
             String initials,
+            String? avatarUrl,
             String role,
             String area,
             DateTime joinedAt,
@@ -415,6 +428,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.id,
             _that.name,
             _that.initials,
+            _that.avatarUrl,
             _that.role,
             _that.area,
             _that.joinedAt,
@@ -458,6 +472,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             String id,
             String name,
             String initials,
+            String? avatarUrl,
             String role,
             String area,
             DateTime joinedAt,
@@ -486,6 +501,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.id,
             _that.name,
             _that.initials,
+            _that.avatarUrl,
             _that.role,
             _that.area,
             _that.joinedAt,
@@ -528,6 +544,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             String id,
             String name,
             String initials,
+            String? avatarUrl,
             String role,
             String area,
             DateTime joinedAt,
@@ -556,6 +573,7 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.id,
             _that.name,
             _that.initials,
+            _that.avatarUrl,
             _that.role,
             _that.area,
             _that.joinedAt,
@@ -588,6 +606,7 @@ class _OwnerProfile implements OwnerProfile {
       {required this.id,
       required this.name,
       required this.initials,
+      this.avatarUrl,
       required this.role,
       required this.area,
       required this.joinedAt,
@@ -614,6 +633,10 @@ class _OwnerProfile implements OwnerProfile {
   final String name;
   @override
   final String initials;
+
+  /// Public URL of the uploaded avatar; null → render [initials].
+  @override
+  final String? avatarUrl;
   @override
   final String role;
 // "Chủ sân"
@@ -677,6 +700,8 @@ class _OwnerProfile implements OwnerProfile {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.initials, initials) ||
                 other.initials == initials) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.area, area) || other.area == area) &&
             (identical(other.joinedAt, joinedAt) ||
@@ -714,6 +739,7 @@ class _OwnerProfile implements OwnerProfile {
         id,
         name,
         initials,
+        avatarUrl,
         role,
         area,
         joinedAt,
@@ -737,7 +763,7 @@ class _OwnerProfile implements OwnerProfile {
 
   @override
   String toString() {
-    return 'OwnerProfile(id: $id, name: $name, initials: $initials, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
+    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
   }
 }
 
@@ -753,6 +779,7 @@ abstract mixin class _$OwnerProfileCopyWith<$Res>
       {String id,
       String name,
       String initials,
+      String? avatarUrl,
       String role,
       String area,
       DateTime joinedAt,
@@ -793,6 +820,7 @@ class __$OwnerProfileCopyWithImpl<$Res>
     Object? id = null,
     Object? name = null,
     Object? initials = null,
+    Object? avatarUrl = freezed,
     Object? role = null,
     Object? area = null,
     Object? joinedAt = null,
@@ -826,6 +854,10 @@ class __$OwnerProfileCopyWithImpl<$Res>
           ? _self.initials
           : initials // ignore: cast_nullable_to_non_nullable
               as String,
+      avatarUrl: freezed == avatarUrl
+          ? _self.avatarUrl
+          : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       role: null == role
           ? _self.role
           : role // ignore: cast_nullable_to_non_nullable

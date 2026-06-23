@@ -15,6 +15,7 @@ class ProfileHeroCard extends StatelessWidget {
     required this.clusters,
     required this.onEdit,
     required this.onChangeAvatar,
+    this.uploadingAvatar = false,
   });
 
   final OwnerProfile profile;
@@ -25,6 +26,9 @@ class ProfileHeroCard extends StatelessWidget {
 
   final VoidCallback onEdit;
   final VoidCallback onChangeAvatar;
+
+  /// True while an avatar upload is in flight — shows a spinner over the avatar.
+  final bool uploadingAvatar;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +61,8 @@ class ProfileHeroCard extends StatelessWidget {
                     children: [
                       _Avatar(
                         initials: profile.initials,
+                        avatarUrl: profile.avatarUrl,
+                        uploading: uploadingAvatar,
                         onChange: onChangeAvatar,
                       ),
                       const SizedBox(width: 16),
@@ -98,14 +104,22 @@ class ProfileHeroCard extends StatelessWidget {
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.initials, required this.onChange});
+  const _Avatar({
+    required this.initials,
+    required this.avatarUrl,
+    required this.uploading,
+    required this.onChange,
+  });
   final String initials;
+  final String? avatarUrl;
+  final bool uploading;
   final VoidCallback onChange;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
+    final hasImage = avatarUrl != null && avatarUrl!.isNotEmpty;
     return SizedBox(
       width: 92,
       height: 92,
@@ -119,16 +133,39 @@ class _Avatar extends StatelessWidget {
               color: scheme.tertiaryContainer,
               shape: BoxShape.circle,
               border: Border.all(color: scheme.surfaceContainerLowest, width: 4),
+              image: hasImage
+                  ? DecorationImage(
+                      image: NetworkImage(avatarUrl!), fit: BoxFit.cover)
+                  : null,
             ),
             alignment: Alignment.center,
-            child: Text(
-              initials,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: scheme.onTertiaryContainer,
-                fontWeight: FontWeight.w600,
+            child: hasImage
+                ? null
+                : Text(
+                    initials,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: scheme.onTertiaryContainer,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          ),
+          // Dim + spinner while an upload is in flight.
+          if (uploading)
+            Container(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.35),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
               ),
             ),
-          ),
           // 30px camera FAB-style overlay, bottom-right.
           Positioned(
             right: -2,
@@ -139,7 +176,7 @@ class _Avatar extends StatelessWidget {
               elevation: 1,
               child: InkWell(
                 customBorder: const CircleBorder(),
-                onTap: onChange,
+                onTap: uploading ? null : onChange,
                 child: SizedBox(
                   width: 30,
                   height: 30,

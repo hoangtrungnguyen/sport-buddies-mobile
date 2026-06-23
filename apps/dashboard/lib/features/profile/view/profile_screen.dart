@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -22,15 +23,33 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
+    return BlocConsumer<ProfileBloc, ProfileState>(
+      // Avatar upload is a one-off side effect → snackbar on success/failure.
+      listenWhen: (prev, next) =>
+          prev is ProfileLoaded &&
+          next is ProfileLoaded &&
+          prev.avatar != next.avatar,
+      listener: (context, state) {
+        if (state is! ProfileLoaded) return;
+        final msg = switch (state.avatar) {
+          AvatarUpload.success => 'Đã cập nhật ảnh đại diện',
+          AvatarUpload.error => 'Không thể cập nhật ảnh — vui lòng thử lại.',
+          AvatarUpload.idle || AvatarUpload.uploading => null,
+        };
+        if (msg != null) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(msg)));
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           body: switch (state) {
             ProfileInitial() || ProfileLoading() =>
               const Center(child: CircularProgressIndicator()),
-            ProfileLoaded(:final profile, :final stats) =>
-              _Loaded(profile: profile, stats: stats),
+            ProfileLoaded(:final profile, :final stats, :final avatar) =>
+              _Loaded(profile: profile, stats: stats, avatar: avatar),
             ProfileFailure(:final message) =>
               Center(child: Text('Lỗi: $message')),
           },
@@ -41,10 +60,15 @@ class ProfileScreen extends StatelessWidget {
 }
 
 class _Loaded extends StatelessWidget {
-  const _Loaded({required this.profile, required this.stats});
+  const _Loaded({
+    required this.profile,
+    required this.stats,
+    required this.avatar,
+  });
 
   final OwnerProfile profile;
   final ProfileStats stats;
+  final AvatarUpload avatar;
 
   static const _gap = SizedBox(height: 28);
 
@@ -63,6 +87,21 @@ class _Loaded extends StatelessWidget {
     if (draft == null || !context.mounted) return;
     bloc.add(ProfileEvent.editSubmitted(draft));
     _snack(context, 'Đã cập nhật hồ sơ');
+  }
+
+  /// Pick a JPEG/PNG and hand the bytes to the bloc for upload. `withData`
+  /// ensures bytes are available on web (no file path there).
+  Future<void> _changeAvatar(BuildContext context) async {
+    final bloc = context.read<ProfileBloc>();
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+    final file = result.files.first;
+    final bytes = file.bytes;
+    if (bytes == null) return;
+    bloc.add(ProfileEvent.avatarChangeRequested(bytes, filename: file.name));
   }
 
   Future<void> _signOut(BuildContext context) async {
@@ -102,8 +141,9 @@ class _Loaded extends StatelessWidget {
               ProfileHeroCard(
                 profile: profile,
                 clusters: stats.clusters,
+                uploadingAvatar: avatar == AvatarUpload.uploading,
                 onEdit: () => _edit(context),
-                onChangeAvatar: () => _outOfScope(context, 'Đổi ảnh đại diện'),
+                onChangeAvatar: () => _changeAvatar(context),
               ),
               _gap,
               ProfileStatTiles(stats: stats),
