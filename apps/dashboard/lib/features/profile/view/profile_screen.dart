@@ -101,6 +101,7 @@ class _Loaded extends StatelessWidget {
             children: [
               ProfileHeroCard(
                 profile: profile,
+                clusters: stats.clusters,
                 onEdit: () => _edit(context),
                 onChangeAvatar: () => _outOfScope(context, 'Đổi ảnh đại diện'),
               ),

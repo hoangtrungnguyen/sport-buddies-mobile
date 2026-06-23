@@ -12,11 +12,17 @@ class ProfileHeroCard extends StatelessWidget {
   const ProfileHeroCard({
     super.key,
     required this.profile,
+    required this.clusters,
     required this.onEdit,
     required this.onChangeAvatar,
   });
 
   final OwnerProfile profile;
+
+  /// Cluster count for the meta row ("· N cụm sân") — sourced from
+  /// [ProfileStats.clusters] so it stays in step with the stat tile.
+  final int clusters;
+
   final VoidCallback onEdit;
   final VoidCallback onChangeAvatar;
 
@@ -69,7 +75,7 @@ class ProfileHeroCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _MetaRow(profile: profile),
+                      _MetaRow(profile: profile, clusters: clusters),
                       const SizedBox(height: 16),
                       Align(
                         alignment: Alignment.centerLeft,
@@ -172,12 +178,13 @@ class _NameBlock extends StatelessWidget {
 }
 
 class _MetaRow extends StatelessWidget {
-  const _MetaRow({required this.profile});
+  const _MetaRow({required this.profile, required this.clusters});
   final OwnerProfile profile;
+  final int clusters;
 
   @override
   Widget build(BuildContext context) {
-    final stats = '${profile.role} · 3 cụm sân';
+    final stats = '${profile.role} · $clusters cụm sân';
     return Wrap(
       spacing: 16,
       runSpacing: 6,
