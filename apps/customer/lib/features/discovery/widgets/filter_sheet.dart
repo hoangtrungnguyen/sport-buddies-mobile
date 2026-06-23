@@ -10,7 +10,7 @@ import 'package:spb_core/spb_core.dart';
 // Sport filter slugs ('' = all); labels resolved via [sportLabelFor].
 const _kFilterSportSlugs = ['', 'football', 'pickleball', 'badminton', 'tennis', 'multi'];
 
-const _kDistanceOptions = [1.0, 3.0, 5.0];
+const _kDistanceOptions = [1.0, 3.0, 5.0, 10.0, 25.0, 50.0];
 
 class FilterSheet extends StatefulWidget {
   const FilterSheet({
@@ -166,24 +166,16 @@ class _FilterSheetState extends State<FilterSheet> {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: _kDistanceOptions.asMap().entries.map((e) {
-              final km = e.value;
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _kDistanceOptions.map((km) {
               final active = _distance == km;
-              return Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    right: e.key < _kDistanceOptions.length - 1 ? 8 : 0,
-                  ),
-                  child: GestureDetector(
-                    onTap: () =>
-                        setState(() => _distance = active ? null : km),
-                    child: _SheetChip(
-                      label: l10n.distanceKm('${km.toInt()}'),
-                      active: active,
-                      centered: true,
-                    ),
-                  ),
+              return GestureDetector(
+                onTap: () => setState(() => _distance = active ? null : km),
+                child: _SheetChip(
+                  label: l10n.distanceKm('${km.toInt()}'),
+                  active: active,
                 ),
               );
             }).toList(),
@@ -260,12 +252,10 @@ class _SheetChip extends StatelessWidget {
   const _SheetChip({
     required this.label,
     required this.active,
-    this.centered = false,
   });
 
   final String label;
   final bool active;
-  final bool centered;
 
   @override
   Widget build(BuildContext context) {
@@ -277,9 +267,7 @@ class _SheetChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(mdCornerSm),
       ),
       child: Row(
-        mainAxisSize: centered ? MainAxisSize.max : MainAxisSize.min,
-        mainAxisAlignment:
-            centered ? MainAxisAlignment.center : MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (active) ...[
             const Icon(Icons.check, size: 14, color: mdOnPrimaryContainer),
@@ -287,7 +275,6 @@ class _SheetChip extends StatelessWidget {
           ],
           Text(
             label,
-            textAlign: centered ? TextAlign.center : TextAlign.start,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
