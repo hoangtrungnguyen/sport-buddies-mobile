@@ -1,9 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
-// `Headers` collides with dio's; we only need the Supabase client here.
-import 'package:supabase_flutter/supabase_flutter.dart' hide Headers;
 
 import '../../../core/env/env.dart';
+import '../../../core/network/owner_api.dart';
 
 /// Predictable, user-facing failure from the venue (sân con) backend calls.
 class VenueApiException implements Exception {
@@ -35,8 +34,7 @@ class VenueApiClient {
                 responseType: ResponseType.json,
               ),
             ),
-        _accessToken = accessToken ??
-            (() => Supabase.instance.client.auth.currentSession?.accessToken) {
+        _accessToken = accessToken ?? ownerAccessToken {
     _dio.interceptors.add(
       TalkerDioLogger(
         settings: const TalkerDioLoggerSettings(printResponseMessage: true),
@@ -93,9 +91,7 @@ class VenueApiClient {
         options: Options(
           method: method,
           validateStatus: (_) => true,
-          headers: <String, dynamic>{
-            if (token != null && token.isNotEmpty) 'Authorization': 'Bearer $token',
-          },
+          headers: bearerHeader(token),
         ),
       );
     } on DioException {
