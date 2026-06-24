@@ -125,7 +125,7 @@ class ApiBookingRepository implements BookingRepository {
             value: booking.id,
           ),
           callback: (payload) {
-            final status = BookingStatusX.fromRow(
+            final status = BookingStatusX.fromRaw(
               payload.newRecord['status'] as String?,
             );
             controller.add(

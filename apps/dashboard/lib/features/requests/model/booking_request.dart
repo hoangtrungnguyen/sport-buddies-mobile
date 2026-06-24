@@ -1,12 +1,14 @@
 // Domain model for the owner "incoming booking requests" list (OWNER-27/28/29).
 //
-// A [BookingRequest] is one row of the `bookings` table joined to its slot and
-// court. The dashboard had never read `bookings` before OWNER-27, so the exact
-// column set is **assumed** here and parsed defensively. See
-// [BookingRequest.fromRow] for the assumed shape and the backend follow-ups it
-// implies.
+// A [BookingRequest] is a lean projection of the shared [Booking] (spb_core)
+// onto exactly the fields the owner queue card needs. The Supabase row is first
+// parsed into a canonical [Booking] (see [BookingRequest._coreFromRow], which
+// holds the defensive join-resolution), then extracted via
+// [BookingRequest.fromCore]. The dashboard had never read `bookings` before
+// OWNER-27, so the exact column set is **assumed** here and parsed defensively.
 
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:spb_core/spb_core.dart' show Booking, Slot;
 
 part 'booking_request.freezed.dart';
 
@@ -106,7 +108,47 @@ abstract class BookingRequest with _$BookingRequest {
     return (isConfirmed && p != null && p.isNotEmpty) ? p : null;
   }
 
-  /// Maps a Supabase `bookings` row to a [BookingRequest].
+  /// Extracts the owner-queue subset from a canonical [Booking].
+  ///
+  /// Timing/slot come from the booking's first slot; the queue is one card per
+  /// booking and the dashboard read only ever joins a single slot per row.
+  /// The shared [Booking.status] string is re-folded through
+  /// [bookingStatusFromRaw] into the three-state queue enum.
+  factory BookingRequest.fromCore(Booking core) {
+    final slot = core.slots.isNotEmpty ? core.slots.first : null;
+    final start =
+        slot?.startTime ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final end = slot?.endTime ?? start;
+    return BookingRequest(
+      id: core.id,
+      slotId: slot?.id,
+      code: core.code ?? _codeFromId(core.id),
+      customerName: (core.customerName?.trim().isNotEmpty == true)
+          ? core.customerName!.trim()
+          : 'Khách lẻ',
+      customerPhone: core.customerPhone,
+      courtName: (core.courtName?.trim().isNotEmpty == true)
+          ? core.courtName!.trim()
+          : 'Sân',
+      startAt: start,
+      endAt: end,
+      status: bookingStatusFromRaw(core.status),
+      revenue: core.totalPrice,
+      isAutoApproved: core.isAutoApproved,
+      sportType: core.sportType ?? '',
+      venueName: core.venueName ?? '',
+    );
+  }
+
+  /// Maps a Supabase `bookings` row to a [BookingRequest] by way of the shared
+  /// [Booking] model — see [_coreFromRow] for the assumed join shape and the
+  /// backend follow-ups it implies. Named `fromRow` (not `fromJson`) so
+  /// json_serializable is never wired.
+  factory BookingRequest.fromRow(Map<String, dynamic> row) =>
+      BookingRequest.fromCore(_coreFromRow(row));
+
+  /// Parses a Supabase `bookings` row (joined with `slots` → `courts` →
+  /// `venues`) into a canonical [Booking].
   ///
   /// **Assumed join shape** (matches the verified customer read path
   /// `bookings.select('*, slots(*, courts(*))')`, extended for the owner queue):
@@ -133,21 +175,20 @@ abstract class BookingRequest with _$BookingRequest {
   /// ```
   ///
   /// Parsing is intentionally tolerant: a missing customer name, code, price, or
-  /// phone degrades to a sensible default rather than throwing. Named `fromRow`
-  /// (not `fromJson`) so json_serializable is never wired.
+  /// phone degrades to a sensible default rather than throwing.
   ///
   /// Backend follow-ups (filed separately): confirm `bookings.customer_name`/
   /// `customer_phone` for walk-ins, the revenue column name, and that RLS
   /// scopes `bookings` to `courts.owner_id = auth.uid()`.
-  factory BookingRequest.fromRow(Map<String, dynamic> row) {
-    final slot = _asMap(row['slots']);
+  static Booking _coreFromRow(Map<String, dynamic> row) {
+    final slotRow = _asMap(row['slots']);
     // Schema: slots → courts → venues (venues.court_id FK, traversed in reverse).
-    final court = _asMap(slot['courts']);
+    final court = _asMap(slotRow['courts']);
     final venue = _asMap(court['venues']);
 
-    final start = _parseDate(slot['start_at']) ??
+    final start = _parseDate(slotRow['start_at']) ??
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-    final end = _parseDate(slot['end_at']) ?? start;
+    final end = _parseDate(slotRow['end_at']) ?? start;
 
     // Revenue: explicit total wins; fallback to venue price × duration.
     final pricePerHour =
@@ -159,22 +200,36 @@ abstract class BookingRequest with _$BookingRequest {
         ? explicitTotal
         : (pricePerHour != null ? (pricePerHour * durationHours).round() : 0);
 
-    return BookingRequest(
-      id: row['id']?.toString() ?? '',
-      slotId: (slot['id'] ?? row['slot_id'])?.toString(),
+    final id = row['id']?.toString() ?? '';
+    final sportType = (venue['sport_type'] as String?) ?? '';
+    final courtName = (court['name'] as String?)?.trim().isNotEmpty == true
+        ? court['name'] as String
+        : 'Sân';
+    final slotId = (slotRow['id'] ?? row['slot_id'])?.toString();
+
+    return Booking(
+      id: id,
       code: _resolveCode(row),
+      status: (row['status'] as String?) ?? 'pending',
+      courtName: courtName,
+      venueName: (venue['name'] as String?)?.trim() ?? '',
+      sportType: sportType,
+      totalPrice: revenue,
       customerName: _resolveCustomerName(row),
       customerPhone: _resolveCustomerPhone(row),
-      courtName: (court['name'] as String?)?.trim().isNotEmpty == true
-          ? court['name'] as String
-          : 'Sân',
-      startAt: start,
-      endAt: end,
-      status: bookingStatusFromRaw(row['status'] as String?),
-      revenue: revenue,
       isAutoApproved: (row['is_auto_approved'] as bool?) ?? false,
-      sportType: (venue['sport_type'] as String?) ?? '',
-      venueName: (venue['name'] as String?)?.trim() ?? '',
+      slots: slotId == null
+          ? const <Slot>[]
+          : [
+              Slot(
+                id: slotId,
+                startTime: start,
+                endTime: end,
+                courtId: (court['id'] ?? '').toString(),
+                courtName: courtName,
+                sportType: sportType,
+              ),
+            ],
     );
   }
 
@@ -215,7 +270,11 @@ abstract class BookingRequest with _$BookingRequest {
     final explicit = (row['code'] ?? row['reference']) as String?;
     final e = explicit?.trim();
     if (e != null && e.isNotEmpty) return e.startsWith('#') ? e : '#$e';
-    final id = row['id']?.toString() ?? '';
+    return _codeFromId(row['id']?.toString() ?? '');
+  }
+
+  /// Derives a short `#`-prefixed code from the first 6 hex chars of a UUID.
+  static String _codeFromId(String id) {
     final head = id.replaceAll('-', '');
     return head.isEmpty
         ? '#—'

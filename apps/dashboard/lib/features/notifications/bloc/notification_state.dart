@@ -1,7 +1,7 @@
 import 'package:dashboard/core/mixins/app_exception_mixin.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../model/app_notification.dart';
+import 'package:spb_core/spb_core.dart';
 
 part 'notification_state.freezed.dart';
 

@@ -1,23 +1,15 @@
 // Booking-wizard domain models (handoff doc 04 §2).
 
 import 'package:customer/features/court/domain/booking_draft.dart';
+// Reuse the shared status/access enums from spb_core. The `show` clause is
+// load-bearing: a bare import would also pull in spb_core's Booking/Slot/Court,
+// which name-clash with this file's `Booking` and the bookings-feature DTOs.
+import 'package:spb_core/spb_core.dart' show AccessPolicy, BookingStatus;
 
-enum AccessPolicy { private, open }
-
-enum BookingStatus { pending, confirmed, declined, cancelled }
-
-extension BookingStatusX on BookingStatus {
-  /// Owner rejected / the booking can no longer become confirmed.
-  bool get isTerminalNegative =>
-      this == BookingStatus.declined || this == BookingStatus.cancelled;
-
-  static BookingStatus fromRow(String? raw) => switch (raw) {
-    'confirmed' => BookingStatus.confirmed,
-    'declined' => BookingStatus.declined,
-    'cancelled' => BookingStatus.cancelled,
-    _ => BookingStatus.pending,
-  };
-}
+// Re-export so the wizard's many consumers keep seeing these enums transitively
+// through this file (as they did when the enums were declared here).
+export 'package:spb_core/spb_core.dart'
+    show AccessPolicy, AccessPolicyX, BookingStatus, BookingStatusX;
 
 /// Editable contact details — pre-filled from the profile on Step 1.
 class ContactInfo {

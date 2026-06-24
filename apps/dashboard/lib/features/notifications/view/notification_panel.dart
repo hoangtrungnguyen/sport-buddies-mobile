@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:spb_core/core/theme/app_colors.dart';
 
 import '../bloc/notification_bloc.dart';
 import '../bloc/notification_event.dart';
 import '../bloc/notification_state.dart';
-import '../model/app_notification.dart';
+import 'package:spb_core/spb_core.dart';
 
 class NotificationPanel extends StatelessWidget {
   const NotificationPanel({super.key, required this.onClose});

@@ -1,7 +1,7 @@
 import 'package:dashboard/core/debug/app_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../model/app_notification.dart';
+import 'package:spb_core/spb_core.dart';
 
 class NotificationRepository {
   const NotificationRepository(this._client);
