@@ -23,5 +23,7 @@ features:
   debug_panel: true
   verbose_logging: false
   profile_security_section: false
+  profile_payout_account: false
+  checkout_payment_cash: false
 
   
