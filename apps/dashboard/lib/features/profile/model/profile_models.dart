@@ -29,8 +29,6 @@ abstract class OwnerProfile with _$OwnerProfile {
     required String accountMasked,
     required String accountHolder,
     required bool payoutLinked,
-    // subscription
-    required Subscription plan,
     // security prefs
     required bool twoFactor,
     required bool emailNotif,
@@ -49,16 +47,4 @@ abstract class ProfileStats with _$ProfileStats {
     required int ratingCount,
     required int monthlyBookings,
   }) = _ProfileStats;
-}
-
-/// Subscription summary for the `primaryContainer` plan card. Mirrors the
-/// drawer-footer trial banner — keep the two in sync.
-@freezed
-abstract class Subscription with _$Subscription {
-  const factory Subscription({
-    required String name, // "Gói miễn phí 3 tháng"
-    required DateTime expiresAt,
-    required int daysLeft,
-    required double progress, // 0..1 for the bar
-  }) = _Subscription;
 }

@@ -4,6 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../config/feature_flags/feature_flag_service.dart';
+import '../../../core/di/injection.dart';
+import '../../subscription/cubit/subscription_cubit.dart';
+import '../../subscription/cubit/subscription_state.dart';
 import '../bloc/profile_bloc.dart';
 import '../bloc/profile_event.dart';
 import '../bloc/profile_state.dart';
@@ -160,19 +164,33 @@ class _Loaded extends StatelessWidget {
                 onChangeAccount: () => _outOfScope(context, 'Đổi tài khoản'),
               ),
               _gap,
-              SubscriptionCard(
-                plan: profile.plan,
-                onUpgrade: () => _outOfScope(context, 'Nâng cấp gói'),
+              BlocBuilder<SubscriptionCubit, SubscriptionState>(
+                builder: (context, state) => switch (state) {
+                  SubscriptionLoaded(:final subscription) => SubscriptionCard(
+                      plan: subscription,
+                      onUpgrade: () => _outOfScope(context, 'Nâng cấp gói'),
+                    ),
+                  SubscriptionFailure() => const SizedBox.shrink(),
+                  _ => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                },
               ),
-              _gap,
-              SecuritySection(
-                profile: profile,
-                onTwoFactor: (v) =>
-                    bloc.add(ProfileEvent.twoFactorToggled(v)),
-                onEmailNotif: (v) =>
-                    bloc.add(ProfileEvent.emailNotifToggled(v)),
-                onPlaceholderTap: (what) => _outOfScope(context, what),
-              ),
+              if (sl<FeatureFlagService>()
+                  .isEnabled('profile_security_section')) ...[
+                _gap,
+                SecuritySection(
+                  profile: profile,
+                  onTwoFactor: (v) =>
+                      bloc.add(ProfileEvent.twoFactorToggled(v)),
+                  onEmailNotif: (v) =>
+                      bloc.add(ProfileEvent.emailNotifToggled(v)),
+                  onPlaceholderTap: (what) => _outOfScope(context, what),
+                ),
+              ],
               _gap,
               ProfileFooter(
                 onSignOut: () => _signOut(context),

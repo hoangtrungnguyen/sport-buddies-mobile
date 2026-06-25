@@ -33,8 +33,7 @@ mixin _$OwnerProfile {
   String get bankName;
   String get accountMasked;
   String get accountHolder;
-  bool get payoutLinked; // subscription
-  Subscription get plan; // security prefs
+  bool get payoutLinked; // security prefs
   bool get twoFactor;
   bool get emailNotif;
   DateTime? get passwordChangedAt;
@@ -79,7 +78,6 @@ mixin _$OwnerProfile {
                 other.accountHolder == accountHolder) &&
             (identical(other.payoutLinked, payoutLinked) ||
                 other.payoutLinked == payoutLinked) &&
-            (identical(other.plan, plan) || other.plan == plan) &&
             (identical(other.twoFactor, twoFactor) ||
                 other.twoFactor == twoFactor) &&
             (identical(other.emailNotif, emailNotif) ||
@@ -111,7 +109,6 @@ mixin _$OwnerProfile {
         accountMasked,
         accountHolder,
         payoutLinked,
-        plan,
         twoFactor,
         emailNotif,
         passwordChangedAt,
@@ -120,7 +117,7 @@ mixin _$OwnerProfile {
 
   @override
   String toString() {
-    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
+    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
   }
 }
 
@@ -149,13 +146,10 @@ abstract mixin class $OwnerProfileCopyWith<$Res> {
       String accountMasked,
       String accountHolder,
       bool payoutLinked,
-      Subscription plan,
       bool twoFactor,
       bool emailNotif,
       DateTime? passwordChangedAt,
       int activeDevices});
-
-  $SubscriptionCopyWith<$Res> get plan;
 }
 
 /// @nodoc
@@ -188,7 +182,6 @@ class _$OwnerProfileCopyWithImpl<$Res> implements $OwnerProfileCopyWith<$Res> {
     Object? accountMasked = null,
     Object? accountHolder = null,
     Object? payoutLinked = null,
-    Object? plan = null,
     Object? twoFactor = null,
     Object? emailNotif = null,
     Object? passwordChangedAt = freezed,
@@ -267,10 +260,6 @@ class _$OwnerProfileCopyWithImpl<$Res> implements $OwnerProfileCopyWith<$Res> {
           ? _self.payoutLinked
           : payoutLinked // ignore: cast_nullable_to_non_nullable
               as bool,
-      plan: null == plan
-          ? _self.plan
-          : plan // ignore: cast_nullable_to_non_nullable
-              as Subscription,
       twoFactor: null == twoFactor
           ? _self.twoFactor
           : twoFactor // ignore: cast_nullable_to_non_nullable
@@ -288,16 +277,6 @@ class _$OwnerProfileCopyWithImpl<$Res> implements $OwnerProfileCopyWith<$Res> {
           : activeDevices // ignore: cast_nullable_to_non_nullable
               as int,
     ));
-  }
-
-  /// Create a copy of OwnerProfile
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SubscriptionCopyWith<$Res> get plan {
-    return $SubscriptionCopyWith<$Res>(_self.plan, (value) {
-      return _then(_self.copyWith(plan: value));
-    });
   }
 }
 
@@ -413,7 +392,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             String accountMasked,
             String accountHolder,
             bool payoutLinked,
-            Subscription plan,
             bool twoFactor,
             bool emailNotif,
             DateTime? passwordChangedAt,
@@ -443,7 +421,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.accountMasked,
             _that.accountHolder,
             _that.payoutLinked,
-            _that.plan,
             _that.twoFactor,
             _that.emailNotif,
             _that.passwordChangedAt,
@@ -487,7 +464,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             String accountMasked,
             String accountHolder,
             bool payoutLinked,
-            Subscription plan,
             bool twoFactor,
             bool emailNotif,
             DateTime? passwordChangedAt,
@@ -516,7 +492,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.accountMasked,
             _that.accountHolder,
             _that.payoutLinked,
-            _that.plan,
             _that.twoFactor,
             _that.emailNotif,
             _that.passwordChangedAt,
@@ -559,7 +534,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             String accountMasked,
             String accountHolder,
             bool payoutLinked,
-            Subscription plan,
             bool twoFactor,
             bool emailNotif,
             DateTime? passwordChangedAt,
@@ -588,7 +562,6 @@ extension OwnerProfilePatterns on OwnerProfile {
             _that.accountMasked,
             _that.accountHolder,
             _that.payoutLinked,
-            _that.plan,
             _that.twoFactor,
             _that.emailNotif,
             _that.passwordChangedAt,
@@ -621,7 +594,6 @@ class _OwnerProfile implements OwnerProfile {
       required this.accountMasked,
       required this.accountHolder,
       required this.payoutLinked,
-      required this.plan,
       required this.twoFactor,
       required this.emailNotif,
       this.passwordChangedAt,
@@ -669,9 +641,6 @@ class _OwnerProfile implements OwnerProfile {
   final String accountHolder;
   @override
   final bool payoutLinked;
-// subscription
-  @override
-  final Subscription plan;
 // security prefs
   @override
   final bool twoFactor;
@@ -722,7 +691,6 @@ class _OwnerProfile implements OwnerProfile {
                 other.accountHolder == accountHolder) &&
             (identical(other.payoutLinked, payoutLinked) ||
                 other.payoutLinked == payoutLinked) &&
-            (identical(other.plan, plan) || other.plan == plan) &&
             (identical(other.twoFactor, twoFactor) ||
                 other.twoFactor == twoFactor) &&
             (identical(other.emailNotif, emailNotif) ||
@@ -754,7 +722,6 @@ class _OwnerProfile implements OwnerProfile {
         accountMasked,
         accountHolder,
         payoutLinked,
-        plan,
         twoFactor,
         emailNotif,
         passwordChangedAt,
@@ -763,7 +730,7 @@ class _OwnerProfile implements OwnerProfile {
 
   @override
   String toString() {
-    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, plan: $plan, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
+    return 'OwnerProfile(id: $id, name: $name, initials: $initials, avatarUrl: $avatarUrl, role: $role, area: $area, joinedAt: $joinedAt, phone: $phone, email: $email, address: $address, verified: $verified, bizName: $bizName, taxCode: $taxCode, bizArea: $bizArea, bankName: $bankName, accountMasked: $accountMasked, accountHolder: $accountHolder, payoutLinked: $payoutLinked, twoFactor: $twoFactor, emailNotif: $emailNotif, passwordChangedAt: $passwordChangedAt, activeDevices: $activeDevices)';
   }
 }
 
@@ -794,14 +761,10 @@ abstract mixin class _$OwnerProfileCopyWith<$Res>
       String accountMasked,
       String accountHolder,
       bool payoutLinked,
-      Subscription plan,
       bool twoFactor,
       bool emailNotif,
       DateTime? passwordChangedAt,
       int activeDevices});
-
-  @override
-  $SubscriptionCopyWith<$Res> get plan;
 }
 
 /// @nodoc
@@ -835,7 +798,6 @@ class __$OwnerProfileCopyWithImpl<$Res>
     Object? accountMasked = null,
     Object? accountHolder = null,
     Object? payoutLinked = null,
-    Object? plan = null,
     Object? twoFactor = null,
     Object? emailNotif = null,
     Object? passwordChangedAt = freezed,
@@ -914,10 +876,6 @@ class __$OwnerProfileCopyWithImpl<$Res>
           ? _self.payoutLinked
           : payoutLinked // ignore: cast_nullable_to_non_nullable
               as bool,
-      plan: null == plan
-          ? _self.plan
-          : plan // ignore: cast_nullable_to_non_nullable
-              as Subscription,
       twoFactor: null == twoFactor
           ? _self.twoFactor
           : twoFactor // ignore: cast_nullable_to_non_nullable
@@ -935,16 +893,6 @@ class __$OwnerProfileCopyWithImpl<$Res>
           : activeDevices // ignore: cast_nullable_to_non_nullable
               as int,
     ));
-  }
-
-  /// Create a copy of OwnerProfile
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $SubscriptionCopyWith<$Res> get plan {
-    return $SubscriptionCopyWith<$Res>(_self.plan, (value) {
-      return _then(_self.copyWith(plan: value));
-    });
   }
 }
 
@@ -1322,359 +1270,6 @@ class __$ProfileStatsCopyWithImpl<$Res>
           ? _self.monthlyBookings
           : monthlyBookings // ignore: cast_nullable_to_non_nullable
               as int,
-    ));
-  }
-}
-
-/// @nodoc
-mixin _$Subscription {
-  String get name; // "Gói miễn phí 3 tháng"
-  DateTime get expiresAt;
-  int get daysLeft;
-  double get progress;
-
-  /// Create a copy of Subscription
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  $SubscriptionCopyWith<Subscription> get copyWith =>
-      _$SubscriptionCopyWithImpl<Subscription>(
-          this as Subscription, _$identity);
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is Subscription &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.expiresAt, expiresAt) ||
-                other.expiresAt == expiresAt) &&
-            (identical(other.daysLeft, daysLeft) ||
-                other.daysLeft == daysLeft) &&
-            (identical(other.progress, progress) ||
-                other.progress == progress));
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, expiresAt, daysLeft, progress);
-
-  @override
-  String toString() {
-    return 'Subscription(name: $name, expiresAt: $expiresAt, daysLeft: $daysLeft, progress: $progress)';
-  }
-}
-
-/// @nodoc
-abstract mixin class $SubscriptionCopyWith<$Res> {
-  factory $SubscriptionCopyWith(
-          Subscription value, $Res Function(Subscription) _then) =
-      _$SubscriptionCopyWithImpl;
-  @useResult
-  $Res call({String name, DateTime expiresAt, int daysLeft, double progress});
-}
-
-/// @nodoc
-class _$SubscriptionCopyWithImpl<$Res> implements $SubscriptionCopyWith<$Res> {
-  _$SubscriptionCopyWithImpl(this._self, this._then);
-
-  final Subscription _self;
-  final $Res Function(Subscription) _then;
-
-  /// Create a copy of Subscription
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? name = null,
-    Object? expiresAt = null,
-    Object? daysLeft = null,
-    Object? progress = null,
-  }) {
-    return _then(_self.copyWith(
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      expiresAt: null == expiresAt
-          ? _self.expiresAt
-          : expiresAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      daysLeft: null == daysLeft
-          ? _self.daysLeft
-          : daysLeft // ignore: cast_nullable_to_non_nullable
-              as int,
-      progress: null == progress
-          ? _self.progress
-          : progress // ignore: cast_nullable_to_non_nullable
-              as double,
-    ));
-  }
-}
-
-/// Adds pattern-matching-related methods to [Subscription].
-extension SubscriptionPatterns on Subscription {
-  /// A variant of `map` that fallback to returning `orElse`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult maybeMap<TResult extends Object?>(
-    TResult Function(_Subscription value)? $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription() when $default != null:
-        return $default(_that);
-      case _:
-        return orElse();
-    }
-  }
-
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// Callbacks receives the raw object, upcasted.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case final Subclass2 value:
-  ///     return ...;
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult map<TResult extends Object?>(
-    TResult Function(_Subscription value) $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription():
-        return $default(_that);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
-
-  /// A variant of `map` that fallback to returning `null`.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case final Subclass value:
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult? mapOrNull<TResult extends Object?>(
-    TResult? Function(_Subscription value)? $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription() when $default != null:
-        return $default(_that);
-      case _:
-        return null;
-    }
-  }
-
-  /// A variant of `when` that fallback to an `orElse` callback.
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return orElse();
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult maybeWhen<TResult extends Object?>(
-    TResult Function(
-            String name, DateTime expiresAt, int daysLeft, double progress)?
-        $default, {
-    required TResult orElse(),
-  }) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription() when $default != null:
-        return $default(
-            _that.name, _that.expiresAt, _that.daysLeft, _that.progress);
-      case _:
-        return orElse();
-    }
-  }
-
-  /// A `switch`-like method, using callbacks.
-  ///
-  /// As opposed to `map`, this offers destructuring.
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case Subclass2(:final field2):
-  ///     return ...;
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult when<TResult extends Object?>(
-    TResult Function(
-            String name, DateTime expiresAt, int daysLeft, double progress)
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription():
-        return $default(
-            _that.name, _that.expiresAt, _that.daysLeft, _that.progress);
-      case _:
-        throw StateError('Unexpected subclass');
-    }
-  }
-
-  /// A variant of `when` that fallback to returning `null`
-  ///
-  /// It is equivalent to doing:
-  /// ```dart
-  /// switch (sealedClass) {
-  ///   case Subclass(:final field):
-  ///     return ...;
-  ///   case _:
-  ///     return null;
-  /// }
-  /// ```
-
-  @optionalTypeArgs
-  TResult? whenOrNull<TResult extends Object?>(
-    TResult? Function(
-            String name, DateTime expiresAt, int daysLeft, double progress)?
-        $default,
-  ) {
-    final _that = this;
-    switch (_that) {
-      case _Subscription() when $default != null:
-        return $default(
-            _that.name, _that.expiresAt, _that.daysLeft, _that.progress);
-      case _:
-        return null;
-    }
-  }
-}
-
-/// @nodoc
-
-class _Subscription implements Subscription {
-  const _Subscription(
-      {required this.name,
-      required this.expiresAt,
-      required this.daysLeft,
-      required this.progress});
-
-  @override
-  final String name;
-// "Gói miễn phí 3 tháng"
-  @override
-  final DateTime expiresAt;
-  @override
-  final int daysLeft;
-  @override
-  final double progress;
-
-  /// Create a copy of Subscription
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  @pragma('vm:prefer-inline')
-  _$SubscriptionCopyWith<_Subscription> get copyWith =>
-      __$SubscriptionCopyWithImpl<_Subscription>(this, _$identity);
-
-  @override
-  bool operator ==(Object other) {
-    return identical(this, other) ||
-        (other.runtimeType == runtimeType &&
-            other is _Subscription &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.expiresAt, expiresAt) ||
-                other.expiresAt == expiresAt) &&
-            (identical(other.daysLeft, daysLeft) ||
-                other.daysLeft == daysLeft) &&
-            (identical(other.progress, progress) ||
-                other.progress == progress));
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, name, expiresAt, daysLeft, progress);
-
-  @override
-  String toString() {
-    return 'Subscription(name: $name, expiresAt: $expiresAt, daysLeft: $daysLeft, progress: $progress)';
-  }
-}
-
-/// @nodoc
-abstract mixin class _$SubscriptionCopyWith<$Res>
-    implements $SubscriptionCopyWith<$Res> {
-  factory _$SubscriptionCopyWith(
-          _Subscription value, $Res Function(_Subscription) _then) =
-      __$SubscriptionCopyWithImpl;
-  @override
-  @useResult
-  $Res call({String name, DateTime expiresAt, int daysLeft, double progress});
-}
-
-/// @nodoc
-class __$SubscriptionCopyWithImpl<$Res>
-    implements _$SubscriptionCopyWith<$Res> {
-  __$SubscriptionCopyWithImpl(this._self, this._then);
-
-  final _Subscription _self;
-  final $Res Function(_Subscription) _then;
-
-  /// Create a copy of Subscription
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $Res call({
-    Object? name = null,
-    Object? expiresAt = null,
-    Object? daysLeft = null,
-    Object? progress = null,
-  }) {
-    return _then(_Subscription(
-      name: null == name
-          ? _self.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      expiresAt: null == expiresAt
-          ? _self.expiresAt
-          : expiresAt // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      daysLeft: null == daysLeft
-          ? _self.daysLeft
-          : daysLeft // ignore: cast_nullable_to_non_nullable
-              as int,
-      progress: null == progress
-          ? _self.progress
-          : progress // ignore: cast_nullable_to_non_nullable
-              as double,
     ));
   }
 }

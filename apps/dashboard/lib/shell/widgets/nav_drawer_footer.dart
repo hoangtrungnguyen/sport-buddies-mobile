@@ -1,6 +1,9 @@
 import 'package:dashboard/core/identity/owner_identity.dart';
+import 'package:dashboard/features/profile/util/profile_format.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_state.dart';
+import 'package:dashboard/features/subscription/cubit/subscription_cubit.dart';
+import 'package:dashboard/features/subscription/cubit/subscription_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -113,6 +116,14 @@ class _TrialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same source as the profile "Gói dịch vụ" card (shell-scoped cubit). Hidden
+    // until loaded so the banner never flashes stale/placeholder text.
+    final subscription = context.select<SubscriptionCubit, SubscriptionState>(
+      (c) => c.state,
+    );
+    if (subscription is! SubscriptionLoaded) return const SizedBox.shrink();
+    final plan = subscription.subscription;
+
     final theme = Theme.of(context);
     final scheme = theme.colorScheme;
     return Container(
@@ -125,7 +136,7 @@ class _TrialCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Gói miễn phí 3 tháng',
+            plan.name,
             style: theme.textTheme.labelLarge?.copyWith(
               color: scheme.onPrimaryContainer,
               fontWeight: FontWeight.w700,
@@ -136,7 +147,9 @@ class _TrialCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Hết hạn 04/08/2026',
+                  plan.hasWindow
+                      ? 'Hết hạn ${dayMonthYear(plan.expiresAt!)}'
+                      : 'Không giới hạn',
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: scheme.onPrimaryContainer),
                 ),

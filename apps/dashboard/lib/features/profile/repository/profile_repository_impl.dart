@@ -57,12 +57,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       accountMasked: '•••• •••• 4357',
       accountHolder: 'NGUYEN VAN MINH',
       payoutLinked: true,
-      plan: Subscription(
-        name: 'Gói miễn phí 3 tháng',
-        expiresAt: DateTime(2026, 8, 4),
-        daysLeft: 43,
-        progress: 0.52,
-      ),
       twoFactor: false,
       emailNotif: true,
       passwordChangedAt: DateTime(2026, 5, 14),

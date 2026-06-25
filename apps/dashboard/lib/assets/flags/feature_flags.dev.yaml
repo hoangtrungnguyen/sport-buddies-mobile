@@ -22,5 +22,6 @@ features:
   performance_monitoring: true
   debug_panel: true
   verbose_logging: false
+  profile_security_section: false
 
   
