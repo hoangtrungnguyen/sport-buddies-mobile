@@ -28,6 +28,8 @@ import 'package:dashboard/features/profile/repository/profile_repository.dart';
 import 'package:dashboard/features/profile/view/profile_screen.dart';
 import 'package:dashboard/features/requests/view/requests_screen.dart';
 import 'package:dashboard/features/settings/view/settings_screen.dart';
+import 'package:dashboard/features/subscription/cubit/subscription_cubit.dart';
+import 'package:dashboard/features/subscription/repository/subscription_repository.dart';
 import 'package:dashboard/features/venue_schedule/view/venue_schedule_page.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_event.dart';
@@ -160,6 +162,12 @@ GoRouter buildRouter() {
               BlocProvider<CourtBloc>(
                 create: (_) => CourtBloc(sl<OwnerCourtRepository>())
                   ..add(const CourtEvent.loadRequested()),
+              ),
+              // Shared across the shell: profile "Gói dịch vụ" card + drawer
+              // trial banner read this one instance.
+              BlocProvider<SubscriptionCubit>(
+                create: (_) =>
+                    SubscriptionCubit(sl<SubscriptionRepository>())..load(),
               ),
             ],
             child: AppShell(child: child),

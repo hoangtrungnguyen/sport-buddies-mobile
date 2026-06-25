@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../model/profile_models.dart';
+import '../../../subscription/model/subscription.dart';
 import '../../util/profile_format.dart';
 
 /// "Gói dịch vụ" subscription card — `primaryContainer`, radius 16, with the
 /// plan name, days-left line, a progress bar, and an inverted "Nâng cấp" button.
-/// Mirrors the drawer-footer trial banner; keep the data in sync.
+/// Driven by the shared [SubscriptionCubit] — same source as the drawer banner.
 class SubscriptionCard extends StatelessWidget {
   const SubscriptionCard({
     super.key,
@@ -55,23 +55,28 @@ class SubscriptionCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
+                // Open-ended plan (free) has no window → no countdown/bar.
                 Text(
-                  'Còn ${plan.daysLeft} ngày · hết hạn '
-                  '${dayMonthYear(plan.expiresAt)}',
+                  plan.hasWindow
+                      ? 'Còn ${plan.daysLeft} ngày · hết hạn '
+                          '${dayMonthYear(plan.expiresAt!)}'
+                      : 'Không giới hạn thời gian',
                   style: theme.textTheme.bodySmall?.copyWith(color: onContainer),
                 ),
-                const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(999),
-                  child: LinearProgressIndicator(
-                    value: plan.progress,
-                    minHeight: 6,
-                    backgroundColor: onContainer.withValues(alpha: 0.16),
-                    valueColor: AlwaysStoppedAnimation(
-                      onContainer.withValues(alpha: 0.85),
+                if (plan.hasWindow) ...[
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: plan.progress,
+                      minHeight: 6,
+                      backgroundColor: onContainer.withValues(alpha: 0.16),
+                      valueColor: AlwaysStoppedAnimation(
+                        onContainer.withValues(alpha: 0.85),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
             ),
           ),

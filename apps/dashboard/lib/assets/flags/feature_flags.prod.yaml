@@ -19,3 +19,4 @@ features:
   performance_monitoring: false
   debug_panel: false
   verbose_logging: false
+  profile_security_section: false

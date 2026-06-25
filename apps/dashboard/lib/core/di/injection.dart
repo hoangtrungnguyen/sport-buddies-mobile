@@ -12,6 +12,9 @@ import 'package:dashboard/features/profile/repository/profile_repository_impl.da
 import 'package:dashboard/features/requests/repository/booking_action_repository.dart';
 import 'package:dashboard/features/requests/repository/booking_request_repository.dart';
 import 'package:dashboard/features/slot_detail/repository/slot_players_repository.dart';
+import 'package:dashboard/features/subscription/repository/subscription_api_client.dart';
+import 'package:dashboard/features/subscription/repository/subscription_repository.dart';
+import 'package:dashboard/features/subscription/repository/subscription_repository_impl.dart';
 import 'package:dashboard/features/courts/repository/venue_api_client.dart';
 import 'package:dashboard/features/courts/repository/venue_repository.dart';
 import 'package:dashboard/features/setup/repository/owner_court_repository.dart';
@@ -62,6 +65,16 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(sl<ProfileApiClient>(), Supabase.instance.client),
+  );
+
+  // Owner subscription (Gói dịch vụ). Live read via
+  // GET /api/owners/me/subscription, offline-safe seed until the endpoint
+  // lands. One source for the profile card + nav-drawer trial banner.
+  sl.registerLazySingleton<SubscriptionApiClient>(
+    () => SubscriptionApiClient(),
+  );
+  sl.registerLazySingleton<SubscriptionRepository>(
+    () => SubscriptionRepositoryImpl(sl<SubscriptionApiClient>()),
   );
 
   sl.registerLazySingleton<BookingRequestRepository>(
