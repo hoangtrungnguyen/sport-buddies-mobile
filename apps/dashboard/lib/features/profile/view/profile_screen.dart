@@ -159,11 +159,14 @@ class _Loaded extends StatelessWidget {
                 profile: profile,
                 onDetails: () => _outOfScope(context, 'Chi tiết doanh nghiệp'),
               ),
-              _gap,
-              PayoutSection(
-                profile: profile,
-                onChangeAccount: () => _outOfScope(context, 'Đổi tài khoản'),
-              ),
+              if (sl<FeatureFlagService>()
+                  .isEnabled('profile_payout_account')) ...[
+                _gap,
+                PayoutSection(
+                  profile: profile,
+                  onChangeAccount: () => _outOfScope(context, 'Đổi tài khoản'),
+                ),
+              ],
               _gap,
               BlocBuilder<SubscriptionCubit, SubscriptionState>(
                 builder: (context, state) => switch (state) {

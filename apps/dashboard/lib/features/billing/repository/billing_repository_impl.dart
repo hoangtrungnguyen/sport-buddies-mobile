@@ -1,3 +1,5 @@
+import '../../../config/feature_flags/feature_flag_service.dart';
+import '../../../core/di/injection.dart';
 import '../model/invoice.dart';
 import '../model/payment_method.dart';
 import 'billing_repository.dart';
@@ -19,7 +21,14 @@ class BillingRepositoryImpl implements BillingRepository {
       );
 
   @override
-  List<PaymentMethod> get methods => PaymentMethod.all;
+  List<PaymentMethod> get methods {
+    // Cash is gated behind the `checkout_payment_cash` flag (off → hidden).
+    final cashEnabled =
+        sl<FeatureFlagService>().isEnabled('checkout_payment_cash');
+    return PaymentMethod.all
+        .where((m) => m.id != PaymentMethodId.cash || cashEnabled)
+        .toList();
+  }
 
   @override
   Future<PaymentOutcome> confirmPayment(PaymentMethodId method) async {
