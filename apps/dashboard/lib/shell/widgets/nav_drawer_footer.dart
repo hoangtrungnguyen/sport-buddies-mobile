@@ -1,4 +1,5 @@
 import 'package:dashboard/core/identity/owner_identity.dart';
+import 'package:dashboard/features/billing/view/checkout_dialog.dart';
 import 'package:dashboard/features/profile/util/profile_format.dart';
 import 'package:dashboard/features/setup/bloc/court_bloc.dart';
 import 'package:dashboard/features/setup/bloc/court_state.dart';
@@ -155,7 +156,7 @@ class _TrialCard extends StatelessWidget {
                 ),
               ),
               InkWell(
-                onTap: () {},
+                onTap: () => showCheckoutDialog(context),
                 child: Text(
                   'Nâng cấp',
                   style: theme.textTheme.labelMedium?.copyWith(

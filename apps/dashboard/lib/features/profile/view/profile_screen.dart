@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../config/feature_flags/feature_flag_service.dart';
 import '../../../core/di/injection.dart';
+import '../../billing/view/checkout_dialog.dart';
 import '../../subscription/cubit/subscription_cubit.dart';
 import '../../subscription/cubit/subscription_state.dart';
 import '../bloc/profile_bloc.dart';
@@ -168,7 +169,7 @@ class _Loaded extends StatelessWidget {
                 builder: (context, state) => switch (state) {
                   SubscriptionLoaded(:final subscription) => SubscriptionCard(
                       plan: subscription,
-                      onUpgrade: () => _outOfScope(context, 'Nâng cấp gói'),
+                      onUpgrade: () => showCheckoutDialog(context),
                     ),
                   SubscriptionFailure() => const SizedBox.shrink(),
                   _ => const Center(
