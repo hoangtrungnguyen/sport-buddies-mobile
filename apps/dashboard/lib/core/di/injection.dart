@@ -2,6 +2,8 @@ import 'package:dashboard/config/feature_flags/feature_flag_cubit.dart';
 import 'package:dashboard/config/feature_flags/feature_flag_service.dart';
 import 'package:dashboard/core/router/app_router.dart';
 import 'package:dashboard/features/auth/repository/owner_auth_repository.dart';
+import 'package:dashboard/features/billing/repository/billing_repository.dart';
+import 'package:dashboard/features/billing/repository/billing_repository_impl.dart';
 import 'package:dashboard/features/home/repository/home_api_client.dart';
 import 'package:dashboard/features/home/repository/home_repository.dart';
 import 'package:dashboard/features/home/repository/home_repository_impl.dart';
@@ -75,6 +77,12 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton<SubscriptionRepository>(
     () => SubscriptionRepositoryImpl(sl<SubscriptionApiClient>()),
+  );
+
+  // Checkout / billing ("Cổng thanh toán"). Seed-backed until the payment
+  // gateway lands; confirmPayment simulates the outcome by method.
+  sl.registerLazySingleton<BillingRepository>(
+    () => BillingRepositoryImpl(),
   );
 
   sl.registerLazySingleton<BookingRequestRepository>(
