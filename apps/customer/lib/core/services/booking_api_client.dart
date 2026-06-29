@@ -3,11 +3,16 @@ import 'dart:convert';
 
 import 'package:customer/core/services/logging_http_client.dart';
 import 'package:http/http.dart' as http;
+import 'package:spb_core/spb_core.dart' show ApiException, NetworkException;
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+// Booking API exceptions extend the shared spb_core service-layer vocabulary
+// ([ApiException] / [NetworkException]) so call sites can also catch the base
+// type, while these subclasses keep the names + ctors the cubits catch by.
 
 /// The request never reached the server — device is offline or the host
 /// is unreachable. UI should surface a "no internet" message.
-class NoConnectionException implements Exception {
+class NoConnectionException extends NetworkException {
   const NoConnectionException();
 
   @override
@@ -15,10 +20,9 @@ class NoConnectionException implements Exception {
 }
 
 /// Slot already booked / not open — server returned 409.
-class SlotUnavailableException implements Exception {
-  const SlotUnavailableException(this.detail);
-
-  final String? detail;
+class SlotUnavailableException extends ApiException {
+  const SlotUnavailableException(String? detail)
+      : super(statusCode: 409, detail: detail);
 
   @override
   String toString() => 'SlotUnavailableException: ${detail ?? 'slot taken'}';
@@ -26,10 +30,9 @@ class SlotUnavailableException implements Exception {
 
 /// Join request rejected with 409 — slot is private, or the player has
 /// already requested to join.
-class JoinConflictException implements Exception {
-  const JoinConflictException(this.detail);
-
-  final String? detail;
+class JoinConflictException extends ApiException {
+  const JoinConflictException(String? detail)
+      : super(statusCode: 409, detail: detail);
 
   @override
   String toString() =>
@@ -38,8 +41,8 @@ class JoinConflictException implements Exception {
 
 /// The court schedule isn't available — server returned 404 (court doesn't
 /// exist or isn't approved/public).
-class ScheduleUnavailableException implements Exception {
-  const ScheduleUnavailableException();
+class ScheduleUnavailableException extends ApiException {
+  const ScheduleUnavailableException() : super(statusCode: 404);
 
   @override
   String toString() => 'ScheduleUnavailableException';
@@ -47,12 +50,9 @@ class ScheduleUnavailableException implements Exception {
 
 /// Any non-2xx response from the core-engine API other than 409.
 /// [code] is the machine-readable `error` key from the error envelope.
-class BookingApiException implements Exception {
-  const BookingApiException(this.statusCode, this.code, [this.detail]);
-
-  final int statusCode;
-  final String code;
-  final String? detail;
+class BookingApiException extends ApiException {
+  const BookingApiException(int statusCode, String code, [String? detail])
+      : super(statusCode: statusCode, code: code, detail: detail);
 
   @override
   String toString() =>
