@@ -6,8 +6,8 @@
 // is left as a TODO (a DB write).
 
 import 'package:customer/core/mixins/app_exception_mixin.dart';
-import 'package:customer/features/notifications/notification_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:spb_core/spb_core.dart' show AppNotification;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'notifications_state.dart';
@@ -59,7 +59,8 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     final s = state;
     if (s is! NotificationsLoaded) return;
     final updated = [
-      for (final n in s.items) n.unread && match(n) ? n.copyAsRead() : n,
+      for (final n in s.items)
+        n.isUnread && match(n) ? n.copyWith(isRead: true) : n,
     ];
     emit(NotificationsLoaded(updated));
   }
@@ -81,10 +82,9 @@ class NotificationsCubit extends Cubit<NotificationsState> {
                   .limit(50)
               as List<dynamic>;
 
-      final now = DateTime.now();
       final items = rows
           .cast<Map<String, dynamic>>()
-          .map((r) => _mapRow(r, now))
+          .map(_mapRow)
           .toList();
 
       emit(NotificationsLoaded(items));
@@ -121,39 +121,18 @@ class NotificationsCubit extends Cubit<NotificationsState> {
     return super.close();
   }
 
-  static AppNotification _mapRow(Map<String, dynamic> r, DateTime now) {
+  /// Maps a `notifications` row to the shared [AppNotification]. The raw `type`
+  /// string is kept verbatim — the view layer derives its [NotifType] icon and
+  /// [NotifDay] bucket from it ([NotificationView]).
+  static AppNotification _mapRow(Map<String, dynamic> r) {
     final created = DateTime.parse(r['created_at'] as String).toLocal();
     return AppNotification(
       id: r['id'] as String,
-      type: _mapType(r['type'] as String? ?? ''),
-      title: (r['title'] as String?)?.trim() ?? '',
-      body: r['body'] as String? ?? '',
+      type: (r['type'] as String?)?.trim() ?? '',
+      text: (r['title'] as String?)?.trim() ?? '',
+      meta: r['body'] as String? ?? '',
       createdAt: created,
-      day: _dayBucket(created, now),
-      unread: r['read'] != true,
+      isRead: r['read'] == true,
     );
-  }
-
-  /// Maps the DB `type` text to a [NotifType]. Unknown types fall back to
-  /// [NotifType.reminder] so the row still renders.
-  static NotifType _mapType(String t) => switch (t) {
-    'booking_request' || 'join_request' => NotifType.joinRequest,
-    'booking_confirmed' || 'booking_created' => NotifType.bookingConfirmed,
-    'reminder' => NotifType.reminder,
-    'player_joined' => NotifType.playerJoined,
-    'join_approved' => NotifType.joinApproved,
-    'join_rejected' => NotifType.joinRejected,
-    'cancelled' || 'booking_cancelled' => NotifType.cancelled,
-    'series' || 'series_reminder' => NotifType.series,
-    _ => NotifType.reminder,
-  };
-
-  static NotifDay _dayBucket(DateTime created, DateTime now) {
-    final d = DateTime(created.year, created.month, created.day);
-    final today = DateTime(now.year, now.month, now.day);
-    final diff = today.difference(d).inDays;
-    if (diff <= 0) return NotifDay.today;
-    if (diff == 1) return NotifDay.yesterday;
-    return NotifDay.older;
   }
 }

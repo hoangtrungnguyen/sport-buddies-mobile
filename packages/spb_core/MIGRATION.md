@@ -170,18 +170,18 @@ export 'package:spb_core/spb_core.dart'
 
 | Model | Pattern | Customer | Dashboard | Notes |
 |-------|---------|----------|-----------|-------|
-| `AppNotification` | A | ⬜ todo | ✅ done | customer still local (`title`/`body`/`NotifType` enum/`NotifDay` bucket → map `title→text`, `body→meta`, `unread→!isRead`, enum→string) |
+| `AppNotification` | A | ✅ done | ✅ done | both on core. Customer kept `NotifType`/`NotifDay` as **view-layer** derived helpers (`notification_model.dart` re-exports core `AppNotification` + adds a `NotificationView` extension: `notifType`/`day` from `type`/`createdAt`); cubit maps rows to core (`title→text`, `body→meta`, `read→isRead`, raw `type` string). |
 | `Booking` enums (`BookingStatus`,`AccessPolicy`) | C | ✅ wizard | ✅ via `fromCore` | — |
 | `Booking` entity | B | ⬜ n/a | ✅ `BookingRequest.fromCore` | — |
-| `Participant` / `JoinRequest` | A/C | ⬜ todo | ⬜ todo | core classes exist + exported but **not yet wired**. Customer `SlotParticipant`/`JoinRequest`, dashboard `SlotPlayer` are candidates. |
+| `ApiException` / `NetworkException` | C (service layer) | ✅ booking client | ⬜ n/a | shared *throw/catch* vocabulary in `core/api_exception.dart`; customer's 5 booking exceptions extend the bases (names/ctors kept → catch sites untouched). Dashboard `*ApiException` are message-only + caught generically — left local (nullable-`message` clash, no shared catch sites). |
+| `Participant` / `JoinRequest` | — | ❌ **deleted from core** | ❌ **deleted from core** | Removed (were exported but unused). Neither app can adopt losslessly: customer `SlotParticipant`/`JoinRequest` are **view models** (`Color`, `rating`, `timeAgo`); dashboard `SlotPlayer.bookingStatus` is a **nullable enum where `null` = "no booking row"**, which core's non-null `String` default (`'confirmed'`) cannot represent without always showing the badge. Re-add only if a real shared data layer emerges. |
 | customer bookings DTOs (`booking_model.dart`) | — | ❌ **keep local** | n/a | wire-incompatible: singular nested `slot`, `start_at` vs `start_time`, `sport_types` list vs flat `sportType`. Do not migrate. |
 
 ### Next recommended steps
-1. **Customer `AppNotification`** (Pattern A, with an enum→string + `NotifDay`
-   relocation into the view layer). Smallest remaining surface.
-2. **`Participant`/`JoinRequest`** — wire the already-present core classes into
-   both apps, or delete them from core if not adopted (don't leave them unused
-   long-term).
+1. **Dashboard adoption of `ApiException`** — deferred. Its `*ApiException` carry a
+   non-null `message` read directly (`toString() => message`); extending a base
+   with `String? message` breaks that and there are no type-specific catch sites
+   to benefit. Revisit only if those clients gain `statusCode`/`code` semantics.
 
 ---
 

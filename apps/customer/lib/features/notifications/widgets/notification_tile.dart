@@ -81,12 +81,12 @@ class NotifTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: notif.unread
+      color: notif.isUnread
           ? mdPrimary.withValues(alpha: 0.05)
           : Colors.transparent,
       child: InkWell(
         // Tapping an unread notification marks it read.
-        onTap: notif.unread
+        onTap: notif.isUnread
             ? () => context.read<NotificationsCubit>().markRead(notif.id)
             : null,
         child: Padding(
@@ -94,7 +94,7 @@ class NotifTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _NotifIcon(type: notif.type),
+              _NotifIcon(type: notif.notifType),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -104,19 +104,19 @@ class NotifTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            notif.title.isEmpty
+                            notif.text.isEmpty
                                 ? AppLocalizations.of(context).notifTitle
-                                : notif.title,
+                                : notif.text,
                             style: TextStyle(
                               color: mdOnSurface,
                               fontSize: 14,
-                              fontWeight: notif.unread
+                              fontWeight: notif.isUnread
                                   ? FontWeight.w600
                                   : FontWeight.w400,
                             ),
                           ),
                         ),
-                        if (notif.unread)
+                        if (notif.isUnread)
                           Container(
                             width: 8,
                             height: 8,
@@ -130,7 +130,7 @@ class NotifTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      notif.body,
+                      notif.meta,
                       style: const TextStyle(
                         color: mdOnSurfaceVariant,
                         fontSize: 13,
@@ -147,7 +147,7 @@ class NotifTile extends StatelessWidget {
                         fontSize: 11,
                       ),
                     ),
-                    if (notif.type == NotifType.joinRequest)
+                    if (notif.notifType == NotifType.joinRequest)
                       _JoinRequestActions(onDismiss: onDismiss),
                   ],
                 ),
