@@ -37,9 +37,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return all
             .where(
               (n) =>
-                  n.type == NotifType.bookingConfirmed ||
-                  n.type == NotifType.cancelled ||
-                  n.type == NotifType.reminder,
+                  n.notifType == NotifType.bookingConfirmed ||
+                  n.notifType == NotifType.cancelled ||
+                  n.notifType == NotifType.reminder,
             )
             .toList();
       case 2:
@@ -50,13 +50,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 NotifType.playerJoined,
                 NotifType.joinApproved,
                 NotifType.joinRejected,
-              ].contains(n.type),
+              ].contains(n.notifType),
             )
             .toList();
       case 3:
         return all
             .where(
-              (n) => n.type == NotifType.reminder || n.type == NotifType.series,
+              (n) => n.notifType == NotifType.reminder || n.notifType == NotifType.series,
             )
             .toList();
       default:
@@ -65,7 +65,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   int _unreadCount(List<AppNotification> items) =>
-      items.where((n) => n.unread && !_dismissed.contains(n.id)).length;
+      items.where((n) => n.isUnread && !_dismissed.contains(n.id)).length;
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +134,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         if (today.isNotEmpty) ...[
                           SectionHeader(
                             label: l10n.notifSectionToday,
-                            count: today.where((n) => n.unread).length,
+                            count: today.where((n) => n.isUnread).length,
                           ),
                           ...today.map(
                             (n) => NotifTile(
